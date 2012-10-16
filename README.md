@@ -16,6 +16,10 @@ For an introduction to writing test code in Go, see http://golang.org/doc/code.h
 
 The `assert` package provides some helpful methods that allow you to write better test code in Go.
 
+  * Prints friendly, easy to read failure descriptions
+  * Allows for very readable code
+  * Optionally annotate each assertion with a message
+
 See it in action:
 
     func TestSomething(t *testing.T) {
