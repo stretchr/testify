@@ -16,10 +16,10 @@ The `assert` package provides some helpful methods that allow you to write bette
 
 Some examples:
 
-   func TestSomething(t *testing.T) {
+    func TestSomething(t *testing.T) {
    
-     assert.Equal(t, 123, 123, "they should be equal")
-     assert.NotNil(t, object)
-     assert.Nil(t, object)
+      assert.Equal(t, 123, 123, "they should be equal")
+      assert.NotNil(t, object)
+      assert.Nil(t, object)
 
-   }
+    }
