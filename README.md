@@ -9,8 +9,8 @@ Go code (golang) set of packages that provide many tools for testifying that you
 
 Read the API documentation: http://go.pkgdoc.org/github.com/stretchrcom/testify
 
-Assert package
---------------
+`assert` package
+----------------
 
 The `assert` package provides some helpful methods that allow you to write better test code in Go.
 
