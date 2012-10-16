@@ -14,12 +14,21 @@ Assert package
 
 The `assert` package provides some helpful methods that allow you to write better test code in Go.
 
-Some examples:
+See it in action:
 
     func TestSomething(t *testing.T) {
    
       assert.Equal(t, 123, 123, "they should be equal")
-      assert.NotNil(t, object)
+
       assert.Nil(t, object)
 
+      if assert.NotNil(t, object) {
+
+        assert.Equal(t, "Something", object.Value)
+
+      }
+
     }
+
+  * Every assert func takes the `testing.T` object as the first argument.  This is how it writes the errors out through the normal `go test` capabilities.
+  * Every assert func returns a bool indicating whether the assertion was successful or not, this is useful for if you want to go on making further assertions under certain conditions.
