@@ -55,6 +55,8 @@ The `mock` package provides a mechanism for easily writing mock objects that can
 
 For more information on how to write mock code, check out the API documentation for the `mock` package.
 
+------
+
 Licence
 =======
 Copyright (c) 2012 Mat Ryer and Tyler Bunnell
