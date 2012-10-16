@@ -3,11 +3,9 @@ Testify - Thou shalt write tests
 
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
 
-  * Easy assertions
-  * Mocking
-  * HTTP response trapping
-
-Read the API documentation: http://go.pkgdoc.org/github.com/stretchrcom/testify
+  * [Easy assertions][http://go.pkgdoc.org/github.com/stretchrcom/testify/assert]
+  * [Mocking][http://go.pkgdoc.org/github.com/stretchrcom/testify/mock]
+  * [HTTP response trapping][[http://go.pkgdoc.org/github.com/stretchrcom/testify/http]]
 
 For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
 
