@@ -7,4 +7,4 @@ Go code (golang) set of packages that provide many tools for testifying that you
   * Easy assertions
   * HTTP mocking
 
- 
+Read the API documentation: http://go.pkgdoc.org/github.com/stretchrcom/tetify
