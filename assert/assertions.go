@@ -62,7 +62,7 @@ func CallerInfo() string {
 // Implements asserts that an object is implemented by the specified interface.
 //
 // Example
-//    assert.Implements(t, (*core.Codec)(nil), new(JsonCodec), "JsonCodec")
+//    assert.Implements(t, (*MyInterface)(nil), new(MyObject), "MyObject")
 func Implements(t *testing.T, interfaceObject interface{}, object interface{}, message ...string) bool {
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
 	return True(t, reflect.TypeOf(object).Implements(interfaceType), fmt.Sprintf("%sObject must implement %s. %s", CallerInfo(), interfaceType, message))
@@ -74,6 +74,10 @@ func IsType(t *testing.T, expectedType interface{}, object interface{}, message 
 }
 
 // Equal asserts that two objects are equal.
+//
+//   assert.Equal(t, 123, 123, "123 and 123 should be equal")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func Equal(t *testing.T, a, b interface{}, message ...string) bool {
 
 	if !ObjectsAreEqual(a, b) {
@@ -85,6 +89,10 @@ func Equal(t *testing.T, a, b interface{}, message ...string) bool {
 }
 
 // NotNil asserts that the specified object is not nil.
+//
+//   assert.NotNil(t, err, "err should be something")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func NotNil(t *testing.T, object interface{}, message ...string) bool {
 
 	var success bool = true
@@ -103,6 +111,10 @@ func NotNil(t *testing.T, object interface{}, message ...string) bool {
 }
 
 // Nil asserts that the specified object is nil.
+//
+//   assert.Nil(t, err, "err should be nothing")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func Nil(t *testing.T, object interface{}, message ...string) bool {
 
 	if object == nil {
@@ -117,16 +129,28 @@ func Nil(t *testing.T, object interface{}, message ...string) bool {
 }
 
 // True asserts that the specified value is true.
+//
+//   assert.True(t, myBool, "myBool should be true")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func True(t *testing.T, value bool, message ...string) bool {
 	return Equal(t, true, value, message...)
 }
 
 // False asserts that the specified value is true.
+//
+//   assert.False(t, myBool, "myBool should be false")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func False(t *testing.T, value bool, message ...string) bool {
 	return Equal(t, false, value, message...)
 }
 
 // NotEqual asserts that the specified values are NOT equal.
+//
+//   assert.NotEqual(t, obj1, obj2, "two objects shouldn't be equal")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func NotEqual(t *testing.T, a, b interface{}, message ...string) bool {
 
 	if ObjectsAreEqual(a, b) {
@@ -138,6 +162,10 @@ func NotEqual(t *testing.T, a, b interface{}, message ...string) bool {
 }
 
 // Contains asserts that the specified string contains the specified substring.
+//
+//   assert.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func Contains(t *testing.T, s, contains string, message ...string) bool {
 
 	if !strings.Contains(s, contains) {
@@ -150,6 +178,10 @@ func Contains(t *testing.T, s, contains string, message ...string) bool {
 }
 
 // NotContains asserts that the specified string does NOT contain the specified substring.
+//
+//   assert.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
+//
+// Returns whether the assertion was successful (true) or not (false).
 func NotContains(t *testing.T, s, contains string, message ...string) bool {
 
 	if strings.Contains(s, contains) {
@@ -161,7 +193,8 @@ func NotContains(t *testing.T, s, contains string, message ...string) bool {
 
 }
 
-// PanicTestFunc defines a type that is used for type checking and convenience
+// PanicTestFunc defines a func that should be passed to the assert.Panics and assert.NotPanics 
+// methods, and represents a simple func that takes no arguments, and returns nothing.
 type PanicTestFunc func()
 
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
@@ -185,12 +218,20 @@ func didPanic(f PanicTestFunc) bool {
 
 }
 
-// Panics asserts that the function passed to it panics
+// Panics asserts that the code inside the specified PanicTestFunc panics.
+//
+//   assert.Panics(t, func(){
+//     GoCrazy()
+//   }, "Calling GoCrazy() should panic")
 func Panics(t *testing.T, f PanicTestFunc, message ...string) bool {
 	return True(t, didPanic(f), fmt.Sprintf("Func should panic but didn't. %s", message))
 }
 
-// NotPanics asserts that the function passed to it does not panic
+// NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
+//
+//   assert.NotPanics(t, func(){
+//     RemainCalm()
+//   }, "Calling RemainCalm() should NOT panic")
 func NotPanics(t *testing.T, f PanicTestFunc, message ...string) bool {
 	return False(t, didPanic(f), fmt.Sprintf("Func should not panic. %s", message))
 }
