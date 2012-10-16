@@ -7,7 +7,7 @@ Go code (golang) set of packages that provide many tools for testifying that you
   * Mocking
   * HTTP response trapping
 
-Read the API documentation: http://go.pkgdoc.org/github.com/stretchrcom/tetify
+Read the API documentation: http://go.pkgdoc.org/github.com/stretchrcom/testify
 
 Assert package
 --------------
