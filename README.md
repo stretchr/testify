@@ -40,3 +40,15 @@ See it in action:
 
   * Every assert func takes the `testing.T` object as the first argument.  This is how it writes the errors out through the normal `go test` capabilities.
   * Every assert func returns a bool indicating whether the assertion was successful or not, this is useful for if you want to go on making further assertions under certain conditions.
+
+`http` package
+--------------
+
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.
+
+`mock` package
+--------------
+
+The `mock` package provides a mechanism for easily writing mock objects that can be used in place of real objects when writing test code.
+
+For more information on how to write mock code, check out the API documentation for the `mock` package.
