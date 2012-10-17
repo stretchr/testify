@@ -1,4 +1,4 @@
-Testify - Thou shalt write tests
+Testify - Thou Shalt Write Tests
 ================================
 
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
@@ -60,6 +60,14 @@ The `mock` package provides a mechanism for easily writing mock objects that can
 For more information on how to write mock code, check out the API documentation for the `mock` package.
 
 ------
+
+Contributing
+============
+
+Please feel free to submit issues, fork the repository and send pull requests!
+
+When submitting an issue, we ask that you please also submit a complete test function that demonstrates the issue.
+
 
 Licence
 =======
