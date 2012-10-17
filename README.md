@@ -16,6 +16,8 @@ Get started:
   * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
 
+To make your testing life easier, check out our other project, [gort](http://github.com/stretchrcom/gort).
+
 `assert` package
 ----------------
 
