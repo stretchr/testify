@@ -27,7 +27,37 @@
 // Every assertion function also takes an optional string message as the final argument,
 // allowing custom error messages to be appended to the message the assertion method outputs.
 //
-// For example, here is the method signature for assert.Equal:
+// Here is an overview of the assert functions:
 //
-//     assert.Equal(t, expected, actual [, message])
+//    assert.Equal(t, expected, actual [, message])
+//    
+//    assert.NotEqual(t, notExpected, actual [, message])
+//    
+//    assert.True(t, actualBool [, message])
+//    
+//    assert.False(t, actualBool [, message])
+//    
+//    assert.Nil(t, actualObject [, message])
+//    
+//    assert.NotNil(t, actualObject [, message])
+//    
+//    assert.Implements(t, (*MyInterface)(nil), new(MyObject) [,message])
+//
+//    assert.IsType(t, expectedObject, actualObject [, message])
+//    
+//    assert.Contains(t, string, substring [, message])
+//
+//    assert.NotContains(t, string, substring [, message])
+//
+//    assert.Panics(t, func(){
+//	    
+//	    // call code that should panic
+//	    
+//    } [, message])
+//
+//    assert.NotPanics(t, func(){
+//	    
+//	    // call code that should not panic
+//	    
+//    } [, message])
 package assert
