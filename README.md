@@ -13,10 +13,11 @@ Get started:
 
   * Install testify with [one line of code](#installation)
   * Read the API Documentation http://go.pkgdoc.org/github.com/stretchrcom/testify
+  * To make your testing life easier, check out our other project, [gort](http://github.com/stretchrcom/gort)
   * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
 
-To make your testing life easier, check out our other project, [gort](http://github.com/stretchrcom/gort).
+
 
 `assert` package
 ----------------
