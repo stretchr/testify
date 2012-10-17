@@ -189,14 +189,14 @@ func TestNotContains(t *testing.T) {
 
 func TestDidPanic(t *testing.T) {
 
-	if !didPanic(func() {
+	if funcDidPanic, _ := didPanic(func() {
 		panic("Panic!")
-	}) {
+	}); !funcDidPanic {
 		t.Error("didPanic should return true")
 	}
 
-	if didPanic(func() {
-	}) {
+	if funcDidPanic, _ := didPanic(func() {
+	}); funcDidPanic {
 		t.Error("didPanic should return false")
 	}
 
