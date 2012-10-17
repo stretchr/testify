@@ -61,6 +61,30 @@ For more information on how to write mock code, check out the API documentation 
 
 ------
 
+Installation
+============
+
+To install Testify, use `go get`:
+
+    go get github.com/stretchrcom/testify
+
+Then import the `testify` package into your code using this template:
+
+    package yours
+
+    import (
+      "testing"
+      "github.com/stretchrcom/testify"
+    )
+
+    func TestSomething(t *testing.T) {
+
+      assert.True(t, true, "True is true!")
+
+    }
+
+------
+
 Contributing
 ============
 
