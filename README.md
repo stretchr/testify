@@ -62,6 +62,61 @@ The `http` package contains test objects useful for testing code that relies on 
 
 The `mock` package provides a mechanism for easily writing mock objects that can be used in place of real objects when writing test code.
 
+An example test function that tests a piece of code that relies on an external object `testObj`, can setup expectations (testify) and assert that they indeed happened:
+
+    package yours
+
+    import (
+      "testing"
+      "github.com/stretchrcom/testify/mock"
+    )
+
+    /*
+      Test objects
+    */
+
+    // MyMockedObject is a mocked object that implements an interface
+    // that describes an object that the code I am testing relies on.
+    type MyMockedObject struct{
+      mock.Mock
+    }
+
+    // DoSomething is a method on MyMockedObject that implements some interface
+    // and just records the activity, and returns what the Mock object tells it to.
+    //
+    // In the real object, this method would do something useful, but since this
+    // is a mocked object - we're just going to stub it out.
+    //
+    // NOTE: This method is not being tested here, code that uses this object is.
+    func (m *MyMockedObject) DoSomething(number int) (bool, error) {
+
+      args := m.Mock.Called(number)
+      return args.Bool(0), args.Error(1)
+
+    }
+
+    /*
+      Actual test functions
+    */
+
+    // TestSomething is an example of how to use our test object to
+    // make assertions about some target code we are testing.
+    func TestSomething(t *testing.T) {
+
+      // create an instance of our test object
+      testObj := new(MyMockedObject)
+
+      // setup expectations
+      testObj.On("DoSomething", 123).Return(true, nil)
+
+      // call the code we are testing
+      targetFuncThatDoesSomethingWithObj(testObj)
+
+      // assert that the expectations were met
+      testObj.Mock.AssertExpectations(t)
+
+    }
+
 For more information on how to write mock code, check out the [API documentation for the `mock` package](http://go.pkgdoc.org/github.com/stretchrcom/testify/mock).
 
 ------
@@ -73,13 +128,19 @@ To install Testify, use `go get`:
 
     go get github.com/stretchrcom/testify
 
-Then import the `testify` package into your code using this template:
+This will then make the following packages available to you:
+
+    github.com/stretchrcom/testify/assert
+    github.com/stretchrcom/testify/mock
+    github.com/stretchrcom/testify/http
+
+Import the `testify/assert` package into your code using this template:
 
     package yours
 
     import (
       "testing"
-      "github.com/stretchrcom/testify"
+      "github.com/stretchrcom/testify/assert"
     )
 
     func TestSomething(t *testing.T) {
