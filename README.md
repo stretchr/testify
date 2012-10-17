@@ -3,20 +3,23 @@ Testify - Thou Shalt Write Tests
 
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
 
-  * Easy assertions
-  * Mocking
-  * HTTP response trapping
+Features include:
+
+  * [Easy assertions](#assert-package)
+  * [Mocking](#mock-package)
+  * [HTTP response trapping](#http-package)
 
 Get started:
 
+  * Install testify with [one line of code](#installation)
   * Read the API Documentation http://go.pkgdoc.org/github.com/stretchrcom/testify
   * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
-  * Install testify with [one line of code](#installation)
+  * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
 
 `assert` package
 ----------------
 
-The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the assert package](http://go.pkgdoc.org/github.com/stretchrcom/testify/assert).
+The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the `assert` package](http://go.pkgdoc.org/github.com/stretchrcom/testify/assert).
 
   * Prints friendly, easy to read failure descriptions
   * Allows for very readable code
@@ -52,7 +55,7 @@ See it in action:
 `http` package
 --------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the http package](http://go.pkgdoc.org/github.com/stretchrcom/testify/http).
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the `http` package](http://go.pkgdoc.org/github.com/stretchrcom/testify/http).
 
 `mock` package
 --------------
