@@ -66,7 +66,7 @@ Contributing
 
 Please feel free to submit issues, fork the repository and send pull requests!
 
-When submitting an issue, we ask that you please also submit a complete test function that demonstrates the issue.
+When submitting an issue, we ask that you please include a complete test function that demonstrates the issue.
 
 
 Licence
