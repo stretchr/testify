@@ -59,6 +59,8 @@ func CallerInfo() string {
 	return fmt.Sprintf("%s:%d", file, line)
 }
 
+// getWhitespaceString returns a string that is long enough to overwrite the default
+// output from the go testing framework.
 func getWhitespaceString() string {
 
 	_, file, line, ok := runtime.Caller(1)
