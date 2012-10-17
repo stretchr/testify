@@ -7,14 +7,16 @@ Go code (golang) set of packages that provide many tools for testifying that you
   * Mocking
   * HTTP response trapping
 
-Read the API Documentation http://go.pkgdoc.org/github.com/stretchrcom/testify
+Get started:
 
-For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
+  * Read the API Documentation http://go.pkgdoc.org/github.com/stretchrcom/testify
+  * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
+  * Install testify with [one line of code](#installation)
 
 `assert` package
 ----------------
 
-The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the API documentation for the assert package: http://go.pkgdoc.org/github.com/stretchrcom/testify/assert
+The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the assert package](http://go.pkgdoc.org/github.com/stretchrcom/testify/assert).
 
   * Prints friendly, easy to read failure descriptions
   * Allows for very readable code
@@ -50,14 +52,14 @@ See it in action:
 `http` package
 --------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the API documentation for the http package: http://go.pkgdoc.org/github.com/stretchrcom/testify/http
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the http package](http://go.pkgdoc.org/github.com/stretchrcom/testify/http).
 
 `mock` package
 --------------
 
 The `mock` package provides a mechanism for easily writing mock objects that can be used in place of real objects when writing test code.
 
-For more information on how to write mock code, check out the API documentation for the `mock` package: http://go.pkgdoc.org/github.com/stretchrcom/testify/mock
+For more information on how to write mock code, check out the [API documentation for the `mock` package](http://go.pkgdoc.org/github.com/stretchrcom/testify/mock).
 
 ------
 
