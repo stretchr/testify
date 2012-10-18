@@ -61,20 +61,61 @@ func CallerInfo() string {
 		}
 	}
 
-	return fmt.Sprintf("[ %s:%d ] - ", file, line)
+	return fmt.Sprintf("%s:%d", file, line)
+}
+
+// getWhitespaceString returns a string that is long enough to overwrite the default
+// output from the go testing framework.
+func getWhitespaceString() string {
+
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		return ""
+	}
+	parts := strings.Split(file, "/")
+	file = parts[len(parts)-1]
+
+	return strings.Repeat(" ", len(fmt.Sprintf("%s:%d:      ", file, line)))
+
 }
 
 // Implements asserts that an object is implemented by the specified interface.
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject), "MyObject")
 func Implements(t *testing.T, interfaceObject interface{}, object interface{}, message ...string) bool {
+
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
-	return True(t, reflect.TypeOf(object).Implements(interfaceType), fmt.Sprintf("%sObject must implement %s. %s", CallerInfo(), interfaceType, message))
+
+	if !reflect.TypeOf(object).Implements(interfaceType) {
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tObject must implement: %v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), interfaceType, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tObject must implement: %v\n\r", getWhitespaceString(), CallerInfo(), interfaceType)
+		}
+
+		return false
+	}
+
+	return true
+
 }
 
 // IsType asserts that the specified objects are of the same type.
 func IsType(t *testing.T, expectedType interface{}, object interface{}, message ...string) bool {
-	return Equal(t, reflect.TypeOf(object), reflect.TypeOf(expectedType), fmt.Sprintf("Object expected to be of type %s, but was %s. %s", reflect.TypeOf(expectedType), reflect.TypeOf(object), message))
+
+	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tObject expected to be of type %v, but was %v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), reflect.TypeOf(expectedType), reflect.TypeOf(object), message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tObject expected to be of type %v, but was %v\n\r", getWhitespaceString(), CallerInfo(), reflect.TypeOf(expectedType), reflect.TypeOf(object))
+		}
+
+		return false
+	}
+
+	return true
 }
 
 // Equal asserts that two objects are equal.
@@ -85,9 +126,16 @@ func IsType(t *testing.T, expectedType interface{}, object interface{}, message 
 func Equal(t *testing.T, a, b interface{}, message ...string) bool {
 
 	if !ObjectsAreEqual(a, b) {
-		t.Errorf("%s%s Not equal. %#v != %#v.", CallerInfo(), message, a, b)
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tNot equal: %#v != %#v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), a, b, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tNot equal: %#v != %#v\n\r", getWhitespaceString(), CallerInfo(), a, b)
+		}
+
 		return false
 	}
+
 	return true
 
 }
@@ -108,7 +156,13 @@ func NotNil(t *testing.T, object interface{}, message ...string) bool {
 	}
 
 	if !success {
-		t.Errorf("%sExpected not to be nil. %s", CallerInfo(), message)
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tExpected not to be nil.\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tExpected not to be nil.\n\r", getWhitespaceString(), CallerInfo())
+		}
+
 	}
 
 	return success
@@ -127,7 +181,11 @@ func Nil(t *testing.T, object interface{}, message ...string) bool {
 		return true
 	}
 
-	t.Errorf("%sExpected to be nil but was %#v. %s", CallerInfo(), object, message)
+	if len(message) > 0 {
+		t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tExpected nil, but got: %#v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), object, message)
+	} else {
+		t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tExpected nil, but got: %#v\n\r", getWhitespaceString(), CallerInfo(), object)
+	}
 
 	return false
 }
@@ -138,7 +196,20 @@ func Nil(t *testing.T, object interface{}, message ...string) bool {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func True(t *testing.T, value bool, message ...string) bool {
-	return Equal(t, true, value, message...)
+
+	if value != true {
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be true\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be true\n\r", getWhitespaceString(), CallerInfo())
+		}
+
+		return false
+	}
+
+	return true
+
 }
 
 // False asserts that the specified value is true.
@@ -147,7 +218,20 @@ func True(t *testing.T, value bool, message ...string) bool {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func False(t *testing.T, value bool, message ...string) bool {
-	return Equal(t, false, value, message...)
+
+	if value != false {
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be false\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be false\n\r", getWhitespaceString(), CallerInfo())
+		}
+
+		return false
+	}
+
+	return true
+
 }
 
 // NotEqual asserts that the specified values are NOT equal.
@@ -158,9 +242,16 @@ func False(t *testing.T, value bool, message ...string) bool {
 func NotEqual(t *testing.T, a, b interface{}, message ...string) bool {
 
 	if ObjectsAreEqual(a, b) {
-		t.Errorf("%s%s Should not be equal. %#v == %#v.", CallerInfo(), message, a, b)
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould not be equal.\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould not be equal.\n\r", getWhitespaceString(), CallerInfo())
+		}
+
 		return false
 	}
+
 	return true
 
 }
@@ -173,7 +264,13 @@ func NotEqual(t *testing.T, a, b interface{}, message ...string) bool {
 func Contains(t *testing.T, s, contains string, message ...string) bool {
 
 	if !strings.Contains(s, contains) {
-		t.Errorf("%s %s '%s' does not contain '%s'", CallerInfo(), message, s, contains)
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t\"%s\" does not contain \"%s\"\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), s, contains, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t\"%s\" does not contain \"%s\"\n\r", getWhitespaceString(), CallerInfo(), s, contains)
+		}
+
 		return false
 	}
 
@@ -189,7 +286,13 @@ func Contains(t *testing.T, s, contains string, message ...string) bool {
 func NotContains(t *testing.T, s, contains string, message ...string) bool {
 
 	if strings.Contains(s, contains) {
-		t.Errorf("%s%s '%s' should not contain '%s'", CallerInfo(), message, s, contains)
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t\"%s\" should not contain \"%s\"\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), s, contains, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t\"%s\" should not contain \"%s\"\n\r", getWhitespaceString(), CallerInfo(), s, contains)
+		}
+
 		return false
 	}
 
@@ -202,13 +305,14 @@ func NotContains(t *testing.T, s, contains string, message ...string) bool {
 type PanicTestFunc func()
 
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
-func didPanic(f PanicTestFunc) bool {
+func didPanic(f PanicTestFunc) (bool, interface{}) {
 
 	var didPanic bool = false
+	var message interface{}
 	func() {
 
 		defer func() {
-			if r := recover(); r != nil {
+			if message = recover(); message != nil {
 				didPanic = true
 			}
 		}()
@@ -218,7 +322,7 @@ func didPanic(f PanicTestFunc) bool {
 
 	}()
 
-	return didPanic
+	return didPanic, message
 
 }
 
@@ -230,7 +334,18 @@ func didPanic(f PanicTestFunc) bool {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Panics(t *testing.T, f PanicTestFunc, message ...string) bool {
-	return True(t, didPanic(f), fmt.Sprintf("Func should panic but didn't. %s", message))
+
+	if funcDidPanic, panicValue := didPanic(f); !funcDidPanic {
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should panic\n\r\tPanic value:\t%v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), f, panicValue, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should panic\n\r\tPanic value:\t%v\n\r", getWhitespaceString(), CallerInfo(), f, panicValue)
+		}
+		return false
+	}
+
+	return true
 }
 
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
@@ -241,5 +356,16 @@ func Panics(t *testing.T, f PanicTestFunc, message ...string) bool {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func NotPanics(t *testing.T, f PanicTestFunc, message ...string) bool {
-	return False(t, didPanic(f), fmt.Sprintf("Func should not panic. %s", message))
+	if funcDidPanic, panicValue := didPanic(f); funcDidPanic {
+
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should panic\n\r\tPanic value:\t%v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), f, panicValue, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should panic\n\r\tPanic value:\t%v\n\r", getWhitespaceString(), CallerInfo(), f, panicValue)
+		}
+
+		return false
+	}
+
+	return true
 }
