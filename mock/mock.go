@@ -89,6 +89,30 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (bool, 
 	return false, nil
 }
 
+func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *Call) {
+
+	diffCount := 0
+	var closestCall *Call = nil
+
+	for _, call := range m.ExpectedCalls {
+		if call.Method == method {
+
+			_, tempDiffCount := call.Arguments.Diff(arguments)
+			if tempDiffCount < diffCount || diffCount == 0 {
+				diffCount = tempDiffCount
+				closestCall = &call
+			}
+
+		}
+	}
+
+	if closestCall == nil {
+		return false, nil
+	}
+
+	return true, closestCall
+}
+
 func callString(method string, arguments Arguments, includeArgumentValues bool) string {
 
 	var argValsString string = ""
@@ -128,7 +152,14 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
 
-		panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
+		closestFound, closestCall := m.findClosestCall(functionName, arguments...)
+
+		if closestFound {
+			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n", callString(functionName, arguments, true), callString(functionName, closestCall.Arguments, true)))
+		} else {
+			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
+		}
+
 	}
 
 	// add the call
