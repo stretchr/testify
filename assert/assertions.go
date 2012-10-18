@@ -25,6 +25,11 @@ func ObjectsAreEqual(a, b interface{}) bool {
 		return true
 	}
 
+	// Last ditch effort
+	if fmt.Sprintf("%#v", a) == fmt.Sprintf("%#v", b) {
+		return true
+	}
+
 	return false
 
 }
