@@ -11,7 +11,7 @@ Features include:
 
 Get started:
 
-  * Install testify with [one line of code](#installation)
+  * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
   * Read the API Documentation http://go.pkgdoc.org/github.com/stretchrcom/testify
   * To make your testing life easier, check out our other project, [gort](http://github.com/stretchrcom/gort)
   * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
