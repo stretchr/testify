@@ -154,6 +154,15 @@ Import the `testify/assert` package into your code using this template:
 
 ------
 
+Staying up to date
+==================
+
+To update Testify, use `go get -u`:
+
+    go get -u github.com/stretchrcom/testify
+
+------
+
 Contributing
 ============
 
