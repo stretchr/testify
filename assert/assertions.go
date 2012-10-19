@@ -36,22 +36,20 @@ the problem actually occured in calling code.*/
 // CallerInfo returns a string containing the file and line number of the assert call
 // that failed. 
 func CallerInfo() string {
-	_, file, line, ok := runtime.Caller(0)
-	if !ok {
-		return ""
-	}
-	parts := strings.Split(file, "/")
-	thisDir := parts[len(parts)-2]
 
-	for i := 1; ; i++ {
+	file := ""
+	line := 0
+	ok := false
+
+	for i := 0; ; i++ {
 		_, file, line, ok = runtime.Caller(i)
 		if !ok {
 			return ""
 		}
-		parts = strings.Split(file, "/")
+		parts := strings.Split(file, "/")
 		dir := parts[len(parts)-2]
 		file = parts[len(parts)-1]
-		if thisDir != dir || file == "assertions_test.go" {
+		if (dir != "assert" && dir != "mock") || file == "mock_test.go" {
 			break
 		}
 	}
