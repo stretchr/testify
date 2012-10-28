@@ -357,9 +357,9 @@ func NotPanics(t *testing.T, f PanicTestFunc, message ...string) bool {
 	if funcDidPanic, panicValue := didPanic(f); funcDidPanic {
 
 		if len(message) > 0 {
-			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should panic\n\r\tPanic value:\t%v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), f, panicValue, message)
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should not panic\n\r\tPanic value:\t%v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), f, panicValue, message)
 		} else {
-			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should panic\n\r\tPanic value:\t%v\n\r", getWhitespaceString(), CallerInfo(), f, panicValue)
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tfunc %#v should not panic\n\r\tPanic value:\t%v\n\r", getWhitespaceString(), CallerInfo(), f, panicValue)
 		}
 
 		return false
