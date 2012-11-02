@@ -8,6 +8,9 @@ import (
 	"testing"
 )
 
+// Comparison a custom function that returns true on success and false on failure
+type Comparison func() (success bool)
+
 /*
 	Helper functions
 */
@@ -296,6 +299,19 @@ func NotContains(t *testing.T, s, contains string, message ...string) bool {
 
 	return true
 
+}
+
+// Uses a Comparison to assert a complex condition.
+func Condition(t *testing.T, comp Comparison, message ...string) bool {
+	result := comp()
+	if !result {
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tCondition failed!\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tCondition failed!\n\r", getWhitespaceString(), CallerInfo())
+		}
+	}
+	return result
 }
 
 // PanicTestFunc defines a func that should be passed to the assert.Panics and assert.NotPanics 
