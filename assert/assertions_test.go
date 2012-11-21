@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+type CustomError struct{}
+
+func (c CustomError) Error() string { return "Error" }
+
 // AssertionTesterInterface defines an interface to be used for testing assertion methods
 type AssertionTesterInterface interface {
 	TestMethod()
@@ -112,6 +116,54 @@ func TestNil(t *testing.T) {
 	if Nil(mockT, new(AssertionTesterConformingObject)) {
 		t.Error("Nil should return false: object is not nil")
 	}
+
+}
+
+func TestNil_ValueType(t *testing.T) {
+
+	f := func() AssertionTesterConformingObject {
+		return AssertionTesterConformingObject{}
+	}
+
+	mockT := new(testing.T)
+	obj := f()
+	False(t, Nil(mockT, obj))
+
+}
+
+func TestNil_ValueType_IsNil(t *testing.T) {
+
+	f := func() AssertionTesterInterface {
+		return nil
+	}
+
+	mockT := new(testing.T)
+	obj := f()
+	True(t, Nil(mockT, obj))
+
+}
+
+func TestNil_ValueError(t *testing.T) {
+
+	f := func() error {
+		return CustomError{}
+	}
+
+	mockT := new(testing.T)
+	obj := f()
+	False(t, Nil(mockT, obj))
+
+}
+
+func TestNotNil_ValueError(t *testing.T) {
+
+	f := func() error {
+		return CustomError{}
+	}
+
+	mockT := new(testing.T)
+	obj := f()
+	True(t, NotNil(mockT, obj))
 
 }
 
@@ -331,5 +383,17 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
 	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
 	True(t, NotEmpty(mockT, true), "True value is not empty")
+
+}
+
+func TestEmpty_Value(t *testing.T) {
+
+	f := func() error {
+		return CustomError{}
+	}
+
+	mockT := new(testing.T)
+	obj := f()
+	False(t, Empty(mockT, obj))
 
 }

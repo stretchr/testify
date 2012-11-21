@@ -173,8 +173,13 @@ func NotNil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
 
 	if object == nil {
 		success = false
-	} else if reflect.ValueOf(object).IsNil() {
-		success = false
+	}
+
+	val := reflect.ValueOf(object)
+	if val.CanAddr() {
+		if reflect.ValueOf(object).IsNil() {
+			success = false
+		}
 	}
 
 	if !success {
@@ -201,8 +206,13 @@ func Nil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
 
 	if object == nil {
 		return true
-	} else if reflect.ValueOf(object).IsNil() {
-		return true
+	}
+
+	val := reflect.ValueOf(object)
+	if val.CanAddr() {
+		if reflect.ValueOf(object).IsNil() {
+			return true
+		}
 	}
 
 	if len(message) > 0 {
