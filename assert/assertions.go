@@ -424,3 +424,37 @@ func NotPanics(t *testing.T, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 
 	return true
 }
+
+/*
+	Errors
+*/
+
+// NoError asserts that a function returned no error (i.e. `nil`).
+//
+//   actualObj, err := SomeFunction()
+//   if assert.NoError(t, err) {
+//	   assert.Equal(t, actualObj, expectedObj)
+//   }
+//
+// Returns whether the assertion was successful (true) or not (false).
+func NoError(t *testing.T, theError error, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+	return Nil(t, theError, "No error is expected but got %v. %s", theError, message)
+
+}
+
+// Error asserts that a function returned an error (i.e. not `nil`).
+//
+//   actualObj, err := SomeFunction()
+//   if assert.Error(t, err, "An error was expected") {
+//	   assert.Equal(t, err, expectedError)
+//   }
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Error(t *testing.T, theError error, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+	return NotNil(t, theError, "An error is expected but got nil. %s", message)
+
+}

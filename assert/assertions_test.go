@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -246,5 +247,37 @@ func TestEqual_Funcs(t *testing.T) {
 
 	Equal(t, f1_copy, f1, "Funcs are the same and should be considered equal")
 	NotEqual(t, f1, f2, "f1 and f2 are different")
+
+}
+
+func TestNoError(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	// start with a nil error
+	var err error = nil
+
+	True(t, NoError(mockT, err), "NoError should return True for nil arg")
+
+	// now set an error
+	err = errors.New("Some error")
+
+	False(t, NoError(mockT, err), "NoError with error should return False")
+
+}
+
+func TestError(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	// start with a nil error
+	var err error = nil
+
+	False(t, Error(mockT, err), "Error should return False for nil arg")
+
+	// now set an error
+	err = errors.New("Some error")
+
+	True(t, Error(mockT, err), "Error with error should return True")
 
 }
