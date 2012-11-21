@@ -42,7 +42,7 @@ internally, causing it to print the file:line of the assert method, rather than 
 the problem actually occured in calling code.*/
 
 // CallerInfo returns a string containing the file and line number of the assert call
-// that failed. 
+// that failed.
 func CallerInfo() string {
 
 	file := ""
@@ -80,10 +80,25 @@ func getWhitespaceString() string {
 
 }
 
+func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
+	if len(msgAndArgs) == 0 || msgAndArgs == nil {
+		return ""
+	}
+	if len(msgAndArgs) == 1 {
+		return msgAndArgs[0].(string)
+	}
+	if len(msgAndArgs) > 1 {
+		return fmt.Sprintf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+	}
+	return ""
+}
+
 // Implements asserts that an object is implemented by the specified interface.
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject), "MyObject")
-func Implements(t *testing.T, interfaceObject interface{}, object interface{}, message ...string) bool {
+func Implements(t *testing.T, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
 
@@ -103,7 +118,9 @@ func Implements(t *testing.T, interfaceObject interface{}, object interface{}, m
 }
 
 // IsType asserts that the specified objects are of the same type.
-func IsType(t *testing.T, expectedType interface{}, object interface{}, message ...string) bool {
+func IsType(t *testing.T, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
 
@@ -124,7 +141,9 @@ func IsType(t *testing.T, expectedType interface{}, object interface{}, message 
 //    assert.Equal(t, 123, 123, "123 and 123 should be equal")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Equal(t *testing.T, a, b interface{}, message ...string) bool {
+func Equal(t *testing.T, a, b interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if !ObjectsAreEqual(a, b) {
 
@@ -146,7 +165,9 @@ func Equal(t *testing.T, a, b interface{}, message ...string) bool {
 //    assert.NotNil(t, err, "err should be something")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotNil(t *testing.T, object interface{}, message ...string) bool {
+func NotNil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	var success bool = true
 
@@ -174,7 +195,9 @@ func NotNil(t *testing.T, object interface{}, message ...string) bool {
 //    assert.Nil(t, err, "err should be nothing")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Nil(t *testing.T, object interface{}, message ...string) bool {
+func Nil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if object == nil {
 		return true
@@ -196,7 +219,9 @@ func Nil(t *testing.T, object interface{}, message ...string) bool {
 //    assert.True(t, myBool, "myBool should be true")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func True(t *testing.T, value bool, message ...string) bool {
+func True(t *testing.T, value bool, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if value != true {
 
@@ -218,7 +243,9 @@ func True(t *testing.T, value bool, message ...string) bool {
 //    assert.False(t, myBool, "myBool should be false")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func False(t *testing.T, value bool, message ...string) bool {
+func False(t *testing.T, value bool, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if value != false {
 
@@ -240,7 +267,9 @@ func False(t *testing.T, value bool, message ...string) bool {
 //    assert.NotEqual(t, obj1, obj2, "two objects shouldn't be equal")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotEqual(t *testing.T, a, b interface{}, message ...string) bool {
+func NotEqual(t *testing.T, a, b interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if ObjectsAreEqual(a, b) {
 
@@ -262,7 +291,9 @@ func NotEqual(t *testing.T, a, b interface{}, message ...string) bool {
 //    assert.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Contains(t *testing.T, s, contains string, message ...string) bool {
+func Contains(t *testing.T, s, contains string, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if !strings.Contains(s, contains) {
 
@@ -284,7 +315,9 @@ func Contains(t *testing.T, s, contains string, message ...string) bool {
 //    assert.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotContains(t *testing.T, s, contains string, message ...string) bool {
+func NotContains(t *testing.T, s, contains string, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if strings.Contains(s, contains) {
 
@@ -302,7 +335,10 @@ func NotContains(t *testing.T, s, contains string, message ...string) bool {
 }
 
 // Uses a Comparison to assert a complex condition.
-func Condition(t *testing.T, comp Comparison, message ...string) bool {
+func Condition(t *testing.T, comp Comparison, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+
 	result := comp()
 	if !result {
 		if len(message) > 0 {
@@ -314,7 +350,7 @@ func Condition(t *testing.T, comp Comparison, message ...string) bool {
 	return result
 }
 
-// PanicTestFunc defines a func that should be passed to the assert.Panics and assert.NotPanics 
+// PanicTestFunc defines a func that should be passed to the assert.Panics and assert.NotPanics
 // methods, and represents a simple func that takes no arguments, and returns nothing.
 type PanicTestFunc func()
 
@@ -347,7 +383,9 @@ func didPanic(f PanicTestFunc) (bool, interface{}) {
 //   }, "Calling GoCrazy() should panic")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Panics(t *testing.T, f PanicTestFunc, message ...string) bool {
+func Panics(t *testing.T, f PanicTestFunc, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if funcDidPanic, panicValue := didPanic(f); !funcDidPanic {
 
@@ -369,7 +407,10 @@ func Panics(t *testing.T, f PanicTestFunc, message ...string) bool {
 //   }, "Calling RemainCalm() should NOT panic")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotPanics(t *testing.T, f PanicTestFunc, message ...string) bool {
+func NotPanics(t *testing.T, f PanicTestFunc, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+
 	if funcDidPanic, panicValue := didPanic(f); funcDidPanic {
 
 		if len(message) > 0 {
