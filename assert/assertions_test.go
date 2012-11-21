@@ -281,3 +281,55 @@ func TestError(t *testing.T) {
 	True(t, Error(mockT, err), "Error with error should return True")
 
 }
+
+func Test_isEmpty(t *testing.T) {
+
+	True(t, isEmpty(""))
+	True(t, isEmpty(nil))
+	True(t, isEmpty([]string{}))
+	True(t, isEmpty(0))
+	True(t, isEmpty(false))
+
+	False(t, isEmpty("something"))
+	False(t, isEmpty(errors.New("something")))
+	False(t, isEmpty([]string{"something"}))
+	False(t, isEmpty(1))
+	False(t, isEmpty(true))
+
+}
+
+func TestEmpty(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	True(t, Empty(mockT, ""), "Empty string is empty")
+	True(t, Empty(mockT, nil), "Nil is empty")
+	True(t, Empty(mockT, []string{}), "Empty string array is empty")
+	True(t, Empty(mockT, 0), "Zero int value is empty")
+	True(t, Empty(mockT, false), "False value is empty")
+
+	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
+	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
+	False(t, Empty(mockT, []string{"something"}), "Non empty string array is not empty")
+	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
+	False(t, Empty(mockT, true), "True value is not empty")
+
+}
+
+func TestNotEmpty(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	False(t, NotEmpty(mockT, ""), "Empty string is empty")
+	False(t, NotEmpty(mockT, nil), "Nil is empty")
+	False(t, NotEmpty(mockT, []string{}), "Empty string array is empty")
+	False(t, NotEmpty(mockT, 0), "Zero int value is empty")
+	False(t, NotEmpty(mockT, false), "False value is empty")
+
+	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
+	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
+	True(t, NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
+	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
+	True(t, NotEmpty(mockT, true), "True value is not empty")
+
+}

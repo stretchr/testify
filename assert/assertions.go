@@ -214,6 +214,77 @@ func Nil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
 	return false
 }
 
+// isEmpty gets whether the specified object is considered empty or not. 
+func isEmpty(object interface{}) bool {
+
+	if object == nil {
+		return true
+	} else if object == "" {
+		return true
+	} else if object == 0 {
+		return true
+	} else if object == false {
+		return true
+	}
+
+	objValue := reflect.ValueOf(object)
+	switch objValue.Kind() {
+	case reflect.Slice:
+		{
+			return (objValue.Len() == 0)
+		}
+	}
+
+	return false
+
+}
+
+// Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or a
+// slice with len == 0.
+//
+// assert.Empty(t, obj)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Empty(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+	pass := isEmpty(object)
+	if !pass {
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be empty, but was %v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), object, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be empty, but was %v\n\r", getWhitespaceString(), CallerInfo(), object)
+		}
+	}
+
+	return pass
+
+}
+
+// Empty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or a
+// slice with len == 0.
+//
+// if assert.NotEmpty(t, obj) {
+//   assert.Equal(t, "two", obj[1])	
+// }
+//
+// Returns whether the assertion was successful (true) or not (false).
+func NotEmpty(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+	pass := !isEmpty(object)
+	if !pass {
+		if len(message) > 0 {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be NOT be empty, but was %v\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), object, message)
+		} else {
+			t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\tShould be NOT be empty, but was %v\n\r", getWhitespaceString(), CallerInfo(), object)
+		}
+	}
+
+	return pass
+
+}
+
 // True asserts that the specified value is true.
 //
 //    assert.True(t, myBool, "myBool should be true")

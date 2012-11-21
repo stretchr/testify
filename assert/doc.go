@@ -5,7 +5,7 @@
 // The following is a complete example using assert in a standard test function:
 //    import (
 //      "testing"
-//      "assert"
+//      "github.com/stretchrcom/testify/assert"
 //    )
 //    
 //    func TestSomething(t *testing.T) {
@@ -29,35 +29,43 @@
 //
 // Here is an overview of the assert functions:
 //
-//    assert.Equal(t, expected, actual [, message])
+//    assert.Equal(t, expected, actual [, message [, format-args])
 //    
-//    assert.NotEqual(t, notExpected, actual [, message])
+//    assert.NotEqual(t, notExpected, actual [, message [, format-args]])
 //    
-//    assert.True(t, actualBool [, message])
+//    assert.True(t, actualBool [, message [, format-args]])
 //    
-//    assert.False(t, actualBool [, message])
+//    assert.False(t, actualBool [, message [, format-args]])
 //    
-//    assert.Nil(t, actualObject [, message])
+//    assert.Nil(t, actualObject [, message [, format-args]])
 //    
-//    assert.NotNil(t, actualObject [, message])
+//    assert.NotNil(t, actualObject [, message [, format-args]])
 //    
-//    assert.Implements(t, (*MyInterface)(nil), new(MyObject) [,message])
+//    assert.Empty(t, actualObject [, message [, format-args]])
 //
-//    assert.IsType(t, expectedObject, actualObject [, message])
-//    
-//    assert.Contains(t, string, substring [, message])
+//    assert.NotEmpty(t, actualObject [, message [, format-args]])
 //
-//    assert.NotContains(t, string, substring [, message])
+//    assert.Error(t, errorObject [, message [, format-args]])
+//
+//    assert.NotError(t, errorObject [, message [, format-args]])
+//
+//    assert.Implements(t, (*MyInterface)(nil), new(MyObject) [,message [, format-args]])
+//
+//    assert.IsType(t, expectedObject, actualObject [, message [, format-args]])
+//    
+//    assert.Contains(t, string, substring [, message [, format-args]])
+//
+//    assert.NotContains(t, string, substring [, message [, format-args]])
 //
 //    assert.Panics(t, func(){
 //	    
 //	    // call code that should panic
 //	    
-//    } [, message])
+//    } [, message [, format-args]])
 //
 //    assert.NotPanics(t, func(){
 //	    
 //	    // call code that should not panic
 //	    
-//    } [, message])
+//    } [, message [, format-args]])
 package assert
