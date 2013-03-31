@@ -214,7 +214,7 @@ func Nil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
 	return false
 }
 
-// isEmpty gets whether the specified object is considered empty or not. 
+// isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object interface{}) bool {
 
 	if object == nil {
@@ -265,7 +265,7 @@ func Empty(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
 // slice with len == 0.
 //
 // if assert.NotEmpty(t, obj) {
-//   assert.Equal(t, "two", obj[1])	
+//   assert.Equal(t, "two", obj[1])
 // }
 //
 // Returns whether the assertion was successful (true) or not (false).

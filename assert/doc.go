@@ -7,9 +7,9 @@
 //      "testing"
 //      "github.com/stretchrcom/testify/assert"
 //    )
-//    
+//
 //    func TestSomething(t *testing.T) {
-//	  
+//
 //      var a string = "Hello"
 //      var b string = "Hello"
 //
@@ -30,17 +30,17 @@
 // Here is an overview of the assert functions:
 //
 //    assert.Equal(t, expected, actual [, message [, format-args])
-//    
+//
 //    assert.NotEqual(t, notExpected, actual [, message [, format-args]])
-//    
+//
 //    assert.True(t, actualBool [, message [, format-args]])
-//    
+//
 //    assert.False(t, actualBool [, message [, format-args]])
-//    
+//
 //    assert.Nil(t, actualObject [, message [, format-args]])
-//    
+//
 //    assert.NotNil(t, actualObject [, message [, format-args]])
-//    
+//
 //    assert.Empty(t, actualObject [, message [, format-args]])
 //
 //    assert.NotEmpty(t, actualObject [, message [, format-args]])
@@ -52,20 +52,20 @@
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject) [,message [, format-args]])
 //
 //    assert.IsType(t, expectedObject, actualObject [, message [, format-args]])
-//    
+//
 //    assert.Contains(t, string, substring [, message [, format-args]])
 //
 //    assert.NotContains(t, string, substring [, message [, format-args]])
 //
 //    assert.Panics(t, func(){
-//	    
+//
 //	    // call code that should panic
-//	    
+//
 //    } [, message [, format-args]])
 //
 //    assert.NotPanics(t, func(){
-//	    
+//
 //	    // call code that should not panic
-//	    
+//
 //    } [, message [, format-args]])
 package assert

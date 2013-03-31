@@ -28,7 +28,7 @@ type Call struct {
 	ReturnArguments Arguments
 }
 
-// Mock is the workhorse used to track activity on another object. 
+// Mock is the workhorse used to track activity on another object.
 // For an example of its usage, refer to the "Example Usage" section at the top of this document.
 type Mock struct {
 
@@ -170,11 +170,11 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 }
 
 /*
-	Assertions 
+	Assertions
 */
 
-// AssertExpectationsForObjects asserts that everything specified with On and Return 
-// of the specified objects was in fact called as expected.  
+// AssertExpectationsForObjects asserts that everything specified with On and Return
+// of the specified objects was in fact called as expected.
 //
 // Calls may have occurred in any order.
 func AssertExpectationsForObjects(t *testing.T, testObjects ...interface{}) bool {
@@ -265,7 +265,7 @@ func (m *Mock) methodWasCalled(methodName string, arguments []interface{}) bool 
 type Arguments []interface{}
 
 const (
-	// The "any" argument.  Used in Diff and Assert when 
+	// The "any" argument.  Used in Diff and Assert when
 	// the argument being tested shouldn't be taken into consideration.
 	Anything string = "mock.Anything"
 )
