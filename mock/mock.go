@@ -2,6 +2,7 @@ package mock
 
 import (
 	"fmt"
+	"github.com/stretchrcom/stew/objects"
 	"github.com/stretchrcom/testify/assert"
 	"reflect"
 	"runtime"
@@ -46,6 +47,21 @@ type Mock struct {
 
 	// Holds the calls that were made to this mocked object.
 	Calls []Call
+
+	// TestData holds any data that might be useful for testing.  Testify ignores
+	// this data completely allowing you to do whatever you like with it.
+	testData objects.Map
+}
+
+// TestData holds any data that might be useful for testing.  Testify ignores
+// this data completely allowing you to do whatever you like with it.
+func (m *Mock) TestData() objects.Map {
+
+	if m.testData == nil {
+		m.testData = make(objects.Map)
+	}
+
+	return m.testData
 }
 
 /*

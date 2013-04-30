@@ -33,6 +33,19 @@ func (i *TestExampleImplementation) TheExampleMethod2(yesorno bool) {
 	Mock
 */
 
+func Test_Mock_TestData(t *testing.T) {
+
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	if assert.NotNil(t, mockedService.TestData()) {
+
+		mockedService.TestData().Set("something", 123)
+		assert.Equal(t, 123, mockedService.TestData().Get("something"))
+
+	}
+
+}
+
 func Test_Mock_On(t *testing.T) {
 
 	// make a test impl object
