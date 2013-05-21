@@ -47,7 +47,7 @@
 //
 //    assert.Error(t, errorObject [, message [, format-args]])
 //
-//    assert.NotError(t, errorObject [, message [, format-args]])
+//    assert.NoError(t, errorObject [, message [, format-args]])
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject) [,message [, format-args]])
 //
