@@ -173,8 +173,12 @@ func NotNil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
 
 	if object == nil {
 		success = false
-	} else if reflect.ValueOf(object).IsNil() {
-		success = false
+	} else {
+		value := reflect.ValueOf(object)
+		kind := value.Kind()
+		if kind >= reflect.Chan && kind <= reflect.Slice && value.IsNil() {
+			success = false
+		}
 	}
 
 	if !success {
@@ -201,8 +205,12 @@ func Nil(t *testing.T, object interface{}, msgAndArgs ...interface{}) bool {
 
 	if object == nil {
 		return true
-	} else if reflect.ValueOf(object).IsNil() {
-		return true
+	} else {
+		value := reflect.ValueOf(object)
+		kind := value.Kind()
+		if kind >= reflect.Chan && kind <= reflect.Slice && value.IsNil() {
+			return true
+		}
 	}
 
 	if len(message) > 0 {
