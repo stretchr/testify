@@ -424,7 +424,6 @@ func (args Arguments) String(indexOrNil ...int) string {
 	}
 
 	panic(fmt.Sprintf("assert: arguments: Wrong number of arguments passed to String.  Must be 0 or 1, not %d", len(indexOrNil)))
-	return ""
 
 }
 
