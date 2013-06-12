@@ -31,6 +31,11 @@ func (rw *TestResponseWriter) Header() http.Header {
 // Write writes the specified bytes to Output.
 func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
 
+	// assume 200 success if no header has been set
+	if rw.WrittenHeaderInt == 0 {
+		rw.WriteHeader(200)
+	}
+
 	// add these bytes to the output string
 	rw.Output = rw.Output + string(bytes)
 
