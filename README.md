@@ -12,8 +12,8 @@ Features include:
 Get started:
 
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
-  * Read the API Documentation http://go.pkgdoc.org/github.com/stretchrcom/testify
-  * To make your testing life easier, check out our other project, [gort](http://github.com/stretchrcom/gort)
+  * Read the API Documentation http://go.pkgdoc.org/github.com/stretchr/testify
+  * To make your testing life easier, check out our other project, [gort](http://github.com/stretchr/gort)
   * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
 
@@ -22,7 +22,7 @@ Get started:
 `assert` package
 ----------------
 
-The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the `assert` package](http://go.pkgdoc.org/github.com/stretchrcom/testify/assert).
+The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the `assert` package](http://go.pkgdoc.org/github.com/stretchr/testify/assert).
 
   * Prints friendly, easy to read failure descriptions
   * Allows for very readable code
@@ -58,7 +58,7 @@ See it in action:
 `http` package
 --------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the `http` package](http://go.pkgdoc.org/github.com/stretchrcom/testify/http).
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the `http` package](http://go.pkgdoc.org/github.com/stretchr/testify/http).
 
 `mock` package
 --------------
@@ -71,7 +71,7 @@ An example test function that tests a piece of code that relies on an external o
 
     import (
       "testing"
-      "github.com/stretchrcom/testify/mock"
+      "github.com/stretchr/testify/mock"
     )
 
     /*
@@ -120,7 +120,7 @@ An example test function that tests a piece of code that relies on an external o
 
     }
 
-For more information on how to write mock code, check out the [API documentation for the `mock` package](http://go.pkgdoc.org/github.com/stretchrcom/testify/mock).
+For more information on how to write mock code, check out the [API documentation for the `mock` package](http://go.pkgdoc.org/github.com/stretchr/testify/mock).
 
 ------
 
@@ -129,13 +129,13 @@ Installation
 
 To install Testify, use `go get`:
 
-    go get github.com/stretchrcom/testify
+    go get github.com/stretchr/testify
 
 This will then make the following packages available to you:
 
-    github.com/stretchrcom/testify/assert
-    github.com/stretchrcom/testify/mock
-    github.com/stretchrcom/testify/http
+    github.com/stretchr/testify/assert
+    github.com/stretchr/testify/mock
+    github.com/stretchr/testify/http
 
 Import the `testify/assert` package into your code using this template:
 
@@ -143,7 +143,7 @@ Import the `testify/assert` package into your code using this template:
 
     import (
       "testing"
-      "github.com/stretchrcom/testify/assert"
+      "github.com/stretchr/testify/assert"
     )
 
     func TestSomething(t *testing.T) {
@@ -159,7 +159,7 @@ Staying up to date
 
 To update Testify, use `go get -u`:
 
-    go get -u github.com/stretchrcom/testify
+    go get -u github.com/stretchr/testify
 
 ------
 

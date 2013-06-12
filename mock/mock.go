@@ -2,8 +2,8 @@ package mock
 
 import (
 	"fmt"
-	"github.com/stretchrcom/stew/objects"
-	"github.com/stretchrcom/testify/assert"
+	"github.com/stretchr/stew/objects"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"runtime"
 	"strings"

@@ -5,7 +5,7 @@
 // The following is a complete example using assert in a standard test function:
 //    import (
 //      "testing"
-//      "github.com/stretchrcom/testify/assert"
+//      "github.com/stretchr/testify/assert"
 //    )
 //
 //    func TestSomething(t *testing.T) {
