@@ -174,7 +174,7 @@ When submitting an issue, we ask that you please include a complete test functio
 
 Licence
 =======
-Copyright (c) 2012 Mat Ryer and Tyler Bunnell
+Copyright (c) 2012 - 2013 Mat Ryer and Tyler Bunnell
 
 Please consider promoting this project if you find it useful.
 
