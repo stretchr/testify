@@ -93,6 +93,20 @@ func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
 	return ""
 }
 
+// Fail reports a failure through
+func Fail(t *testing.T, failureMessage string, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+
+	if len(message) > 0 {
+		t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t%s\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), failureMessage, message)
+	} else {
+		t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t%s\n\r", getWhitespaceString(), CallerInfo(), failureMessage)
+	}
+
+	return false
+}
+
 // Implements asserts that an object is implemented by the specified interface.
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject), "MyObject")
@@ -157,6 +171,24 @@ func Equal(t *testing.T, a, b interface{}, msgAndArgs ...interface{}) bool {
 	}
 
 	return true
+
+}
+
+// Exactly asserts that two objects are equal is value and type.
+//
+//    assert.Exactly(t, int32(123), int64(123), "123 and 123 should NOT be equal")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Exactly(t *testing.T, a, b interface{}, msgAndArgs ...interface{}) bool {
+
+	aType := reflect.TypeOf(a)
+	bType := reflect.TypeOf(b)
+
+	if aType != bType {
+		return Fail(t, "Types expected to match exactly", "%s != %s", aType.Name(), bType.Name())
+	}
+
+	return Equal(t, a, b, msgAndArgs...)
 
 }
 

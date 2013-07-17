@@ -141,6 +141,27 @@ func TestFalse(t *testing.T) {
 
 }
 
+func TestExactly(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	a := float32(1)
+	b := float64(1)
+	c := float32(1)
+	d := float32(2)
+
+	if Exactly(mockT, a, b) {
+		t.Error("Exactly should return false")
+	}
+	if Exactly(mockT, a, d) {
+		t.Error("Exactly should return false")
+	}
+	if !Exactly(mockT, a, c) {
+		t.Error("Exactly should return true")
+	}
+
+}
+
 func TestNotEqual(t *testing.T) {
 
 	mockT := new(testing.T)
