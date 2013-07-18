@@ -160,6 +160,13 @@ func TestExactly(t *testing.T) {
 		t.Error("Exactly should return true")
 	}
 
+	if Exactly(mockT, nil, a) {
+		t.Error("Exactly should return false")
+	}
+	if Exactly(mockT, a, nil) {
+		t.Error("Exactly should return false")
+	}
+
 }
 
 func TestNotEqual(t *testing.T) {

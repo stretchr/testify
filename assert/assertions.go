@@ -158,7 +158,7 @@ func Exactly(t *testing.T, a, b interface{}, msgAndArgs ...interface{}) bool {
 	bType := reflect.TypeOf(b)
 
 	if aType != bType {
-		return Fail(t, "Types expected to match exactly", "%s != %s", aType.Name(), bType.Name())
+		return Fail(t, "Types expected to match exactly", "%v != %v", aType, bType)
 	}
 
 	return Equal(t, a, b, msgAndArgs...)
