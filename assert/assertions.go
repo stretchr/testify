@@ -429,7 +429,7 @@ func NotPanics(t *testing.T, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 func NoError(t *testing.T, theError error, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
-	return Nil(t, theError, "No error is expected but got %v. %s", theError, message)
+	return Nil(t, theError, "No error is expected but got %v %s", theError, message)
 
 }
 
