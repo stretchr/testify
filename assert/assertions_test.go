@@ -3,6 +3,7 @@ package assert
 import (
 	"errors"
 	"testing"
+	"time"
 )
 
 // AssertionTesterInterface defines an interface to be used for testing assertion methods
@@ -360,4 +361,15 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
 	True(t, NotEmpty(mockT, true), "True value is not empty")
 
+}
+
+func TestWithinDuration(t *testing.T) {
+
+	mockT := new(testing.T)
+	a := time.Now()
+	b := a.Add(10 * time.Second)
+
+	True(t, WithinDuration(mockT, a, b, 10*time.Second), "A 10s difference is within a 10s time difference")
+
+	False(t, WithinDuration(mockT, a, b, 9*time.Second), "A 10s difference is not within a 9s time difference")
 }

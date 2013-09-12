@@ -68,4 +68,7 @@
 //	    // call code that should not panic
 //
 //    } [, message [, format-args]])
+//
+//    assert.WithinDuration(t, timeA, timeB, deltaTime, [, message [, format-args]])
+
 package assert
