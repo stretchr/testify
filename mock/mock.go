@@ -2,7 +2,7 @@ package mock
 
 import (
 	"fmt"
-	"github.com/stretchr/stew/objects"
+	"github.com/stretchr/objx"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"runtime"
@@ -50,15 +50,15 @@ type Mock struct {
 
 	// TestData holds any data that might be useful for testing.  Testify ignores
 	// this data completely allowing you to do whatever you like with it.
-	testData objects.Map
+	testData objx.Map
 }
 
 // TestData holds any data that might be useful for testing.  Testify ignores
 // this data completely allowing you to do whatever you like with it.
-func (m *Mock) TestData() objects.Map {
+func (m *Mock) TestData() objx.Map {
 
 	if m.testData == nil {
-		m.testData = make(objects.Map)
+		m.testData = make(objx.Map)
 	}
 
 	return m.testData
