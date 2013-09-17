@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 // Comparison a custom function that returns true on success and false on failure
@@ -409,6 +410,21 @@ func NotPanics(t *testing.T, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 
 	if funcDidPanic, panicValue := didPanic(f); funcDidPanic {
 		return Fail(t, fmt.Sprintf("func %#v should not panic\n\r\tPanic value:\t%v", f, panicValue), msgAndArgs...)
+	}
+
+	return true
+}
+
+// WithinDuration asserts that the two times are within duration delta of each other.
+//
+//   assert.WithinDuration(t, time.Now(), time.Now(), 10*time.Second, "The difference should not be more than 10s")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func WithinDuration(t *testing.T, a, b time.Time, delta time.Duration, msgAndArgs ...interface{}) bool {
+
+	dt := a.Sub(b)
+	if dt < -delta || dt > delta {
+		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", a, b, dt, delta), msgAndArgs...)
 	}
 
 	return true
