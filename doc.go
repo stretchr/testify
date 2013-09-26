@@ -8,3 +8,9 @@
 //
 // The mock package provides a system by which it is possible to mock your objects and verify calls are happening as expected.
 package testify
+
+import (
+    _ "github.com/stretchr/testify/assert"
+    _ "github.com/stretchr/testify/http"
+    _ "github.com/stretchr/testify/mock"
+)
