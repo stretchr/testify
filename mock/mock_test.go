@@ -387,12 +387,16 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
 
-	mockedService.Mock.On("Test_Mock_AssertExpectations_With_Repeatability", 1, 2, 3).Return(5, 6, 7).Once()
+	mockedService.Mock.On("Test_Mock_AssertExpectations_With_Repeatability", 1, 2, 3).Return(5, 6, 7).Twice()
 
 	tt := new(testing.T)
 	assert.False(t, mockedService.AssertExpectations(tt))
 
 	// make the call now
+	mockedService.Mock.Called(1, 2, 3)
+
+	assert.False(t, mockedService.AssertExpectations(tt))
+
 	mockedService.Mock.Called(1, 2, 3)
 
 	// now assert expectations

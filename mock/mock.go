@@ -242,11 +242,15 @@ func (m *Mock) AssertExpectations(t *testing.T) bool {
 
 	// iterate through each expectation
 	for _, expectedCall := range m.ExpectedCalls {
-		if !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) {
+		switch {
+		case !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments):
 			somethingMissing = true
 			failedExpectations++
 			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
-		} else {
+		case expectedCall.Repeatability > 0:
+			somethingMissing = true
+			failedExpectations++
+		default:
 			t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 		}
 	}
