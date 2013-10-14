@@ -8,8 +8,8 @@ import (
 // allowing you to make assertions about how it was used.
 type TestResponseWriter struct {
 
-	// WrittenHeaderInt is the last int written by the call to WriteHeader(int)
-	WrittenHeaderInt int
+	// StatusCode is the last int written by the call to WriteHeader(int)
+	StatusCode int
 
 	// Output is a string containing the written bytes using the Write([]byte) func.
 	Output string
@@ -32,7 +32,7 @@ func (rw *TestResponseWriter) Header() http.Header {
 func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
 
 	// assume 200 success if no header has been set
-	if rw.WrittenHeaderInt == 0 {
+	if rw.StatusCode == 0 {
 		rw.WriteHeader(200)
 	}
 
@@ -44,7 +44,7 @@ func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
 
 }
 
-// WriteHeader stores the HTTP status code in the WrittenHeaderInt.
+// WriteHeader stores the HTTP status code in the StatusCode.
 func (rw *TestResponseWriter) WriteHeader(i int) {
-	rw.WrittenHeaderInt = i
+	rw.StatusCode = i
 }
