@@ -27,25 +27,25 @@ func (suite *Suite) SetT(t *testing.T) {
 func Run(t *testing.T, suite TestingSuite) {
 	suite.SetT(t)
 
-	if beforeAllSuite, ok := suite.(BeforeAllSuite); ok {
-		beforeAllSuite.BeforeSuite()
-	}
-
-	if afterAllSuite, ok := suite.(AfterAllSuite); ok {
-		defer afterAllSuite.AfterSuite()
+	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+		setupAllSuite.SetupSuite()
 	}
 
 	methodFinder := reflect.TypeOf(suite)
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
 		if ok, _ := regexp.MatchString("^Test", method.Name); ok {
-			if beforeTestSuite, ok := suite.(BeforeTestSuite); ok {
-				beforeTestSuite.BeforeTest()
+			if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+				setupTestSuite.SetupTest()
 			}
 			method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
-			if afterTestSuite, ok := suite.(AfterTestSuite); ok {
-				afterTestSuite.AfterTest()
+			if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+				tearDownTestSuite.TearDownTest()
 			}
 		}
+	}
+
+	if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+		defer tearDownAllSuite.TearDownSuite()
 	}
 }

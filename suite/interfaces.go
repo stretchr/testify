@@ -9,26 +9,26 @@ type TestingSuite interface {
 	SetT(*testing.T)
 }
 
-// BeforeAllSuite has a BeforeSuite method, intended to be run before
-// the entire suite is tested.
-type BeforeAllSuite interface {
-	BeforeSuite()
+// SetupAllSuite has a SetupSuite method, which will run before the
+// tests in the suite are run.
+type SetupAllSuite interface {
+	SetupSuite()
 }
 
-// BeforeTestSuite has a BeforeTest method, intended to be run before
-// each test.
-type BeforeTestSuite interface {
-	BeforeTest()
+// SetupTestSuite has a SetupTest method, which will run before each
+// test in the suite.
+type SetupTestSuite interface {
+	SetupTest()
 }
 
-// AfterAllSuite has an AfterSuite method, intended to be run after the
-// entire suite has been tested.
-type AfterAllSuite interface {
-	AfterSuite()
+// TearDownAllSuite has a TearDownSuite method, which will run after
+// all the tests in the suite have been run.
+type TearDownAllSuite interface {
+	TearDownSuite()
 }
 
-// AfterTestSuite has an AfterTest method, intended to be run after
-// each test.
-type AfterTestSuite interface {
-	AfterTest()
+// TearDownTestSuite has a TearDownTest method, which will run after
+// each test in the suite.
+type TearDownTestSuite interface {
+	TearDownTest()
 }
