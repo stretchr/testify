@@ -46,6 +46,6 @@ func Run(t *testing.T, suite TestingSuite) {
 	}
 
 	if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-		defer tearDownAllSuite.TearDownSuite()
+		tearDownAllSuite.TearDownSuite()
 	}
 }
