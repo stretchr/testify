@@ -71,11 +71,15 @@ func (suite *SuiteTester) NonTestMethod() {
 	suite.NonTestMethodRunCount++
 }
 
-// Make sure that the Run function runs all of the expected methods
-// within a testing suite.
+// TestRunSuite will be run by the 'go test' command, so within it, we
+// can run our suite using the Run(*testing.T, TestingSuite) function.
 func TestRunSuite(t *testing.T) {
 	suiteTester := new(SuiteTester)
 	Run(t, suiteTester)
+
+	// Normally, the test would end here.  The following are simply
+	// some assertions to ensure that the Run function is working as
+	// intended - they are not part of the example.
 
 	// The suite was only run once, so the SetupSuite and TearDownSuite
 	// methods should have each been run only once.
