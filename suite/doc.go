@@ -5,9 +5,23 @@
 // or individual tests (depending on which interface(s) you
 // implement).
 //
+// A testing suite is usually built by first extending the built-in
+// suite functionality from suite.Suite in testify.  Alternatively,
+// you could reproduce that logic on your own if you wanted (you
+// just need to implement the TestingSuite interface from
+// suite/interfaces.go).
+//
+// After that, you can implement any of the interfaces in
+// suite/interfaces.go to add setup/teardown functionality to your
+// suite, and add any methods that start with "Test" to add tests.
+// Methods that do not match any suite interfaces and do not begin
+// with "Test" will not be run by testify, and can safely be used as
+// helper methods.
+//
 // Once you've built your testing suite, you need to run the suite
-// inside any function that matches the identity that "go test" is
-// already looking for (i.e. func(*testing.T)).
+// (using suite.Run from testify) inside any function that matches the
+// identity that "go test" is already looking for (i.e.
+// func(*testing.T)).
 //
 // A crude example:
 //     // Basic imports

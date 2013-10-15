@@ -164,7 +164,7 @@ An example suite is shown below:
 
 For a more complete example, using all of the functionality provided by the suite package, look at our [example testing suite](https://github.com/stretchr/testify/blob/master/suite/suite_test.go)
 
-Also, check out our [API documentation for the `suite` package](http://go.pkgdoc.org/github.com/stretchr/testify/suite).
+For more information on writing suites, check out the [API documentation for the `suite` package](http://go.pkgdoc.org/github.com/stretchr/testify/suite).
 
 ------
 
