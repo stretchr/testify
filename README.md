@@ -8,6 +8,7 @@ Features include:
   * [Easy assertions](#assert-package)
   * [Mocking](#mock-package)
   * [HTTP response trapping](#http-package)
+  * [Testing suite interfaces and functions](#suite-package)
 
 Get started:
 
