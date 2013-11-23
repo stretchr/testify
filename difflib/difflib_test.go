@@ -102,14 +102,6 @@ group
 	}
 }
 
-func splitLines(s string) []string {
-	lines := []string{}
-	for _, line := range strings.Split(s, "\n") {
-		lines = append(lines, line+"\n")
-	}
-	return lines
-}
-
 func TestUnifiedDiff(t *testing.T) {
 	a := `one
 two
@@ -120,8 +112,8 @@ one
 three
 four`
 	diff := UnifiedDiff{
-		A:        splitLines(a),
-		B:        splitLines(b),
+		A:        SplitLines(a),
+		B:        SplitLines(b),
 		FromFile: "Original",
 		FromDate: "2005-01-26 23:30:50",
 		ToFile:   "Current",
@@ -158,8 +150,8 @@ one
 tree
 four`
 	diff := ContextDiff{
-		A:        splitLines(a),
-		B:        splitLines(b),
+		A:        SplitLines(a),
+		B:        SplitLines(b),
 		FromFile: "Original",
 		ToFile:   "Current",
 		Context:  3,
@@ -309,13 +301,13 @@ func TestOutputFormatTabDelimiter(t *testing.T) {
 	}
 	ud, err := GetUnifiedDiffString(diff)
 	assertEqual(t, err, nil)
-	assertEqual(t, splitLines(ud)[:2], []string{
+	assertEqual(t, SplitLines(ud)[:2], []string{
 		"--- Original\t2005-01-26 23:30:50\n",
 		"+++ Current\t2010-04-12 10:20:52\n",
 	})
 	cd, err := GetContextDiffString(ContextDiff(diff))
 	assertEqual(t, err, nil)
-	assertEqual(t, splitLines(cd)[:2], []string{
+	assertEqual(t, SplitLines(cd)[:2], []string{
 		"*** Original\t2005-01-26 23:30:50\n",
 		"--- Current\t2010-04-12 10:20:52\n",
 	})
@@ -331,9 +323,9 @@ func TestOutputFormatNoTrailingTabOnEmptyFiledate(t *testing.T) {
 	}
 	ud, err := GetUnifiedDiffString(diff)
 	assertEqual(t, err, nil)
-	assertEqual(t, splitLines(ud)[:2], []string{"--- Original\n", "+++ Current\n"})
+	assertEqual(t, SplitLines(ud)[:2], []string{"--- Original\n", "+++ Current\n"})
 
 	cd, err := GetContextDiffString(ContextDiff(diff))
 	assertEqual(t, err, nil)
-	assertEqual(t, splitLines(cd)[:2], []string{"*** Original\n", "--- Current\n"})
+	assertEqual(t, SplitLines(cd)[:2], []string{"*** Original\n", "--- Current\n"})
 }

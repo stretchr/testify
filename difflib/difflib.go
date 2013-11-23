@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 )
 
 func min(a, b int) int {
@@ -742,4 +743,14 @@ func GetContextDiffString(diff ContextDiff) (string, error) {
 	w := &bytes.Buffer{}
 	err := WriteContextDiff(w, diff)
 	return string(w.Bytes()), err
+}
+
+// Split a string on "\n" while preserving them. The output can be used
+// as input for UnifiedDiff and ContextDiff structures.
+func SplitLines(s string) []string {
+	lines := []string{}
+	for _, line := range strings.Split(s, "\n") {
+		lines = append(lines, line+"\n")
+	}
+	return lines
 }
