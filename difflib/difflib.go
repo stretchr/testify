@@ -1,5 +1,6 @@
-// Package difflib is a partial port of Python difflib module. It provides tools
-// to compare sequences of strings and generate textual diffs.
+// Package difflib is a partial port of Python difflib module.
+//
+// It provides tools to compare sequences of strings and generate textual diffs.
 //
 // The following class and functions have been ported:
 //
