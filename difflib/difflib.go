@@ -363,10 +363,11 @@ func (m *SequenceMatcher) GetMatchingBlocks() []Match {
 // The tags are characters, with these meanings:
 //
 // 'r' (replace):  a[i1:i2] should be replaced by b[j1:j2]
-// 'd' (delete):   a[i1:i2] should be deleted.
-//                 Note that j1==j2 in this case.
-// 'i' (insert):   b[j1:j2] should be inserted at a[i1:i1].
-//                 Note that i1==i2 in this case.
+//
+// 'd' (delete):   a[i1:i2] should be deleted, j1==j2 in this case.
+//
+// 'i' (insert):   b[j1:j2] should be inserted at a[i1:i1], i1==i2 in this case.
+//
 // 'e' (equal):    a[i1:i2] == b[j1:j2]
 func (m *SequenceMatcher) GetOpCodes() []OpCode {
 	if m.opCodes != nil {

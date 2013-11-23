@@ -102,7 +102,7 @@ group
 	}
 }
 
-func TestUnifiedDiff(t *testing.T) {
+func ExampleGetUnifiedDiffString() {
 	a := `one
 two
 three
@@ -120,27 +120,20 @@ four`
 		ToDate:   "2010-04-02 10:20:52",
 		Context:  3,
 	}
-	result, err := GetUnifiedDiffString(diff)
-	if err != nil {
-		t.Errorf("unified diff failed: %s", err)
-	}
-	expected := `--- Original\t2005-01-26 23:30:50
-+++ Current\t2010-04-02 10:20:52
-@@ -1,4 +1,4 @@
-+zero
- one
--two
- three
- four
-`
-	// TABs are a pain to preserve through editors
-	expected = strings.Replace(expected, "\\t", "\t", -1)
-	if expected != result {
-		t.Errorf("unexpected diff result:\n%s", result)
-	}
+	result, _ := GetUnifiedDiffString(diff)
+	fmt.Printf(strings.Replace(result, "\t", " ", -1))
+	// Output:
+	// --- Original 2005-01-26 23:30:50
+	// +++ Current 2010-04-02 10:20:52
+	// @@ -1,4 +1,4 @@
+	// +zero
+	//  one
+	// -two
+	//  three
+	//  four
 }
 
-func TestContextDiff(t *testing.T) {
+func ExampleGetContextDiffString() {
 	a := `one
 two
 three
@@ -157,27 +150,22 @@ four`
 		Context:  3,
 		Eol:      "\n",
 	}
-	result, err := GetContextDiffString(diff)
-	assertEqual(t, err, nil)
-	expected := `*** Original
---- Current
-***************
-*** 1,4 ****
-  one
-! two
-! three
-  four
---- 1,4 ----
-+ zero
-  one
-! tree
-  four
-`
-	// TABs are a pain to preserve through editors
-	expected = strings.Replace(expected, "\\t", "\t", -1)
-	if expected != result {
-		t.Errorf("unexpected diff result:\n%s", result)
-	}
+	result, _ := GetContextDiffString(diff)
+	fmt.Printf(strings.Replace(result, "\t", " ", -1))
+	// Output:
+	// *** Original
+	// --- Current
+	// ***************
+	// *** 1,4 ****
+	//   one
+	// ! two
+	// ! three
+	//   four
+	// --- 1,4 ----
+	// + zero
+	//   one
+	// ! tree
+	//   four
 }
 
 func rep(s string, count int) string {
