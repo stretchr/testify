@@ -9,6 +9,18 @@ import (
 	"testing"
 )
 
+func assertAlmostEqual(t *testing.T, a, b float64, places int) {
+	if math.Abs(a-b) > math.Pow10(-places) {
+		t.Errorf("%.7f != %.7f", a, b)
+	}
+}
+
+func assertEqual(t *testing.T, a, b interface{}) {
+	if !reflect.DeepEqual(a, b) {
+		t.Errorf("%v != %v", a, b)
+	}
+}
+
 func splitChars(s string) []string {
 	chars := make([]string, 0, len(s))
 	// Assume ASCII inputs
@@ -20,20 +32,9 @@ func splitChars(s string) []string {
 
 func TestSequenceMatcherRatio(t *testing.T) {
 	s := NewMatcher(splitChars("abcd"), splitChars("bcde"))
-	ratio := s.Ratio()
-	if ratio != 0.75 {
-		t.Errorf("unexpected ratio: %v", ratio)
-	}
-
-	ratio = s.QuickRatio()
-	if ratio != 0.75 {
-		t.Errorf("unexpected quick ratio: %v", ratio)
-	}
-
-	ratio = s.RealQuickRatio()
-	if ratio != 1.0 {
-		t.Errorf("unexpected real quick ratio: %v", ratio)
-	}
+	assertEqual(t, s.Ratio(), 0.75)
+	assertEqual(t, s.QuickRatio(), 0.75)
+	assertEqual(t, s.RealQuickRatio(), 1.0)
 }
 
 func TestGetOptCodes(t *testing.T) {
@@ -147,18 +148,6 @@ four`
 	}
 }
 
-func assertAlmostEqual(t *testing.T, a, b float64, places int) {
-	if math.Abs(a-b) > math.Pow10(-places) {
-		t.Errorf("%.7f != %.7f", a, b)
-	}
-}
-
-func assertEqual(t *testing.T, a, b interface{}) {
-	if !reflect.DeepEqual(a, b) {
-		t.Errorf("%v != %v", a, b)
-	}
-}
-
 func rep(s string, count int) string {
 	return strings.Repeat(s, count)
 }
@@ -205,4 +194,41 @@ func TestWithAsciiBJunk(t *testing.T) {
 	sm = NewMatcherWithJunk(splitChars(rep("a", 40)+rep("b", 40)),
 		splitChars(rep("a", 44)+rep("b", 40)+rep(" ", 20)), false, isJunk)
 	assertEqual(t, sm.bJunk, map[string]struct{}{" ": struct{}{}, "b": struct{}{}})
+}
+
+func TestSFBugsRatioForNullSeqn(t *testing.T) {
+	sm := NewMatcher(nil, nil)
+	assertEqual(t, sm.Ratio(), 1.0)
+	assertEqual(t, sm.QuickRatio(), 1.0)
+	assertEqual(t, sm.RealQuickRatio(), 1.0)
+}
+
+func TestSFBugsComparingEmptyLists(t *testing.T) {
+	groups := NewMatcher(nil, nil).GetGroupedOpCodes(-1)
+	assertEqual(t, len(groups), 0)
+	diff := UnifiedDiff{
+		FromFile: "Original",
+		ToFile:   "Current",
+		Context:  3,
+	}
+	result, err := GetUnifiedDiffString(diff)
+	assertEqual(t, err, nil)
+	assertEqual(t, result, "")
+}
+
+func TestOutputFormatRangeFormatUnified(t *testing.T) {
+	// Per the diff spec at http://www.unix.org/single_unix_specification/
+	//
+	// Each <range> field shall be of the form:
+	//   %1d", <beginning line number>  if the range contains exactly one line,
+	// and:
+	//  "%1d,%1d", <beginning line number>, <number of lines> otherwise.
+	// If a range is empty, its beginning line number shall be the number of
+	// the line just before the range, or 0 if the empty range starts the file.
+	fm := formatRangeUnified
+	assertEqual(t, fm(3, 3), "3,0")
+	assertEqual(t, fm(3, 4), "4")
+	assertEqual(t, fm(3, 5), "4,2")
+	assertEqual(t, fm(3, 6), "4,3")
+	assertEqual(t, fm(0, 0), "0,0")
 }
