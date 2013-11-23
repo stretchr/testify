@@ -148,6 +148,46 @@ four`
 	}
 }
 
+func TestContextDiff(t *testing.T) {
+	a := `one
+two
+three
+four`
+	b := `zero
+one
+tree
+four`
+	diff := ContextDiff{
+		A:        splitLines(a),
+		B:        splitLines(b),
+		FromFile: "Original",
+		ToFile:   "Current",
+		Context:  3,
+		Eol:      "\n",
+	}
+	result, err := GetContextDiffString(diff)
+	assertEqual(t, err, nil)
+	expected := `*** Original
+--- Current
+***************
+*** 1,4 ****
+  one
+! two
+! three
+  four
+--- 1,4 ----
++ zero
+  one
+! tree
+  four
+`
+	// TABs are a pain to preserve through editors
+	expected = strings.Replace(expected, "\\t", "\t", -1)
+	if expected != result {
+		t.Errorf("unexpected diff result:\n%s", result)
+	}
+}
+
 func rep(s string, count int) string {
 	return strings.Repeat(s, count)
 }
@@ -231,4 +271,69 @@ func TestOutputFormatRangeFormatUnified(t *testing.T) {
 	assertEqual(t, fm(3, 5), "4,2")
 	assertEqual(t, fm(3, 6), "4,3")
 	assertEqual(t, fm(0, 0), "0,0")
+}
+
+func TestOutputFormatRangeFormatContext(t *testing.T) {
+	// Per the diff spec at http://www.unix.org/single_unix_specification/
+	//
+	// The range of lines in file1 shall be written in the following format
+	// if the range contains two or more lines:
+	//     "*** %d,%d ****\n", <beginning line number>, <ending line number>
+	// and the following format otherwise:
+	//     "*** %d ****\n", <ending line number>
+	// The ending line number of an empty range shall be the number of the preceding line,
+	// or 0 if the range is at the start of the file.
+	//
+	// Next, the range of lines in file2 shall be written in the following format
+	// if the range contains two or more lines:
+	//     "--- %d,%d ----\n", <beginning line number>, <ending line number>
+	// and the following format otherwise:
+	//     "--- %d ----\n", <ending line number>
+	fm := formatRangeContext
+	assertEqual(t, fm(3, 3), "3")
+	assertEqual(t, fm(3, 4), "4")
+	assertEqual(t, fm(3, 5), "4,5")
+	assertEqual(t, fm(3, 6), "4,6")
+	assertEqual(t, fm(0, 0), "0")
+}
+
+func TestOutputFormatTabDelimiter(t *testing.T) {
+	diff := UnifiedDiff{
+		A:        splitChars("one"),
+		B:        splitChars("two"),
+		FromFile: "Original",
+		FromDate: "2005-01-26 23:30:50",
+		ToFile:   "Current",
+		ToDate:   "2010-04-12 10:20:52",
+		Eol:      "\n",
+	}
+	ud, err := GetUnifiedDiffString(diff)
+	assertEqual(t, err, nil)
+	assertEqual(t, splitLines(ud)[:2], []string{
+		"--- Original\t2005-01-26 23:30:50\n",
+		"+++ Current\t2010-04-12 10:20:52\n",
+	})
+	cd, err := GetContextDiffString(ContextDiff(diff))
+	assertEqual(t, err, nil)
+	assertEqual(t, splitLines(cd)[:2], []string{
+		"*** Original\t2005-01-26 23:30:50\n",
+		"--- Current\t2010-04-12 10:20:52\n",
+	})
+}
+
+func TestOutputFormatNoTrailingTabOnEmptyFiledate(t *testing.T) {
+	diff := UnifiedDiff{
+		A:        splitChars("one"),
+		B:        splitChars("two"),
+		FromFile: "Original",
+		ToFile:   "Current",
+		Eol:      "\n",
+	}
+	ud, err := GetUnifiedDiffString(diff)
+	assertEqual(t, err, nil)
+	assertEqual(t, splitLines(ud)[:2], []string{"--- Original\n", "+++ Current\n"})
+
+	cd, err := GetContextDiffString(ContextDiff(diff))
+	assertEqual(t, err, nil)
+	assertEqual(t, splitLines(cd)[:2], []string{"*** Original\n", "--- Current\n"})
 }
