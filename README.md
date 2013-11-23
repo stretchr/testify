@@ -1,13 +1,47 @@
-Here is a partial port of python 3 difflib package. Its main goal was to
-make available a unified diff implementation, mostly for testing purposes.
+go-difflib
+==========
 
-The following class and functions have be ported:
+Go-difflib is a partial port of python 3 difflib package. Its main goal
+was to make unified and context diff available in pure Go, mostly for
+testing purposes.
+
+The following class and functions (and related tests) have be ported:
 
 * `SequenceMatcher`
 * `unified_diff()`
 * `context_diff()`
 
-Related doctests and unittests have been ported as well.
+## Installation
 
-I have barely used to code yet so do not consider it being production-ready.
-The API is likely to evolve too.
+```bash
+$ go get github.com/pmezard/go-difflib/difflib
+```
+
+### Quick Start
+
+Diffs are configured with Unified (or ContextDiff) structures, and can
+be output to an io.Writer or returned as a string.
+
+```Go
+diff := UnifiedDiff{
+    A:        difflib.SplitLines("foo\nbar\n"),
+    B:        difflib.SplitLines("foo\nbaz\n"),
+    FromFile: "Original",
+    ToFile:   "Current",
+    Context:  3,
+}
+text, _ := GetUnifiedDiffString(diff)
+fmt.Printf(text)
+```
+
+would output:
+
+```
+--- Original
++++ Current
+@@ -1,3 +1,3 @@
+ foo
+-bar
++baz
+```
+
