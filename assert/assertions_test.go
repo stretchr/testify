@@ -318,12 +318,14 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty([]string{}))
 	True(t, isEmpty(0))
 	True(t, isEmpty(false))
+	True(t, isEmpty(map[string]string{}))
 
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
 	False(t, isEmpty([]string{"something"}))
 	False(t, isEmpty(1))
 	False(t, isEmpty(true))
+	False(t, isEmpty(map[string]string{"Hello": "World"}))
 
 }
 
