@@ -7,8 +7,13 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	"testing"
 )
+
+// TestingT is an interface wrapper around *testing.T
+type TestingT interface {
+	Logf(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+}
 
 /*
 	Call
@@ -224,7 +229,7 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 // of the specified objects was in fact called as expected.
 //
 // Calls may have occurred in any order.
-func AssertExpectationsForObjects(t *testing.T, testObjects ...interface{}) bool {
+func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 	var success bool = true
 	for _, obj := range testObjects {
 		mockObj := obj.(Mock)
@@ -235,7 +240,7 @@ func AssertExpectationsForObjects(t *testing.T, testObjects ...interface{}) bool
 
 // AssertExpectations asserts that everything specified with On and Return was
 // in fact called as expected.  Calls may have occurred in any order.
-func (m *Mock) AssertExpectations(t *testing.T) bool {
+func (m *Mock) AssertExpectations(t TestingT) bool {
 
 	var somethingMissing bool = false
 	var failedExpectations int = 0
@@ -263,7 +268,7 @@ func (m *Mock) AssertExpectations(t *testing.T) bool {
 }
 
 // AssertNumberOfCalls asserts that the method was called expectedCalls times.
-func (m *Mock) AssertNumberOfCalls(t *testing.T, methodName string, expectedCalls int) bool {
+func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls int) bool {
 	var actualCalls int = 0
 	for _, call := range m.Calls {
 		if call.Method == methodName {
@@ -274,7 +279,7 @@ func (m *Mock) AssertNumberOfCalls(t *testing.T, methodName string, expectedCall
 }
 
 // AssertCalled asserts that the method was called.
-func (m *Mock) AssertCalled(t *testing.T, methodName string, arguments ...interface{}) bool {
+func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
 		t.Logf("%s", m.ExpectedCalls)
 		return false
@@ -283,7 +288,7 @@ func (m *Mock) AssertCalled(t *testing.T, methodName string, arguments ...interf
 }
 
 // AssertNotCalled asserts that the method was not called.
-func (m *Mock) AssertNotCalled(t *testing.T, methodName string, arguments ...interface{}) bool {
+func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
 		t.Logf("%s", m.ExpectedCalls)
 		return false
@@ -416,7 +421,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 // Assert compares the arguments with the specified objects and fails if
 // they do not exactly match.
-func (args Arguments) Assert(t *testing.T, objects ...interface{}) bool {
+func (args Arguments) Assert(t TestingT, objects ...interface{}) bool {
 
 	// get the differences
 	diff, diffCount := args.Diff(objects)
