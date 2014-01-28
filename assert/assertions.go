@@ -23,18 +23,18 @@ type Comparison func() (success bool)
 // ObjectsAreEqual determines if two objects are considered equal.
 //
 // This function does no assertion of any kind.
-func ObjectsAreEqual(a, b interface{}) bool {
+func ObjectsAreEqual(expected, actual interface{}) bool {
 
-	if reflect.DeepEqual(a, b) {
+	if reflect.DeepEqual(expected, actual) {
 		return true
 	}
 
-	if reflect.ValueOf(a) == reflect.ValueOf(b) {
+	if reflect.ValueOf(expected) == reflect.ValueOf(actual) {
 		return true
 	}
 
 	// Last ditch effort
-	if fmt.Sprintf("%#v", a) == fmt.Sprintf("%#v", b) {
+	if fmt.Sprintf("%#v", expected) == fmt.Sprintf("%#v", actual) {
 		return true
 	}
 
@@ -142,10 +142,10 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 //    assert.Equal(t, 123, 123, "123 and 123 should be equal")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Equal(t TestingT, a, b interface{}, msgAndArgs ...interface{}) bool {
+func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
-	if !ObjectsAreEqual(a, b) {
-		return Fail(t, fmt.Sprintf("Not equal: %#v != %#v", a, b), msgAndArgs...)
+	if !ObjectsAreEqual(expected, actual) {
+		return Fail(t, fmt.Sprintf("Not equal: %#v != %#v", expected, actual), msgAndArgs...)
 	}
 
 	return true
@@ -157,16 +157,16 @@ func Equal(t TestingT, a, b interface{}, msgAndArgs ...interface{}) bool {
 //    assert.Exactly(t, int32(123), int64(123), "123 and 123 should NOT be equal")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Exactly(t TestingT, a, b interface{}, msgAndArgs ...interface{}) bool {
+func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
-	aType := reflect.TypeOf(a)
-	bType := reflect.TypeOf(b)
+	aType := reflect.TypeOf(expected)
+	bType := reflect.TypeOf(actual)
 
 	if aType != bType {
 		return Fail(t, "Types expected to match exactly", "%v != %v", aType, bType)
 	}
 
-	return Equal(t, a, b, msgAndArgs...)
+	return Equal(t, expected, actual, msgAndArgs...)
 
 }
 
@@ -314,9 +314,9 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 //    assert.NotEqual(t, obj1, obj2, "two objects shouldn't be equal")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotEqual(t TestingT, a, b interface{}, msgAndArgs ...interface{}) bool {
+func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
-	if ObjectsAreEqual(a, b) {
+	if ObjectsAreEqual(expected, actual) {
 		return Fail(t, "Should not be equal", msgAndArgs...)
 	}
 
@@ -426,11 +426,11 @@ func NotPanics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 //   assert.WithinDuration(t, time.Now(), time.Now(), 10*time.Second, "The difference should not be more than 10s")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func WithinDuration(t TestingT, a, b time.Time, delta time.Duration, msgAndArgs ...interface{}) bool {
+func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration, msgAndArgs ...interface{}) bool {
 
-	dt := a.Sub(b)
+	dt := expected.Sub(actual)
 	if dt < -delta || dt > delta {
-		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", a, b, dt, delta), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, dt, delta), msgAndArgs...)
 	}
 
 	return true
