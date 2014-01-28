@@ -6,6 +6,8 @@ import (
 
 // TestResponseWriter is a http.ResponseWriter object that keeps track of all activity
 // allowing you to make assertions about how it was used.
+//
+// DEPRECATED: We recommend you use http://golang.org/pkg/net/http/httptest instead.
 type TestResponseWriter struct {
 
 	// StatusCode is the last int written by the call to WriteHeader(int)
