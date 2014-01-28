@@ -404,6 +404,25 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 }
 
+func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
+
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	mockedService.Mock.On("Test_Mock_TwoCallsWithDifferentArguments", 1, 2, 3).Return(5, 6, 7)
+	mockedService.Mock.On("Test_Mock_TwoCallsWithDifferentArguments", 4, 5, 6).Return(5, 6, 7)
+
+	args1 := mockedService.Mock.Called(1, 2, 3)
+	assert.Equal(t, 5, args1.Int(0))
+	assert.Equal(t, 6, args1.Int(1))
+	assert.Equal(t, 7, args1.Int(2))
+
+	args2 := mockedService.Mock.Called(4, 5, 6)
+	assert.Equal(t, 5, args2.Int(0))
+	assert.Equal(t, 6, args2.Int(1))
+	assert.Equal(t, 7, args2.Int(2))
+
+}
+
 func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
