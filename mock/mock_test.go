@@ -29,6 +29,13 @@ func (i *TestExampleImplementation) TheExampleMethod2(yesorno bool) {
 	i.Mock.Called(yesorno)
 }
 
+type ExampleType struct{}
+
+func (i *TestExampleImplementation) TheExampleMethod3(et *ExampleType) error {
+	args := i.Mock.Called(et)
+	return args.Error(0)
+}
+
 /*
 	Mock
 */
@@ -377,6 +384,23 @@ func Test_Mock_AssertExpectations(t *testing.T) {
 
 	// make the call now
 	mockedService.Mock.Called(1, 2, 3)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
+func Test_Mock_AssertExpectationsCustomType(t *testing.T) {
+
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	mockedService.Mock.On("TheExampleMethod3", AnythingOfType("*mock.ExampleType")).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	mockedService.TheExampleMethod3(&ExampleType{})
 
 	// now assert expectations
 	assert.True(t, mockedService.AssertExpectations(tt))
