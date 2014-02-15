@@ -478,7 +478,7 @@ func Error(t TestingT, theError error, msgAndArgs ...interface{}) bool {
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
-func ExactError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
+func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
 	if !NotNil(t, theError, "An error is expected but got nil. %s", message) {
