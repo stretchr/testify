@@ -311,6 +311,22 @@ func TestError(t *testing.T) {
 
 }
 
+func TestExactError(t *testing.T) {
+	mockT := new(testing.T)
+
+	// start with a nil error
+	var err error = nil
+	False(t, ExactError(mockT, err, ""),
+		"ExactError should return false for nil arg")
+
+	// now set an error
+	err = errors.New("Some error")
+	False(t, ExactError(mockT, err, "Not some error"),
+		"ExactError should return false for different error string")
+	True(t, ExactError(mockT, err, "Some error"),
+		"ExactError should return true")
+}
+
 func Test_isEmpty(t *testing.T) {
 
 	True(t, isEmpty(""))
