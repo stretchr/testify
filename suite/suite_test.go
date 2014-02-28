@@ -1,8 +1,8 @@
 package suite
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 // This suite is intended to store values to make sure that only
@@ -54,14 +54,14 @@ func (suite *SuiteTester) TearDownTest() {
 func (suite *SuiteTester) TestOne() {
 	beforeCount := suite.TestOneRunCount
 	suite.TestOneRunCount++
-	assert.Equal(suite.T(), suite.TestOneRunCount, beforeCount + 1)
+	suite.Equal(suite.TestOneRunCount, beforeCount+1)
 }
 
 // TestTwo is another example of a test.
 func (suite *SuiteTester) TestTwo() {
 	beforeCount := suite.TestTwoRunCount
 	suite.TestTwoRunCount++
-	assert.NotEqual(suite.T(), suite.TestTwoRunCount, beforeCount)
+	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
 }
 
 // NonTestMethod does not begin with "Test", so it will not be run by
@@ -80,23 +80,23 @@ func TestRunSuite(t *testing.T) {
 	// Normally, the test would end here.  The following are simply
 	// some assertions to ensure that the Run function is working as
 	// intended - they are not part of the example.
-
+	assert := assert.New(t)
 	// The suite was only run once, so the SetupSuite and TearDownSuite
 	// methods should have each been run only once.
-	assert.Equal(t, suiteTester.SetupSuiteRunCount, 1)
-	assert.Equal(t, suiteTester.TearDownSuiteRunCount, 1)
+	assert.Equal(suiteTester.SetupSuiteRunCount, 1)
+	assert.Equal(suiteTester.TearDownSuiteRunCount, 1)
 
 	// There are two test methods (TestOne and TestTwo), so the
 	// SetupTest and TearDownTest methods (which should be run once for
 	// each test) should have been run twice.
-	assert.Equal(t, suiteTester.SetupTestRunCount, 2)
-	assert.Equal(t, suiteTester.TearDownTestRunCount, 2)
+	assert.Equal(suiteTester.SetupTestRunCount, 2)
+	assert.Equal(suiteTester.TearDownTestRunCount, 2)
 
 	// Each test should have been run once.
-	assert.Equal(t, suiteTester.TestOneRunCount, 1)
-	assert.Equal(t, suiteTester.TestTwoRunCount, 1)
+	assert.Equal(suiteTester.TestOneRunCount, 1)
+	assert.Equal(suiteTester.TestTwoRunCount, 1)
 
 	// Methods that don't match the test method identifier shouldn't
 	// have been run at all.
-	assert.Equal(t, suiteTester.NonTestMethodRunCount, 0)
+	assert.Equal(suiteTester.NonTestMethodRunCount, 0)
 }

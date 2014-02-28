@@ -27,7 +27,6 @@
 //     // Basic imports
 //     import (
 //         "testing"
-//         "github.com/stretchr/testify/assert"
 //         "github.com/stretchr/testify/suite"
 //     )
 //
@@ -48,7 +47,7 @@
 //     // All methods that begin with "Test" are run as tests within a
 //     // suite.
 //     func (suite *ExampleTestSuite) TestExample() {
-//         assert.Equal(suite.T(), suite.VariableThatShouldStartAtFive, 5)
+//         suite.Equal(suite.VariableThatShouldStartAtFive, 5)
 //     }
 //
 //     // In order for 'go test' to run this suite, we need to create

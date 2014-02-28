@@ -1,25 +1,21 @@
 package suite
 
 import (
-	"testing"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"regexp"
+	"testing"
 )
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
 type Suite struct {
-	t *testing.T
-}
-
-// T retrieves the current *testing.T context.
-func (suite *Suite) T() *testing.T {
-	return suite.t
+	*assert.Assertions
 }
 
 // SetT sets the current *testing.T context.
 func (suite *Suite) SetT(t *testing.T) {
-	suite.t = t
+	suite.Assertions = assert.New(t)
 }
 
 // Run takes a testing suite and runs all of the tests attached
