@@ -16,12 +16,12 @@ type SuiteTester struct {
 	Suite
 
 	// Keep counts of how many times each method is run.
-	SetupSuiteRunCount int
+	SetupSuiteRunCount    int
 	TearDownSuiteRunCount int
-	SetupTestRunCount int
-	TearDownTestRunCount int
-	TestOneRunCount int
-	TestTwoRunCount int
+	SetupTestRunCount     int
+	TearDownTestRunCount  int
+	TestOneRunCount       int
+	TestTwoRunCount       int
 	NonTestMethodRunCount int
 }
 
