@@ -448,10 +448,10 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NoError(t TestingT, theError error, msgAndArgs ...interface{}) bool {
+func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
-	return Nil(t, theError, "No error is expected but got %v %s", theError, message)
+	return Nil(t, err, "No error is expected but got %v %s", err, message)
 
 }
 
@@ -463,9 +463,9 @@ func NoError(t TestingT, theError error, msgAndArgs ...interface{}) bool {
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Error(t TestingT, theError error, msgAndArgs ...interface{}) bool {
+func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
-	return NotNil(t, theError, "An error is expected but got nil. %s", message)
+	return NotNil(t, err, "An error is expected but got nil. %s", message)
 
 }
