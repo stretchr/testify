@@ -39,6 +39,7 @@ func Run(t *testing.T, suite TestingSuite) {
 			test := testing.InternalTest{
 				Name: method.Name,
 				F: func(t *testing.T) {
+					parentT := suite.T()
 					suite.SetT(t)
 					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 						setupTestSuite.SetupTest()
@@ -47,15 +48,15 @@ func Run(t *testing.T, suite TestingSuite) {
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 						tearDownTestSuite.TearDownTest()
 					}
+					suite.SetT(parentT)
 				},
 			}
 			tests = append(tests, test)
 		}
 	}
 
-	if !testing.RunTests(func(pat, str string) (bool, error) {
-		return true, nil
-	}, tests) {
+	if !testing.RunTests(func(_, _ string) (bool, error) {return true, nil},
+		tests) {
 		t.Fail()
 	}
 
