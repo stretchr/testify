@@ -311,6 +311,22 @@ func TestError(t *testing.T) {
 
 }
 
+func TestEqualError(t *testing.T) {
+	mockT := new(testing.T)
+
+	// start with a nil error
+	var err error = nil
+	False(t, EqualError(mockT, err, ""),
+		"EqualError should return false for nil arg")
+
+	// now set an error
+	err = errors.New("Some error")
+	False(t, EqualError(mockT, err, "Not some error"),
+		"EqualError should return false for different error string")
+	True(t, EqualError(mockT, err, "Some error"),
+		"EqualError should return true")
+}
+
 func Test_isEmpty(t *testing.T) {
 
 	True(t, isEmpty(""))

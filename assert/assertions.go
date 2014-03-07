@@ -469,3 +469,22 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	return NotNil(t, err, "An error is expected but got nil. %s", message)
 
 }
+
+// Error asserts that a function returned an error (i.e. not `nil`).
+//
+//   actualObj, err := SomeFunction()
+//   if assert.Error(t, err, "An error was expected") {
+//	   assert.Equal(t, err, expectedError)
+//   }
+//
+// Returns whether the assertion was successful (true) or not (false).
+func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
+
+	message := messageFromMsgAndArgs(msgAndArgs...)
+	if !NotNil(t, theError, "An error is expected but got nil. %s", message) {
+		return false
+	}
+	s := "An error with value \"%s\" is expected but got \"%s\". %s"
+	return Equal(t, theError.Error(), errString,
+		s, errString, theError.Error(), message)
+}
