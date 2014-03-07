@@ -1,12 +1,12 @@
 package suite
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"os"
-	"io/ioutil"
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 // This suite is intended to store values to make sure that only
@@ -120,11 +120,10 @@ func (s *SuiteLoggingTester) TestLoggingFail() {
 
 type StdoutCapture struct {
 	oldStdout *os.File
-	readPipe	*os.File
+	readPipe  *os.File
 }
 
 func (sc *StdoutCapture) StartCapture() {
-	fmt.Println("Starting capture1!")
 	sc.oldStdout = os.Stdout
 	sc.readPipe, os.Stdout, _ = os.Pipe()
 }
