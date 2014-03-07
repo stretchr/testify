@@ -1,9 +1,9 @@
 package suite
 
 import (
-	"testing"
 	"reflect"
 	"regexp"
+	"testing"
 )
 
 // Suite is a basic testing suite with methods for storing and
@@ -32,17 +32,32 @@ func Run(t *testing.T, suite TestingSuite) {
 	}
 
 	methodFinder := reflect.TypeOf(suite)
+	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
 		if ok, _ := regexp.MatchString("^Test", method.Name); ok {
-			if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-				setupTestSuite.SetupTest()
+			test := testing.InternalTest{
+				Name: method.Name,
+				F: func(t *testing.T) {
+					parentT := suite.T()
+					suite.SetT(t)
+					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+						setupTestSuite.SetupTest()
+					}
+					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+						tearDownTestSuite.TearDownTest()
+					}
+					suite.SetT(parentT)
+				},
 			}
-			method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
-			if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-				tearDownTestSuite.TearDownTest()
-			}
+			tests = append(tests, test)
 		}
+	}
+
+	if !testing.RunTests(func(_, _ string) (bool, error) {return true, nil},
+		tests) {
+		t.Fail()
 	}
 
 	if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
