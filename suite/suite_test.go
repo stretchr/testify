@@ -1,8 +1,12 @@
 package suite
 
 import (
-	"testing"
+	"errors"
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 // This suite is intended to store values to make sure that only
@@ -99,4 +103,56 @@ func TestRunSuite(t *testing.T) {
 	// Methods that don't match the test method identifier shouldn't
 	// have been run at all.
 	assert.Equal(t, suiteTester.NonTestMethodRunCount, 0)
+}
+
+type SuiteLoggingTester struct {
+	Suite
+}
+
+func (s *SuiteLoggingTester) TestLoggingPass() {
+	s.T().Log("TESTLOGPASS")
+}
+
+func (s *SuiteLoggingTester) TestLoggingFail() {
+	s.T().Log("TESTLOGFAIL")
+	assert.NotNil(s.T(), nil) //expected to fail
+}
+
+type StdoutCapture struct {
+	oldStdout *os.File
+	readPipe  *os.File
+}
+
+func (sc *StdoutCapture) StartCapture() {
+	sc.oldStdout = os.Stdout
+	sc.readPipe, os.Stdout, _ = os.Pipe()
+}
+
+func (sc *StdoutCapture) StopCapture() (string, error) {
+	if sc.oldStdout == nil || sc.readPipe == nil {
+		return "", errors.New("StartCapture not called before StopCapture")
+	}
+	os.Stdout.Close()
+	os.Stdout = sc.oldStdout
+	bytes, err := ioutil.ReadAll(sc.readPipe)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func TestSuiteLogging(t *testing.T) {
+	testT := testing.T{}
+
+	suiteLoggingTester := new(SuiteLoggingTester)
+
+	capture := StdoutCapture{}
+	capture.StartCapture()
+	Run(&testT, suiteLoggingTester)
+	output, err := capture.StopCapture()
+
+	assert.Nil(t, err, "Got an error trying to capture stdout!")
+
+	assert.Contains(t, output, "TESTLOGFAIL")
+	assert.NotContains(t, output, "TESTLOGPASS")
 }
