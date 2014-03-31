@@ -329,12 +329,16 @@ func TestEqualError(t *testing.T) {
 
 func Test_isEmpty(t *testing.T) {
 
+	ch_with_value := make(chan struct{}, 1)
+	ch_with_value <- struct{}{}
+
 	True(t, isEmpty(""))
 	True(t, isEmpty(nil))
 	True(t, isEmpty([]string{}))
 	True(t, isEmpty(0))
 	True(t, isEmpty(false))
 	True(t, isEmpty(map[string]string{}))
+	True(t, isEmpty(make(chan struct{})))
 
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
@@ -342,43 +346,50 @@ func Test_isEmpty(t *testing.T) {
 	False(t, isEmpty(1))
 	False(t, isEmpty(true))
 	False(t, isEmpty(map[string]string{"Hello": "World"}))
+	False(t, isEmpty(ch_with_value))
 
 }
 
 func TestEmpty(t *testing.T) {
 
 	mockT := new(testing.T)
+	ch_with_value := make(chan struct{}, 1)
+	ch_with_value <- struct{}{}
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
 	True(t, Empty(mockT, nil), "Nil is empty")
 	True(t, Empty(mockT, []string{}), "Empty string array is empty")
 	True(t, Empty(mockT, 0), "Zero int value is empty")
 	True(t, Empty(mockT, false), "False value is empty")
+	True(t, Empty(mockT, make(chan struct{})), "Channel without values is empty")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
 	False(t, Empty(mockT, []string{"something"}), "Non empty string array is not empty")
 	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
 	False(t, Empty(mockT, true), "True value is not empty")
-
+	False(t, Empty(mockT, ch_with_value), "Channel with values is not empty")
 }
 
 func TestNotEmpty(t *testing.T) {
 
 	mockT := new(testing.T)
+	ch_with_value := make(chan struct{}, 1)
+	ch_with_value <- struct{}{}
 
 	False(t, NotEmpty(mockT, ""), "Empty string is empty")
 	False(t, NotEmpty(mockT, nil), "Nil is empty")
 	False(t, NotEmpty(mockT, []string{}), "Empty string array is empty")
 	False(t, NotEmpty(mockT, 0), "Zero int value is empty")
 	False(t, NotEmpty(mockT, false), "False value is empty")
+	False(t, NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
 
 	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
 	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
 	True(t, NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
 	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
 	True(t, NotEmpty(mockT, true), "True value is not empty")
-
+	True(t, NotEmpty(mockT, ch_with_value), "Channel with values is not empty")
 }
 
 func TestWithinDuration(t *testing.T) {
