@@ -296,11 +296,11 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	return true
 }
 
-func (m *Mock) methodWasCalled(methodName string, arguments []interface{}) bool {
+func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 	for _, call := range m.Calls {
 		if call.Method == methodName {
 
-			_, differences := call.Arguments.Diff(arguments)
+			_, differences := Arguments(expected).Diff(call.Arguments)
 
 			if differences == 0 {
 				// found the expected call

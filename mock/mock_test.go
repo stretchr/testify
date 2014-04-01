@@ -473,6 +473,18 @@ func Test_Mock_AssertCalled(t *testing.T) {
 
 }
 
+func Test_Mock_AssertCalled_WithAnythingOfTypeArgument(t *testing.T) {
+
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	mockedService.Mock.On("Test_Mock_AssertCalled_WithAnythingOfTypeArgument", Anything, Anything, Anything).Return()
+
+	mockedService.Mock.Called(1, "two", []uint8("three"))
+
+	assert.True(t, mockedService.AssertCalled(t, "Test_Mock_AssertCalled_WithAnythingOfTypeArgument", AnythingOfType("int"), AnythingOfType("string"), AnythingOfType("[]uint8")))
+
+}
+
 func Test_Mock_AssertCalled_WithArguments(t *testing.T) {
 
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
