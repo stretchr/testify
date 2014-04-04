@@ -196,13 +196,8 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return success
 }
 
-// Nil asserts that the specified object is nil.
-//
-//    assert.Nil(t, err, "err should be nothing")
-//
-// Returns whether the assertion was successful (true) or not (false).
-func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
-
+// isNil checks if a specified object is nil or not, without Failing.
+func isNil(object interface{}) bool {
 	if object == nil {
 		return true
 	} else {
@@ -212,7 +207,18 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 			return true
 		}
 	}
+	return false
+}
 
+// Nil asserts that the specified object is nil.
+//
+//    assert.Nil(t, err, "err should be nothing")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
+	if isNil(object) {
+		return true
+	}
 	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
 }
 
@@ -449,10 +455,11 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 //
 // Returns whether the assertion was successful (true) or not (false).
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
+	if isNil(err) {
+		return true
+	}
 
-	message := messageFromMsgAndArgs(msgAndArgs...)
-	return Nil(t, err, "No error is expected but got %v %s", err, message)
-
+	return Fail(t, fmt.Sprintf("No error is expected but got %v", err), msgAndArgs...)
 }
 
 // Error asserts that a function returned an error (i.e. not `nil`).
