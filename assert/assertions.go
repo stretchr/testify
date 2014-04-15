@@ -230,6 +230,7 @@ func isEmpty(object interface{}) bool {
 	}
 
 	objValue := reflect.ValueOf(object)
+
 	switch objValue.Kind() {
 	case reflect.Map:
 		fallthrough
@@ -237,10 +238,17 @@ func isEmpty(object interface{}) bool {
 		{
 			return (objValue.Len() == 0)
 		}
+	case reflect.Ptr:
+		{
+			switch object.(type) {
+			case *time.Time:
+				return object.(*time.Time).IsZero()
+			default:
+				return false
+			}
+		}
 	}
-
 	return false
-
 }
 
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or a

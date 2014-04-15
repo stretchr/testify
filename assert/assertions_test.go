@@ -335,6 +335,7 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty(0))
 	True(t, isEmpty(false))
 	True(t, isEmpty(map[string]string{}))
+	True(t, isEmpty(new(time.Time)))
 
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
