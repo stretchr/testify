@@ -234,7 +234,7 @@ func isEmpty(object interface{}) bool {
 	switch objValue.Kind() {
 	case reflect.Map:
 		fallthrough
-	case reflect.Slice:
+	case reflect.Slice, reflect.Chan:
 		{
 			return (objValue.Len() == 0)
 		}
@@ -251,8 +251,8 @@ func isEmpty(object interface{}) bool {
 	return false
 }
 
-// Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or a
-// slice with len == 0.
+// Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
+// a slice or a channel with len == 0.
 //
 // assert.Empty(t, obj)
 //
@@ -268,8 +268,8 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 }
 
-// Empty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or a
-// slice with len == 0.
+// Empty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
+// a slice or a channel with len == 0.
 //
 // if assert.NotEmpty(t, obj) {
 //   assert.Equal(t, "two", obj[1])
