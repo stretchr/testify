@@ -2,7 +2,6 @@ package suite
 
 import (
 	"errors"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
