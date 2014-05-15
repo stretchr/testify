@@ -14,7 +14,7 @@ Get started:
 
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
   * For an introduction to writing test code in Go, see our [blog post article](http://blog.stretchr.com/2014/03/05/test-driven-development-specifically-in-golang/) or check out  http://golang.org/doc/code.html#Testing
-  * Check out the API Documentation http://go.pkgdoc.org/github.com/stretchr/testify
+  * Check out the API Documentation http://godoc.org/github.com/stretchr/testify
   * To make your testing life easier, check out our other project, [gorc](http://github.com/stretchr/gorc)
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
 
@@ -23,7 +23,7 @@ Get started:
 `assert` package
 ----------------
 
-The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the `assert` package](http://go.pkgdoc.org/github.com/stretchr/testify/assert).
+The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the `assert` package](http://godoc.org/github.com/stretchr/testify/assert).
 
   * Prints friendly, easy to read failure descriptions
   * Allows for very readable code
@@ -59,7 +59,7 @@ See it in action:
 `http` package
 --------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the `http` package](http://go.pkgdoc.org/github.com/stretchr/testify/http).
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the `http` package](http://godoc.org/github.com/stretchr/testify/http).
 
 `mock` package
 --------------
@@ -121,7 +121,7 @@ An example test function that tests a piece of code that relies on an external o
 
     }
 
-For more information on how to write mock code, check out the [API documentation for the `mock` package](http://go.pkgdoc.org/github.com/stretchr/testify/mock).
+For more information on how to write mock code, check out the [API documentation for the `mock` package](http://godoc.org/github.com/stretchr/testify/mock).
 
 `suite` package
 ---------------
@@ -165,7 +165,7 @@ An example suite is shown below:
 
 For a more complete example, using all of the functionality provided by the suite package, look at our [example testing suite](https://github.com/stretchr/testify/blob/master/suite/suite_test.go)
 
-For more information on writing suites, check out the [API documentation for the `suite` package](http://go.pkgdoc.org/github.com/stretchr/testify/suite).
+For more information on writing suites, check out the [API documentation for the `suite` package](http://godoc.org/github.com/stretchr/testify/suite).
 
 ------
 
