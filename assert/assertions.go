@@ -2,6 +2,7 @@ package assert
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"runtime"
 	"strings"
@@ -152,6 +153,34 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 
 }
 
+func sameType(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	aType := reflect.TypeOf(expected)
+	bType := reflect.TypeOf(actual)
+
+	if aType != bType {
+		return Fail(t, "Types expected to match exactly", "%v != %v", aType, bType)
+	}
+
+	return true
+}
+
+// Checks if floating point values are almost equal by rounding to 2 decimal places.
+func AlmostEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	same := sameType(t, expected, actual, msgAndArgs...)
+	if !same {
+		return same
+	}
+
+	switch expected.(type) {
+	//case float32:
+	case float64:
+		return Equal(t, roundPrec(expected.(float64), 2), roundPrec(actual.(float64), 2), msgAndArgs...)
+	default:
+		return Fail(t, "Types not supported", nil)
+	}
+
+}
+
 // Exactly asserts that two objects are equal is value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123), "123 and 123 should NOT be equal")
@@ -159,11 +188,9 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 // Returns whether the assertion was successful (true) or not (false).
 func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
-	aType := reflect.TypeOf(expected)
-	bType := reflect.TypeOf(actual)
-
-	if aType != bType {
-		return Fail(t, "Types expected to match exactly", "%v != %v", aType, bType)
+	same := sameType(t, expected, actual, msgAndArgs...)
+	if !same {
+		return same
 	}
 
 	return Equal(t, expected, actual, msgAndArgs...)
@@ -502,4 +529,30 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	s := "An error with value \"%s\" is expected but got \"%s\". %s"
 	return Equal(t, theError.Error(), errString,
 		s, errString, theError.Error(), message)
+}
+
+//Helpers
+func roundPrec(x float64, prec int) float64 {
+	if math.IsNaN(x) || math.IsInf(x, 0) {
+		return x
+	}
+
+	sign := 1.0
+	if x < 0 {
+		sign = -1
+		x *= -1
+	}
+
+	var rounder float64
+	pow := math.Pow(10, float64(prec))
+	intermed := x * pow
+	_, frac := math.Modf(intermed)
+
+	if frac >= 0.5 {
+		rounder = math.Ceil(intermed)
+	} else {
+		rounder = math.Floor(intermed)
+	}
+
+	return rounder / pow * sign
 }
