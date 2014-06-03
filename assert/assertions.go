@@ -25,11 +25,22 @@ type Comparison func() (success bool)
 // This function does no assertion of any kind.
 func ObjectsAreEqual(expected, actual interface{}) bool {
 
+	if expected == nil || actual == nil {
+		return expected == actual
+	}
+
 	if reflect.DeepEqual(expected, actual) {
 		return true
 	}
 
-	if reflect.ValueOf(expected) == reflect.ValueOf(actual) {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+	if expectedValue == actualValue {
+		return true
+	}
+
+	// Attempt comparison after type conversion
+	if actualValue.Type().ConvertibleTo(expectedValue.Type()) && expectedValue == actualValue.Convert(expectedValue.Type()) {
 		return true
 	}
 
