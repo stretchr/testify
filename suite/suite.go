@@ -1,10 +1,15 @@
 package suite
 
 import (
+	"flag"
+	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 	"testing"
 )
+
+var matchMethod = flag.String("m", "", "regular expression to select tests of the suite to run")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -35,7 +40,12 @@ func Run(t *testing.T, suite TestingSuite) {
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
-		if ok, _ := regexp.MatchString("^Test", method.Name); ok {
+		ok, err := methodFilter(method.Name)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
+			os.Exit(1)
+		}
+		if ok {
 			test := testing.InternalTest{
 				Name: method.Name,
 				F: func(t *testing.T) {
@@ -44,6 +54,7 @@ func Run(t *testing.T, suite TestingSuite) {
 					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 						setupTestSuite.SetupTest()
 					}
+					t.Logf("Call test %q", method.Name)
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 						tearDownTestSuite.TearDownTest()
@@ -55,7 +66,7 @@ func Run(t *testing.T, suite TestingSuite) {
 		}
 	}
 
-	if !testing.RunTests(func(_, _ string) (bool, error) {return true, nil},
+	if !testing.RunTests(func(_, _ string) (bool, error) { return true, nil },
 		tests) {
 		t.Fail()
 	}
@@ -63,4 +74,13 @@ func Run(t *testing.T, suite TestingSuite) {
 	if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
 		tearDownAllSuite.TearDownSuite()
 	}
+}
+
+// Filtering method according to set regular expression
+// specified command-line argument -m
+func methodFilter(name string) (bool, error) {
+	if ok, _ := regexp.MatchString("^Test", name); !ok {
+		return false, nil
+	}
+	return regexp.MatchString(*matchMethod, name)
 }
