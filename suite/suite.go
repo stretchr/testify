@@ -54,7 +54,6 @@ func Run(t *testing.T, suite TestingSuite) {
 					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 						setupTestSuite.SetupTest()
 					}
-					t.Logf("Call test %q", method.Name)
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 						tearDownTestSuite.TearDownTest()
