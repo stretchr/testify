@@ -24,8 +24,8 @@
 // func(*testing.T)).
 //
 // Regular expression to select test suites specified command-line
-// command-line argument "-run". Regular expression to select the
-// methods of test suites specified command-line argument "-m".
+// argument "-run". Regular expression to select the methods
+// of test suites specified command-line argument "-m".
 //
 // A crude example:
 //     // Basic imports
