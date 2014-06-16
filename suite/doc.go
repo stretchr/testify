@@ -23,6 +23,10 @@
 // identity that "go test" is already looking for (i.e.
 // func(*testing.T)).
 //
+// Regular expression to select test suites specified command-line
+// command-line argument "-run". Regular expression to select the
+// methods of test suites specified command-line argument "-m".
+//
 // A crude example:
 //     // Basic imports
 //     import (
