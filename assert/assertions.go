@@ -233,6 +233,21 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
 }
 
+var zeros = []interface{}{
+	int(0),
+	int8(0),
+	int16(0),
+	int32(0),
+	int64(0),
+	uint(0),
+	uint8(0),
+	uint16(0),
+	uint32(0),
+	uint64(0),
+	float32(0),
+	float64(0),
+}
+
 // isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object interface{}) bool {
 
@@ -240,10 +255,14 @@ func isEmpty(object interface{}) bool {
 		return true
 	} else if object == "" {
 		return true
-	} else if object == 0 {
-		return true
 	} else if object == false {
 		return true
+	} else {
+		for _, v := range zeros {
+			if object == v {
+				return true
+			}
+		}
 	}
 
 	objValue := reflect.ValueOf(object)
