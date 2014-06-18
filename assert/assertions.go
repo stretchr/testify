@@ -188,7 +188,7 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 // Returns whether the assertion was successful (true) or not (false).
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
-	var success bool = true
+	success := true
 
 	if object == nil {
 		success = false
@@ -211,13 +211,14 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 func isNil(object interface{}) bool {
 	if object == nil {
 		return true
-	} else {
-		value := reflect.ValueOf(object)
-		kind := value.Kind()
-		if kind >= reflect.Chan && kind <= reflect.Slice && value.IsNil() {
-			return true
-		}
 	}
+
+	value := reflect.ValueOf(object)
+	kind := value.Kind()
+	if kind >= reflect.Chan && kind <= reflect.Slice && value.IsNil() {
+		return true
+	}
+
 	return false
 }
 
@@ -257,11 +258,11 @@ func isEmpty(object interface{}) bool {
 		return true
 	} else if object == false {
 		return true
-	} else {
-		for _, v := range zeros {
-			if object == v {
-				return true
-			}
+	}
+
+	for _, v := range zeros {
+		if object == v {
+			return true
 		}
 	}
 
@@ -304,7 +305,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 }
 
-// Empty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
+// NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
 // if assert.NotEmpty(t, obj) {
@@ -398,7 +399,7 @@ func NotContains(t TestingT, s, contains string, msgAndArgs ...interface{}) bool
 
 }
 
-// Uses a Comparison to assert a complex condition.
+// Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	result := comp()
 	if !result {
@@ -414,7 +415,7 @@ type PanicTestFunc func()
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
 func didPanic(f PanicTestFunc) (bool, interface{}) {
 
-	var didPanic bool = false
+	didPanic := false
 	var message interface{}
 	func() {
 
@@ -515,7 +516,8 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
 }
 
-// Error asserts that a function returned an error (i.e. not `nil`).
+// EqualError asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error.
 //
 //   actualObj, err := SomeFunction()
 //   if assert.Error(t, err, "An error was expected") {

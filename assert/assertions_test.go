@@ -275,12 +275,12 @@ func TestNotPanics(t *testing.T) {
 func TestEqual_Funcs(t *testing.T) {
 
 	type f func() int
-	var f1 f = func() int { return 1 }
-	var f2 f = func() int { return 2 }
+	f1 := func() int { return 1 }
+	f2 := func() int { return 2 }
 
-	var f1_copy f = f1
+	f1Copy := f1
 
-	Equal(t, f1_copy, f1, "Funcs are the same and should be considered equal")
+	Equal(t, f1Copy, f1, "Funcs are the same and should be considered equal")
 	NotEqual(t, f1, f2, "f1 and f2 are different")
 
 }
@@ -290,12 +290,12 @@ func TestNoError(t *testing.T) {
 	mockT := new(testing.T)
 
 	// start with a nil error
-	var err error = nil
+	var err error
 
 	True(t, NoError(mockT, err), "NoError should return True for nil arg")
 
 	// now set an error
-	err = errors.New("Some error")
+	err = errors.New("some error")
 
 	False(t, NoError(mockT, err), "NoError with error should return False")
 
@@ -306,12 +306,12 @@ func TestError(t *testing.T) {
 	mockT := new(testing.T)
 
 	// start with a nil error
-	var err error = nil
+	var err error
 
 	False(t, Error(mockT, err), "Error should return False for nil arg")
 
 	// now set an error
-	err = errors.New("Some error")
+	err = errors.New("some error")
 
 	True(t, Error(mockT, err), "Error with error should return True")
 
@@ -321,22 +321,22 @@ func TestEqualError(t *testing.T) {
 	mockT := new(testing.T)
 
 	// start with a nil error
-	var err error = nil
+	var err error
 	False(t, EqualError(mockT, err, ""),
 		"EqualError should return false for nil arg")
 
 	// now set an error
-	err = errors.New("Some error")
+	err = errors.New("some error")
 	False(t, EqualError(mockT, err, "Not some error"),
 		"EqualError should return false for different error string")
-	True(t, EqualError(mockT, err, "Some error"),
+	True(t, EqualError(mockT, err, "some error"),
 		"EqualError should return true")
 }
 
 func Test_isEmpty(t *testing.T) {
 
-	ch_with_value := make(chan struct{}, 1)
-	ch_with_value <- struct{}{}
+	chWithValue := make(chan struct{}, 1)
+	chWithValue <- struct{}{}
 
 	True(t, isEmpty(""))
 	True(t, isEmpty(nil))
@@ -354,15 +354,15 @@ func Test_isEmpty(t *testing.T) {
 	False(t, isEmpty(1))
 	False(t, isEmpty(true))
 	False(t, isEmpty(map[string]string{"Hello": "World"}))
-	False(t, isEmpty(ch_with_value))
+	False(t, isEmpty(chWithValue))
 
 }
 
 func TestEmpty(t *testing.T) {
 
 	mockT := new(testing.T)
-	ch_with_value := make(chan struct{}, 1)
-	ch_with_value <- struct{}{}
+	chWithValue := make(chan struct{}, 1)
+	chWithValue <- struct{}{}
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
 	True(t, Empty(mockT, nil), "Nil is empty")
@@ -376,14 +376,14 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, []string{"something"}), "Non empty string array is not empty")
 	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
 	False(t, Empty(mockT, true), "True value is not empty")
-	False(t, Empty(mockT, ch_with_value), "Channel with values is not empty")
+	False(t, Empty(mockT, chWithValue), "Channel with values is not empty")
 }
 
 func TestNotEmpty(t *testing.T) {
 
 	mockT := new(testing.T)
-	ch_with_value := make(chan struct{}, 1)
-	ch_with_value <- struct{}{}
+	chWithValue := make(chan struct{}, 1)
+	chWithValue <- struct{}{}
 
 	False(t, NotEmpty(mockT, ""), "Empty string is empty")
 	False(t, NotEmpty(mockT, nil), "Nil is empty")
@@ -397,7 +397,7 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
 	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
 	True(t, NotEmpty(mockT, true), "True value is not empty")
-	True(t, NotEmpty(mockT, ch_with_value), "Channel with values is not empty")
+	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
 }
 
 func TestWithinDuration(t *testing.T) {
