@@ -342,6 +342,8 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty(nil))
 	True(t, isEmpty([]string{}))
 	True(t, isEmpty(0))
+	True(t, isEmpty(int32(0)))
+	True(t, isEmpty(int64(0)))
 	True(t, isEmpty(false))
 	True(t, isEmpty(map[string]string{}))
 	True(t, isEmpty(new(time.Time)))
