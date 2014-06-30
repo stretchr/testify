@@ -164,17 +164,20 @@ func sameType(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 	return true
 }
 
-// Checks if floating point values are almost equal by rounding to 2 decimal places.
+// Checks if floating point values are almost equal by rounding to 7 decimal places.
 func AlmostEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	same := sameType(t, expected, actual, msgAndArgs...)
 	if !same {
 		return same
 	}
+	const prec int = 7
 
+	//single values
 	switch expected.(type) {
-	//case float32:
+	case float32:
+		return Equal(t, roundPrec(float64(expected.(float32)), prec), roundPrec(float64(actual.(float32)), prec), msgAndArgs...)
 	case float64:
-		return Equal(t, roundPrec(expected.(float64), 2), roundPrec(actual.(float64), 2), msgAndArgs...)
+		return Equal(t, roundPrec(expected.(float64), prec), roundPrec(actual.(float64), prec), msgAndArgs...)
 	default:
 		return Fail(t, "Types not supported", nil)
 	}
