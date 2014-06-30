@@ -26,11 +26,22 @@ type Comparison func() (success bool)
 // This function does no assertion of any kind.
 func ObjectsAreEqual(expected, actual interface{}) bool {
 
+	if expected == nil || actual == nil {
+		return expected == actual
+	}
+
 	if reflect.DeepEqual(expected, actual) {
 		return true
 	}
 
-	if reflect.ValueOf(expected) == reflect.ValueOf(actual) {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+	if expectedValue == actualValue {
+		return true
+	}
+
+	// Attempt comparison after type conversion
+	if actualValue.Type().ConvertibleTo(expectedValue.Type()) && expectedValue == actualValue.Convert(expectedValue.Type()) {
 		return true
 	}
 
@@ -207,7 +218,7 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 // Returns whether the assertion was successful (true) or not (false).
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
-	var success bool = true
+	success := true
 
 	if object == nil {
 		success = false
@@ -230,13 +241,14 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 func isNil(object interface{}) bool {
 	if object == nil {
 		return true
-	} else {
-		value := reflect.ValueOf(object)
-		kind := value.Kind()
-		if kind >= reflect.Chan && kind <= reflect.Slice && value.IsNil() {
-			return true
-		}
 	}
+
+	value := reflect.ValueOf(object)
+	kind := value.Kind()
+	if kind >= reflect.Chan && kind <= reflect.Slice && value.IsNil() {
+		return true
+	}
+
 	return false
 }
 
@@ -252,6 +264,21 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
 }
 
+var zeros = []interface{}{
+	int(0),
+	int8(0),
+	int16(0),
+	int32(0),
+	int64(0),
+	uint(0),
+	uint8(0),
+	uint16(0),
+	uint32(0),
+	uint64(0),
+	float32(0),
+	float64(0),
+}
+
 // isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object interface{}) bool {
 
@@ -259,10 +286,14 @@ func isEmpty(object interface{}) bool {
 		return true
 	} else if object == "" {
 		return true
-	} else if object == 0 {
-		return true
 	} else if object == false {
 		return true
+	}
+
+	for _, v := range zeros {
+		if object == v {
+			return true
+		}
 	}
 
 	objValue := reflect.ValueOf(object)
@@ -304,7 +335,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 }
 
-// Empty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
+// NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
 // if assert.NotEmpty(t, obj) {
@@ -398,7 +429,7 @@ func NotContains(t TestingT, s, contains string, msgAndArgs ...interface{}) bool
 
 }
 
-// Uses a Comparison to assert a complex condition.
+// Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	result := comp()
 	if !result {
@@ -414,7 +445,7 @@ type PanicTestFunc func()
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
 func didPanic(f PanicTestFunc) (bool, interface{}) {
 
-	var didPanic bool = false
+	didPanic := false
 	var message interface{}
 	func() {
 
@@ -515,7 +546,8 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
 }
 
-// Error asserts that a function returned an error (i.e. not `nil`).
+// EqualError asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error.
 //
 //   actualObj, err := SomeFunction()
 //   if assert.Error(t, err, "An error was expected") {
