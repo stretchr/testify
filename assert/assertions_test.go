@@ -120,6 +120,18 @@ func TestAlmostEqual(t *testing.T) {
 		t.Errorf("AlmostEqual should return false")
 	}
 
+	if !AlmostEqual(mockT, 2.00000001, 2.00000003) {
+		t.Errorf("AlmostEqual should return true")
+	}
+
+	if !AlmostEqual(mockT, float32(2.00000001), float32(2.00000003)) {
+		t.Errorf("AlmostEqual should return true")
+	}
+
+	if AlmostEqual(mockT, float32(3.67), float32(7.2)) {
+		t.Errorf("AlmostEqual should return false")
+	}
+
 }
 
 func TestNotNil(t *testing.T) {
