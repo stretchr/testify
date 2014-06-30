@@ -56,6 +56,29 @@ See it in action:
   * Every assert func takes the `testing.T` object as the first argument.  This is how it writes the errors out through the normal `go test` capabilities.
   * Every assert func returns a bool indicating whether the assertion was successful or not, this is useful for if you want to go on making further assertions under certain conditions.
 
+if you assert many times, use the below:
+
+    func TestSomething(t *testing.T) {
+      assert := assert.New(t)
+      
+      // assert equality
+      assert.Equal(123, 123, "they should be equal")
+
+      // assert inequality
+      assert.NotEqual(123, 456, "they should not be equal")
+
+      // assert for nil (good for errors)
+      assert.Nil(object)
+
+      // assert for not nil (good when you expect something)
+      if assert.NotNil(object) {
+
+      	// now we know that object isn't nil, we are safe to make
+      	// further assertions without causing any errors
+        assert.Equal("Something", object.Value)
+      }
+    }
+
 `http` package
 --------------
 
@@ -166,6 +189,39 @@ An example suite is shown below:
 For a more complete example, using all of the functionality provided by the suite package, look at our [example testing suite](https://github.com/stretchr/testify/blob/master/suite/suite_test.go)
 
 For more information on writing suites, check out the [API documentation for the `suite` package](http://godoc.org/github.com/stretchr/testify/suite).
+
+`Suite` object has assertion methods:
+
+    // Basic imports
+    import (
+        "testing"
+        "github.com/stretchr/testify/suite"
+    )
+
+    // Define the suite, and absorb the built-in basic suite
+    // functionality from testify - including assertion methods.
+    type ExampleTestSuite struct {
+        suite.Suite
+        VariableThatShouldStartAtFive int
+    }
+
+    // Make sure that VariableThatShouldStartAtFive is set to five
+    // before each test
+    func (suite *ExampleTestSuite) SetupTest() {
+        suite.VariableThatShouldStartAtFive = 5
+    }
+
+    // All methods that begin with "Test" are run as tests within a
+    // suite.
+    func (suite *ExampleTestSuite) TestExample() {
+        suite.Equal(suite.VariableThatShouldStartAtFive, 5)
+    }
+
+    // In order for 'go test' to run this suite, we need to create
+    // a normal test function and pass our suite to suite.Run
+    func TestExampleTestSuite(t *testing.T) {
+        suite.Run(t, new(ExampleTestSuite))
+    }
 
 ------
 
