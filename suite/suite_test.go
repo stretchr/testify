@@ -19,12 +19,12 @@ type SuiteTester struct {
 	Suite
 
 	// Keep counts of how many times each method is run.
-	SetupSuiteRunCount int
+	SetupSuiteRunCount    int
 	TearDownSuiteRunCount int
-	SetupTestRunCount int
-	TearDownTestRunCount int
-	TestOneRunCount int
-	TestTwoRunCount int
+	SetupTestRunCount     int
+	TearDownTestRunCount  int
+	TestOneRunCount       int
+	TestTwoRunCount       int
 	NonTestMethodRunCount int
 }
 
@@ -57,7 +57,8 @@ func (suite *SuiteTester) TearDownTest() {
 func (suite *SuiteTester) TestOne() {
 	beforeCount := suite.TestOneRunCount
 	suite.TestOneRunCount++
-	assert.Equal(suite.T(), suite.TestOneRunCount, beforeCount + 1)
+	assert.Equal(suite.T(), suite.TestOneRunCount, beforeCount+1)
+	suite.Equal(suite.TestOneRunCount, beforeCount+1)
 }
 
 // TestTwo is another example of a test.
@@ -65,6 +66,7 @@ func (suite *SuiteTester) TestTwo() {
 	beforeCount := suite.TestTwoRunCount
 	suite.TestTwoRunCount++
 	assert.NotEqual(suite.T(), suite.TestTwoRunCount, beforeCount)
+	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
 }
 
 // NonTestMethod does not begin with "Test", so it will not be run by
