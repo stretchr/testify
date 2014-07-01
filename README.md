@@ -32,6 +32,13 @@ The `assert` package provides some helpful methods that allow you to write bette
 See it in action:
 
 ```go
+package yours
+
+import (
+  "testing"
+  "github.com/stretchr/testify/assert"
+)
+
 func TestSomething(t *testing.T) {
 
   // assert equality
