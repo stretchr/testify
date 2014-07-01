@@ -68,9 +68,16 @@ func TestSomething(t *testing.T) {
 if you assert many times, use the below:
 
 ```go
+package yours
+
+import (
+  "testing"
+  "github.com/stretchr/testify/assert"
+)
+
 func TestSomething(t *testing.T) {
   assert := assert.New(t)
-  
+
   // assert equality
   assert.Equal(123, 123, "they should be equal")
 
