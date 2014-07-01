@@ -267,6 +267,23 @@ func TestErrorWrapper(t *testing.T) {
 
 }
 
+func TestEqualErrorWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	// start with a nil error
+	var err error
+	assert.False(mockAssert.EqualError(err, ""),
+		"EqualError should return false for nil arg")
+
+	// now set an error
+	err = errors.New("some error")
+	assert.False(mockAssert.EqualError(err, "Not some error"),
+		"EqualError should return false for different error string")
+	assert.True(mockAssert.EqualError(err, "some error"),
+		"EqualError should return true")
+}
+
 func TestEmptyWrapper(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
