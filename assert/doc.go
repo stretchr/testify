@@ -65,6 +65,8 @@
 //
 //    assert.NoError(t, errorObject [, message [, format-args]])
 //
+//    assert.EqualError(t, theError, errString [, message [, format-args]])
+//
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject) [,message [, format-args]])
 //
 //    assert.IsType(t, expectedObject, actualObject [, message [, format-args]])
@@ -109,6 +111,8 @@
 //    assert.Error(errorObject [, message [, format-args]])
 //
 //    assert.NoError(errorObject [, message [, format-args]])
+//
+//    assert.EqualError(theError, errString [, message [, format-args]])
 //
 //    assert.Implements((*MyInterface)(nil), new(MyObject) [,message [, format-args]])
 //
