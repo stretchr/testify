@@ -191,3 +191,16 @@ func (a *Assertions) NoError(theError error, msgAndArgs ...interface{}) bool {
 func (a *Assertions) Error(theError error, msgAndArgs ...interface{}) bool {
 	return Error(a.t, theError, msgAndArgs...)
 }
+
+// EqualError asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error.
+//
+//   actualObj, err := SomeFunction()
+//   if assert.Error(err, "An error was expected") {
+//	   assert.Equal(err, expectedError)
+//   }
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) bool {
+	return EqualError(a.t, theError, errString, msgAndArgs...)
+}
