@@ -100,7 +100,9 @@ func TestSomething(t *testing.T) {
 `http` package
 --------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the `http` package](http://godoc.org/github.com/stretchr/testify/http).
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [(deprecated) API documentation for the `http` package](http://godoc.org/github.com/stretchr/testify/http). 
+
+We reccomend you use [httptest](http://golang.org/pkg/net/http/httptest) instead.
 
 `mock` package
 --------------
