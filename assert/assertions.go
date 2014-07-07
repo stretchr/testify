@@ -175,8 +175,13 @@ func sameType(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 	return true
 }
 
-// Checks if floating point values are almost equal by rounding to 7 decimal places.
-func AlmostEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+// AlmostEqualFloat asserts that two floats are equal by rounding
+// them both to 7 decimal places before comparing.
+//
+//    assert.AlmostEqualFloat(t, 2.00000001, 2.00000003, "2.00000001 and 2.00000003 should be equal")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func AlmostEqualFloat(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	same := sameType(t, expected, actual, msgAndArgs...)
 	if !same {
 		return same
