@@ -31,30 +31,71 @@ The `assert` package provides some helpful methods that allow you to write bette
 
 See it in action:
 
-    func TestSomething(t *testing.T) {
-   
-   	  // assert equality
-      assert.Equal(t, 123, 123, "they should be equal")
+```go
+package yours
 
-      // assert inequality
-      assert.NotEqual(t, 123, 456, "they should not be equal")
+import (
+  "testing"
+  "github.com/stretchr/testify/assert"
+)
 
-      // assert for nil (good for errors)
-      assert.Nil(t, object)
+func TestSomething(t *testing.T) {
 
-      // assert for not nil (good when you expect something)
-      if assert.NotNil(t, object) {
+  // assert equality
+  assert.Equal(t, 123, 123, "they should be equal")
 
-      	// now we know that object isn't nil, we are safe to make
-      	// further assertions without causing any errors
-        assert.Equal(t, "Something", object.Value)
+  // assert inequality
+  assert.NotEqual(t, 123, 456, "they should not be equal")
 
-      }
+  // assert for nil (good for errors)
+  assert.Nil(t, object)
 
-    }
+  // assert for not nil (good when you expect something)
+  if assert.NotNil(t, object) {
+
+    // now we know that object isn't nil, we are safe to make
+    // further assertions without causing any errors
+    assert.Equal(t, "Something", object.Value)
+
+  }
+
+}
+```
 
   * Every assert func takes the `testing.T` object as the first argument.  This is how it writes the errors out through the normal `go test` capabilities.
   * Every assert func returns a bool indicating whether the assertion was successful or not, this is useful for if you want to go on making further assertions under certain conditions.
+
+if you assert many times, use the below:
+
+```go
+package yours
+
+import (
+  "testing"
+  "github.com/stretchr/testify/assert"
+)
+
+func TestSomething(t *testing.T) {
+  assert := assert.New(t)
+
+  // assert equality
+  assert.Equal(123, 123, "they should be equal")
+
+  // assert inequality
+  assert.NotEqual(123, 456, "they should not be equal")
+
+  // assert for nil (good for errors)
+  assert.Nil(object)
+
+  // assert for not nil (good when you expect something)
+  if assert.NotNil(object) {
+
+    // now we know that object isn't nil, we are safe to make
+    // further assertions without causing any errors
+    assert.Equal("Something", object.Value)
+  }
+}
+```
 
 `http` package
 --------------
@@ -68,58 +109,60 @@ The `mock` package provides a mechanism for easily writing mock objects that can
 
 An example test function that tests a piece of code that relies on an external object `testObj`, can setup expectations (testify) and assert that they indeed happened:
 
-    package yours
+```go
+package yours
 
-    import (
-      "testing"
-      "github.com/stretchr/testify/mock"
-    )
+import (
+  "testing"
+  "github.com/stretchr/testify/mock"
+)
 
-    /*
-      Test objects
-    */
+/*
+  Test objects
+*/
 
-    // MyMockedObject is a mocked object that implements an interface
-    // that describes an object that the code I am testing relies on.
-    type MyMockedObject struct{
-      mock.Mock
-    }
+// MyMockedObject is a mocked object that implements an interface
+// that describes an object that the code I am testing relies on.
+type MyMockedObject struct{
+  mock.Mock
+}
 
-    // DoSomething is a method on MyMockedObject that implements some interface
-    // and just records the activity, and returns what the Mock object tells it to.
-    //
-    // In the real object, this method would do something useful, but since this
-    // is a mocked object - we're just going to stub it out.
-    //
-    // NOTE: This method is not being tested here, code that uses this object is.
-    func (m *MyMockedObject) DoSomething(number int) (bool, error) {
+// DoSomething is a method on MyMockedObject that implements some interface
+// and just records the activity, and returns what the Mock object tells it to.
+//
+// In the real object, this method would do something useful, but since this
+// is a mocked object - we're just going to stub it out.
+//
+// NOTE: This method is not being tested here, code that uses this object is.
+func (m *MyMockedObject) DoSomething(number int) (bool, error) {
 
-      args := m.Mock.Called(number)
-      return args.Bool(0), args.Error(1)
+  args := m.Mock.Called(number)
+  return args.Bool(0), args.Error(1)
 
-    }
+}
 
-    /*
-      Actual test functions
-    */
+/*
+  Actual test functions
+*/
 
-    // TestSomething is an example of how to use our test object to
-    // make assertions about some target code we are testing.
-    func TestSomething(t *testing.T) {
+// TestSomething is an example of how to use our test object to
+// make assertions about some target code we are testing.
+func TestSomething(t *testing.T) {
 
-      // create an instance of our test object
-      testObj := new(MyMockedObject)
+  // create an instance of our test object
+  testObj := new(MyMockedObject)
 
-      // setup expectations
-      testObj.On("DoSomething", 123).Return(true, nil)
+  // setup expectations
+  testObj.On("DoSomething", 123).Return(true, nil)
 
-      // call the code we are testing
-      targetFuncThatDoesSomethingWithObj(testObj)
+  // call the code we are testing
+  targetFuncThatDoesSomethingWithObj(testObj)
 
-      // assert that the expectations were met
-      testObj.Mock.AssertExpectations(t)
+  // assert that the expectations were met
+  testObj.Mock.AssertExpectations(t)
 
-    }
+}
+```
 
 For more information on how to write mock code, check out the [API documentation for the `mock` package](http://godoc.org/github.com/stretchr/testify/mock).
 
@@ -130,42 +173,79 @@ The `suite` package provides functionality that you might be used to from more c
 
 An example suite is shown below:
 
-    // Basic imports
-    import (
-        "testing"
-        "github.com/stretchr/testify/assert"
-        "github.com/stretchr/testify/suite"
-    )
+```go
+// Basic imports
+import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/suite"
+)
 
-    // Define the suite, and absorb the built-in basic suite
-    // functionality from testify - including a T() method which
-    // returns the current testing context
-    type ExampleTestSuite struct {
-        suite.Suite
-        VariableThatShouldStartAtFive int
-    }
+// Define the suite, and absorb the built-in basic suite
+// functionality from testify - including a T() method which
+// returns the current testing context
+type ExampleTestSuite struct {
+    suite.Suite
+    VariableThatShouldStartAtFive int
+}
 
-    // Make sure that VariableThatShouldStartAtFive is set to five
-    // before each test
-    func (suite *ExampleTestSuite) SetupTest() {
-        suite.VariableThatShouldStartAtFive = 5
-    }
+// Make sure that VariableThatShouldStartAtFive is set to five
+// before each test
+func (suite *ExampleTestSuite) SetupTest() {
+    suite.VariableThatShouldStartAtFive = 5
+}
 
-    // All methods that begin with "Test" are run as tests within a
-    // suite.
-    func (suite *ExampleTestSuite) TestExample() {
-        assert.Equal(suite.T(), suite.VariableThatShouldStartAtFive, 5)
-    }
+// All methods that begin with "Test" are run as tests within a
+// suite.
+func (suite *ExampleTestSuite) TestExample() {
+    assert.Equal(suite.T(), suite.VariableThatShouldStartAtFive, 5)
+}
 
-    // In order for 'go test' to run this suite, we need to create
-    // a normal test function and pass our suite to suite.Run
-    func TestExampleTestSuite(t *testing.T) {
-        suite.Run(t, new(ExampleTestSuite))
-    }
+// In order for 'go test' to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run
+func TestExampleTestSuite(t *testing.T) {
+    suite.Run(t, new(ExampleTestSuite))
+}
+```
 
 For a more complete example, using all of the functionality provided by the suite package, look at our [example testing suite](https://github.com/stretchr/testify/blob/master/suite/suite_test.go)
 
 For more information on writing suites, check out the [API documentation for the `suite` package](http://godoc.org/github.com/stretchr/testify/suite).
+
+`Suite` object has assertion methods:
+
+```go
+// Basic imports
+import (
+    "testing"
+    "github.com/stretchr/testify/suite"
+)
+
+// Define the suite, and absorb the built-in basic suite
+// functionality from testify - including assertion methods.
+type ExampleTestSuite struct {
+    suite.Suite
+    VariableThatShouldStartAtFive int
+}
+
+// Make sure that VariableThatShouldStartAtFive is set to five
+// before each test
+func (suite *ExampleTestSuite) SetupTest() {
+    suite.VariableThatShouldStartAtFive = 5
+}
+
+// All methods that begin with "Test" are run as tests within a
+// suite.
+func (suite *ExampleTestSuite) TestExample() {
+    suite.Equal(suite.VariableThatShouldStartAtFive, 5)
+}
+
+// In order for 'go test' to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run
+func TestExampleTestSuite(t *testing.T) {
+    suite.Run(t, new(ExampleTestSuite))
+}
+```
 
 ------
 
@@ -184,18 +264,20 @@ This will then make the following packages available to you:
 
 Import the `testify/assert` package into your code using this template:
 
-    package yours
+```go
+package yours
 
-    import (
-      "testing"
-      "github.com/stretchr/testify/assert"
-    )
+import (
+  "testing"
+  "github.com/stretchr/testify/assert"
+)
 
-    func TestSomething(t *testing.T) {
+func TestSomething(t *testing.T) {
 
-      assert.True(t, true, "True is true!")
+  assert.True(t, true, "True is true!")
 
-    }
+}
+```
 
 ------
 

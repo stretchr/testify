@@ -26,6 +26,7 @@
 // Regular expression to select test suites specified command-line
 // argument "-run". Regular expression to select the methods
 // of test suites specified command-line argument "-m".
+// Suite object has assertion methods.
 //
 // A crude example:
 //     // Basic imports
@@ -53,6 +54,7 @@
 //     // suite.
 //     func (suite *ExampleTestSuite) TestExample() {
 //         assert.Equal(suite.T(), suite.VariableThatShouldStartAtFive, 5)
+//         suite.Equal(suite.VariableThatShouldStartAtFive, 5)
 //     }
 //
 //     // In order for 'go test' to run this suite, we need to create

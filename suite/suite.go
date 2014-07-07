@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var matchMethod = flag.String("m", "", "regular expression to select tests of the suite to run")
@@ -14,6 +16,7 @@ var matchMethod = flag.String("m", "", "regular expression to select tests of th
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
 type Suite struct {
+	*assert.Assertions
 	t *testing.T
 }
 
@@ -25,6 +28,7 @@ func (suite *Suite) T() *testing.T {
 // SetT sets the current *testing.T context.
 func (suite *Suite) SetT(t *testing.T) {
 	suite.t = t
+	suite.Assertions = assert.New(t)
 }
 
 // Run takes a testing suite and runs all of the tests attached
