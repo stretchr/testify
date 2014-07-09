@@ -20,10 +20,10 @@ Get started:
 
 
 
-`assert` package
-----------------
+[`assert`](http://godoc.org/github.com/stretchr/testify/assert "API documentation") package
+-------------------------------------------------------------------------------------------
 
-The `assert` package provides some helpful methods that allow you to write better test code in Go.  Check out the [API documentation for the `assert` package](http://godoc.org/github.com/stretchr/testify/assert).
+The `assert` package provides some helpful methods that allow you to write better test code in Go.
 
   * Prints friendly, easy to read failure descriptions
   * Allows for very readable code
@@ -97,13 +97,13 @@ func TestSomething(t *testing.T) {
 }
 ```
 
-`http` package
---------------
+[`http`](http://godoc.org/github.com/stretchr/testify/http "API documentation") package
+---------------------------------------------------------------------------------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [API documentation for the `http` package](http://godoc.org/github.com/stretchr/testify/http).
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.
 
-`mock` package
---------------
+[`mock`](http://godoc.org/github.com/stretchr/testify/mock "API documentation") package
+----------------------------------------------------------------------------------------
 
 The `mock` package provides a mechanism for easily writing mock objects that can be used in place of real objects when writing test code.
 
@@ -166,8 +166,8 @@ func TestSomething(t *testing.T) {
 
 For more information on how to write mock code, check out the [API documentation for the `mock` package](http://godoc.org/github.com/stretchr/testify/mock).
 
-`suite` package
----------------
+[`suite`](http://godoc.org/github.com/stretchr/testify/suite "API documentation") package
+-----------------------------------------------------------------------------------------
 
 The `suite` package provides functionality that you might be used to from more common object oriented languages.  With it, you can build a testing suite as a struct, build setup/teardown methods and testing methods on your struct, and run them with 'go test' as per normal.
 
