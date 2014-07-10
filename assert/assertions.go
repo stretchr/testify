@@ -537,15 +537,14 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	return true
 }
 
-// InEpsilon asserts that expected and actual have a relative error less than epsilon
-//
-// Returns whether the assertion was successful (true) or not (false).
-func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+// min(|expected|, |actual|) * epsilon
+func calcEpsilonDelta(expected, actual interface{}, epsilon float64) float64 {
 	af, aok := toFloat(expected)
 	bf, bok := toFloat(actual)
 
 	if !aok || !bok {
-		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
+		// invalid input
+		return 0
 	}
 
 	if af < 0 {
@@ -560,14 +559,16 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 	} else {
 		delta = bf * epsilon
 	}
+	return delta
+}
 
-	// delta = min(|expected|, |actual|) * epsilon
-	dt := af - bf
-	if dt < -delta || dt > delta {
-		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
-	}
+// InEpsilon asserts that expected and actual have a relative error less than epsilon
+//
+// Returns whether the assertion was successful (true) or not (false).
+func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+	delta := calcEpsilonDelta(expected, actual, epsilon)
 
-	return true
+	return InDelta(t, expected, actual, delta, msgAndArgs...)
 }
 
 /*
