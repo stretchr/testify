@@ -168,6 +168,22 @@ func (a *Assertions) WithinDuration(expected, actual time.Time, delta time.Durat
 	return WithinDuration(a.t, expected, actual, delta, msgAndArgs...)
 }
 
+// InDelta asserts that the two numerals are within delta of each other.
+//
+// 	 assert.InDelta(t, math.Pi, (22 / 7.0), 0.01)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+	return InDelta(a.t, expected, actual, delta, msgAndArgs...)
+}
+
+// InEpsilon asserts that expected and actual have a relative error less than epsilon
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+	return InEpsilon(a.t, expected, actual, epsilon, msgAndArgs...)
+}
+
 // NoError asserts that a function returned no error (i.e. `nil`).
 //
 //   actualObj, err := SomeFunction()
