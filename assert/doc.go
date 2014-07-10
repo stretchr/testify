@@ -44,54 +44,6 @@
 // allowing custom error messages to be appended to the message the assertion method outputs.
 //
 // Here is an overview of the assert functions:
-//
-//    assert.Equal(t, expected, actual [, message [, format-args])
-//
-//    assert.NotEqual(t, notExpected, actual [, message [, format-args]])
-//
-//    assert.True(t, actualBool [, message [, format-args]])
-//
-//    assert.False(t, actualBool [, message [, format-args]])
-//
-//    assert.Nil(t, actualObject [, message [, format-args]])
-//
-//    assert.NotNil(t, actualObject [, message [, format-args]])
-//
-//    assert.Empty(t, actualObject [, message [, format-args]])
-//
-//    assert.NotEmpty(t, actualObject [, message [, format-args]])
-//
-//    assert.Error(t, errorObject [, message [, format-args]])
-//
-//    assert.NoError(t, errorObject [, message [, format-args]])
-//
-//    assert.EqualError(t, theError, errString [, message [, format-args]])
-//
-//    assert.Implements(t, (*MyInterface)(nil), new(MyObject) [,message [, format-args]])
-//
-//    assert.IsType(t, expectedObject, actualObject [, message [, format-args]])
-//
-//    assert.Contains(t, string, substring [, message [, format-args]])
-//
-//    assert.NotContains(t, string, substring [, message [, format-args]])
-//
-//    assert.Panics(t, func(){
-//
-//	    // call code that should panic
-//
-//    } [, message [, format-args]])
-//
-//    assert.NotPanics(t, func(){
-//
-//	    // call code that should not panic
-//
-//    } [, message [, format-args]])
-//
-//    assert.WithinDuration(t, timeA, timeB, deltaTime, [, message [, format-args]])
-//
-// assert package contains Assertions object. it has assertion methods.
-//
-// Here is an overview of the assert functions:
 //    assert.Equal(expected, actual [, message [, format-args])
 //
 //    assert.NotEqual(notExpected, actual [, message [, format-args]])
@@ -135,4 +87,8 @@
 //    } [, message [, format-args]])
 //
 //    assert.WithinDuration(timeA, timeB, deltaTime, [, message [, format-args]])
+//
+//    assert.InDelta(numA, numB, delta, [, message [, format-args]])
+//
+//    assert.InEpsilon(numA, numB, epsilon, [, message [, format-args]])
 package assert
