@@ -89,6 +89,10 @@
 //
 //    assert.WithinDuration(t, timeA, timeB, deltaTime, [, message [, format-args]])
 //
+//    assert.InDelta(t, numA, numB, delta, [, message [, format-args]])
+//
+//    assert.InEpsilon(t, numA, numB, epsilon, [, message [, format-args]])
+//
 // assert package contains Assertions object. it has assertion methods.
 //
 // Here is an overview of the assert functions:
@@ -135,4 +139,8 @@
 //    } [, message [, format-args]])
 //
 //    assert.WithinDuration(timeA, timeB, deltaTime, [, message [, format-args]])
+//
+//    assert.InDelta(numA, numB, delta, [, message [, format-args]])
+//
+//    assert.InEpsilon(numA, numB, epsilon, [, message [, format-args]])
 package assert
