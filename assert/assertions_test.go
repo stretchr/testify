@@ -418,3 +418,37 @@ func TestWithinDuration(t *testing.T) {
 	False(t, WithinDuration(mockT, a, b, -11*time.Second), "A 10s difference is not within a 9s time difference")
 	False(t, WithinDuration(mockT, b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
 }
+
+func TestInDelta(t *testing.T) {
+	mockT := new(testing.T)
+
+	True(t, InDelta(mockT, 1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
+	True(t, InDelta(mockT, 1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
+	True(t, InDelta(mockT, 1, 2, 1), "|1 - 2| <= 1")
+	False(t, InDelta(mockT, 1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
+	False(t, InDelta(mockT, 2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
+	False(t, InDelta(mockT, "", nil, 1), "Expected non numerals to fail")
+
+	cases := []struct {
+		a, b  interface{}
+		delta float64
+	}{
+		{uint8(2), uint8(1), 1},
+		{uint16(2), uint16(1), 1},
+		{uint32(2), uint32(1), 1},
+		{uint64(2), uint64(1), 1},
+
+		{int(2), int(1), 1},
+		{int8(2), int8(1), 1},
+		{int16(2), int16(1), 1},
+		{int32(2), int32(1), 1},
+		{int64(2), int64(1), 1},
+
+		{float32(2), float32(1), 1},
+		{float64(2), float64(1), 1},
+	}
+
+	for _, tc := range cases {
+		True(t, InDelta(mockT, tc.a, tc.b, tc.delta), "Expected |%V - %V| <= %v", tc.a, tc.b, tc.delta)
+	}
+}

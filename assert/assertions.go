@@ -475,7 +475,63 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 
 	dt := expected.Sub(actual)
 	if dt < -delta || dt > delta {
-		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, dt, delta), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
+	}
+
+	return true
+}
+
+func toFloat(x interface{}) (float64, bool) {
+	var xf float64
+	xok := true
+
+	switch xn := x.(type) {
+	case uint8:
+		xf = float64(xn)
+	case uint16:
+		xf = float64(xn)
+	case uint32:
+		xf = float64(xn)
+	case uint64:
+		xf = float64(xn)
+	case int:
+		xf = float64(xn)
+	case int8:
+		xf = float64(xn)
+	case int16:
+		xf = float64(xn)
+	case int32:
+		xf = float64(xn)
+	case int64:
+		xf = float64(xn)
+	case float32:
+		xf = float64(xn)
+	case float64:
+		xf = float64(xn)
+	default:
+		xok = false
+	}
+
+	return xf, xok
+}
+
+// InDelta asserts that the two numerals are within delta of each other.
+//
+// 	 assert.InDelta(t, math.Pi, (22 / 7.0), 0.01)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+
+	af, aok := toFloat(expected)
+	bf, bok := toFloat(actual)
+
+	if !aok || !bok {
+		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
+	}
+
+	dt := af - bf
+	if dt < -delta || dt > delta {
+		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
 	}
 
 	return true
