@@ -96,6 +96,50 @@ func TestEqual(t *testing.T) {
 
 }
 
+func TestAlmostEqualFloat(t *testing.T) {
+	mockT := new(testing.T)
+	if !AlmostEqualFloat(mockT, 2.0, 2.0) {
+		t.Errorf("AlmostEqualFloat should return true")
+	}
+
+	if !AlmostEqualFloat(mockT, 2.1, 2.1) {
+		t.Errorf("AlmostEqualFloat should return true")
+	}
+
+	if !AlmostEqualFloat(mockT, 5.55, 5.55) {
+		t.Errorf("AlmostEqualFloat should return true")
+	}
+
+	if AlmostEqualFloat(mockT, 2.1, 2.0) {
+		t.Errorf("AlmostEqualFloat should return false")
+	}
+
+	if AlmostEqualFloat(mockT, 3.0, 2.0) {
+		t.Errorf("AlmostEqualFloat should return false")
+	}
+
+	if AlmostEqualFloat(mockT, 5.67, 5.0) {
+		t.Errorf("AlmostEqualFloat should return false")
+	}
+
+	if AlmostEqualFloat(mockT, 5.67, int(5)) {
+		t.Errorf("AlmostEqualFloat should return false")
+	}
+
+	if !AlmostEqualFloat(mockT, 2.00000001, 2.00000003) {
+		t.Errorf("AlmostEqualFloat should return true")
+	}
+
+	if !AlmostEqualFloat(mockT, float32(2.00000001), float32(2.00000003)) {
+		t.Errorf("AlmostEqualFloat should return true")
+	}
+
+	if AlmostEqualFloat(mockT, float32(3.67), float32(7.2)) {
+		t.Errorf("AlmostEqualFloat should return false")
+	}
+
+}
+
 func TestNotNil(t *testing.T) {
 
 	mockT := new(testing.T)
