@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -60,6 +61,8 @@ type Mock struct {
 	// TestData holds any data that might be useful for testing.  Testify ignores
 	// this data completely allowing you to do whatever you like with it.
 	testData objx.Map
+
+	mutex sync.Mutex
 }
 
 // TestData holds any data that might be useful for testing.  Testify ignores
@@ -178,6 +181,8 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 // of arguments to return.  Panics if the call is unexpected (i.e. not preceeded by
 // appropriate .On .Return() calls)
 func (m *Mock) Called(arguments ...interface{}) Arguments {
+	defer m.mutex.Unlock()
+	m.mutex.Lock()
 
 	// get the calling function's name
 	pc, _, _, ok := runtime.Caller(1)
