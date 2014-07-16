@@ -73,7 +73,7 @@ func CallerInfo() string {
 		parts := strings.Split(file, "/")
 		dir := parts[len(parts)-2]
 		file = parts[len(parts)-1]
-		if (dir != "assert" && dir != "mock") || file == "mock_test.go" {
+		if (dir != "assert" && dir != "mock" && dir != "require") || file == "mock_test.go" {
 			break
 		}
 	}
