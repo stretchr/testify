@@ -320,6 +320,46 @@ func TestNotEmptyWrapper(t *testing.T) {
 
 }
 
+func TestLenWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	assert.False(mockAssert.Len(nil, 0), "nil does not have length")
+	assert.False(mockAssert.Len(0, 0), "int does not have length")
+	assert.False(mockAssert.Len(true, 0), "true does not have length")
+	assert.False(mockAssert.Len(false, 0), "false does not have length")
+	assert.False(mockAssert.Len('A', 0), "Rune does not have length")
+	assert.False(mockAssert.Len(struct{}{}, 0), "Struct does not have length")
+
+	ch := make(chan int, 5)
+	ch <- 1
+	ch <- 2
+	ch <- 3
+
+	cases := []struct {
+		v interface{}
+		l int
+	}{
+		{[]int{1, 2, 3}, 3},
+		{[...]int{1, 2, 3}, 3},
+		{"ABC", 3},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 3},
+		{ch, 3},
+
+		{[]int{}, 0},
+		{map[int]int{}, 0},
+		{make(chan int), 0},
+
+		{[]int(nil), 0},
+		{map[int]int(nil), 0},
+		{(chan int)(nil), 0},
+	}
+
+	for _, c := range cases {
+		assert.True(mockAssert.Len(c.v, c.l), "%#v have %d items", c.v, c.l)
+	}
+}
+
 func TestWithinDurationWrapper(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))

@@ -87,6 +87,16 @@ func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) boo
 	return NotEmpty(a.t, object, msgAndArgs...)
 }
 
+// Len asserts that the specified object has specific length.
+// Len also fails if the object has a type that len() not accept.
+//
+//    assert.Len(mySlice, 3, "The size of slice is not 3")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface{}) bool {
+	return Len(a.t, object, length, msgAndArgs...)
+}
+
 // True asserts that the specified value is true.
 //
 //    assert.True(myBool, "myBool should be true")
