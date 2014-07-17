@@ -400,6 +400,90 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
 }
 
+func Test_getLen(t *testing.T) {
+	falseCases := []interface{}{
+		nil,
+		0,
+		true,
+		false,
+		'A',
+		struct{}{},
+	}
+	for _, v := range falseCases {
+		ok, l := getLen(v)
+		False(t, ok, "Expected getLen fail to get length of %#v", v)
+		Equal(t, 0, l, "getLen should return 0 for %#v", v)
+	}
+
+	ch := make(chan int, 5)
+	ch <- 1
+	ch <- 2
+	ch <- 3
+	trueCases := []struct {
+		v interface{}
+		l int
+	}{
+		{[]int{1, 2, 3}, 3},
+		{[...]int{1, 2, 3}, 3},
+		{"ABC", 3},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 3},
+		{ch, 3},
+
+		{[]int{}, 0},
+		{map[int]int{}, 0},
+		{make(chan int), 0},
+
+		{[]int(nil), 0},
+		{map[int]int(nil), 0},
+		{(chan int)(nil), 0},
+	}
+
+	for _, c := range trueCases {
+		ok, l := getLen(c.v)
+		True(t, ok, "Expected getLen success to get length of %#v", c.v)
+		Equal(t, c.l, l)
+	}
+}
+
+func TestLen(t *testing.T) {
+	mockT := new(testing.T)
+
+	False(t, Len(mockT, nil, 0), "nil does not have length")
+	False(t, Len(mockT, 0, 0), "int does not have length")
+	False(t, Len(mockT, true, 0), "true does not have length")
+	False(t, Len(mockT, false, 0), "false does not have length")
+	False(t, Len(mockT, 'A', 0), "Rune does not have length")
+	False(t, Len(mockT, struct{}{}, 0), "Struct does not have length")
+
+	ch := make(chan int, 5)
+	ch <- 1
+	ch <- 2
+	ch <- 3
+
+	cases := []struct {
+		v interface{}
+		l int
+	}{
+		{[]int{1, 2, 3}, 3},
+		{[...]int{1, 2, 3}, 3},
+		{"ABC", 3},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 3},
+		{ch, 3},
+
+		{[]int{}, 0},
+		{map[int]int{}, 0},
+		{make(chan int), 0},
+
+		{[]int(nil), 0},
+		{map[int]int(nil), 0},
+		{(chan int)(nil), 0},
+	}
+
+	for _, c := range cases {
+		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+	}
+}
+
 func TestWithinDuration(t *testing.T) {
 
 	mockT := new(testing.T)

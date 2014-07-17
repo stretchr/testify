@@ -61,6 +61,8 @@
 //
 //    assert.NotEmpty(t, actualObject [, message [, format-args]])
 //
+//    assert.Len(t, actualObject, expectedLength, [, message [, format-args]])
+//
 //    assert.Error(t, errorObject [, message [, format-args]])
 //
 //    assert.NoError(t, errorObject [, message [, format-args]])
@@ -111,6 +113,8 @@
 //    assert.Empty(actualObject [, message [, format-args]])
 //
 //    assert.NotEmpty(actualObject [, message [, format-args]])
+//
+//    assert.Len(actualObject, expectedLength, [, message [, format-args]])
 //
 //    assert.Error(errorObject [, message [, format-args]])
 //
