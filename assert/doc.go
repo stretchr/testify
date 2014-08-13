@@ -73,9 +73,9 @@
 //
 //    assert.IsType(t, expectedObject, actualObject [, message [, format-args]])
 //
-//    assert.Contains(t, string, substring [, message [, format-args]])
+//    assert.Contains(t, stringOrSlice, substringOrElement [, message [, format-args]])
 //
-//    assert.NotContains(t, string, substring [, message [, format-args]])
+//    assert.NotContains(t, stringOrSlice, substringOrElement [, message [, format-args]])
 //
 //    assert.Panics(t, func(){
 //
@@ -126,9 +126,9 @@
 //
 //    assert.IsType(expectedObject, actualObject [, message [, format-args]])
 //
-//    assert.Contains(string, substring [, message [, format-args]])
+//    assert.Contains(stringOrSlice, substringOrElement [, message [, format-args]])
 //
-//    assert.NotContains(string, substring [, message [, format-args]])
+//    assert.NotContains(stringOrSlice, substringOrElement [, message [, format-args]])
 //
 //    assert.Panics(func(){
 //

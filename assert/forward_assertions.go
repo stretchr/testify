@@ -129,7 +129,7 @@ func (a *Assertions) NotEqual(expected, actual interface{}, msgAndArgs ...interf
 //    assert.Contains("Hello World", "World", "But 'Hello World' does contain 'World'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) Contains(s, contains string, msgAndArgs ...interface{}) bool {
+func (a *Assertions) Contains(s, contains interface{}, msgAndArgs ...interface{}) bool {
 	return Contains(a.t, s, contains, msgAndArgs...)
 }
 
@@ -138,7 +138,7 @@ func (a *Assertions) Contains(s, contains string, msgAndArgs ...interface{}) boo
 //    assert.NotContains("Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) NotContains(s, contains string, msgAndArgs ...interface{}) bool {
+func (a *Assertions) NotContains(s, contains interface{}, msgAndArgs ...interface{}) bool {
 	return NotContains(a.t, s, contains, msgAndArgs...)
 }
 

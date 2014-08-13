@@ -148,6 +148,7 @@ func TestNotEqualWrapper(t *testing.T) {
 func TestContainsWrapper(t *testing.T) {
 
 	assert := New(new(testing.T))
+	list := []string{"Foo", "Bar"}
 
 	if !assert.Contains("Hello World", "Hello") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
@@ -156,17 +157,32 @@ func TestContainsWrapper(t *testing.T) {
 		t.Error("Contains should return false: \"Hello World\" does not contain \"Salut\"")
 	}
 
+	if !assert.Contains(list, "Foo") {
+		t.Error("Contains should return true: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
+	}
+	if assert.Contains(list, "Salut") {
+		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
+	}
+
 }
 
 func TestNotContainsWrapper(t *testing.T) {
 
 	assert := New(new(testing.T))
+	list := []string{"Foo", "Bar"}
 
 	if !assert.NotContains("Hello World", "Hello!") {
 		t.Error("NotContains should return true: \"Hello World\" does not contain \"Hello!\"")
 	}
 	if assert.NotContains("Hello World", "Hello") {
 		t.Error("NotContains should return false: \"Hello World\" contains \"Hello\"")
+	}
+
+	if !assert.NotContains(list, "Foo!") {
+		t.Error("NotContains should return true: \"[\"Foo\", \"Bar\"]\" does not contain \"Foo!\"")
+	}
+	if assert.NotContains(list, "Foo") {
+		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
 	}
 
 }

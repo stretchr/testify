@@ -399,14 +399,48 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 
 }
 
-// Contains asserts that the specified string contains the specified substring.
+// containsElement try loop over the list check if the list includes the element.
+// return (false, false) if impossible.
+// return (true, false) if element was not found.
+// return (true, true) if element was found.
+func includeElement(list interface{}, element interface{}) (ok, found bool) {
+
+	listValue := reflect.ValueOf(list)
+	elementValue := reflect.ValueOf(element)
+	defer func() {
+		if e := recover(); e != nil {
+			ok = false
+			found = false
+		}
+	}()
+
+	if reflect.TypeOf(list).Kind() == reflect.String {
+		return true, strings.Contains(listValue.String(), elementValue.String())
+	}
+
+	for i := 0; i < listValue.Len(); i++ {
+		if listValue.Index(i).Interface() == element {
+			return true, true
+		}
+	}
+	return true, false
+
+}
+
+// Contains asserts that the specified string or list(array, slice...) contains the
+// specified substring or element.
 //
 //    assert.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
+//    assert.Contains(t, ["Hello", "World"], "World", "But ["Hello", "World"] does contain 'World'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Contains(t TestingT, s, contains string, msgAndArgs ...interface{}) bool {
+func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 
-	if !strings.Contains(s, contains) {
+	ok, found := includeElement(s, contains)
+	if !ok {
+		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
+	}
+	if !found {
 		return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
@@ -414,14 +448,20 @@ func Contains(t TestingT, s, contains string, msgAndArgs ...interface{}) bool {
 
 }
 
-// NotContains asserts that the specified string does NOT contain the specified substring.
+// NotContains asserts that the specified string or list(array, slice...) does NOT contain the
+// specified substring or element.
 //
 //    assert.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
+//    assert.NotContains(t, ["Hello", "World"], "Earth", "But ['Hello', 'World'] does NOT contain 'Earth'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotContains(t TestingT, s, contains string, msgAndArgs ...interface{}) bool {
+func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 
-	if strings.Contains(s, contains) {
+	ok, found := includeElement(s, contains)
+	if !ok {
+		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
+	}
+	if found {
 		return Fail(t, fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
