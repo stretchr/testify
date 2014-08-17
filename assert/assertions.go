@@ -1,6 +1,8 @@
 package assert
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -109,15 +111,48 @@ func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
 	return ""
 }
 
+// Indents all lines of the message by appending a number of tabs to each line, in an output format compatible with Go's
+// test printing (see inner comment for specifics)
+func indentMessageLines(message string, tabs int) string {
+	outBuf := new(bytes.Buffer)
+
+	for i, scanner := 0, bufio.NewScanner(strings.NewReader(message)); scanner.Scan(); i++ {
+		if i != 0 {
+			outBuf.WriteRune('\n')
+		}
+		for ii := 0; ii < tabs; ii++ {
+			outBuf.WriteRune('\t')
+			// Bizarrely, all lines except the first need one fewer tabs prepended, so deliberately advance the counter
+			// by 1 prematurely.
+			if ii == 0 && i > 0 {
+				ii++
+			}
+		}
+		outBuf.WriteString(scanner.Text())
+	}
+
+	return outBuf.String()
+}
+
 // Fail reports a failure through
 func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	if len(message) > 0 {
-		t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t%s\n\r\tMessages:\t%s\n\r", getWhitespaceString(), CallerInfo(), failureMessage, message)
+		t.Errorf("\r%s\r\tLocation:\t%s\n"+
+			"\r\tError:%s\n"+
+			"\r\tMessages:\t%s\n\r",
+			getWhitespaceString(),
+			CallerInfo(),
+			indentMessageLines(failureMessage, 2),
+			message)
 	} else {
-		t.Errorf("\r%s\r\tLocation:\t%s\n\r\tError:\t\t%s\n\r", getWhitespaceString(), CallerInfo(), failureMessage)
+		t.Errorf("\r%s\r\tLocation:\t%s\n"+
+			"\r\tError:%s\n\r",
+			getWhitespaceString(),
+			CallerInfo(),
+			indentMessageLines(failureMessage, 2))
 	}
 
 	return false
@@ -156,7 +191,8 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
 	if !ObjectsAreEqual(expected, actual) {
-		return Fail(t, fmt.Sprintf("Not equal: %#v != %#v", expected, actual), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Not equal: %#v (expected)\n"+
+			"        != %#v (actual)", expected, actual), msgAndArgs...)
 	}
 
 	return true
