@@ -116,7 +116,7 @@ func (s *SuiteLoggingTester) TestLoggingPass() {
 
 func (s *SuiteLoggingTester) TestLoggingFail() {
 	s.T().Log("TESTLOGFAIL")
-	assert.NotNil(s.T(), nil) //expected to fail
+	assert.NotNil(s.T(), nil) // expected to fail
 }
 
 type StdoutCapture struct {
@@ -154,6 +154,13 @@ func TestSuiteLogging(t *testing.T) {
 
 	assert.Nil(t, err, "Got an error trying to capture stdout!")
 
+	// Failed tests' output is always printed
 	assert.Contains(t, output, "TESTLOGFAIL")
-	assert.NotContains(t, output, "TESTLOGPASS")
+
+	if testing.Verbose() {
+		// In verbose mode, output from successful tests is also printed
+		assert.Contains(t, output, "TESTLOGPASS")
+	} else {
+		assert.NotContains(t, output, "TESTLOGPASS")
+	}
 }
