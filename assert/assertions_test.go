@@ -242,11 +242,11 @@ func TestNotContains(t *testing.T) {
 func TestCondition(t *testing.T) {
 	mockT := new(testing.T)
 
-	if !Condition(mockT, func() bool { return true }, "True condition") {
+	if !Condition(mockT, func() bool { return true }, "Truth") {
 		t.Error("Condition should return true")
 	}
 
-	if Condition(mockT, func() bool { return false }, "True condition") {
+	if Condition(mockT, func() bool { return false }, "Lie") {
 		t.Error("Condition should return false")
 	}
 
