@@ -79,13 +79,13 @@
 //
 //    assert.Panics(t, func(){
 //
-//	    // call code that should panic
+//      // call code that should panic
 //
 //    } [, message [, format-args]])
 //
 //    assert.NotPanics(t, func(){
 //
-//	    // call code that should not panic
+//      // call code that should not panic
 //
 //    } [, message [, format-args]])
 //
@@ -132,13 +132,13 @@
 //
 //    assert.Panics(func(){
 //
-//	    // call code that should panic
+//      // call code that should panic
 //
 //    } [, message [, format-args]])
 //
 //    assert.NotPanics(func(){
 //
-//	    // call code that should not panic
+//      // call code that should not panic
 //
 //    } [, message [, format-args]])
 //

@@ -1,7 +1,7 @@
 package assert
 
 import (
-	"errors"
+    "errors"
 )
 
 // AnError is an error instance useful for testing.  If the code does not care
