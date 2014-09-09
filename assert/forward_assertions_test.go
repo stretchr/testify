@@ -171,6 +171,20 @@ func TestNotContainsWrapper(t *testing.T) {
 
 }
 
+func TestConditionWrapper(t *testing.T) {
+
+	assert := New(new(testing.T))
+
+	if !assert.Condition(func() bool { return true }, "Truth") {
+		t.Error("Condition should return true")
+	}
+
+	if assert.Condition(func() bool { return false }, "Lie") {
+		t.Error("Condition should return false")
+	}
+
+}
+
 func TestDidPanicWrapper(t *testing.T) {
 
 	if funcDidPanic, _ := didPanic(func() {
@@ -377,4 +391,76 @@ func TestWithinDurationWrapper(t *testing.T) {
 
 	assert.False(mockAssert.WithinDuration(a, b, -11*time.Second), "A 10s difference is not within a 9s time difference")
 	assert.False(mockAssert.WithinDuration(b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
+}
+
+func TestInDeltaWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	True(t, assert.InDelta(1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
+	True(t, assert.InDelta(1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
+	True(t, assert.InDelta(1, 2, 1), "|1 - 2| <= 1")
+	False(t, assert.InDelta(1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
+	False(t, assert.InDelta(2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
+	False(t, assert.InDelta("", nil, 1), "Expected non numerals to fail")
+
+	cases := []struct {
+		a, b  interface{}
+		delta float64
+	}{
+		{uint8(2), uint8(1), 1},
+		{uint16(2), uint16(1), 1},
+		{uint32(2), uint32(1), 1},
+		{uint64(2), uint64(1), 1},
+
+		{int(2), int(1), 1},
+		{int8(2), int8(1), 1},
+		{int16(2), int16(1), 1},
+		{int32(2), int32(1), 1},
+		{int64(2), int64(1), 1},
+
+		{float32(2), float32(1), 1},
+		{float64(2), float64(1), 1},
+	}
+
+	for _, tc := range cases {
+		True(t, assert.InDelta(tc.a, tc.b, tc.delta), "Expected |%V - %V| <= %v", tc.a, tc.b, tc.delta)
+	}
+}
+
+func TestInEpsilonWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	cases := []struct {
+		a, b    interface{}
+		epsilon float64
+	}{
+		{uint8(2), uint16(2), .001},
+		{2.1, 2.2, 0.1},
+		{2.2, 2.1, 0.1},
+		{-2.1, -2.2, 0.1},
+		{-2.2, -2.1, 0.1},
+		{uint64(100), uint8(101), 0.01},
+		{0.1, -0.1, 2},
+	}
+
+	for _, tc := range cases {
+		True(t, assert.InEpsilon(tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+	}
+
+	cases = []struct {
+		a, b    interface{}
+		epsilon float64
+	}{
+		{uint8(2), int16(-2), .001},
+		{uint64(100), uint8(102), 0.01},
+		{2.1, 2.2, 0.001},
+		{2.2, 2.1, 0.001},
+		{2.1, -2.2, 1},
+		{2.1, "bla-bla", 0},
+		{0.1, -0.1, 1.99},
+	}
+
+	for _, tc := range cases {
+		False(t, assert.InEpsilon(tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+	}
 }

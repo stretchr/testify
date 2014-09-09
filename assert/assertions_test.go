@@ -195,6 +195,22 @@ func TestNotEqual(t *testing.T) {
 	if !NotEqual(mockT, nil, new(AssertionTesterConformingObject)) {
 		t.Error("NotEqual should return true")
 	}
+
+	if NotEqual(mockT, "Hello World", "Hello World") {
+		t.Error("NotEqual should return false")
+	}
+	if NotEqual(mockT, 123, 123) {
+		t.Error("NotEqual should return false")
+	}
+	if NotEqual(mockT, 123.5, 123.5) {
+		t.Error("NotEqual should return false")
+	}
+	if NotEqual(mockT, []byte("Hello World"), []byte("Hello World")) {
+		t.Error("NotEqual should return false")
+	}
+	if NotEqual(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
+		t.Error("NotEqual should return false")
+	}
 }
 
 func TestContains(t *testing.T) {
@@ -219,6 +235,19 @@ func TestNotContains(t *testing.T) {
 	}
 	if NotContains(mockT, "Hello World", "Hello") {
 		t.Error("NotContains should return false: \"Hello World\" contains \"Hello\"")
+	}
+
+}
+
+func TestCondition(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !Condition(mockT, func() bool { return true }, "Truth") {
+		t.Error("Condition should return true")
+	}
+
+	if Condition(mockT, func() bool { return false }, "Lie") {
+		t.Error("Condition should return false")
 	}
 
 }
@@ -482,6 +511,29 @@ func TestLen(t *testing.T) {
 	for _, c := range cases {
 		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
 	}
+
+	cases = []struct {
+		v interface{}
+		l int
+	}{
+		{[]int{1, 2, 3}, 4},
+		{[...]int{1, 2, 3}, 2},
+		{"ABC", 2},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 4},
+		{ch, 2},
+
+		{[]int{}, 1},
+		{map[int]int{}, 1},
+		{make(chan int), 1},
+
+		{[]int(nil), 1},
+		{map[int]int(nil), 1},
+		{(chan int)(nil), 1},
+	}
+
+	for _, c := range cases {
+		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+	}
 }
 
 func TestWithinDuration(t *testing.T) {
@@ -535,4 +587,43 @@ func TestInDelta(t *testing.T) {
 	for _, tc := range cases {
 		True(t, InDelta(mockT, tc.a, tc.b, tc.delta), "Expected |%V - %V| <= %v", tc.a, tc.b, tc.delta)
 	}
+}
+
+func TestInEpsilon(t *testing.T) {
+	mockT := new(testing.T)
+
+	cases := []struct {
+		a, b    interface{}
+		epsilon float64
+	}{
+		{uint8(2), uint16(2), .001},
+		{2.1, 2.2, 0.1},
+		{2.2, 2.1, 0.1},
+		{-2.1, -2.2, 0.1},
+		{-2.2, -2.1, 0.1},
+		{uint64(100), uint8(101), 0.01},
+		{0.1, -0.1, 2},
+	}
+
+	for _, tc := range cases {
+		True(t, InEpsilon(mockT, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+	}
+
+	cases = []struct {
+		a, b    interface{}
+		epsilon float64
+	}{
+		{uint8(2), int16(-2), .001},
+		{uint64(100), uint8(102), 0.01},
+		{2.1, 2.2, 0.001},
+		{2.2, 2.1, 0.001},
+		{2.1, -2.2, 1},
+		{2.1, "bla-bla", 0},
+		{0.1, -0.1, 1.99},
+	}
+
+	for _, tc := range cases {
+		False(t, InEpsilon(mockT, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+	}
+
 }
