@@ -216,6 +216,7 @@ func TestNotEqual(t *testing.T) {
 func TestContains(t *testing.T) {
 
 	mockT := new(testing.T)
+	list := []string{"Foo", "Bar"}
 
 	if !Contains(mockT, "Hello World", "Hello") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
@@ -224,11 +225,19 @@ func TestContains(t *testing.T) {
 		t.Error("Contains should return false: \"Hello World\" does not contain \"Salut\"")
 	}
 
+	if !Contains(mockT, list, "Bar") {
+		t.Error("Contains should return true: \"[\"Foo\", \"Bar\"]\" contains \"Bar\"")
+	}
+	if Contains(mockT, list, "Salut") {
+		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
+	}
+
 }
 
 func TestNotContains(t *testing.T) {
 
 	mockT := new(testing.T)
+	list := []string{"Foo", "Bar"}
 
 	if !NotContains(mockT, "Hello World", "Hello!") {
 		t.Error("NotContains should return true: \"Hello World\" does not contain \"Hello!\"")
@@ -236,6 +245,56 @@ func TestNotContains(t *testing.T) {
 	if NotContains(mockT, "Hello World", "Hello") {
 		t.Error("NotContains should return false: \"Hello World\" contains \"Hello\"")
 	}
+
+	if !NotContains(mockT, list, "Foo!") {
+		t.Error("NotContains should return true: \"[\"Foo\", \"Bar\"]\" does not contain \"Foo!\"")
+	}
+	if NotContains(mockT, list, "Foo") {
+		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
+	}
+
+}
+
+func Test_includeElement(t *testing.T) {
+
+	list1 := []string{"Foo", "Bar"}
+	list2 := []int{1, 2}
+
+	ok, found := includeElement("Hello World", "World")
+	True(t, ok)
+	True(t, found)
+
+	ok, found = includeElement(list1, "Foo")
+	True(t, ok)
+	True(t, found)
+
+	ok, found = includeElement(list1, "Bar")
+	True(t, ok)
+	True(t, found)
+
+	ok, found = includeElement(list2, 1)
+	True(t, ok)
+	True(t, found)
+
+	ok, found = includeElement(list2, 2)
+	True(t, ok)
+	True(t, found)
+
+	ok, found = includeElement(list1, "Foo!")
+	True(t, ok)
+	False(t, found)
+
+	ok, found = includeElement(list2, 3)
+	True(t, ok)
+	False(t, found)
+
+	ok, found = includeElement(list2, "1")
+	True(t, ok)
+	False(t, found)
+
+	ok, found = includeElement(1433, "1")
+	False(t, ok)
+	False(t, found)
 
 }
 
