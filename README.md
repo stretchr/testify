@@ -101,13 +101,16 @@ func TestSomething(t *testing.T) {
 -------------------------------------------------------------------------------------------
 
 The `require` package provides same global functions as the `assert` package, but instead of returning a boolean result they terminate current test.
+
 See [t.FailNow](http://golang.org/pkg/testing/#T.FailNow) for details.
 
 
 [`http`](http://godoc.org/github.com/stretchr/testify/http "API documentation") package
 ---------------------------------------------------------------------------------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [(deprecated) API documentation for the `http` package](http://godoc.org/github.com/stretchr/testify/http).
+
+We recommend you use [httptest](http://golang.org/pkg/net/http/httptest) instead.
 
 [`mock`](http://godoc.org/github.com/stretchr/testify/mock "API documentation") package
 ----------------------------------------------------------------------------------------
