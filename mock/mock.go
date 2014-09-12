@@ -17,7 +17,7 @@ type TestingT interface {
 }
 
 /*
-    Call
+   Call
 */
 
 // Call represents a method call and is used for setting expectations,
@@ -77,7 +77,7 @@ func (m *Mock) TestData() objx.Map {
 }
 
 /*
-    Setting expectations
+   Setting expectations
 */
 
 // On starts a description of an expectation of the specified method
@@ -122,7 +122,7 @@ func (m *Mock) Times(i int) {
 }
 
 /*
-    Recording and responding to activity
+   Recording and responding to activity
 */
 
 func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
@@ -227,7 +227,7 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 }
 
 /*
-    Assertions
+   Assertions
 */
 
 // AssertExpectationsForObjects asserts that everything specified with On and Return
@@ -319,7 +319,7 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 }
 
 /*
-    Arguments
+   Arguments
 */
 
 // Arguments holds an array of method arguments or return values.
@@ -443,6 +443,204 @@ func (args Arguments) Assert(t TestingT, objects ...interface{}) bool {
 
 }
 
+// Bool gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Bool(index int) bool {
+    var s bool
+    var ok bool
+    if s, ok = args.Get(index).(bool); !ok {
+        panic(fmt.Sprintf("assert: arguments: Bool(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Int8 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Int8(index int) int8 {
+    var s int8
+    var ok bool
+    if s, ok = args.Get(index).(int8); !ok {
+        panic(fmt.Sprintf("assert: arguments: Int8(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Int16 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Int16(index int) int16 {
+    var s int16
+    var ok bool
+    if s, ok = args.Get(index).(int16); !ok {
+        panic(fmt.Sprintf("assert: arguments: Int16(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Int32 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Int32(index int) int32 {
+    var s int32
+    var ok bool
+    if s, ok = args.Get(index).(int32); !ok {
+        panic(fmt.Sprintf("assert: arguments: Int32(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Int64 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Int64(index int) int64 {
+    var s int64
+    var ok bool
+    if s, ok = args.Get(index).(int64); !ok {
+        panic(fmt.Sprintf("assert: arguments: Int64(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Uint8 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Uint8(index int) uint8 {
+    var s uint8
+    var ok bool
+    if s, ok = args.Get(index).(uint8); !ok {
+        panic(fmt.Sprintf("assert: arguments: Uint8(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Uint16 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Uint16(index int) uint16 {
+    var s uint16
+    var ok bool
+    if s, ok = args.Get(index).(uint16); !ok {
+        panic(fmt.Sprintf("assert: arguments: Uint16(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Uint32 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Uint32(index int) uint32 {
+    var s uint32
+    var ok bool
+    if s, ok = args.Get(index).(uint32); !ok {
+        panic(fmt.Sprintf("assert: arguments: Uint32(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Uint64 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Uint64(index int) uint64 {
+    var s uint64
+    var ok bool
+    if s, ok = args.Get(index).(uint64); !ok {
+        panic(fmt.Sprintf("assert: arguments: Uint64(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Float32 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Float32(index int) float32 {
+    var s float32
+    var ok bool
+    if s, ok = args.Get(index).(float32); !ok {
+        panic(fmt.Sprintf("assert: arguments: Float32(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Float64 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Float64(index int) float64 {
+    var s float64
+    var ok bool
+    if s, ok = args.Get(index).(float64); !ok {
+        panic(fmt.Sprintf("assert: arguments: Float64(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Complex64 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Complex64(index int) complex64 {
+    var s complex64
+    var ok bool
+    if s, ok = args.Get(index).(complex64); !ok {
+        panic(fmt.Sprintf("assert: arguments: Complex64(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Complex128 gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Complex128(index int) complex128 {
+    var s complex128
+    var ok bool
+    if s, ok = args.Get(index).(complex128); !ok {
+        panic(fmt.Sprintf("assert: arguments: Complex128(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Byte gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Byte(index int) byte {
+    var s byte
+    var ok bool
+    if s, ok = args.Get(index).(byte); !ok {
+        panic(fmt.Sprintf("assert: arguments: Byte(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Rune gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Rune(index int) rune {
+    var s rune
+    var ok bool
+    if s, ok = args.Get(index).(rune); !ok {
+        panic(fmt.Sprintf("assert: arguments: Rune(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Int gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Int(index int) int {
+    var s int
+    var ok bool
+    if s, ok = args.Get(index).(int); !ok {
+        panic(fmt.Sprintf("assert: arguments: Int(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Uint gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Uint(index int) uint {
+    var s uint
+    var ok bool
+    if s, ok = args.Get(index).(uint); !ok {
+        panic(fmt.Sprintf("assert: arguments: Uint(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
+// Uintptr gets the argument at the specified index. Panics if there is no argument, or
+// if the argument is of the wrong type.
+func (args Arguments) Uintptr(index int) uintptr {
+    var s uintptr
+    var ok bool
+    if s, ok = args.Get(index).(uintptr); !ok {
+        panic(fmt.Sprintf("assert: arguments: Uintptr(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+    }
+    return s
+}
+
 // String gets the argument at the specified index. Panics if there is no argument, or
 // if the argument is of the wrong type.
 //
@@ -472,17 +670,6 @@ func (args Arguments) String(indexOrNil ...int) string {
 
 }
 
-// Int gets the argument at the specified index. Panics if there is no argument, or
-// if the argument is of the wrong type.
-func (args Arguments) Int(index int) int {
-    var s int
-    var ok bool
-    if s, ok = args.Get(index).(int); !ok {
-        panic(fmt.Sprintf("assert: arguments: Int(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
-    }
-    return s
-}
-
 // Error gets the argument at the specified index. Panics if there is no argument, or
 // if the argument is of the wrong type.
 func (args Arguments) Error(index int) error {
@@ -494,17 +681,6 @@ func (args Arguments) Error(index int) error {
     }
     if s, ok = obj.(error); !ok {
         panic(fmt.Sprintf("assert: arguments: Error(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
-    }
-    return s
-}
-
-// Bool gets the argument at the specified index. Panics if there is no argument, or
-// if the argument is of the wrong type.
-func (args Arguments) Bool(index int) bool {
-    var s bool
-    var ok bool
-    if s, ok = args.Get(index).(bool); !ok {
-        panic(fmt.Sprintf("assert: arguments: Bool(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
     }
     return s
 }
