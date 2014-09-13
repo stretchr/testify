@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -730,4 +731,52 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	s := "An error with value \"%s\" is expected but got \"%s\". %s"
 	return Equal(t, theError.Error(), errString,
 		s, errString, theError.Error(), message)
+}
+
+// matchRegexp return true if a specified regexp matches a string.
+func matchRegexp(rx interface{}, str interface{}) bool {
+
+	var r *regexp.Regexp
+	if rr, ok := rx.(*regexp.Regexp); ok {
+		r = rr
+	} else {
+		r = regexp.MustCompile(fmt.Sprint(rx))
+	}
+
+	return (r.FindStringIndex(fmt.Sprint(str)) != nil)
+
+}
+
+// Regexp asserts that a specified regexp matches a string.
+//
+//  assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
+//  assert.Regexp(t, "start...$", "it's not starting")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Regexp(t TestingT, rx interface{}, str interface{}) bool {
+
+	match := matchRegexp(rx, str)
+
+	if !match {
+		Fail(t, "Expect \"%s\" to match \"%s\"")
+	}
+
+	return match
+}
+
+// NotRegexp asserts that a specified regexp does not match a string.
+//
+//  assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
+//  assert.NotRegexp(t, "^start", "it's not starting")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func NotRegexp(t TestingT, rx interface{}, str interface{}) bool {
+	match := matchRegexp(rx, str)
+
+	if match {
+		Fail(t, "Expect \"%s\" to NOT match \"%s\"")
+	}
+
+	return !match
+
 }

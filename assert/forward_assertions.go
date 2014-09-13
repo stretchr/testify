@@ -230,3 +230,23 @@ func (a *Assertions) Error(theError error, msgAndArgs ...interface{}) bool {
 func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) bool {
 	return EqualError(a.t, theError, errString, msgAndArgs...)
 }
+
+// Regexp asserts that a specified regexp matches a string.
+//
+//  assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
+//  assert.Regexp(t, "start...$", "it's not starting")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) Regexp(rx interface{}, str interface{}) bool {
+	return Regexp(a.t, rx, str)
+}
+
+// NotRegexp asserts that a specified regexp does not match a string.
+//
+//  assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
+//  assert.NotRegexp(t, "^start", "it's not starting")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) NotRegexp(rx interface{}, str interface{}) bool {
+	return NotRegexp(a.t, rx, str)
+}
