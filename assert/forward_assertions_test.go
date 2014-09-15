@@ -2,6 +2,7 @@ package assert
 
 import (
 	"errors"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -478,5 +479,40 @@ func TestInEpsilonWrapper(t *testing.T) {
 
 	for _, tc := range cases {
 		False(t, assert.InEpsilon(tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+	}
+}
+
+func TestRegexpWrapper(t *testing.T) {
+
+	assert := New(new(testing.T))
+
+	cases := []struct {
+		rx, str string
+	}{
+		{"^start", "start of the line"},
+		{"end$", "in the end"},
+		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12.34"},
+	}
+
+	for _, tc := range cases {
+		True(t, assert.Regexp(tc.rx, tc.str))
+		True(t, assert.Regexp(regexp.MustCompile(tc.rx), tc.str))
+		False(t, assert.NotRegexp(tc.rx, tc.str))
+		False(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
+	}
+
+	cases = []struct {
+		rx, str string
+	}{
+		{"^asdfastart", "Not the start of the line"},
+		{"end$", "in the end."},
+		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12a.34"},
+	}
+
+	for _, tc := range cases {
+		False(t, assert.Regexp(tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, assert.Regexp(regexp.MustCompile(tc.rx), tc.str))
+		True(t, assert.NotRegexp(tc.rx, tc.str))
+		True(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
 	}
 }

@@ -2,6 +2,7 @@ package assert
 
 import (
 	"errors"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -685,4 +686,38 @@ func TestInEpsilon(t *testing.T) {
 		False(t, InEpsilon(mockT, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
 	}
 
+}
+
+func TestRegexp(t *testing.T) {
+	mockT := new(testing.T)
+
+	cases := []struct {
+		rx, str string
+	}{
+		{"^start", "start of the line"},
+		{"end$", "in the end"},
+		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12.34"},
+	}
+
+	for _, tc := range cases {
+		True(t, Regexp(mockT, tc.rx, tc.str))
+		True(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		False(t, NotRegexp(mockT, tc.rx, tc.str))
+		False(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+	}
+
+	cases = []struct {
+		rx, str string
+	}{
+		{"^asdfastart", "Not the start of the line"},
+		{"end$", "in the end."},
+		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12a.34"},
+	}
+
+	for _, tc := range cases {
+		False(t, Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		True(t, NotRegexp(mockT, tc.rx, tc.str))
+		True(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+	}
 }
