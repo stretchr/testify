@@ -2,6 +2,7 @@ package assert
 
 import (
 	"errors"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -148,6 +149,7 @@ func TestNotEqualWrapper(t *testing.T) {
 func TestContainsWrapper(t *testing.T) {
 
 	assert := New(new(testing.T))
+	list := []string{"Foo", "Bar"}
 
 	if !assert.Contains("Hello World", "Hello") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
@@ -156,17 +158,46 @@ func TestContainsWrapper(t *testing.T) {
 		t.Error("Contains should return false: \"Hello World\" does not contain \"Salut\"")
 	}
 
+	if !assert.Contains(list, "Foo") {
+		t.Error("Contains should return true: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
+	}
+	if assert.Contains(list, "Salut") {
+		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
+	}
+
 }
 
 func TestNotContainsWrapper(t *testing.T) {
 
 	assert := New(new(testing.T))
+	list := []string{"Foo", "Bar"}
 
 	if !assert.NotContains("Hello World", "Hello!") {
 		t.Error("NotContains should return true: \"Hello World\" does not contain \"Hello!\"")
 	}
 	if assert.NotContains("Hello World", "Hello") {
 		t.Error("NotContains should return false: \"Hello World\" contains \"Hello\"")
+	}
+
+	if !assert.NotContains(list, "Foo!") {
+		t.Error("NotContains should return true: \"[\"Foo\", \"Bar\"]\" does not contain \"Foo!\"")
+	}
+	if assert.NotContains(list, "Foo") {
+		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
+	}
+
+}
+
+func TestConditionWrapper(t *testing.T) {
+
+	assert := New(new(testing.T))
+
+	if !assert.Condition(func() bool { return true }, "Truth") {
+		t.Error("Condition should return true")
+	}
+
+	if assert.Condition(func() bool { return false }, "Lie") {
+		t.Error("Condition should return false")
 	}
 
 }
@@ -377,4 +408,111 @@ func TestWithinDurationWrapper(t *testing.T) {
 
 	assert.False(mockAssert.WithinDuration(a, b, -11*time.Second), "A 10s difference is not within a 9s time difference")
 	assert.False(mockAssert.WithinDuration(b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
+}
+
+func TestInDeltaWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	True(t, assert.InDelta(1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
+	True(t, assert.InDelta(1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
+	True(t, assert.InDelta(1, 2, 1), "|1 - 2| <= 1")
+	False(t, assert.InDelta(1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
+	False(t, assert.InDelta(2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
+	False(t, assert.InDelta("", nil, 1), "Expected non numerals to fail")
+
+	cases := []struct {
+		a, b  interface{}
+		delta float64
+	}{
+		{uint8(2), uint8(1), 1},
+		{uint16(2), uint16(1), 1},
+		{uint32(2), uint32(1), 1},
+		{uint64(2), uint64(1), 1},
+
+		{int(2), int(1), 1},
+		{int8(2), int8(1), 1},
+		{int16(2), int16(1), 1},
+		{int32(2), int32(1), 1},
+		{int64(2), int64(1), 1},
+
+		{float32(2), float32(1), 1},
+		{float64(2), float64(1), 1},
+	}
+
+	for _, tc := range cases {
+		True(t, assert.InDelta(tc.a, tc.b, tc.delta), "Expected |%V - %V| <= %v", tc.a, tc.b, tc.delta)
+	}
+}
+
+func TestInEpsilonWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	cases := []struct {
+		a, b    interface{}
+		epsilon float64
+	}{
+		{uint8(2), uint16(2), .001},
+		{2.1, 2.2, 0.1},
+		{2.2, 2.1, 0.1},
+		{-2.1, -2.2, 0.1},
+		{-2.2, -2.1, 0.1},
+		{uint64(100), uint8(101), 0.01},
+		{0.1, -0.1, 2},
+	}
+
+	for _, tc := range cases {
+		True(t, assert.InEpsilon(tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+	}
+
+	cases = []struct {
+		a, b    interface{}
+		epsilon float64
+	}{
+		{uint8(2), int16(-2), .001},
+		{uint64(100), uint8(102), 0.01},
+		{2.1, 2.2, 0.001},
+		{2.2, 2.1, 0.001},
+		{2.1, -2.2, 1},
+		{2.1, "bla-bla", 0},
+		{0.1, -0.1, 1.99},
+	}
+
+	for _, tc := range cases {
+		False(t, assert.InEpsilon(tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+	}
+}
+
+func TestRegexpWrapper(t *testing.T) {
+
+	assert := New(new(testing.T))
+
+	cases := []struct {
+		rx, str string
+	}{
+		{"^start", "start of the line"},
+		{"end$", "in the end"},
+		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12.34"},
+	}
+
+	for _, tc := range cases {
+		True(t, assert.Regexp(tc.rx, tc.str))
+		True(t, assert.Regexp(regexp.MustCompile(tc.rx), tc.str))
+		False(t, assert.NotRegexp(tc.rx, tc.str))
+		False(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
+	}
+
+	cases = []struct {
+		rx, str string
+	}{
+		{"^asdfastart", "Not the start of the line"},
+		{"end$", "in the end."},
+		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12a.34"},
+	}
+
+	for _, tc := range cases {
+		False(t, assert.Regexp(tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, assert.Regexp(regexp.MustCompile(tc.rx), tc.str))
+		True(t, assert.NotRegexp(tc.rx, tc.str))
+		True(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
+	}
 }

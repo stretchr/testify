@@ -101,13 +101,16 @@ func TestSomething(t *testing.T) {
 -------------------------------------------------------------------------------------------
 
 The `require` package provides same global functions as the `assert` package, but instead of returning a boolean result they terminate current test.
+
 See [t.FailNow](http://golang.org/pkg/testing/#T.FailNow) for details.
 
 
 [`http`](http://godoc.org/github.com/stretchr/testify/http "API documentation") package
 ---------------------------------------------------------------------------------------
 
-The `http` package contains test objects useful for testing code that relies on the `net/http` package.
+The `http` package contains test objects useful for testing code that relies on the `net/http` package.  Check out the [(deprecated) API documentation for the `http` package](http://godoc.org/github.com/stretchr/testify/http).
+
+We recommend you use [httptest](http://golang.org/pkg/net/http/httptest) instead.
 
 [`mock`](http://godoc.org/github.com/stretchr/testify/mock "API documentation") package
 ----------------------------------------------------------------------------------------
@@ -172,6 +175,8 @@ func TestSomething(t *testing.T) {
 ```
 
 For more information on how to write mock code, check out the [API documentation for the `mock` package](http://godoc.org/github.com/stretchr/testify/mock).
+
+You can use the [mockery tool](http://github.com/vektra/mockery) to autogenerate the mock code against an interface as well, making using mocks much quicker.
 
 [`suite`](http://godoc.org/github.com/stretchr/testify/suite "API documentation") package
 -----------------------------------------------------------------------------------------

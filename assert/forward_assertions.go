@@ -129,7 +129,7 @@ func (a *Assertions) NotEqual(expected, actual interface{}, msgAndArgs ...interf
 //    assert.Contains("Hello World", "World", "But 'Hello World' does contain 'World'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) Contains(s, contains string, msgAndArgs ...interface{}) bool {
+func (a *Assertions) Contains(s, contains interface{}, msgAndArgs ...interface{}) bool {
 	return Contains(a.t, s, contains, msgAndArgs...)
 }
 
@@ -138,7 +138,7 @@ func (a *Assertions) Contains(s, contains string, msgAndArgs ...interface{}) boo
 //    assert.NotContains("Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) NotContains(s, contains string, msgAndArgs ...interface{}) bool {
+func (a *Assertions) NotContains(s, contains interface{}, msgAndArgs ...interface{}) bool {
 	return NotContains(a.t, s, contains, msgAndArgs...)
 }
 
@@ -183,14 +183,14 @@ func (a *Assertions) WithinDuration(expected, actual time.Time, delta time.Durat
 // 	 assert.InDelta(t, math.Pi, (22 / 7.0), 0.01)
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+func (a *Assertions) InDelta(expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
 	return InDelta(a.t, expected, actual, delta, msgAndArgs...)
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+func (a *Assertions) InEpsilon(expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	return InEpsilon(a.t, expected, actual, epsilon, msgAndArgs...)
 }
 
@@ -229,4 +229,24 @@ func (a *Assertions) Error(theError error, msgAndArgs ...interface{}) bool {
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) bool {
 	return EqualError(a.t, theError, errString, msgAndArgs...)
+}
+
+// Regexp asserts that a specified regexp matches a string.
+//
+//  assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
+//  assert.Regexp(t, "start...$", "it's not starting")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) Regexp(rx interface{}, str interface{}) bool {
+	return Regexp(a.t, rx, str)
+}
+
+// NotRegexp asserts that a specified regexp does not match a string.
+//
+//  assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
+//  assert.NotRegexp(t, "^start", "it's not starting")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) NotRegexp(rx interface{}, str interface{}) bool {
+	return NotRegexp(a.t, rx, str)
 }
