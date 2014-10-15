@@ -478,7 +478,7 @@ func (args Arguments) Int(index int) int {
 	var s int
 	var ok bool
 	if s, ok = args.Get(index).(int); !ok {
-		panic(fmt.Sprintf("assert: arguments: Int(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+		panic(fmt.Sprintf("assert: arguments: Int(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
 	}
 	return s
 }
@@ -493,7 +493,7 @@ func (args Arguments) Error(index int) error {
 		return nil
 	}
 	if s, ok = obj.(error); !ok {
-		panic(fmt.Sprintf("assert: arguments: Error(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+		panic(fmt.Sprintf("assert: arguments: Error(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
 	}
 	return s
 }
@@ -504,7 +504,7 @@ func (args Arguments) Bool(index int) bool {
 	var s bool
 	var ok bool
 	if s, ok = args.Get(index).(bool); !ok {
-		panic(fmt.Sprintf("assert: arguments: Bool(%d) failed because object wasn't correct type: %s", index, args.Get(index)))
+		panic(fmt.Sprintf("assert: arguments: Bool(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
 	}
 	return s
 }
