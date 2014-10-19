@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -192,8 +194,24 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
 	if !ObjectsAreEqual(expected, actual) {
-		return Fail(t, fmt.Sprintf("Not equal: %#v (expected)\n"+
-			"        != %#v (actual)", expected, actual), msgAndArgs...)
+		var msg string
+		tp := reflect.TypeOf(expected)
+		k := tp.Kind()
+		if k == reflect.Ptr {
+			tp = tp.Elem()
+			k = tp.Kind()
+		}
+		if k == reflect.Struct || k == reflect.Map || k == reflect.Slice || k == reflect.Array {
+			msg = fmt.Sprintf("Not equal:\n"+
+				"---- Expected ----\n%s\n--------------\n"+
+				"---- Actual ------\n%s\n--------------",
+				spew.Sdump(expected),
+				spew.Sdump(actual))
+		} else {
+			msg = fmt.Sprintf("Not equal: %#v (expected)\n"+
+				"        != %#v (actual)", expected, actual)
+		}
+		return Fail(t, msg, msgAndArgs...)
 	}
 
 	return true
