@@ -58,11 +58,13 @@ func Run(t *testing.T, suite TestingSuite) {
 					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 						setupTestSuite.SetupTest()
 					}
+					defer func() {
+						if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+							tearDownTestSuite.TearDownTest()
+						}
+						suite.SetT(parentT)
+					}()
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
-					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-						tearDownTestSuite.TearDownTest()
-					}
-					suite.SetT(parentT)
 				},
 			}
 			tests = append(tests, test)

@@ -69,6 +69,10 @@ func (suite *SuiteTester) TestTwo() {
 	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
 }
 
+func (suite *SuiteTester) TestSkip() {
+	suite.T().Skip()
+}
+
 // NonTestMethod does not begin with "Test", so it will not be run by
 // testify as a test in the suite.  This is useful for creating helper
 // methods for your tests.
@@ -91,11 +95,11 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, suiteTester.SetupSuiteRunCount, 1)
 	assert.Equal(t, suiteTester.TearDownSuiteRunCount, 1)
 
-	// There are two test methods (TestOne and TestTwo), so the
-	// SetupTest and TearDownTest methods (which should be run once for
-	// each test) should have been run twice.
-	assert.Equal(t, suiteTester.SetupTestRunCount, 2)
-	assert.Equal(t, suiteTester.TearDownTestRunCount, 2)
+	// There are three test methods (TestOne, TestTwo, and TestSkip), so
+	// the SetupTest and TearDownTest methods (which should be run once for
+	// each test) should have been run three times.
+	assert.Equal(t, suiteTester.SetupTestRunCount, 3)
+	assert.Equal(t, suiteTester.TearDownTestRunCount, 3)
 
 	// Each test should have been run once.
 	assert.Equal(t, suiteTester.TestOneRunCount, 1)
