@@ -695,7 +695,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 		return true
 	}
 
-	return Fail(t, fmt.Sprintf("No error is expected but got %v", err), msgAndArgs...)
+	return Fail(t, fmt.Sprintf("Received unexpected error %q", err), msgAndArgs...)
 }
 
 // Error asserts that a function returned an error (i.e. not `nil`).
