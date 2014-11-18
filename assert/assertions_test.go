@@ -214,10 +214,20 @@ func TestNotEqual(t *testing.T) {
 	}
 }
 
+type A struct {
+	Name, Value string
+}
+
 func TestContains(t *testing.T) {
 
 	mockT := new(testing.T)
 	list := []string{"Foo", "Bar"}
+	complexList := []*A{
+		&A{"b", "c"},
+		&A{"d", "e"},
+		&A{"g", "h"},
+		&A{"j", "k"},
+	}
 
 	if !Contains(mockT, "Hello World", "Hello") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
@@ -232,7 +242,12 @@ func TestContains(t *testing.T) {
 	if Contains(mockT, list, "Salut") {
 		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
 	}
-
+	if !Contains(mockT, complexList, &A{"g", "h"}) {
+		t.Error("Contains should return true: complexList contains {\"g\", \"h\"}")
+	}
+	if Contains(mockT, complexList, &A{"g", "e"}) {
+		t.Error("Contains should return false: complexList contains {\"g\", \"e\"}")
+	}
 }
 
 func TestNotContains(t *testing.T) {
