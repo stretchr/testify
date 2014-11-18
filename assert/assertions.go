@@ -456,7 +456,7 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
-		if listValue.Index(i).Interface() == element {
+		if ObjectsAreEqual(listValue.Index(i).Interface(), element) {
 			return true, true
 		}
 	}
