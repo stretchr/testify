@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,12 @@ func (suite *Suite) SetT(t *testing.T) {
 	suite.Assertions = assert.New(t)
 }
 
+func testName(suiteMethod string, testMethod string) string {
+	methodRegexp := regexp.MustCompile(`([a-zA-Z/_]+\.)?Test([a-zA-Z_]*)`)
+	parts := methodRegexp.FindStringSubmatch(suiteMethod)
+	return fmt.Sprintf("%s.%s", parts[2], testMethod)
+}
+
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
@@ -43,6 +50,11 @@ func Run(t *testing.T, suite TestingSuite) {
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
+		suitePc, _, _, ok := runtime.Caller(1)
+		var suiteMethod string
+		if ok {
+			suiteMethod = runtime.FuncForPC(suitePc).Name()
+		}
 		method := methodFinder.Method(index)
 		ok, err := methodFilter(method.Name)
 		if err != nil {
@@ -51,7 +63,7 @@ func Run(t *testing.T, suite TestingSuite) {
 		}
 		if ok {
 			test := testing.InternalTest{
-				Name: method.Name,
+				Name: testName(suiteMethod, method.Name),
 				F: func(t *testing.T) {
 					parentT := suite.T()
 					suite.SetT(t)
