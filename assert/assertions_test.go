@@ -40,6 +40,9 @@ func TestObjectsAreEqual(t *testing.T) {
 	if !ObjectsAreEqual(nil, nil) {
 		t.Error("objectsAreEqual should return true")
 	}
+	if ObjectsAreEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
+		t.Error("objectsAreEqual should return false")
+	}
 
 }
 
