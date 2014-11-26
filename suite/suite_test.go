@@ -2,10 +2,11 @@ package suite
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // This suite is intended to store values to make sure that only
@@ -28,15 +29,33 @@ type SuiteTester struct {
 	NonTestMethodRunCount int
 }
 
+type SuiteSkipTester struct {
+	// Include our basic suite logic.
+	Suite
+
+	// Keep counts of how many times each method is run.
+	SetupSuiteRunCount    int
+	TearDownSuiteRunCount int
+}
+
 // The SetupSuite method will be run by testify once, at the very
 // start of the testing suite, before any tests are run.
 func (suite *SuiteTester) SetupSuite() {
 	suite.SetupSuiteRunCount++
 }
 
+func (suite *SuiteSkipTester) SetupSuite() {
+	suite.SetupSuiteRunCount++
+	suite.T().Skip()
+}
+
 // The TearDownSuite method will be run by testify once, at the very
 // end of the testing suite, after all tests have been run.
 func (suite *SuiteTester) TearDownSuite() {
+	suite.TearDownSuiteRunCount++
+}
+
+func (suite *SuiteSkipTester) TearDownSuite() {
 	suite.TearDownSuiteRunCount++
 }
 
@@ -108,6 +127,16 @@ func TestRunSuite(t *testing.T) {
 	// Methods that don't match the test method identifier shouldn't
 	// have been run at all.
 	assert.Equal(t, suiteTester.NonTestMethodRunCount, 0)
+
+	suiteSkipTester := new(SuiteSkipTester)
+	Run(t, suiteSkipTester)
+
+	// The suite was only run once, so the SetupSuite and TearDownSuite
+	// methods should have each been run only once, even though SetupSuite
+	// called Skip()
+	assert.Equal(t, suiteSkipTester.SetupSuiteRunCount, 1)
+	assert.Equal(t, suiteSkipTester.TearDownSuiteRunCount, 1)
+
 }
 
 type SuiteLoggingTester struct {
