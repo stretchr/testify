@@ -1,7 +1,7 @@
 package require
 
 import (
-	"github.com/raphaelmeyer/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"time"
 )
 

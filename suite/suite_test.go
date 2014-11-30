@@ -2,7 +2,7 @@ package suite
 
 import (
 	"errors"
-	"github.com/raphaelmeyer/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"

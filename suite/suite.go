@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/raphaelmeyer/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 var matchMethod = flag.String("m", "", "regular expression to select tests of the suite to run")

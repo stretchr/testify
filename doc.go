@@ -12,7 +12,7 @@
 package testify
 
 import (
-	_ "github.com/raphaelmeyer/testify/assert"
-	_ "github.com/raphaelmeyer/testify/http"
-	_ "github.com/raphaelmeyer/testify/mock"
+	_ "github.com/stretchr/testify/assert"
+	_ "github.com/stretchr/testify/http"
+	_ "github.com/stretchr/testify/mock"
 )

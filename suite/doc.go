@@ -32,8 +32,8 @@
 //     // Basic imports
 //     import (
 //         "testing"
-//         "github.com/raphaelmeyer/testify/assert"
-//         "github.com/raphaelmeyer/testify/suite"
+//         "github.com/stretchr/testify/assert"
+//         "github.com/stretchr/testify/suite"
 //     )
 //
 //     // Define the suite, and absorb the built-in basic suite
