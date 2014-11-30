@@ -2,8 +2,8 @@ package mock
 
 import (
 	"fmt"
-	"github.com/stretchr/objx"
-	"github.com/stretchr/testify/assert"
+	"github.com/raphaelmeyer/objx"
+	"github.com/raphaelmeyer/testify/assert"
 	"reflect"
 	"runtime"
 	"strings"
