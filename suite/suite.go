@@ -39,6 +39,11 @@ func Run(t *testing.T, suite TestingSuite) {
 	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 		setupAllSuite.SetupSuite()
 	}
+	defer func() {
+		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+			tearDownAllSuite.TearDownSuite()
+		}
+	}()
 
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
@@ -58,11 +63,13 @@ func Run(t *testing.T, suite TestingSuite) {
 					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 						setupTestSuite.SetupTest()
 					}
+					defer func() {
+						if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+							tearDownTestSuite.TearDownTest()
+						}
+						suite.SetT(parentT)
+					}()
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
-					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-						tearDownTestSuite.TearDownTest()
-					}
-					suite.SetT(parentT)
 				},
 			}
 			tests = append(tests, test)
@@ -72,10 +79,6 @@ func Run(t *testing.T, suite TestingSuite) {
 	if !testing.RunTests(func(_, _ string) (bool, error) { return true, nil },
 		tests) {
 		t.Fail()
-	}
-
-	if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-		tearDownAllSuite.TearDownSuite()
 	}
 }
 
