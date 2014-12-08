@@ -1,6 +1,8 @@
 Testify - Thou Shalt Write Tests
 ================================
 
+[![Build Status](https://travis-ci.org/raphaelmeyer/testify.png)](https://travis-ci.org/raphaelmeyer/testify)
+
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
 
 Features include:

@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.1
+  - 1.2
+  - 1.3
+  - tip
+
+before_install:
+  - find -iname "*.go" -type f -print0 | xargs -0 sed -i 's/stretchr\/testify/raphaelmeyer\/testify/g'
+
+script:
+  - go test -v ./...
+
