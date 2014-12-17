@@ -40,6 +40,9 @@ func TestObjectsAreEqual(t *testing.T) {
 	if !ObjectsAreEqual(nil, nil) {
 		t.Error("objectsAreEqual should return true")
 	}
+	if ObjectsAreEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
+		t.Error("objectsAreEqual should return false")
+	}
 
 }
 
@@ -92,6 +95,10 @@ func TestEqual(t *testing.T) {
 		t.Error("Equal should return true")
 	}
 	if !Equal(mockT, int64(123), uint64(123)) {
+		t.Error("Equal should return true")
+	}
+	funcA := func() int { return 42 }
+	if !Equal(mockT, funcA, funcA) {
 		t.Error("Equal should return true")
 	}
 
@@ -194,6 +201,11 @@ func TestNotEqual(t *testing.T) {
 		t.Error("NotEqual should return true")
 	}
 	if !NotEqual(mockT, nil, new(AssertionTesterConformingObject)) {
+		t.Error("NotEqual should return true")
+	}
+	funcA := func() int { return 23 }
+	funcB := func() int { return 42 }
+	if !NotEqual(mockT, funcA, funcB) {
 		t.Error("NotEqual should return true")
 	}
 
