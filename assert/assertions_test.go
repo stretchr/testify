@@ -97,6 +97,10 @@ func TestEqual(t *testing.T) {
 	if !Equal(mockT, int64(123), uint64(123)) {
 		t.Error("Equal should return true")
 	}
+	funcA := func() int { return 42 }
+	if !Equal(mockT, funcA, funcA) {
+		t.Error("Equal should return true")
+	}
 
 }
 
@@ -197,6 +201,11 @@ func TestNotEqual(t *testing.T) {
 		t.Error("NotEqual should return true")
 	}
 	if !NotEqual(mockT, nil, new(AssertionTesterConformingObject)) {
+		t.Error("NotEqual should return true")
+	}
+	funcA := func() int { return 23 }
+	funcB := func() int { return 42 }
+	if !NotEqual(mockT, funcA, funcB) {
 		t.Error("NotEqual should return true")
 	}
 
