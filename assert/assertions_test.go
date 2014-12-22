@@ -40,6 +40,9 @@ func TestObjectsAreEqual(t *testing.T) {
 	if !ObjectsAreEqual(nil, nil) {
 		t.Error("objectsAreEqual should return true")
 	}
+	if ObjectsAreEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
+		t.Error("objectsAreEqual should return false")
+	}
 
 }
 
@@ -223,10 +226,10 @@ func TestContains(t *testing.T) {
 	mockT := new(testing.T)
 	list := []string{"Foo", "Bar"}
 	complexList := []*A{
-		&A{"b", "c"},
-		&A{"d", "e"},
-		&A{"g", "h"},
-		&A{"j", "k"},
+		{"b", "c"},
+		{"d", "e"},
+		{"g", "h"},
+		{"j", "k"},
 	}
 
 	if !Contains(mockT, "Hello World", "Hello") {
