@@ -89,6 +89,16 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	}
 }
 
+// Len asserts that the specified object has specific length.
+// Len also fails if the object has a type that len() not accept.
+//
+//    require.Len(t, mySlice, 3, "The size of slice is not 3")
+func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) {
+	if !assert.Len(t, object, length, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
 // True asserts that the specified value is true.
 //
 //    require.True(t, myBool, "myBool should be true")
@@ -119,7 +129,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 // Contains asserts that the specified string contains the specified substring.
 //
 //    require.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
-func Contains(t TestingT, s, contains string, msgAndArgs ...interface{}) {
+func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
 	if !assert.Contains(t, s, contains, msgAndArgs...) {
 		t.FailNow()
 	}
@@ -128,7 +138,7 @@ func Contains(t TestingT, s, contains string, msgAndArgs ...interface{}) {
 // NotContains asserts that the specified string does NOT contain the specified substring.
 //
 //    require.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
-func NotContains(t TestingT, s, contains string, msgAndArgs ...interface{}) {
+func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotContains(t, s, contains, msgAndArgs...) {
 		t.FailNow()
 	}
@@ -184,6 +194,26 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 // InEpsilon asserts that expected and actual have a relative error less than epsilon
 func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
 	if !assert.InEpsilon(t, expected, actual, epsilon, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// Regexp asserts that a specified regexp matches a string.
+//
+//  require.Regexp(t, regexp.MustCompile("start"), "it's starting")
+//  require.Regexp(t, "start...$", "it's not starting")
+func Regexp(t TestingT, rx interface{}, str interface{}) {
+	if !assert.Regexp(t, rx, str) {
+		t.FailNow()
+	}
+}
+
+// NotRegexp asserts that a specified regexp does not match a string.
+//
+//  require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
+//  require.NotRegexp(t, "^start", "it's not starting")
+func NotRegexp(t TestingT, rx interface{}, str interface{}) {
+	if !assert.NotRegexp(t, rx, str) {
 		t.FailNow()
 	}
 }
