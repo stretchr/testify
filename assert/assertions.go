@@ -37,8 +37,8 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	}
 
 	actualType := reflect.TypeOf(actual)
-	if actualType.ConvertibleTo(reflect.TypeOf(expected)) {
-		expectedValue := reflect.ValueOf(expected)
+	expectedValue := reflect.ValueOf(expected)
+	if expectedValue.Type().ConvertibleTo(actualType) {
 		// Attempt comparison after type conversion
 		if reflect.DeepEqual(actual, expectedValue.Convert(actualType).Interface()) {
 			return true
