@@ -35,8 +35,6 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 // Equal asserts that two objects are equal.
 //
 //    require.Equal(t, 123, 123, "123 and 123 should be equal")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) {
 	if !assert.Equal(t, expected, actual, msgAndArgs...) {
 		t.FailNow()
@@ -46,8 +44,6 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 // Exactly asserts that two objects are equal is value and type.
 //
 //    require.Exactly(t, int32(123), int64(123), "123 and 123 should NOT be equal")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) {
 	if !assert.Exactly(t, expected, actual, msgAndArgs...) {
 		t.FailNow()
@@ -57,8 +53,6 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 // NotNil asserts that the specified object is not nil.
 //
 //    require.NotNil(t, err, "err should be something")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotNil(t, object, msgAndArgs...) {
 		t.FailNow()
@@ -68,8 +62,6 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 // Nil asserts that the specified object is nil.
 //
 //    require.Nil(t, err, "err should be nothing")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if !assert.Nil(t, object, msgAndArgs...) {
 		t.FailNow()
@@ -80,8 +72,6 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 // a slice or a channel with len == 0.
 //
 // require.Empty(t, obj)
-//
-// Returns whether the assertion was successful (true) or not (false).
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if !assert.Empty(t, object, msgAndArgs...) {
 		t.FailNow()
@@ -93,10 +83,18 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //
 // require.NotEmpty(t, obj)
 // require.Equal(t, "one", obj[0])
-//
-// Returns whether the assertion was successful (true) or not (false).
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotEmpty(t, object, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// Len asserts that the specified object has specific length.
+// Len also fails if the object has a type that len() not accept.
+//
+//    require.Len(t, mySlice, 3, "The size of slice is not 3")
+func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) {
+	if !assert.Len(t, object, length, msgAndArgs...) {
 		t.FailNow()
 	}
 }
@@ -104,8 +102,6 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 // True asserts that the specified value is true.
 //
 //    require.True(t, myBool, "myBool should be true")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func True(t TestingT, value bool, msgAndArgs ...interface{}) {
 	if !assert.True(t, value, msgAndArgs...) {
 		t.FailNow()
@@ -115,8 +111,6 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) {
 // False asserts that the specified value is true.
 //
 //    require.False(t, myBool, "myBool should be false")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 	if !assert.False(t, value, msgAndArgs...) {
 		t.FailNow()
@@ -126,8 +120,6 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 // NotEqual asserts that the specified values are NOT equal.
 //
 //    require.NotEqual(t, obj1, obj2, "two objects shouldn't be equal")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotEqual(t, expected, actual, msgAndArgs...) {
 		t.FailNow()
@@ -137,9 +129,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 // Contains asserts that the specified string contains the specified substring.
 //
 //    require.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
-//
-// Returns whether the assertion was successful (true) or not (false).
-func Contains(t TestingT, s, contains string, msgAndArgs ...interface{}) {
+func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
 	if !assert.Contains(t, s, contains, msgAndArgs...) {
 		t.FailNow()
 	}
@@ -148,9 +138,7 @@ func Contains(t TestingT, s, contains string, msgAndArgs ...interface{}) {
 // NotContains asserts that the specified string does NOT contain the specified substring.
 //
 //    require.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
-//
-// Returns whether the assertion was successful (true) or not (false).
-func NotContains(t TestingT, s, contains string, msgAndArgs ...interface{}) {
+func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotContains(t, s, contains, msgAndArgs...) {
 		t.FailNow()
 	}
@@ -168,8 +156,6 @@ func Condition(t TestingT, comp assert.Comparison, msgAndArgs ...interface{}) {
 //   require.Panics(t, func(){
 //     GoCrazy()
 //   }, "Calling GoCrazy() should panic")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if !assert.Panics(t, f, msgAndArgs...) {
 		t.FailNow()
@@ -181,8 +167,6 @@ func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 //   require.NotPanics(t, func(){
 //     RemainCalm()
 //   }, "Calling RemainCalm() should NOT panic")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func NotPanics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if !assert.NotPanics(t, f, msgAndArgs...) {
 		t.FailNow()
@@ -192,8 +176,6 @@ func NotPanics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 // WithinDuration asserts that the two times are within duration delta of each other.
 //
 //   require.WithinDuration(t, time.Now(), time.Now(), 10*time.Second, "The difference should not be more than 10s")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration, msgAndArgs ...interface{}) {
 	if !assert.WithinDuration(t, expected, actual, delta, msgAndArgs...) {
 		t.FailNow()
@@ -203,8 +185,6 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 // InDelta asserts that the two numerals are within delta of each other.
 //
 //   require.InDelta(t, math.Pi, (22 / 7.0), 0.01)
-//
-// Returns whether the assertion was successful (true) or not (false).
 func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if !assert.InDelta(t, expected, actual, delta, msgAndArgs...) {
 		t.FailNow()
@@ -212,10 +192,28 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon
-//
-// Returns whether the assertion was successful (true) or not (false).
 func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
 	if !assert.InEpsilon(t, expected, actual, epsilon, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// Regexp asserts that a specified regexp matches a string.
+//
+//  require.Regexp(t, regexp.MustCompile("start"), "it's starting")
+//  require.Regexp(t, "start...$", "it's not starting")
+func Regexp(t TestingT, rx interface{}, str interface{}) {
+	if !assert.Regexp(t, rx, str) {
+		t.FailNow()
+	}
+}
+
+// NotRegexp asserts that a specified regexp does not match a string.
+//
+//  require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
+//  require.NotRegexp(t, "^start", "it's not starting")
+func NotRegexp(t TestingT, rx interface{}, str interface{}) {
+	if !assert.NotRegexp(t, rx, str) {
 		t.FailNow()
 	}
 }
@@ -243,8 +241,6 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 //   require.Error(t, err, "An error was expected")
 //   require.Equal(t, err, expectedError)
 //   }
-//
-// Returns whether the assertion was successful (true) or not (false).
 func Error(t TestingT, err error, msgAndArgs ...interface{}) {
 	if !assert.Error(t, err, msgAndArgs...) {
 		t.FailNow()
@@ -258,8 +254,6 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) {
 //   require.Error(t, err, "An error was expected")
 //   require.Equal(t, err, expectedError)
 //   }
-//
-// Returns whether the assertion was successful (true) or not (false).
 func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) {
 	if !assert.EqualError(t, theError, errString, msgAndArgs...) {
 		t.FailNow()
