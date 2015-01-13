@@ -756,7 +756,7 @@ func Regexp(t TestingT, rx interface{}, str interface{}) bool {
 	match := matchRegexp(rx, str)
 
 	if !match {
-		Fail(t, "Expect \"%s\" to match \"%s\"")
+		Fail(t, "Expect \"%v\" to match \"%v\"", str, rx)
 	}
 
 	return match
@@ -772,7 +772,7 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}) bool {
 	match := matchRegexp(rx, str)
 
 	if match {
-		Fail(t, "Expect \"%s\" to NOT match \"%s\"")
+		Fail(t, "Expect \"%v\" to NOT match \"%v\"", str, rx)
 	}
 
 	return !match
