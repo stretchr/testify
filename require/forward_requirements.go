@@ -198,14 +198,14 @@ func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...
 //
 //  require.Regexp(t, regexp.MustCompile("start"), "it's starting")
 //  require.Regexp(t, "start...$", "it's not starting")
-func (a *Assertions) Regexp(rx interface{}, str interface{}) {
-	Regexp(a.t, rx, str)
+func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) {
+	Regexp(a.t, rx, str, msgAndArgs...)
 }
 
 // NotRegexp asserts that a specified regexp does not match a string.
 //
 //  require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //  require.NotRegexp(t, "^start", "it's not starting")
-func (a *Assertions) NotRegexp(rx interface{}, str interface{}) {
-	NotRegexp(a.t, rx, str)
+func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) {
+	NotRegexp(a.t, rx, str, msgAndArgs...)
 }
