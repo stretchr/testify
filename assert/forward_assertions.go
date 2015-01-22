@@ -237,8 +237,8 @@ func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...
 //  assert.Regexp(t, "start...$", "it's not starting")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) Regexp(rx interface{}, str interface{}) bool {
-	return Regexp(a.t, rx, str)
+func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
+	return Regexp(a.t, rx, str, msgAndArgs...)
 }
 
 // NotRegexp asserts that a specified regexp does not match a string.
@@ -247,6 +247,6 @@ func (a *Assertions) Regexp(rx interface{}, str interface{}) bool {
 //  assert.NotRegexp(t, "^start", "it's not starting")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) NotRegexp(rx interface{}, str interface{}) bool {
-	return NotRegexp(a.t, rx, str)
+func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
+	return NotRegexp(a.t, rx, str, msgAndArgs...)
 }

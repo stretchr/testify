@@ -1,8 +1,9 @@
 package require
 
 import (
-	"github.com/stretchr/testify/assert"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type TestingT interface {
@@ -202,8 +203,8 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 //
 //  require.Regexp(t, regexp.MustCompile("start"), "it's starting")
 //  require.Regexp(t, "start...$", "it's not starting")
-func Regexp(t TestingT, rx interface{}, str interface{}) {
-	if !assert.Regexp(t, rx, str) {
+func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
+	if !assert.Regexp(t, rx, str, msgAndArgs...) {
 		t.FailNow()
 	}
 }
@@ -212,8 +213,8 @@ func Regexp(t TestingT, rx interface{}, str interface{}) {
 //
 //  require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //  require.NotRegexp(t, "^start", "it's not starting")
-func NotRegexp(t TestingT, rx interface{}, str interface{}) {
-	if !assert.NotRegexp(t, rx, str) {
+func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
+	if !assert.NotRegexp(t, rx, str, msgAndArgs...) {
 		t.FailNow()
 	}
 }
