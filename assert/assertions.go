@@ -43,8 +43,15 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	}
 
 	// Attempt comparison after type conversion
-	if actualValue.Type().ConvertibleTo(expectedValue.Type()) && expectedValue == actualValue.Convert(expectedValue.Type()) {
-		return true
+	if actualValue.Type().ConvertibleTo(expectedValue.Type()) {
+		convertedValue := actualValue.Convert(expectedValue.Type())
+		if expectedValue == convertedValue {
+			return true
+		}
+
+		if expectedValue.Type().Comparable() && expectedValue.Interface() == convertedValue.Interface() {
+			return true
+		}
 	}
 
 	// Last ditch effort
