@@ -43,6 +43,18 @@ func TestObjectsAreEqual(t *testing.T) {
 	if ObjectsAreEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
 		t.Error("objectsAreEqual should return false")
 	}
+	if ObjectsAreEqual('x', "x") {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual("x", 'x') {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual(0, 0.1) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual(0.1, 0) {
+		t.Error("objectsAreEqual should return false")
+	}
 
 }
 
@@ -91,10 +103,10 @@ func TestEqual(t *testing.T) {
 	if !Equal(mockT, nil, nil) {
 		t.Error("Equal should return true")
 	}
-	if !Equal(mockT, int32(123), int64(123)) {
+	if !Equal(mockT, int32(123), int32(123)) {
 		t.Error("Equal should return true")
 	}
-	if !Equal(mockT, int64(123), uint64(123)) {
+	if !Equal(mockT, uint64(123), uint64(123)) {
 		t.Error("Equal should return true")
 	}
 	funcA := func() int { return 42 }
