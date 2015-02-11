@@ -55,6 +55,12 @@ func TestObjectsAreEqual(t *testing.T) {
 	if ObjectsAreEqual(0.1, 0) {
 		t.Error("objectsAreEqual should return false")
 	}
+	if ObjectsAreEqual(uint32(10), int32(10)) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
+		t.Error("ObjectsAreEqualValues should return true")
+	}
 
 }
 
