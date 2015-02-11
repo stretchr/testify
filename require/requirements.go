@@ -42,6 +42,15 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 	}
 }
 
+// EqualValues asserts that two objects are equal or convertable to each other.
+//
+//    require.EqualValues(t, uint32(123), int32(123), "123 and 123 should be equal")
+func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) {
+	if !assert.EqualValues(t, expected, actual, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
 // Exactly asserts that two objects are equal is value and type.
 //
 //    require.Exactly(t, int32(123), int64(123), "123 and 123 should NOT be equal")
