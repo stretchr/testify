@@ -405,11 +405,11 @@ func getLen(x interface{}) (ok bool, length int) {
 func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) bool {
 	ok, l := getLen(object)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q could not be applied builtin len()", object), msgAndArgs...)
 	}
 
 	if l != length {
-		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q should have %d item(s), but has %d", object, length, l), msgAndArgs...)
 	}
 	return true
 }
@@ -498,10 +498,10 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 
 	ok, found := includeElement(s, contains)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q could not be applied builtin len()", s), msgAndArgs...)
 	}
 	if !found {
-		return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", s, contains), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q does not contain %q", s, contains), msgAndArgs...)
 	}
 
 	return true
@@ -519,10 +519,10 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 
 	ok, found := includeElement(s, contains)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q could not be applied builtin len()", s), msgAndArgs...)
 	}
 	if found {
-		return Fail(t, fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q should not contain %q", s, contains), msgAndArgs...)
 	}
 
 	return true
@@ -751,9 +751,9 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	if !NotNil(t, theError, "An error is expected but got nil. %s", message) {
 		return false
 	}
-	s := "An error with value \"%s\" is expected but got \"%s\". %s"
+	s := "An error with value %q is expected but got %q. %s"
 	return Equal(t, theError.Error(), errString,
-		s, errString, theError.Error(), message)
+		s, theError.Error(), errString, message)
 }
 
 // matchRegexp return true if a specified regexp matches a string.

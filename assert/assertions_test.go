@@ -760,7 +760,7 @@ func TestRegexp(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		False(t, Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, Regexp(mockT, tc.rx, tc.str), "Expected %q to not match %q", tc.rx, tc.str)
 		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 		True(t, NotRegexp(mockT, tc.rx, tc.str))
 		True(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))

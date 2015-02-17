@@ -59,9 +59,9 @@ func HTTPError(t TestingT, handler http.HandlerFunc, mode, url string, values ur
 	return code >= http.StatusBadRequest
 }
 
-// HttpBody is a helper that returns HTTP body of the response. It returns
+// HTTPBody is a helper that returns HTTP body of the response. It returns
 // empty string if building a new request fails.
-func HttpBody(handler http.HandlerFunc, mode, url string, values url.Values) string {
+func HTTPBody(handler http.HandlerFunc, mode, url string, values url.Values) string {
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest(mode, url+"?"+values.Encode(), nil)
 	if err != nil {
@@ -78,11 +78,11 @@ func HttpBody(handler http.HandlerFunc, mode, url string, values url.Values) str
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContains(t TestingT, handler http.HandlerFunc, mode, url string, values url.Values, str interface{}) bool {
-	body := HttpBody(handler, mode, url, values)
+	body := HTTPBody(handler, mode, url, values)
 
 	contains := strings.Contains(body, fmt.Sprint(str))
 	if !contains {
-		Fail(t, fmt.Sprintf("Expected response body for \"%s\" to contain \"%s\" but found \"%s\"", url+"?"+values.Encode(), str, body))
+		Fail(t, fmt.Sprintf("Expected response body for %q to contain %q but found %q", url+"?"+values.Encode(), str, body))
 	}
 
 	return contains
@@ -95,11 +95,11 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, mode, url string, va
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, mode, url string, values url.Values, str interface{}) bool {
-	body := HttpBody(handler, mode, url, values)
+	body := HTTPBody(handler, mode, url, values)
 
 	contains := strings.Contains(body, fmt.Sprint(str))
 	if contains {
-		Fail(t, "Expected response body for %s to NOT contain \"%s\" but found \"%s\"", url+"?"+values.Encode(), str, body)
+		Fail(t, "Expected response body for %s to NOT contain %q but found %q", url+"?"+values.Encode(), str, body)
 	}
 
 	return !contains

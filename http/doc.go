@@ -1,2 +1,2 @@
-//  A set of tools to make testing http activity using the Go testing system easier.
+// Package http constains a set of tools to make testing http activity using the Go testing system easier.
 package http

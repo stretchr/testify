@@ -58,7 +58,7 @@ func httpHelloName(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
 }
 
-func TestHttpBody(t *testing.T) {
+func TestHTTPBody(t *testing.T) {
 	assert := New(t)
 	mockT := new(testing.T)
 
@@ -71,7 +71,7 @@ func TestHttpBody(t *testing.T) {
 	assert.True(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
 }
 
-func TestHttpBodyWrappers(t *testing.T) {
+func TestHTTPBodyWrappers(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
