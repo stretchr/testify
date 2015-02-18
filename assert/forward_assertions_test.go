@@ -50,6 +50,14 @@ func TestEqualWrapper(t *testing.T) {
 	}
 }
 
+func TestEqualValuesWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	if !assert.EqualValues(uint32(10), int32(10)) {
+		t.Error("EqualValues should return true")
+	}
+}
+
 func TestNotNilWrapper(t *testing.T) {
 	assert := New(new(testing.T))
 
