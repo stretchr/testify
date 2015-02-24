@@ -1,6 +1,4 @@
-// A set of packages that provide many tools for testifying that your code will behave as you intend.
-//
-// testify contains the following packages:
+// Package testify contains a set of packages that provide many tools for testifying that your code will behave as you intend.
 //
 // The assert package provides a comprehensive set of assertion functions that tie in to the Go testing system.
 //

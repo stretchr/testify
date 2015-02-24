@@ -267,9 +267,9 @@ func TestEqualWrapper_Funcs(t *testing.T) {
 	var f1 f = func() int { return 1 }
 	var f2 f = func() int { return 2 }
 
-	var f1_copy f = f1
+	var f1Copy = f1
 
-	assert.Equal(f1_copy, f1, "Funcs are the same and should be considered equal")
+	assert.Equal(f1Copy, f1, "Funcs are the same and should be considered equal")
 	assert.NotEqual(f1, f2, "f1 and f2 are different")
 
 }
@@ -279,7 +279,7 @@ func TestNoErrorWrapper(t *testing.T) {
 	mockAssert := New(new(testing.T))
 
 	// start with a nil error
-	var err error = nil
+	var err error
 
 	assert.True(mockAssert.NoError(err), "NoError should return True for nil arg")
 
@@ -295,7 +295,7 @@ func TestErrorWrapper(t *testing.T) {
 	mockAssert := New(new(testing.T))
 
 	// start with a nil error
-	var err error = nil
+	var err error
 
 	assert.False(mockAssert.Error(err), "Error should return False for nil arg")
 
@@ -518,7 +518,7 @@ func TestRegexpWrapper(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		False(t, assert.Regexp(tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, assert.Regexp(tc.rx, tc.str), "Expected %q to not match %q", tc.rx, tc.str)
 		False(t, assert.Regexp(regexp.MustCompile(tc.rx), tc.str))
 		True(t, assert.NotRegexp(tc.rx, tc.str))
 		True(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))

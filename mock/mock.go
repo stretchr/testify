@@ -2,12 +2,13 @@ package mock
 
 import (
 	"fmt"
-	"github.com/stretchr/objx"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/stretchr/objx"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -142,7 +143,7 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *Call) {
 
 	diffCount := 0
-	var closestCall *Call = nil
+	var closestCall *Call
 
 	for _, call := range m.ExpectedCalls {
 		if call.Method == method {
@@ -165,7 +166,7 @@ func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *
 
 func callString(method string, arguments Arguments, includeArgumentValues bool) string {
 
-	var argValsString string = ""
+	var argValsString string
 	if includeArgumentValues {
 		var argVals []string
 		for argIndex, arg := range arguments {
@@ -209,13 +210,13 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		if closestFound {
 			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n", callString(functionName, arguments, true), callString(functionName, closestCall.Arguments, true)))
 		} else {
-			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
+			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(%q).Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
 		}
 	case call.Repeatability == 1:
 		call.Repeatability = -1
 		m.ExpectedCalls[found] = *call
 	case call.Repeatability > 1:
-		call.Repeatability -= 1
+		call.Repeatability--
 		m.ExpectedCalls[found] = *call
 	}
 
@@ -235,7 +236,7 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 //
 // Calls may have occurred in any order.
 func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
-	var success bool = true
+	success := true
 	for _, obj := range testObjects {
 		mockObj := obj.(Mock)
 		success = success && mockObj.AssertExpectations(t)
@@ -247,8 +248,8 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 // in fact called as expected.  Calls may have occurred in any order.
 func (m *Mock) AssertExpectations(t TestingT) bool {
 
-	var somethingMissing bool = false
-	var failedExpectations int = 0
+	somethingMissing := false
+	failedExpectations := 0
 
 	// iterate through each expectation
 	for _, expectedCall := range m.ExpectedCalls {
@@ -274,7 +275,7 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 
 // AssertNumberOfCalls asserts that the method was called expectedCalls times.
 func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls int) bool {
-	var actualCalls int = 0
+	actualCalls := 0
 	for _, call := range m.Calls {
 		if call.Method == methodName {
 			actualCalls++
@@ -285,8 +286,8 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 
 // AssertCalled asserts that the method was called.
 func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
-	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
-		t.Logf("%s", m.ExpectedCalls)
+	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The %q method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
+		t.Logf("%+v", m.ExpectedCalls)
 		return false
 	}
 	return true
@@ -294,8 +295,8 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 
 // AssertNotCalled asserts that the method was not called.
 func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...interface{}) bool {
-	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
-		t.Logf("%s", m.ExpectedCalls)
+	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The %q method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
+		t.Logf("%+v", m.ExpectedCalls)
 		return false
 	}
 	return true
@@ -326,7 +327,7 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 type Arguments []interface{}
 
 const (
-	// The "any" argument.  Used in Diff and Assert when
+	// Anything is the "any" argument.  Used in Diff and Assert when
 	// the argument being tested shouldn't be taken into consideration.
 	Anything string = "mock.Anything"
 )
@@ -368,10 +369,10 @@ func (args Arguments) Is(objects ...interface{}) bool {
 // Returns the diff string and number of differences found.
 func (args Arguments) Diff(objects []interface{}) (string, int) {
 
-	var output string = "\n"
+	output := "\n"
 	var differences int
 
-	var maxArgCount int = len(args)
+	maxArgCount := len(args)
 	if len(objects) > maxArgCount {
 		maxArgCount = len(objects)
 	}
@@ -459,7 +460,7 @@ func (args Arguments) String(indexOrNil ...int) string {
 		return strings.Join(argsStr, ",")
 	} else if len(indexOrNil) == 1 {
 		// Index has been specified - get the argument at that index
-		var index int = indexOrNil[0]
+		index := indexOrNil[0]
 		var s string
 		var ok bool
 		if s, ok = args.Get(index).(string); !ok {
