@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 /*
@@ -95,6 +96,58 @@ func Test_Mock_Return(t *testing.T) {
 		assert.Equal(t, "two", call.ReturnArguments[1])
 		assert.Equal(t, true, call.ReturnArguments[2])
 		assert.Equal(t, 0, call.Repeatability)
+		assert.Nil(t, call.WaitFor)
+
+	}
+
+}
+
+func Test_Mock_Return_WaitUntil(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+	ch := time.After(time.Second)
+
+	assert.Equal(t, mockedService.Mock.On("TheExampleMethod", "A", "B", true).Return(1, "two", true).WaitUntil(ch), &mockedService.Mock)
+
+	// ensure the call was created
+	if assert.Equal(t, 1, len(mockedService.Mock.ExpectedCalls)) {
+		call := mockedService.Mock.ExpectedCalls[0]
+
+		assert.Equal(t, "TheExampleMethod", call.Method)
+		assert.Equal(t, "A", call.Arguments[0])
+		assert.Equal(t, "B", call.Arguments[1])
+		assert.Equal(t, true, call.Arguments[2])
+		assert.Equal(t, 1, call.ReturnArguments[0])
+		assert.Equal(t, "two", call.ReturnArguments[1])
+		assert.Equal(t, true, call.ReturnArguments[2])
+		assert.Equal(t, 0, call.Repeatability)
+		assert.Equal(t, ch, call.WaitFor)
+
+	}
+
+}
+
+func Test_Mock_Return_After(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	assert.Equal(t, mockedService.Mock.On("TheExampleMethod", "A", "B", true).Return(1, "two", true).After(time.Second), &mockedService.Mock)
+
+	// ensure the call was created
+	if assert.Equal(t, 1, len(mockedService.Mock.ExpectedCalls)) {
+		call := mockedService.Mock.ExpectedCalls[0]
+
+		assert.Equal(t, "TheExampleMethod", call.Method)
+		assert.Equal(t, "A", call.Arguments[0])
+		assert.Equal(t, "B", call.Arguments[1])
+		assert.Equal(t, true, call.Arguments[2])
+		assert.Equal(t, 1, call.ReturnArguments[0])
+		assert.Equal(t, "two", call.ReturnArguments[1])
+		assert.Equal(t, true, call.ReturnArguments[2])
+		assert.Equal(t, 0, call.Repeatability)
+		assert.NotEqual(t, nil, call.WaitFor)
 
 	}
 
@@ -119,6 +172,7 @@ func Test_Mock_Return_Once(t *testing.T) {
 		assert.Equal(t, "two", call.ReturnArguments[1])
 		assert.Equal(t, true, call.ReturnArguments[2])
 		assert.Equal(t, 1, call.Repeatability)
+		assert.Nil(t, call.WaitFor)
 
 	}
 
@@ -143,6 +197,7 @@ func Test_Mock_Return_Twice(t *testing.T) {
 		assert.Equal(t, "two", call.ReturnArguments[1])
 		assert.Equal(t, true, call.ReturnArguments[2])
 		assert.Equal(t, 2, call.Repeatability)
+		assert.Nil(t, call.WaitFor)
 
 	}
 
@@ -167,6 +222,7 @@ func Test_Mock_Return_Times(t *testing.T) {
 		assert.Equal(t, "two", call.ReturnArguments[1])
 		assert.Equal(t, true, call.ReturnArguments[2])
 		assert.Equal(t, 5, call.Repeatability)
+		assert.Nil(t, call.WaitFor)
 
 	}
 
@@ -264,6 +320,43 @@ func Test_Mock_Called(t *testing.T) {
 		assert.Equal(t, 1, mockedService.Calls[0].Arguments[0])
 		assert.Equal(t, 2, mockedService.Calls[0].Arguments[1])
 		assert.Equal(t, 3, mockedService.Calls[0].Arguments[2])
+	}
+
+	if assert.Equal(t, 3, len(returnArguments)) {
+		assert.Equal(t, 5, returnArguments[0])
+		assert.Equal(t, "6", returnArguments[1])
+		assert.Equal(t, true, returnArguments[2])
+	}
+
+}
+
+func asyncCall(m *Mock, ch chan Arguments) {
+	ch <- m.Called(1, 2, 3)
+}
+
+func Test_Mock_Called_blocks(t *testing.T) {
+
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	mockedService.Mock.On("asyncCall", 1, 2, 3).Return(5, "6", true).After(2 * time.Millisecond)
+
+	ch := make(chan Arguments)
+
+	go asyncCall(&mockedService.Mock, ch)
+
+	select {
+	case <-ch:
+		t.Fatal("should have waited")
+	case <-time.After(1 * time.Millisecond):
+	}
+
+	returnArguments := <-ch
+
+	if assert.Equal(t, 1, len(mockedService.Mock.Calls)) {
+		assert.Equal(t, "asyncCall", mockedService.Mock.Calls[0].Method)
+		assert.Equal(t, 1, mockedService.Mock.Calls[0].Arguments[0])
+		assert.Equal(t, 2, mockedService.Mock.Calls[0].Arguments[1])
+		assert.Equal(t, 3, mockedService.Mock.Calls[0].Arguments[2])
 	}
 
 	if assert.Equal(t, 3, len(returnArguments)) {
