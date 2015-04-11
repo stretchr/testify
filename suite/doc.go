@@ -18,6 +18,10 @@
 // with "Test" will not be run by testify, and can safely be used as
 // helper methods.
 //
+// For parameterized suites (which may run multiple times for different
+// scenarios), the TestNamePrefixer interface can be implemented to
+// provide meaningful prefixes to test names for each variation.
+//
 // Once you've built your testing suite, you need to run the suite
 // (using suite.Run from testify) inside any function that matches the
 // identity that "go test" is already looking for (i.e.
