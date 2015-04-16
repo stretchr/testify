@@ -36,8 +36,7 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return true
 	}
 
-	// Last ditch effort
-	if fmt.Sprintf("%#v", expected) == fmt.Sprintf("%#v", actual) {
+	if reflect.ValueOf(expected) == reflect.ValueOf(actual) {
 		return true
 	}
 
