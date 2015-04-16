@@ -36,10 +36,6 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return true
 	}
 
-	if reflect.ValueOf(expected) == reflect.ValueOf(actual) {
-		return true
-	}
-
 	return false
 
 }

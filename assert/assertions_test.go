@@ -115,10 +115,6 @@ func TestEqual(t *testing.T) {
 	if !Equal(mockT, uint64(123), uint64(123)) {
 		t.Error("Equal should return true")
 	}
-	funcA := func() int { return 42 }
-	if !Equal(mockT, funcA, funcA) {
-		t.Error("Equal should return true")
-	}
 
 }
 
@@ -403,19 +399,6 @@ func TestNotPanics(t *testing.T) {
 	}) {
 		t.Error("NotPanics should return false")
 	}
-
-}
-
-func TestEqual_Funcs(t *testing.T) {
-
-	type f func() int
-	f1 := func() int { return 1 }
-	f2 := func() int { return 2 }
-
-	f1Copy := f1
-
-	Equal(t, f1Copy, f1, "Funcs are the same and should be considered equal")
-	NotEqual(t, f1, f2, "f1 and f2 are different")
 
 }
 
