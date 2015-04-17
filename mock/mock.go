@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -37,6 +38,10 @@ type Call struct {
 	// The number of times to return the return arguments when setting
 	// expectations. 0 means to always return the value.
 	Repeatability int
+
+	// Holds a channel that will be used to block the Return until it either
+	// recieves a message or is closed. nil means it returns immediately.
+	WaitFor <-chan time.Time
 }
 
 // Mock is the workhorse used to track activity on another object.
@@ -95,7 +100,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Mock {
 //
 //     Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2)
 func (m *Mock) Return(returnArguments ...interface{}) *Mock {
-	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0})
+	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0, nil})
 	return m
 }
 
@@ -119,6 +124,22 @@ func (m *Mock) Twice() {
 //    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (m *Mock) Times(i int) {
 	m.ExpectedCalls[len(m.ExpectedCalls)-1].Repeatability = i
+}
+
+// WaitUntil sets the channel that will block the mock's return until its closed
+// or a message is received.
+//
+//    Mock.On("MyMethod", arg1, arg2).WaitUntil(time.After(time.Second))
+func (m *Mock) WaitUntil(w <-chan time.Time) *Mock {
+	m.ExpectedCalls[len(m.ExpectedCalls)-1].WaitFor = w
+	return m
+}
+
+// After sets how long to block until the call returns
+//
+//    Mock.On("MyMethod", arg1, arg2).After(time.Second)
+func (m *Mock) After(d time.Duration) *Mock {
+	return m.WaitUntil(time.After(d))
 }
 
 /*
@@ -180,6 +201,7 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 // Called tells the mock object that a method has been called, and gets an array
 // of arguments to return.  Panics if the call is unexpected (i.e. not preceeded by
 // appropriate .On .Return() calls)
+// If Call.WaitFor is set, blocks until the channel is closed or receives a message.
 func (m *Mock) Called(arguments ...interface{}) Arguments {
 	defer m.mutex.Unlock()
 	m.mutex.Lock()
@@ -220,7 +242,12 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	}
 
 	// add the call
-	m.Calls = append(m.Calls, Call{functionName, arguments, make([]interface{}, 0), 0})
+	m.Calls = append(m.Calls, Call{functionName, arguments, make([]interface{}, 0), 0, nil})
+
+	// block if specified
+	if call.WaitFor != nil {
+		<-call.WaitFor
+	}
 
 	return call.ReturnArguments
 
