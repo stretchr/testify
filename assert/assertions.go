@@ -667,8 +667,10 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	return true
 }
 
+// InDeltaSlice is the same as InDelta, except it compares two slices.
 func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
-	if reflect.TypeOf(actual).Kind() != reflect.Slice ||
+	if expected == nil || actual == nil ||
+		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
 		return Fail(t, fmt.Sprintf("Parameters must be slice"), msgAndArgs...)
 	}
@@ -718,6 +720,27 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 	delta := calcEpsilonDelta(expected, actual, epsilon)
 
 	return InDelta(t, expected, actual, delta, msgAndArgs...)
+}
+
+// InEpsilonSlice is the same as InEpsilon, except it compares two slices.
+func InEpsilonSlice(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+	if expected == nil || actual == nil ||
+		reflect.TypeOf(actual).Kind() != reflect.Slice ||
+		reflect.TypeOf(expected).Kind() != reflect.Slice {
+		return Fail(t, fmt.Sprintf("Parameters must be slice"), msgAndArgs...)
+	}
+
+	actualSlice := reflect.ValueOf(actual)
+	expectedSlice := reflect.ValueOf(expected)
+
+	for i := 0; i < actualSlice.Len(); i++ {
+		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta)
+		if !result {
+			return result
+		}
+	}
+
+	return true
 }
 
 /*
