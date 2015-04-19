@@ -1,6 +1,8 @@
 go-difflib
 ==========
 
+[![Build Status](https://travis-ci.org/pmezard/go-difflib.png?branch=master)](https://travis-ci.org/pmezard/go-difflib)
+
 Go-difflib is a partial port of python 3 difflib package. Its main goal
 was to make unified and context diff available in pure Go, mostly for
 testing purposes.
