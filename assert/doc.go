@@ -1,4 +1,4 @@
-// A set of comprehensive testing tools for use with the normal Go testing system.
+// Package assert provides a set of comprehensive testing tools for use with the normal Go testing system.
 //
 // Example Usage
 //

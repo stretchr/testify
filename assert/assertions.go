@@ -36,15 +36,12 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return true
 	}
 
-	// Last ditch effort
-	if fmt.Sprintf("%#v", expected) == fmt.Sprintf("%#v", actual) {
-		return true
-	}
-
 	return false
 
 }
 
+// ObjectsAreEqualValues gets whether two objects are equal, or if their
+// values are equal.
 func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	if ObjectsAreEqual(expected, actual) {
 		return true
