@@ -42,6 +42,11 @@ type Call struct {
 	// Holds a channel that will be used to block the Return until it either
 	// recieves a message or is closed. nil means it returns immediately.
 	WaitFor <-chan time.Time
+
+	// Holds a handler used to manipulate arguments content that are passed by
+	// reference. It's useful when mocking methods such as unmarshalers or
+	// decoders.
+	Run func(Arguments)
 }
 
 // Mock is the workhorse used to track activity on another object.
@@ -100,7 +105,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Mock {
 //
 //     Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2)
 func (m *Mock) Return(returnArguments ...interface{}) *Mock {
-	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0, nil})
+	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0, nil, nil})
 	return m
 }
 
@@ -140,6 +145,19 @@ func (m *Mock) WaitUntil(w <-chan time.Time) *Mock {
 //    Mock.On("MyMethod", arg1, arg2).After(time.Second)
 func (m *Mock) After(d time.Duration) *Mock {
 	return m.WaitUntil(time.After(d))
+}
+
+// Run sets a handler to be called before returning. It can be used when
+// mocking a method such as unmarshalers that takes a pointer to a struct and
+// sets properties in such struct
+//
+//    Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}").Return().Run(function(args Arguments) {
+//    	arg := args.Get(0).(*map[string]interface{})
+//    	arg["foo"] = "bar"
+//    })
+func (m *Mock) Run(fn func(Arguments)) *Mock {
+	m.ExpectedCalls[len(m.ExpectedCalls)-1].Run = fn
+	return m
 }
 
 /*
@@ -242,11 +260,15 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	}
 
 	// add the call
-	m.Calls = append(m.Calls, Call{functionName, arguments, make([]interface{}, 0), 0, nil})
+	m.Calls = append(m.Calls, Call{functionName, arguments, make([]interface{}, 0), 0, nil, nil})
 
 	// block if specified
 	if call.WaitFor != nil {
 		<-call.WaitFor
+	}
+
+	if call.Run != nil {
+		call.Run(arguments)
 	}
 
 	return call.ReturnArguments
