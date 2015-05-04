@@ -30,7 +30,9 @@ func (i *TestExampleImplementation) TheExampleMethod2(yesorno bool) {
 	i.Called(yesorno)
 }
 
-type ExampleType struct{}
+type ExampleType struct {
+	ran bool
+}
 
 func (i *TestExampleImplementation) TheExampleMethod3(et *ExampleType) error {
 	args := i.Called(et)
@@ -150,6 +152,36 @@ func Test_Mock_Return_After(t *testing.T) {
 		assert.NotEqual(t, nil, call.WaitFor)
 
 	}
+
+}
+
+func Test_Mock_Return_Run(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	assert.Equal(t, mockedService.Mock.On("TheExampleMethod3", AnythingOfType("*mock.ExampleType")).Return(nil).Run(func(args Arguments) {
+		arg := args.Get(0).(*ExampleType)
+		arg.ran = true
+	}), &mockedService.Mock)
+
+	// ensure the call was created
+	if assert.Equal(t, 1, len(mockedService.Mock.ExpectedCalls)) {
+		call := mockedService.Mock.ExpectedCalls[0]
+
+		assert.Equal(t, "TheExampleMethod3", call.Method)
+		assert.Equal(t, AnythingOfType("*mock.ExampleType"), call.Arguments[0])
+		assert.Equal(t, nil, call.ReturnArguments[0])
+		assert.Equal(t, 0, call.Repeatability)
+		assert.NotEqual(t, nil, call.WaitFor)
+		assert.NotNil(t, call.Run)
+
+	}
+
+	et := ExampleType{}
+	assert.Equal(t, false, et.ran)
+	mockedService.TheExampleMethod3(&et)
+	assert.Equal(t, true, et.ran)
 
 }
 
