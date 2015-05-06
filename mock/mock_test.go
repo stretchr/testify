@@ -105,6 +105,15 @@ func Test_Mock_On_WithFuncArg(t *testing.T) {
 
 }
 
+func Test_Mock_On_WithFuncPanics(t *testing.T) {
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	assert.Panics(t, func() {
+		mockedService.On("TheExampleMethodFunc", func(string) error { return nil })
+	})
+}
+
 func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 
 	// make a test impl object
