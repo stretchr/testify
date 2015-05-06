@@ -39,6 +39,18 @@ func (i *TestExampleImplementation) TheExampleMethod3(et *ExampleType) error {
 	return args.Error(0)
 }
 
+func (i *TestExampleImplementation) TheExampleMethodFunc(fn func(string) error) error {
+	args := i.Called(fn)
+	return args.Error(0)
+}
+
+type ExampleFuncType func(string) error
+
+func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType) error {
+	args := i.Called(fn)
+	return args.Error(0)
+}
+
 /*
 	Mock
 */
@@ -76,6 +88,34 @@ func Test_Mock_On_WithArgs(t *testing.T) {
 	assert.Equal(t, 1, mockedService.onMethodArguments[0])
 	assert.Equal(t, 2, mockedService.onMethodArguments[1])
 	assert.Equal(t, 3, mockedService.onMethodArguments[2])
+
+}
+
+func Test_Mock_On_WithFuncArg(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	assert.Equal(t, mockedService.On("TheExampleMethodFunc", AnythingOfType("func(string) error")).Return(nil), &mockedService.Mock)
+	assert.Equal(t, "TheExampleMethodFunc", mockedService.onMethodName)
+	assert.Equal(t, AnythingOfType("func(string) error"), mockedService.onMethodArguments[0])
+
+	fn := func(string) error { return nil }
+	mockedService.TheExampleMethodFunc(fn)
+
+}
+
+func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	assert.Equal(t, mockedService.On("TheExampleMethodFuncType", AnythingOfType("mock.ExampleFuncType")).Return(nil), &mockedService.Mock)
+	assert.Equal(t, "TheExampleMethodFuncType", mockedService.onMethodName)
+	assert.Equal(t, AnythingOfType("mock.ExampleFuncType"), mockedService.onMethodArguments[0])
+
+	fn := func(string) error { return nil }
+	mockedService.TheExampleMethodFuncType(fn)
 
 }
 
