@@ -97,6 +97,13 @@ func (m *Mock) TestData() objx.Map {
 func (m *Mock) On(methodName string, arguments ...interface{}) *Mock {
 	m.onMethodName = methodName
 	m.onMethodArguments = arguments
+
+	for _, arg := range arguments {
+		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
+			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
+		}
+	}
+
 	return m
 }
 
