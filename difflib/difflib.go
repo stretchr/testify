@@ -752,9 +752,7 @@ func GetContextDiffString(diff ContextDiff) (string, error) {
 // Split a string on "\n" while preserving them. The output can be used
 // as input for UnifiedDiff and ContextDiff structures.
 func SplitLines(s string) []string {
-	lines := []string{}
-	for _, line := range strings.Split(s, "\n") {
-		lines = append(lines, line+"\n")
-	}
+	lines := strings.SplitAfter(s, "\n")
+	lines[len(lines)-1] += "\n"
 	return lines
 }
