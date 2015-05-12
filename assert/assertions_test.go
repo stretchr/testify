@@ -2,6 +2,7 @@ package assert
 
 import (
 	"errors"
+	"math"
 	"regexp"
 	"testing"
 	"time"
@@ -652,6 +653,8 @@ func TestInDelta(t *testing.T) {
 	False(t, InDelta(mockT, 1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
 	False(t, InDelta(mockT, 2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
 	False(t, InDelta(mockT, "", nil, 1), "Expected non numerals to fail")
+	False(t, InDelta(mockT, 42, math.NaN(), 0.01), "Expected NaN for actual to fail")
+	False(t, InDelta(mockT, math.NaN(), 42, 0.01), "Expected NaN for expected to fail")
 
 	cases := []struct {
 		a, b  interface{}
