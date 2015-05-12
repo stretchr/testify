@@ -3,6 +3,7 @@ package assert
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -10,6 +11,22 @@ import (
 	"strings"
 	"time"
 )
+
+var (
+	CallStackCount = 1
+)
+
+func GetCallStackCount() int {
+	return CallStackCount
+}
+
+func SetCallStackCount(count int) error {
+	if count > 0 {
+		CallStackCount = count
+		return nil
+	}
+	return errors.New("Invalid value, count should be greater than 0")
+}
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -77,7 +94,8 @@ the problem actually occured in calling code.*/
 func CallerInfo() []string {
 
 	infos := make([]string, 0)
-	for i := 0; ; i++ {
+	count := 0
+	for i := 0; count < CallStackCount; i++ {
 		_, file, line, ok := runtime.Caller(i)
 		if !ok {
 			break
@@ -87,6 +105,7 @@ func CallerInfo() []string {
 		file = parts[len(parts)-1]
 		if (dir != "assert" && dir != "mock" && dir != "require") || file == "mock_test.go" {
 			infos = append(infos, fmt.Sprintf("%s:%d", file, line))
+			count++
 		}
 	}
 
