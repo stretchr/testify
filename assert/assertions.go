@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -654,6 +655,14 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 
 	if !aok || !bok {
 		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
+	}
+
+	if math.IsNaN(af) {
+		return Fail(t, fmt.Sprintf("Actual must not be NaN"), msgAndArgs...)
+	}
+
+	if math.IsNaN(bf) {
+		return Fail(t, fmt.Sprintf("Expected %v with delta %v, but was NaN", expected, delta), msgAndArgs...)
 	}
 
 	dt := af - bf
