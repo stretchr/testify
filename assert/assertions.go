@@ -476,6 +476,16 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 		return true, strings.Contains(listValue.String(), elementValue.String())
 	}
 
+	if reflect.TypeOf(list).Kind() == reflect.Map {
+		mapKeys := listValue.MapKeys()
+		for i := 0; i < len(mapKeys); i++ {
+			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
+				return true, true
+			}
+		}
+		return true, false
+	}
+
 	for i := 0; i < listValue.Len(); i++ {
 		if ObjectsAreEqual(listValue.Index(i).Interface(), element) {
 			return true, true
@@ -485,11 +495,12 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 
 }
 
-// Contains asserts that the specified string or list(array, slice...) contains the
+// Contains asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //
 //    assert.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
 //    assert.Contains(t, ["Hello", "World"], "World", "But ["Hello", "World"] does contain 'World'")
+//    assert.Contains(t, {"Hello": "World"}, "Hello", "But {'Hello': 'World'} does contain 'Hello'")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
@@ -506,11 +517,12 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 
 }
 
-// NotContains asserts that the specified string or list(array, slice...) does NOT contain the
+// NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
 //
 //    assert.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
 //    assert.NotContains(t, ["Hello", "World"], "Earth", "But ['Hello', 'World'] does NOT contain 'Earth'")
+//    assert.NotContains(t, {"Hello": "World"}, "Earth", "But {'Hello': 'World'} does NOT contain 'Earth'")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {

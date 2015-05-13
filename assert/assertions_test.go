@@ -255,6 +255,7 @@ func TestContains(t *testing.T) {
 		{"g", "h"},
 		{"j", "k"},
 	}
+	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
 	if !Contains(mockT, "Hello World", "Hello") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
@@ -275,12 +276,22 @@ func TestContains(t *testing.T) {
 	if Contains(mockT, complexList, &A{"g", "e"}) {
 		t.Error("Contains should return false: complexList contains {\"g\", \"e\"}")
 	}
+	if Contains(mockT, complexList, &A{"g", "e"}) {
+		t.Error("Contains should return false: complexList contains {\"g\", \"e\"}")
+	}
+	if !Contains(mockT, simpleMap, "Foo") {
+		t.Error("Contains should return true: \"{\"Foo\": \"Bar\"}\" contains \"Foo\"")
+	}
+	if Contains(mockT, simpleMap, "Bar") {
+		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Bar\"")
+	}
 }
 
 func TestNotContains(t *testing.T) {
 
 	mockT := new(testing.T)
 	list := []string{"Foo", "Bar"}
+	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
 	if !NotContains(mockT, "Hello World", "Hello!") {
 		t.Error("NotContains should return true: \"Hello World\" does not contain \"Hello!\"")
@@ -295,13 +306,19 @@ func TestNotContains(t *testing.T) {
 	if NotContains(mockT, list, "Foo") {
 		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
 	}
-
+	if NotContains(mockT, simpleMap, "Foo") {
+		t.Error("Contains should return true: \"{\"Foo\": \"Bar\"}\" contains \"Foo\"")
+	}
+	if !NotContains(mockT, simpleMap, "Bar") {
+		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Bar\"")
+	}
 }
 
 func Test_includeElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
+	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
 	ok, found := includeElement("Hello World", "World")
 	True(t, ok)
@@ -335,10 +352,17 @@ func Test_includeElement(t *testing.T) {
 	True(t, ok)
 	False(t, found)
 
+	ok, found = includeElement(simpleMap, "Foo")
+	True(t, ok)
+	True(t, found)
+
+	ok, found = includeElement(simpleMap, "Bar")
+	True(t, ok)
+	False(t, found)
+
 	ok, found = includeElement(1433, "1")
 	False(t, ok)
 	False(t, found)
-
 }
 
 func TestCondition(t *testing.T) {
