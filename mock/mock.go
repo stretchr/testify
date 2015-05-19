@@ -271,7 +271,9 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 
 	// block if specified
 	if call.WaitFor != nil {
+		m.mutex.Unlock()
 		<-call.WaitFor
+		m.mutex.Lock()
 	}
 
 	if call.Run != nil {
