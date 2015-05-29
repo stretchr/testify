@@ -3,6 +3,7 @@ package assert
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
@@ -11,6 +12,22 @@ import (
 	"strings"
 	"time"
 )
+
+var (
+	CallStackCount = 1
+)
+
+func GetCallStackCount() int {
+	return CallStackCount
+}
+
+func SetCallStackCount(count int) error {
+	if count > 0 {
+		CallStackCount = count
+		return nil
+	}
+	return errors.New("Invalid value, count should be greater than 0")
+}
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -60,32 +77,40 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	return false
 }
 
+func reverseStringSlice(input []string) []string {
+	output := make([]string, 0, len(input))
+	length := len(input)
+	for i := length - 1; i >= 0; i-- {
+		output = append(output, input[i])
+	}
+	return output
+}
+
 /* CallerInfo is necessary because the assert functions use the testing object
 internally, causing it to print the file:line of the assert method, rather than where
 the problem actually occured in calling code.*/
 
-// CallerInfo returns a string containing the file and line number of the assert call
-// that failed.
-func CallerInfo() string {
+// CallerInfo returns a slice of strings containing the file and line number of
+// the whole call stack, from top to the bottom one where the assert call failed.
+func CallerInfo() []string {
 
-	file := ""
-	line := 0
-	ok := false
-
-	for i := 0; ; i++ {
-		_, file, line, ok = runtime.Caller(i)
+	infos := make([]string, 0)
+	count := 0
+	for i := 0; count < CallStackCount; i++ {
+		_, file, line, ok := runtime.Caller(i)
 		if !ok {
-			return ""
+			break
 		}
 		parts := strings.Split(file, "/")
 		dir := parts[len(parts)-2]
 		file = parts[len(parts)-1]
 		if (dir != "assert" && dir != "mock" && dir != "require") || file == "mock_test.go" {
-			break
+			infos = append(infos, fmt.Sprintf("%s:%d", file, line))
+			count++
 		}
 	}
 
-	return fmt.Sprintf("%s:%d", file, line)
+	return reverseStringSlice(infos)
 }
 
 // getWhitespaceString returns a string that is long enough to overwrite the default
@@ -143,20 +168,20 @@ func indentMessageLines(message string, tabs int) string {
 func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
-
+	callerInfo := strings.Join(CallerInfo(), "\n\t")
 	if len(message) > 0 {
 		t.Errorf("\r%s\r\tLocation:\t%s\n"+
 			"\r\tError:%s\n"+
 			"\r\tMessages:\t%s\n\r",
 			getWhitespaceString(),
-			CallerInfo(),
+			callerInfo,
 			indentMessageLines(failureMessage, 2),
 			message)
 	} else {
 		t.Errorf("\r%s\r\tLocation:\t%s\n"+
 			"\r\tError:%s\n\r",
 			getWhitespaceString(),
-			CallerInfo(),
+			callerInfo,
 			indentMessageLines(failureMessage, 2))
 	}
 

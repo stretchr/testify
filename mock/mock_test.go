@@ -799,6 +799,132 @@ func Test_Arguments_Assert(t *testing.T) {
 
 }
 
+func Test_Arguments_Bool(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", 123, true}
+	assert.Equal(t, true, args.Bool(2))
+
+}
+
+func Test_Arguments_Int8(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", int8(123), true}
+	assert.Equal(t, int8(123), args.Int8(1))
+
+}
+
+func Test_Arguments_Int16(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", int16(123), true}
+	assert.Equal(t, int16(123), args.Int16(1))
+
+}
+
+func Test_Arguments_Int32(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", int32(123), true}
+	assert.Equal(t, int32(123), args.Int32(1))
+
+}
+
+func Test_Arguments_Int64(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", int64(123), true}
+	assert.Equal(t, int64(123), args.Int64(1))
+
+}
+
+func Test_Arguments_Uint8(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", uint8(123), true}
+	assert.Equal(t, uint8(123), args.Uint8(1))
+
+}
+
+func Test_Arguments_Uint16(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", uint16(123), true}
+	assert.Equal(t, uint16(123), args.Uint16(1))
+
+}
+
+func Test_Arguments_Uint32(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", uint32(123), true}
+	assert.Equal(t, uint32(123), args.Uint32(1))
+
+}
+
+func Test_Arguments_Uint64(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", uint64(123), true}
+	assert.Equal(t, uint64(123), args.Uint64(1))
+
+}
+
+func Test_Arguments_Float32(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", float32(123.0), true}
+	assert.Equal(t, float32(123.0), args.Float32(1))
+
+}
+
+func Test_Arguments_Float64(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", float64(123.0), true}
+	assert.Equal(t, float64(123.0), args.Float64(1))
+
+}
+
+func Test_Arguments_Complex64(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", complex64(123.0), true}
+	assert.Equal(t, complex64(123.0), args.Complex64(1))
+
+}
+
+func Test_Arguments_Complex128(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", complex128(123.0), true}
+	assert.Equal(t, complex128(123.0), args.Complex128(1))
+
+}
+
+func Test_Arguments_Byte(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", byte(123), true}
+	assert.Equal(t, byte(123), args.Byte(1))
+
+}
+
+func Test_Arguments_Rune(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", rune(123), true}
+	assert.Equal(t, rune(123), args.Rune(1))
+
+}
+
+func Test_Arguments_Int(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", 123, true}
+	assert.Equal(t, 123, args.Int(1))
+
+}
+
+func Test_Arguments_Uint(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", uint(123), true}
+	assert.Equal(t, uint(123), args.Uint(1))
+
+}
+
+func Test_Arguments_Uintptr(t *testing.T) {
+
+	var args Arguments = []interface{}{"string", uintptr(123), true}
+	assert.Equal(t, uintptr(123), args.Uintptr(1))
+
+}
+
 func Test_Arguments_String_Representation(t *testing.T) {
 
 	var args Arguments = []interface{}{"string", 123, true}
@@ -825,19 +951,5 @@ func Test_Arguments_Error_Nil(t *testing.T) {
 
 	var args Arguments = []interface{}{"string", 123, true, nil}
 	assert.Equal(t, nil, args.Error(3))
-
-}
-
-func Test_Arguments_Int(t *testing.T) {
-
-	var args Arguments = []interface{}{"string", 123, true}
-	assert.Equal(t, 123, args.Int(1))
-
-}
-
-func Test_Arguments_Bool(t *testing.T) {
-
-	var args Arguments = []interface{}{"string", 123, true}
-	assert.Equal(t, true, args.Bool(2))
 
 }
