@@ -112,6 +112,9 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Mock {
 //
 //     Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2)
 func (m *Mock) Return(returnArguments ...interface{}) *Mock {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0, nil, nil})
 	return m
 }
