@@ -44,6 +44,11 @@ func (i *TestExampleImplementation) TheExampleMethodFunc(fn func(string) error) 
 	return args.Error(0)
 }
 
+func (i *TestExampleImplementation) TheExampleMethodVariadic(a ...int) error {
+	args := i.Called(a)
+	return args.Error(0)
+}
+
 type ExampleFuncType func(string) error
 
 func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType) error {
@@ -102,6 +107,24 @@ func Test_Mock_On_WithFuncArg(t *testing.T) {
 
 	fn := func(string) error { return nil }
 	mockedService.TheExampleMethodFunc(fn)
+
+}
+
+func Test_Mock_On_WithVariadicFunc(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	assert.Equal(t, mockedService.On("TheExampleMethodVariadic", []int{1, 2, 3}).Return(nil), &mockedService.Mock)
+	assert.Equal(t, "TheExampleMethodVariadic", mockedService.onMethodName)
+	assert.Equal(t, []int{1, 2, 3}, mockedService.onMethodArguments[0])
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodVariadic(1, 2, 3)
+	})
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodVariadic(1, 2)
+	})
 
 }
 
