@@ -49,6 +49,11 @@ func (i *TestExampleImplementation) TheExampleMethodVariadic(a ...int) error {
 	return args.Error(0)
 }
 
+func (i *TestExampleImplementation) TheExampleMethodVariadicInterface(a ...interface{}) error {
+	args := i.Called(a)
+	return args.Error(0)
+}
+
 type ExampleFuncType func(string) error
 
 func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType) error {
@@ -124,6 +129,43 @@ func Test_Mock_On_WithVariadicFunc(t *testing.T) {
 	})
 	assert.Panics(t, func() {
 		mockedService.TheExampleMethodVariadic(1, 2)
+	})
+
+}
+
+func Test_Mock_On_WithVariadicFuncWithInterface(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	assert.Equal(t, mockedService.On("TheExampleMethodVariadicInterface", []interface{}{1, 2, 3}).Return(nil), &mockedService.Mock)
+	assert.Equal(t, "TheExampleMethodVariadicInterface", mockedService.onMethodName)
+	assert.Equal(t, []interface{}{1, 2, 3}, mockedService.onMethodArguments[0])
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodVariadicInterface(1, 2, 3)
+	})
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodVariadicInterface(1, 2)
+	})
+
+}
+
+func Test_Mock_On_WithVariadicFuncWithEmptyInterfaceArray(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	var expected []interface{}
+	assert.Equal(t, mockedService.On("TheExampleMethodVariadicInterface", expected).Return(nil), &mockedService.Mock)
+	assert.Equal(t, "TheExampleMethodVariadicInterface", mockedService.onMethodName)
+	assert.Equal(t, expected, mockedService.onMethodArguments[0])
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodVariadicInterface()
+	})
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodVariadicInterface(1, 2)
 	})
 
 }
