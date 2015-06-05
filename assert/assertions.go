@@ -182,7 +182,7 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 
 	errorTrace := strings.Join(CallerInfo(), "\n\r\t\t\t")
 	if len(message) > 0 {
-		t.Errorf("\r%s\r\tLocation:\t%s\n"+
+		t.Errorf("\r%s\r\tError Trace:\t%s\n"+
 			"\r\tError:%s\n"+
 			"\r\tMessages:\t%s\n\r",
 			getWhitespaceString(),
@@ -190,7 +190,7 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 			indentMessageLines(failureMessage, 2),
 			message)
 	} else {
-		t.Errorf("\r%s\r\tLocation:\t%s\n"+
+		t.Errorf("\r%s\r\tError Trace:\t%s\n"+
 			"\r\tError:%s\n\r",
 			getWhitespaceString(),
 			errorTrace,
