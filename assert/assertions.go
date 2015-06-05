@@ -180,20 +180,20 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
 
-	locationInfo := strings.Join(CallerInfo(), "\n\r\t\t\t")
+	errorTrace := strings.Join(CallerInfo(), "\n\r\t\t\t")
 	if len(message) > 0 {
 		t.Errorf("\r%s\r\tLocation:\t%s\n"+
 			"\r\tError:%s\n"+
 			"\r\tMessages:\t%s\n\r",
 			getWhitespaceString(),
-			locationInfo,
+			errorTrace,
 			indentMessageLines(failureMessage, 2),
 			message)
 	} else {
 		t.Errorf("\r%s\r\tLocation:\t%s\n"+
 			"\r\tError:%s\n\r",
 			getWhitespaceString(),
-			locationInfo,
+			errorTrace,
 			indentMessageLines(failureMessage, 2))
 	}
 
