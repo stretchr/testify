@@ -17,6 +17,7 @@ import (
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...interface{})
+	Logf(format string, args ...interface{})
 }
 
 // Comparison a custom function that returns true on success and false on failure
@@ -205,6 +206,19 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 	return false
 }
 
+func LogPass(t TestingT, msgAndArgs ...interface{}) {
+	message := messageFromMsgAndArgs(msgAndArgs...)
+	if len(message) > 0 {
+		t.Logf("\r%s\r\tPASS:\t%s\n",
+			getWhitespaceString(),
+			message)
+	} else {
+		t.Logf("\r%s\r\tPASS\n",
+			getWhitespaceString())
+	}
+}
+
+
 // Implements asserts that an object is implemented by the specified interface.
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject), "MyObject")
@@ -215,6 +229,7 @@ func Implements(t TestingT, interfaceObject interface{}, object interface{}, msg
 	if !reflect.TypeOf(object).Implements(interfaceType) {
 		return Fail(t, fmt.Sprintf("Object must implement %v", interfaceType), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 
@@ -226,6 +241,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
 		return Fail(t, fmt.Sprintf("Object expected to be of type %v, but was %v", reflect.TypeOf(expectedType), reflect.TypeOf(object)), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 }
@@ -241,6 +257,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 		return Fail(t, fmt.Sprintf("Not equal: %#v (expected)\n"+
 			"        != %#v (actual)", expected, actual), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 
@@ -300,7 +317,9 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 		}
 	}
 
-	if !success {
+	if success {
+		LogPass(t, msgAndArgs...)
+	} else {
 		Fail(t, "Expected not to be nil.", msgAndArgs...)
 	}
 
@@ -329,6 +348,7 @@ func isNil(object interface{}) bool {
 // Returns whether the assertion was successful (true) or not (false).
 func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	if isNil(object) {
+		LogPass(t, msgAndArgs...)
 		return true
 	}
 	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
@@ -397,7 +417,9 @@ func isEmpty(object interface{}) bool {
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 	pass := isEmpty(object)
-	if !pass {
+	if pass {
+		LogPass(t, msgAndArgs...)
+	} else {
 		Fail(t, fmt.Sprintf("Should be empty, but was %v", object), msgAndArgs...)
 	}
 
@@ -416,7 +438,9 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 	pass := !isEmpty(object)
-	if !pass {
+	if pass {
+		LogPass(t, msgAndArgs...)
+	} else {
 		Fail(t, fmt.Sprintf("Should NOT be empty, but was %v", object), msgAndArgs...)
 	}
 
@@ -451,6 +475,7 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 	if l != length {
 		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 	return true
 }
 
@@ -464,6 +489,7 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 	if value != true {
 		return Fail(t, "Should be true", msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 
@@ -479,6 +505,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 	if value != false {
 		return Fail(t, "Should be false", msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 
@@ -494,6 +521,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 	if ObjectsAreEqual(expected, actual) {
 		return Fail(t, "Should not be equal", msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 
@@ -543,6 +571,7 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 	if !found {
 		return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", s, contains), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 
@@ -564,6 +593,7 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 	if found {
 		return Fail(t, fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 
@@ -572,7 +602,9 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 // Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	result := comp()
-	if !result {
+	if result {
+		LogPass(t, msgAndArgs...)
+	} else {
 		Fail(t, "Condition failed!", msgAndArgs...)
 	}
 	return result
@@ -616,6 +648,7 @@ func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 	if funcDidPanic, panicValue := didPanic(f); !funcDidPanic {
 		return Fail(t, fmt.Sprintf("func %#v should panic\n\r\tPanic value:\t%v", f, panicValue), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 }
@@ -632,6 +665,7 @@ func NotPanics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 	if funcDidPanic, panicValue := didPanic(f); funcDidPanic {
 		return Fail(t, fmt.Sprintf("func %#v should not panic\n\r\tPanic value:\t%v", f, panicValue), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 }
@@ -647,6 +681,7 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 	if dt < -delta || dt > delta {
 		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 }
@@ -711,6 +746,7 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	if dt < -delta || dt > delta {
 		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
 	}
+	LogPass(t, msgAndArgs...)
 
 	return true
 }
@@ -805,6 +841,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, delta float64, msg
 // Returns whether the assertion was successful (true) or not (false).
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	if isNil(err) {
+		LogPass(t, msgAndArgs...)
 		return true
 	}
 
