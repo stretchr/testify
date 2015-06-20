@@ -301,7 +301,7 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	}
 
 	if !success {
-		Fail(t, "Expected not to be nil.", msgAndArgs...)
+		Fail(t, "Expected value not to be nil.", msgAndArgs...)
 	}
 
 	return success
