@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -10,6 +11,11 @@ import (
 
 	"github.com/stretchr/objx"
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	unexpectedMethodCall        = "\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s"
+	unexpectedMethodCallClosest = "\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -228,7 +234,11 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 	if includeArgumentValues {
 		var argVals []string
 		for argIndex, arg := range arguments {
-			argVals = append(argVals, fmt.Sprintf("%d: %v", argIndex, arg))
+			objectString, err := json.Marshal(arg)
+			if err != nil {
+				objectString = []byte(err.Error())
+			}
+			argVals = append(argVals, fmt.Sprintf("%d: %s", argIndex, string(objectString)))
 		}
 		argValsString = fmt.Sprintf("\n\t\t%s", strings.Join(argVals, "\n\t\t"))
 	}
@@ -263,9 +273,9 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		closestFound, closestCall := m.findClosestCall(functionName, arguments...)
 
 		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n", callString(functionName, arguments, true), callString(functionName, closestCall.Arguments, true)))
+			panic(fmt.Sprintf(unexpectedMethodCallClosest, callString(functionName, arguments, true), callString(functionName, closestCall.Arguments, true)))
 		} else {
-			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
+			panic(fmt.Sprintf(unexpectedMethodCall, functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
 		}
 	} else {
 		m.mutex.Lock()

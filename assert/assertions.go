@@ -620,6 +620,25 @@ func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 	return true
 }
 
+// Panics asserts that the code inside the specified PanicTestFunc panics.
+//
+//   assert.Panics(t, func(){
+//     GoCrazy()
+//   }, "Calling GoCrazy() should panic")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func PanicsWithMessage(t TestingT, f PanicTestFunc, expectedMessage interface{}, msgAndArgs ...interface{}) bool {
+
+	funcDidPanic, panicValue := didPanic(f)
+	if !funcDidPanic {
+		return Fail(t, fmt.Sprintf("func %#v should panic\n\r\tPanic value:\t%v", f, panicValue), msgAndArgs...)
+	} else {
+		Equal(t, expectedMessage, panicValue)
+	}
+
+	return true
+}
+
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
 //   assert.NotPanics(t, func(){

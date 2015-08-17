@@ -2,6 +2,7 @@ package mock
 
 import (
 	"errors"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -10,6 +11,16 @@ import (
 /*
 	Test objects
 */
+
+type ExampleEmbeddedStruct struct {
+	TestVal2 int
+	TestVal3 int
+}
+
+type ExampleTestStruct struct {
+	ExampleEmbeddedStruct
+	TestVal1 int
+}
 
 // ExampleInterface represents an example interface.
 type ExampleInterface interface {
@@ -58,6 +69,11 @@ type ExampleFuncType func(string) error
 
 func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType) error {
 	args := i.Called(fn)
+	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleStructMethod(exampleTestStruct *ExampleTestStruct) error {
+	args := i.Called(exampleTestStruct)
 	return args.Error(0)
 }
 
@@ -559,9 +575,36 @@ func Test_Mock_Called_For_SetTime_Expectation(t *testing.T) {
 	mockedService.TheExampleMethod(1, 2, 3)
 	mockedService.TheExampleMethod(1, 2, 3)
 	mockedService.TheExampleMethod(1, 2, 3)
-	assert.Panics(t, func() {
+	assert.PanicsWithMessage(t, func() {
 		mockedService.TheExampleMethod(1, 2, 3)
-	})
+	}, fmt.Sprintf(unexpectedMethodCallClosest, "TheExampleMethod(int,int,int)\n\t\t0: 1\n\t\t1: 2\n\t\t2: 3", "TheExampleMethod(int,int,int)\n\t\t0: 1\n\t\t1: 2\n\t\t2: 3"))
+
+}
+
+func Test_Mock_Called_For_EmbeddedStruct_Expectation(t *testing.T) {
+
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	exampleTestStruct := &ExampleTestStruct{
+		TestVal1: 1,
+		ExampleEmbeddedStruct: ExampleEmbeddedStruct{
+			TestVal2: 2,
+			TestVal3: 3,
+		},
+	}
+
+	mockedService.On("TheExampleStructMethod", exampleTestStruct).Return(nil)
+
+	assert.PanicsWithMessage(t, func() {
+		exampleTestStructBad := &ExampleTestStruct{
+			TestVal1: 4,
+			ExampleEmbeddedStruct: ExampleEmbeddedStruct{
+				TestVal2: 5,
+				TestVal3: 6,
+			},
+		}
+		mockedService.TheExampleStructMethod(exampleTestStructBad)
+	}, fmt.Sprintf(unexpectedMethodCallClosest, "TheExampleStructMethod(*mock.ExampleTestStruct)\n\t\t0: {\"TestVal2\":5,\"TestVal3\":6,\"TestVal1\":4}", "TheExampleStructMethod(*mock.ExampleTestStruct)\n\t\t0: {\"TestVal2\":2,\"TestVal3\":3,\"TestVal1\":1}"))
 
 }
 
