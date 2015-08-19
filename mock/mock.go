@@ -216,7 +216,6 @@ func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *
 			if tempDiffCount < diffCount || diffCount == 0 {
 				diffCount = tempDiffCount
 				closestCall = &call
-				break
 			}
 
 		}
