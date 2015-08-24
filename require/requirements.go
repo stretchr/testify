@@ -269,3 +269,17 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 		t.FailNow()
 	}
 }
+
+// Zero asserts that i is the zero value for its type and returns the truth.
+func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
+	if !assert.Zero(t, i, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// NotZero asserts that i is not the zero value for its type and returns the truth.
+func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
+	if !assert.NotZero(t, i, msgAndArgs...) {
+		t.FailNow()
+	}
+}

@@ -264,3 +264,25 @@ func TestInDelta(t *testing.T) {
 		t.Error("Check should fail")
 	}
 }
+
+func TestZero(t *testing.T) {
+
+	Zero(t, "")
+
+	mockT := new(MockT)
+	Zero(mockT, "x")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestNotZero(t *testing.T) {
+
+	NotZero(t, "x")
+
+	mockT := new(MockT)
+	NotZero(mockT, "")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}

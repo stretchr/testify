@@ -509,3 +509,29 @@ func TestRegexpWrapper(t *testing.T) {
 		True(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
 	}
 }
+
+func TestZeroWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	for _, test := range zeros {
+		assert.True(mockAssert.Zero(test), "Zero should return true for %v", test)
+	}
+
+	for _, test := range nonZeros {
+		assert.False(mockAssert.Zero(test), "Zero should return false for %v", test)
+	}
+}
+
+func TestNotZeroWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	for _, test := range zeros {
+		assert.False(mockAssert.NotZero(test), "Zero should return true for %v", test)
+	}
+
+	for _, test := range nonZeros {
+		assert.True(mockAssert.NotZero(test), "Zero should return false for %v", test)
+	}
+}
