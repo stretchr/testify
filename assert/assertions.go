@@ -842,7 +842,7 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 		return false
 	}
 	s := "An error with value \"%s\" is expected but got \"%s\". %s"
-	return Equal(t, theError.Error(), errString,
+	return Equal(t, errString, theError.Error(),
 		s, errString, theError.Error(), message)
 }
 
