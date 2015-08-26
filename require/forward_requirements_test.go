@@ -258,3 +258,27 @@ func TestInDeltaWrapper(t *testing.T) {
 		t.Error("Check should fail")
 	}
 }
+
+func TestZeroWrapper(t *testing.T) {
+	require := New(t)
+	require.Zero(0)
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.Zero(1)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestNotZeroWrapper(t *testing.T) {
+	require := New(t)
+	require.NotZero(1)
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.NotZero(0)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
