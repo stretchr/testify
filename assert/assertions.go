@@ -492,7 +492,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
 	if ObjectsAreEqual(expected, actual) {
-		return Fail(t, "Should not be equal", msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
 	}
 
 	return true
