@@ -99,8 +99,8 @@ func TestSomething(t *testing.T) {
 }
 ```
 
-`require` package
--------------------------------------------------------------------------------------------
+[`require`](http://godoc.org/github.com/stretchr/testify/require "API documentation") package
+---------------------------------------------------------------------------------------------
 
 The `require` package provides same global functions as the `assert` package, but instead of returning a boolean result they terminate current test.
 
