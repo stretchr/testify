@@ -239,7 +239,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 
 	if !ObjectsAreEqual(expected, actual) {
 		return Fail(t, fmt.Sprintf("Not equal: %#v (expected)\n"+
-			"        != %#v (actual)", actual, expected), msgAndArgs...)
+			"        != %#v (actual)", expected, actual), msgAndArgs...)
 	}
 
 	return true
