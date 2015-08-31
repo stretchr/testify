@@ -50,6 +50,10 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		return true
 	}
 
+	if actual == nil || expected == nil {
+		return false
+	}
+
 	actualType := reflect.TypeOf(actual)
 	expectedValue := reflect.ValueOf(expected)
 	if expectedValue.Type().ConvertibleTo(actualType) {
