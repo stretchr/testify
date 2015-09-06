@@ -84,7 +84,7 @@ func Test_Mock_On(t *testing.T) {
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
 
 	assert.Equal(t, mockedService.On("TheExampleMethod"), &mockedService.Mock)
-	assert.Equal(t, "TheExampleMethod", mockedService.onMethodName)
+	assert.Equal(t, "TheExampleMethod", mockedService.ExpectedCalls[len(mockedService.ExpectedCalls)-1].Method)
 
 }
 
@@ -94,10 +94,12 @@ func Test_Mock_On_WithArgs(t *testing.T) {
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
 
 	assert.Equal(t, mockedService.On("TheExampleMethod", 1, 2, 3), &mockedService.Mock)
-	assert.Equal(t, "TheExampleMethod", mockedService.onMethodName)
-	assert.Equal(t, 1, mockedService.onMethodArguments[0])
-	assert.Equal(t, 2, mockedService.onMethodArguments[1])
-	assert.Equal(t, 3, mockedService.onMethodArguments[2])
+
+	call := mockedService.ExpectedCalls[len(mockedService.ExpectedCalls)-1]
+	assert.Equal(t, "TheExampleMethod", call.Method)
+	assert.Equal(t, 1, call.Arguments[0])
+	assert.Equal(t, 2, call.Arguments[1])
+	assert.Equal(t, 3, call.Arguments[2])
 
 }
 
@@ -107,8 +109,9 @@ func Test_Mock_On_WithFuncArg(t *testing.T) {
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
 
 	assert.Equal(t, mockedService.On("TheExampleMethodFunc", AnythingOfType("func(string) error")).Return(nil), &mockedService.Mock)
-	assert.Equal(t, "TheExampleMethodFunc", mockedService.onMethodName)
-	assert.Equal(t, AnythingOfType("func(string) error"), mockedService.onMethodArguments[0])
+	call := mockedService.ExpectedCalls[len(mockedService.ExpectedCalls)-1]
+	assert.Equal(t, "TheExampleMethodFunc", call.Method)
+	assert.Equal(t, AnythingOfType("func(string) error"), call.Arguments[0])
 
 	fn := func(string) error { return nil }
 	mockedService.TheExampleMethodFunc(fn)
@@ -121,8 +124,9 @@ func Test_Mock_On_WithVariadicFunc(t *testing.T) {
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
 
 	assert.Equal(t, mockedService.On("TheExampleMethodVariadic", []int{1, 2, 3}).Return(nil), &mockedService.Mock)
-	assert.Equal(t, "TheExampleMethodVariadic", mockedService.onMethodName)
-	assert.Equal(t, []int{1, 2, 3}, mockedService.onMethodArguments[0])
+	call := mockedService.ExpectedCalls[len(mockedService.ExpectedCalls)-1]
+	assert.Equal(t, "TheExampleMethodVariadic", call.Method)
+	assert.Equal(t, []int{1, 2, 3}, call.Arguments[0])
 
 	assert.NotPanics(t, func() {
 		mockedService.TheExampleMethodVariadic(1, 2, 3)
@@ -139,8 +143,9 @@ func Test_Mock_On_WithVariadicFuncWithInterface(t *testing.T) {
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
 
 	assert.Equal(t, mockedService.On("TheExampleMethodVariadicInterface", []interface{}{1, 2, 3}).Return(nil), &mockedService.Mock)
-	assert.Equal(t, "TheExampleMethodVariadicInterface", mockedService.onMethodName)
-	assert.Equal(t, []interface{}{1, 2, 3}, mockedService.onMethodArguments[0])
+	call := mockedService.ExpectedCalls[len(mockedService.ExpectedCalls)-1]
+	assert.Equal(t, "TheExampleMethodVariadicInterface", call.Method)
+	assert.Equal(t, []interface{}{1, 2, 3}, call.Arguments[0])
 
 	assert.NotPanics(t, func() {
 		mockedService.TheExampleMethodVariadicInterface(1, 2, 3)
@@ -158,8 +163,9 @@ func Test_Mock_On_WithVariadicFuncWithEmptyInterfaceArray(t *testing.T) {
 
 	var expected []interface{}
 	assert.Equal(t, mockedService.On("TheExampleMethodVariadicInterface", expected).Return(nil), &mockedService.Mock)
-	assert.Equal(t, "TheExampleMethodVariadicInterface", mockedService.onMethodName)
-	assert.Equal(t, expected, mockedService.onMethodArguments[0])
+	call := mockedService.ExpectedCalls[len(mockedService.ExpectedCalls)-1]
+	assert.Equal(t, "TheExampleMethodVariadicInterface", call.Method)
+	assert.Equal(t, expected, call.Arguments[0])
 
 	assert.NotPanics(t, func() {
 		mockedService.TheExampleMethodVariadicInterface()
@@ -185,8 +191,9 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
 
 	assert.Equal(t, mockedService.On("TheExampleMethodFuncType", AnythingOfType("mock.ExampleFuncType")).Return(nil), &mockedService.Mock)
-	assert.Equal(t, "TheExampleMethodFuncType", mockedService.onMethodName)
-	assert.Equal(t, AnythingOfType("mock.ExampleFuncType"), mockedService.onMethodArguments[0])
+	call := mockedService.ExpectedCalls[len(mockedService.ExpectedCalls)-1]
+	assert.Equal(t, "TheExampleMethodFuncType", call.Method)
+	assert.Equal(t, AnythingOfType("mock.ExampleFuncType"), call.Arguments[0])
 
 	fn := func(string) error { return nil }
 	mockedService.TheExampleMethodFuncType(fn)
