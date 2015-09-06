@@ -54,14 +54,6 @@ type Call struct {
 // For an example of its usage, refer to the "Example Usage" section at the top of this document.
 type Mock struct {
 
-	// The method name that is currently
-	// being referred to by the On method.
-	onMethodName string
-
-	// An array of the arguments that are
-	// currently being referred to by the On method.
-	onMethodArguments Arguments
-
 	// Represents the calls that are expected of
 	// an object.
 	ExpectedCalls []Call
@@ -96,14 +88,16 @@ func (m *Mock) TestData() objx.Map {
 //
 //     Mock.On("MyMethod", arg1, arg2)
 func (m *Mock) On(methodName string, arguments ...interface{}) *Mock {
-	m.onMethodName = methodName
-	m.onMethodArguments = arguments
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 
 	for _, arg := range arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
 			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
 		}
 	}
+
+	m.ExpectedCalls = append(m.ExpectedCalls, Call{methodName, arguments, []interface{}{}, 0, nil, nil})
 
 	return m
 }
@@ -116,7 +110,7 @@ func (m *Mock) Return(returnArguments ...interface{}) *Mock {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0, nil, nil})
+	m.ExpectedCalls[len(m.ExpectedCalls)-1].ReturnArguments = returnArguments
 	return m
 }
 
