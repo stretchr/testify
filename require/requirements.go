@@ -1,6 +1,7 @@
 package require
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -225,6 +226,40 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotRegexp(t, rx, str, msgAndArgs...) {
 		t.FailNow()
+	}
+}
+
+// JSONEq asserts that two JSON strings are equivalent.
+//
+//  assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
+	expectSlice := false
+	expectedJSONAsMap := make(map[string]interface{})
+	expectedJSONAsSlice := make([]interface{}, 0, 0)
+
+	actualJSONAsMap := make(map[string]interface{})
+	actualJSONAsSlice := make([]interface{}, 0, 0)
+
+	if err := json.Unmarshal([]byte(expected), &expectedJSONAsMap); err != nil {
+		if err := json.Unmarshal([]byte(expected), &expectedJSONAsSlice); err == nil {
+			expectSlice = true
+		} else {
+			t.FailNow()
+		}
+	}
+
+	if expectSlice {
+		if err := json.Unmarshal([]byte(actual), &actualJSONAsSlice); err != nil {
+			t.FailNow()
+		}
+		Equal(t, expectedJSONAsSlice, actualJSONAsSlice, msgAndArgs...)
+	} else {
+		if err := json.Unmarshal([]byte(actual), &actualJSONAsMap); err != nil {
+			t.FailNow()
+		}
+		Equal(t, expectedJSONAsMap, actualJSONAsMap, msgAndArgs...)
 	}
 }
 

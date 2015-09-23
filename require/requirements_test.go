@@ -286,3 +286,53 @@ func TestNotZero(t *testing.T) {
 		t.Error("Check should fail")
 	}
 }
+
+func TestJSONEq(t *testing.T) {
+	mockT := new(MockT)
+
+	JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+
+	JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+
+	JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
+		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}")
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+
+	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+
+	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+
+	JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+
+	JSONEq(mockT, `{"foo": "bar"}`, "Not JSON")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+
+	JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+
+	JSONEq(mockT, "Not JSON", "Not JSON")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}

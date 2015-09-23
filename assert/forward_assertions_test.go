@@ -535,3 +535,44 @@ func TestNotZeroWrapper(t *testing.T) {
 		assert.True(mockAssert.NotZero(test), "Zero should return false for %v", test)
 	}
 }
+
+func TestJSONEqWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`) {
+		t.Error("JSONEq should return true")
+	}
+
+	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
+		t.Error("JSONEq should return true")
+	}
+
+	if !assert.JSONEq("{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
+		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}") {
+		t.Error("JSONEq should return true")
+	}
+
+	if !assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`) {
+		t.Error("JSONEq should return true")
+	}
+
+	if assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`) {
+		t.Error("JSONEq should return false")
+	}
+
+	if assert.JSONEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
+		t.Error("JSONEq should return false")
+	}
+
+	if assert.JSONEq(`{"foo": "bar"}`, "Not JSON") {
+		t.Error("JSONEq should return false for invalid JSON")
+	}
+
+	if assert.JSONEq("Not JSON", `{"foo": "bar", "hello": "world"}`) {
+		t.Error("JSONEq should return false")
+	}
+
+	if assert.JSONEq("Not JSON", "Not JSON") {
+		t.Error("JSONEq should return false")
+	}
+}

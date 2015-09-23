@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	i      interface{}
+	i     interface{}
 	zeros = []interface{}{
 		false,
 		byte(0),
@@ -902,4 +902,19 @@ func TestNotZero(t *testing.T) {
 	for _, test := range nonZeros {
 		True(t, NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
 	}
+}
+
+func TestJSONEq(t *testing.T) {
+	mockT := new(testing.T)
+
+	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
+	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+	True(t, JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
+		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}"))
+	True(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
+	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
+	False(t, JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+	False(t, JSONEq(mockT, `{"foo": "bar"}`, "Not JSON"))
+	False(t, JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
+	False(t, JSONEq(mockT, "Not JSON", "Not JSON"))
 }
