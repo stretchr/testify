@@ -197,12 +197,12 @@ func TestSuiteLogging(t *testing.T) {
 	assert.Nil(t, err, "Got an error trying to capture stdout!")
 
 	// Failed tests' output is always printed
-	assert.Contains(t, output, "TESTLOGFAIL")
+	assert.Contains(t, "TESTLOGFAIL", output)
 
 	if testing.Verbose() {
 		// In verbose mode, output from successful tests is also printed
-		assert.Contains(t, output, "TESTLOGPASS")
+		assert.Contains(t, "TESTLOGPASS", output)
 	} else {
-		assert.NotContains(t, output, "TESTLOGPASS")
+		assert.NotContains(t, "TESTLOGPASS", output)
 	}
 }
