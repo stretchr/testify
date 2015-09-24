@@ -103,8 +103,8 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 // Len also fails if the object has a type that len() not accept.
 //
 //    require.Len(t, mySlice, 3, "The size of slice is not 3")
-func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) {
-	if !assert.Len(t, object, length, msgAndArgs...) {
+func Len(t TestingT, length int, object interface{}, msgAndArgs ...interface{}) {
+	if !assert.Len(t, length, object, msgAndArgs...) {
 		t.FailNow()
 	}
 }
@@ -138,18 +138,18 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 
 // Contains asserts that the specified string contains the specified substring.
 //
-//    require.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
-func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
-	if !assert.Contains(t, s, contains, msgAndArgs...) {
+//    require.Contains(t, "World", "Hello World", "But 'Hello World' does contain 'World'")
+func Contains(t TestingT, contains interface{}, s, msgAndArgs ...interface{}) {
+	if !assert.Contains(t, contains, s, msgAndArgs...) {
 		t.FailNow()
 	}
 }
 
 // NotContains asserts that the specified string does NOT contain the specified substring.
 //
-//    require.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
-func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
-	if !assert.NotContains(t, s, contains, msgAndArgs...) {
+//    require.NotContains(t, "Earth", "Hello World", "But 'Hello World' does NOT contain 'Earth'")
+func NotContains(t TestingT, contains interface{}, s, msgAndArgs ...interface{}) {
+	if !assert.NotContains(t, contains, s, msgAndArgs...) {
 		t.FailNow()
 	}
 }

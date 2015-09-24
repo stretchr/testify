@@ -109,16 +109,16 @@ func (a *Assertions) NotEqual(expected, actual interface{}, msgAndArgs ...interf
 
 // Contains asserts that the specified string contains the specified substring.
 //
-//    require.Contains("Hello World", "World", "But 'Hello World' does contain 'World'")
-func (a *Assertions) Contains(s, contains interface{}, msgAndArgs ...interface{}) {
-	Contains(a.t, s, contains, msgAndArgs...)
+//    require.Contains("World", "Hello World", "But 'Hello World' does contain 'World'")
+func (a *Assertions) Contains(contains interface{}, s, msgAndArgs ...interface{}) {
+	Contains(a.t, contains, s, msgAndArgs...)
 }
 
 // NotContains asserts that the specified string does NOT contain the specified substring.
 //
 //    require.NotContains("Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
-func (a *Assertions) NotContains(s, contains interface{}, msgAndArgs ...interface{}) {
-	NotContains(a.t, s, contains, msgAndArgs...)
+func (a *Assertions) NotContains(contains interface{}, s, msgAndArgs ...interface{}) {
+	NotContains(a.t, contains, s, msgAndArgs...)
 }
 
 // Uses a Comparison to assert a complex condition.
@@ -188,10 +188,10 @@ func (a *Assertions) Error(theError error, msgAndArgs ...interface{}) {
 //
 //   actualObj, err := SomeFunction()
 //   if require.Error(err, "An error was expected") {
-//	   require.Equal(err, expectedError)
+//	   require.EqualError(expectedError, err)
 //   }
-func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) {
-	EqualError(a.t, theError, errString, msgAndArgs...)
+func (a *Assertions) EqualError(errString string, theError error, msgAndArgs ...interface{}) {
+	EqualError(a.t, errString, theError, msgAndArgs...)
 }
 
 // Regexp asserts that a specified regexp matches a string.
