@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	i      interface{}
+	i     interface{}
 	zeros = []interface{}{
 		false,
 		byte(0),
@@ -197,6 +197,9 @@ func TestNotNil(t *testing.T) {
 	}
 	if NotNil(mockT, nil) {
 		t.Error("NotNil should return false: object is nil")
+	}
+	if NotNil(mockT, (*struct{})(nil)) {
+		t.Error("NotNil should return false: object is (*struct{})(nil)")
 	}
 
 }
