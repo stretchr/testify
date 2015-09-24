@@ -198,11 +198,11 @@ func TestErrorWrapper(t *testing.T) {
 
 func TestEqualErrorWrapper(t *testing.T) {
 	require := New(t)
-	require.EqualError(errors.New("some error"), "some error")
+	require.EqualError("some error", errors.New("some error"))
 
 	mockT := new(MockT)
 	mockRequire := New(mockT)
-	mockRequire.EqualError(errors.New("some error"), "Not some error")
+	mockRequire.EqualError("Not some error", errors.New("some error"))
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}

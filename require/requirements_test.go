@@ -209,10 +209,10 @@ func TestError(t *testing.T) {
 
 func TestEqualError(t *testing.T) {
 
-	EqualError(t, errors.New("some error"), "some error")
+	EqualError(t, "some error", errors.New("some error"))
 
 	mockT := new(MockT)
-	EqualError(mockT, errors.New("some error"), "Not some error")
+	EqualError(mockT, "Not some error", errors.New("some error"))
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}
