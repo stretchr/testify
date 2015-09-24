@@ -103,11 +103,11 @@ func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) boo
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
-//    assert.Len(mySlice, 3, "The size of slice is not 3")
+//    assert.Len(3, mySlice, "The size of slice is not 3")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface{}) bool {
-	return Len(a.t, object, length, msgAndArgs...)
+func (a *Assertions) Len(length int, object interface{}, msgAndArgs ...interface{}) bool {
+	return Len(a.t, length, object, msgAndArgs...)
 }
 
 // True asserts that the specified value is true.
@@ -236,12 +236,12 @@ func (a *Assertions) Error(theError error, msgAndArgs ...interface{}) bool {
 //
 //   actualObj, err := SomeFunction()
 //   if assert.Error(err, "An error was expected") {
-//	   assert.Equal(err, expectedError)
+//	   assert.EqualError(expectedError, err)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) bool {
-	return EqualError(a.t, theError, errString, msgAndArgs...)
+func (a *Assertions) EqualError(errString string, theError error, msgAndArgs ...interface{}) bool {
+	return EqualError(a.t, errString, theError, msgAndArgs...)
 }
 
 // Regexp asserts that a specified regexp matches a string.
