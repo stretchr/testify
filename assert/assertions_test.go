@@ -325,23 +325,23 @@ func TestContains(t *testing.T) {
 		{"j", "k"},
 	}
 
-	if !Contains(mockT, "Hello World", "Hello") {
+	if !Contains(mockT, "Hello", "Hello World") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
 	}
-	if Contains(mockT, "Hello World", "Salut") {
+	if Contains(mockT, "Salut", "Hello World") {
 		t.Error("Contains should return false: \"Hello World\" does not contain \"Salut\"")
 	}
 
-	if !Contains(mockT, list, "Bar") {
+	if !Contains(mockT, "Bar", list) {
 		t.Error("Contains should return true: \"[\"Foo\", \"Bar\"]\" contains \"Bar\"")
 	}
-	if Contains(mockT, list, "Salut") {
+	if Contains(mockT, "Salut", list) {
 		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
 	}
-	if !Contains(mockT, complexList, &A{"g", "h"}) {
+	if !Contains(mockT, &A{"g", "h"}, complexList) {
 		t.Error("Contains should return true: complexList contains {\"g\", \"h\"}")
 	}
-	if Contains(mockT, complexList, &A{"g", "e"}) {
+	if Contains(mockT, &A{"g", "e"}, complexList) {
 		t.Error("Contains should return false: complexList contains {\"g\", \"e\"}")
 	}
 }
@@ -351,17 +351,17 @@ func TestNotContains(t *testing.T) {
 	mockT := new(testing.T)
 	list := []string{"Foo", "Bar"}
 
-	if !NotContains(mockT, "Hello World", "Hello!") {
+	if !NotContains(mockT, "Hello!", "Hello World") {
 		t.Error("NotContains should return true: \"Hello World\" does not contain \"Hello!\"")
 	}
-	if NotContains(mockT, "Hello World", "Hello") {
+	if NotContains(mockT, "Hello", "Hello World") {
 		t.Error("NotContains should return false: \"Hello World\" contains \"Hello\"")
 	}
 
-	if !NotContains(mockT, list, "Foo!") {
+	if !NotContains(mockT, "Foo!", list) {
 		t.Error("NotContains should return true: \"[\"Foo\", \"Bar\"]\" does not contain \"Foo!\"")
 	}
-	if NotContains(mockT, list, "Foo") {
+	if NotContains(mockT, "Foo", list) {
 		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
 	}
 
@@ -667,7 +667,7 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		True(t, Len(mockT, c.l, c.v), "%#v have %d items", c.v, c.l)
 	}
 
 	cases = []struct {
@@ -690,7 +690,7 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		False(t, Len(mockT, c.l, c.v), "%#v have %d items", c.v, c.l)
 	}
 }
 

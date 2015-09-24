@@ -159,17 +159,17 @@ func TestContainsWrapper(t *testing.T) {
 	assert := New(new(testing.T))
 	list := []string{"Foo", "Bar"}
 
-	if !assert.Contains("Hello World", "Hello") {
+	if !assert.Contains("Hello", "Hello World") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
 	}
-	if assert.Contains("Hello World", "Salut") {
+	if assert.Contains("Salut", "Hello World") {
 		t.Error("Contains should return false: \"Hello World\" does not contain \"Salut\"")
 	}
 
-	if !assert.Contains(list, "Foo") {
+	if !assert.Contains("Foo", list) {
 		t.Error("Contains should return true: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
 	}
-	if assert.Contains(list, "Salut") {
+	if assert.Contains("Salut", list) {
 		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
 	}
 
@@ -180,17 +180,17 @@ func TestNotContainsWrapper(t *testing.T) {
 	assert := New(new(testing.T))
 	list := []string{"Foo", "Bar"}
 
-	if !assert.NotContains("Hello World", "Hello!") {
+	if !assert.NotContains("Hello!", "Hello World") {
 		t.Error("NotContains should return true: \"Hello World\" does not contain \"Hello!\"")
 	}
-	if assert.NotContains("Hello World", "Hello") {
+	if assert.NotContains("Hello", "Hello World") {
 		t.Error("NotContains should return false: \"Hello World\" contains \"Hello\"")
 	}
 
-	if !assert.NotContains(list, "Foo!") {
+	if !assert.NotContains("Foo!", list) {
 		t.Error("NotContains should return true: \"[\"Foo\", \"Bar\"]\" does not contain \"Foo!\"")
 	}
-	if assert.NotContains(list, "Foo") {
+	if assert.NotContains("Foo", list) {
 		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
 	}
 
@@ -297,14 +297,14 @@ func TestEqualErrorWrapper(t *testing.T) {
 
 	// start with a nil error
 	var err error
-	assert.False(mockAssert.EqualError(err, ""),
+	assert.False(mockAssert.EqualError("", err),
 		"EqualError should return false for nil arg")
 
 	// now set an error
 	err = errors.New("some error")
-	assert.False(mockAssert.EqualError(err, "Not some error"),
+	assert.False(mockAssert.EqualError("Not some error", err),
 		"EqualError should return false for different error string")
-	assert.True(mockAssert.EqualError(err, "some error"),
+	assert.True(mockAssert.EqualError("some error", err),
 		"EqualError should return true")
 }
 
@@ -348,12 +348,12 @@ func TestLenWrapper(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
-	assert.False(mockAssert.Len(nil, 0), "nil does not have length")
+	assert.False(mockAssert.Len(0, nil), "nil does not have length")
 	assert.False(mockAssert.Len(0, 0), "int does not have length")
-	assert.False(mockAssert.Len(true, 0), "true does not have length")
-	assert.False(mockAssert.Len(false, 0), "false does not have length")
-	assert.False(mockAssert.Len('A', 0), "Rune does not have length")
-	assert.False(mockAssert.Len(struct{}{}, 0), "Struct does not have length")
+	assert.False(mockAssert.Len(0, true), "true does not have length")
+	assert.False(mockAssert.Len(0, false), "false does not have length")
+	assert.False(mockAssert.Len(0, 'A'), "Rune does not have length")
+	assert.False(mockAssert.Len(0, struct{}{}), "Struct does not have length")
 
 	ch := make(chan int, 5)
 	ch <- 1
@@ -380,7 +380,7 @@ func TestLenWrapper(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		assert.True(mockAssert.Len(c.v, c.l), "%#v have %d items", c.v, c.l)
+		assert.True(mockAssert.Len(c.l, c.v), "%#v have %d items", c.v, c.l)
 	}
 }
 

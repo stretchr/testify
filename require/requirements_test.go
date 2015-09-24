@@ -139,10 +139,10 @@ func TestFalse(t *testing.T) {
 
 func TestContains(t *testing.T) {
 
-	Contains(t, "Hello World", "Hello")
+	Contains(t, "Hello", "Hello World")
 
 	mockT := new(MockT)
-	Contains(mockT, "Hello World", "Salut")
+	Contains(mockT, "Salut", "Hello World")
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}
@@ -150,10 +150,10 @@ func TestContains(t *testing.T) {
 
 func TestNotContains(t *testing.T) {
 
-	NotContains(t, "Hello World", "Hello!")
+	NotContains(t, "Hello!", "Hello World")
 
 	mockT := new(MockT)
-	NotContains(mockT, "Hello World", "Hello")
+	NotContains(mockT, "Hello", "Hello World")
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}

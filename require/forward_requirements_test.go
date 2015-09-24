@@ -122,11 +122,11 @@ func TestFalseWrapper(t *testing.T) {
 
 func TestContainsWrapper(t *testing.T) {
 	require := New(t)
-	require.Contains("Hello World", "Hello")
+	require.Contains("Hello", "Hello World")
 
 	mockT := new(MockT)
 	mockRequire := New(mockT)
-	mockRequire.Contains("Hello World", "Salut")
+	mockRequire.Contains("Salut", "Hello World")
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}
@@ -134,11 +134,11 @@ func TestContainsWrapper(t *testing.T) {
 
 func TestNotContainsWrapper(t *testing.T) {
 	require := New(t)
-	require.NotContains("Hello World", "Hello!")
+	require.NotContains("Hello!", "Hello World")
 
 	mockT := new(MockT)
 	mockRequire := New(mockT)
-	mockRequire.NotContains("Hello World", "Hello")
+	mockRequire.NotContains("Hello", "Hello World")
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}
