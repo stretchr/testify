@@ -878,8 +878,8 @@ func Test_Arguments_Diff(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"Hello World", 456, "false"})
 
 	assert.Equal(t, 2, count)
-	assert.Contains(t, diff, `%!s(int=456) != %!s(int=123)`)
-	assert.Contains(t, diff, `false != %!s(bool=true)`)
+	assert.Contains(t, `%!s(int=456) != %!s(int=123)`, diff)
+	assert.Contains(t, `false != %!s(bool=true)`, diff)
 
 }
 
@@ -891,7 +891,7 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"string", 456, "false", "extra"})
 
 	assert.Equal(t, 3, count)
-	assert.Contains(t, diff, `extra != (Missing)`)
+	assert.Contains(t, `extra != (Missing)`, diff)
 
 }
 
@@ -933,7 +933,7 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"string", 123, true})
 
 	assert.Equal(t, 1, count)
-	assert.Contains(t, diff, `string != type int - %!s(int=123)`)
+	assert.Contains(t, `string != type int - %!s(int=123)`, diff)
 
 }
 
