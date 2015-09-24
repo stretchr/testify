@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	i      interface{}
+	i     interface{}
 	zeros = []interface{}{
 		false,
 		byte(0),
@@ -198,6 +198,9 @@ func TestNotNil(t *testing.T) {
 	if NotNil(mockT, nil) {
 		t.Error("NotNil should return false: object is nil")
 	}
+	if NotNil(mockT, (*struct{})(nil)) {
+		t.Error("NotNil should return false: object is (*struct{})(nil)")
+	}
 
 }
 
@@ -207,6 +210,9 @@ func TestNil(t *testing.T) {
 
 	if !Nil(mockT, nil) {
 		t.Error("Nil should return true: object is nil")
+	}
+	if !Nil(mockT, (*struct{})(nil)) {
+		t.Error("Nil should return true: object is (*struct{})(nil)")
 	}
 	if Nil(mockT, new(AssertionTesterConformingObject)) {
 		t.Error("Nil should return false: object is not nil")
