@@ -439,10 +439,10 @@ func getLen(x interface{}) (ok bool, length int) {
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
-//    assert.Len(t, mySlice, 3, "The size of slice is not 3")
+//    assert.Len(t, 3, mySlice, "The size of slice is not 3")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) bool {
+func Len(t TestingT, length int, object interface{}, msgAndArgs ...interface{}) bool {
 	ok, l := getLen(object)
 	if !ok {
 		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
@@ -530,11 +530,11 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 // Contains asserts that the specified string or list(array, slice...) contains the
 // specified substring or element.
 //
-//    assert.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
-//    assert.Contains(t, ["Hello", "World"], "World", "But ["Hello", "World"] does contain 'World'")
+//    assert.Contains(t, "World", "Hello World", "But 'Hello World' does contain 'World'")
+//    assert.Contains(t, "World", ["Hello", "World"], "But ["Hello", "World"] does contain 'World'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
+func Contains(t TestingT, contains, s interface{}, msgAndArgs ...interface{}) bool {
 
 	ok, found := includeElement(s, contains)
 	if !ok {
@@ -551,11 +551,11 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 // NotContains asserts that the specified string or list(array, slice...) does NOT contain the
 // specified substring or element.
 //
-//    assert.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
-//    assert.NotContains(t, ["Hello", "World"], "Earth", "But ['Hello', 'World'] does NOT contain 'Earth'")
+//    assert.NotContains(t, "Earth", "Hello World", "But 'Hello World' does NOT contain 'Earth'")
+//    assert.NotContains(t, "Earth", ["Hello", "World"], "But ['Hello', 'World'] does NOT contain 'Earth'")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
+func NotContains(t TestingT, contains, s interface{}, msgAndArgs ...interface{}) bool {
 
 	ok, found := includeElement(s, contains)
 	if !ok {
@@ -831,11 +831,11 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 //
 //   actualObj, err := SomeFunction()
 //   if assert.Error(t, err, "An error was expected") {
-//	   assert.Equal(t, err, expectedError)
+//	   assert.EqualError(t, expectedError, err)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
-func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
+func EqualError(t TestingT, errString string, theError error, msgAndArgs ...interface{}) bool {
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
 	if !NotNil(t, theError, "An error is expected but got nil. %s", message) {
