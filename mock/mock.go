@@ -205,7 +205,9 @@ func (self *Mock) On(methodName string, arguments ...interface{}) *Call {
 // */
 
 func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
-	for i, call := range m.expectedCalls() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for i, call := range m.ExpectedCalls {
 		if call.Method == method && call.Repeatability > -1 {
 
 			_, diffCount := call.Arguments.Diff(arguments)
@@ -349,16 +351,19 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
 	for _, expectedCall := range expectedCalls {
-		switch {
-		case !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments):
+		if !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) {
 			somethingMissing = true
 			failedExpectations++
 			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
-		case expectedCall.Repeatability > 0:
-			somethingMissing = true
-			failedExpectations++
-		default:
-			t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+		} else {
+			m.mutex.Lock()
+			if expectedCall.Repeatability > 0 {
+				somethingMissing = true
+				failedExpectations++
+			} else {
+				t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+			}
+			m.mutex.Unlock()
 		}
 	}
 
