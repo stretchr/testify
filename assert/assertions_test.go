@@ -904,17 +904,53 @@ func TestNotZero(t *testing.T) {
 	}
 }
 
-func TestJSONEq(t *testing.T) {
+func TestJSONEq_EqualSONString(t *testing.T) {
 	mockT := new(testing.T)
-
 	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
+}
+
+func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
+	mockT := new(testing.T)
 	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+}
+
+func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
+	mockT := new(testing.T)
 	True(t, JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}"))
+}
+
+func TestJSONEq_Array(t *testing.T) {
+	mockT := new(testing.T)
 	True(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
+}
+
+func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
+	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
+}
+
+func TestJSONEq_HashesNotEquivalent(t *testing.T) {
+	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+}
+
+func TestJSONEq_ActualIsNotJSON(t *testing.T) {
+	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `{"foo": "bar"}`, "Not JSON"))
+}
+
+func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
+	mockT := new(testing.T)
 	False(t, JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
+}
+
+func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
+	mockT := new(testing.T)
 	False(t, JSONEq(mockT, "Not JSON", "Not JSON"))
+}
+
+func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
