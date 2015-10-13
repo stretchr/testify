@@ -235,32 +235,17 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 //
 // Returns whether the assertion was successful (true) or not (false).
 func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
-	expectSlice := false
-	expectedJSONAsMap := make(map[string]interface{})
-	expectedJSONAsSlice := make([]interface{}, 0, 0)
+	var expectedJSONAsInterface, actualJSONAsInterface interface{}
 
-	actualJSONAsMap := make(map[string]interface{})
-	actualJSONAsSlice := make([]interface{}, 0, 0)
-
-	if err := json.Unmarshal([]byte(expected), &expectedJSONAsMap); err != nil {
-		if err := json.Unmarshal([]byte(expected), &expectedJSONAsSlice); err == nil {
-			expectSlice = true
-		} else {
-			t.FailNow()
-		}
+	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
+		t.FailNow()
 	}
 
-	if expectSlice {
-		if err := json.Unmarshal([]byte(actual), &actualJSONAsSlice); err != nil {
-			t.FailNow()
-		}
-		Equal(t, expectedJSONAsSlice, actualJSONAsSlice, msgAndArgs...)
-	} else {
-		if err := json.Unmarshal([]byte(actual), &actualJSONAsMap); err != nil {
-			t.FailNow()
-		}
-		Equal(t, expectedJSONAsMap, actualJSONAsMap, msgAndArgs...)
+	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
+		t.FailNow()
 	}
+
+	Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
 /*

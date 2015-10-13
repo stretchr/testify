@@ -917,30 +917,15 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) bool {
-	expectSlice := false
-	expectedJSONAsMap := make(map[string]interface{})
-	expectedJSONAsSlice := make([]interface{}, 0, 0)
+	var expectedJSONAsInterface, actualJSONAsInterface interface{}
 
-	actualJSONAsMap := make(map[string]interface{})
-	actualJSONAsSlice := make([]interface{}, 0, 0)
-
-	if err := json.Unmarshal([]byte(expected), &expectedJSONAsMap); err != nil {
-		if err := json.Unmarshal([]byte(expected), &expectedJSONAsSlice); err == nil {
-			expectSlice = true
-		} else {
-			return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
-		}
+	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
+		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
-	if expectSlice {
-		if err := json.Unmarshal([]byte(actual), &actualJSONAsSlice); err != nil {
-			return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
-		}
-		return Equal(t, expectedJSONAsSlice, actualJSONAsSlice, msgAndArgs...)
-	} else {
-		if err := json.Unmarshal([]byte(actual), &actualJSONAsMap); err != nil {
-			return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
-		}
-		return Equal(t, expectedJSONAsMap, actualJSONAsMap, msgAndArgs...)
+	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
+		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
+
+	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
