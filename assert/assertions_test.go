@@ -461,6 +461,24 @@ func TestPanics(t *testing.T) {
 
 }
 
+func TestPanicsWithValue(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !PanicsWithValue(mockT, func() {
+		panic("Panic!")
+	}, "Panic!") {
+		t.Error("Panics should return true")
+	}
+
+	if PanicsWithValue(mockT, func() {
+		panic("Panic!")
+	}, "Panic with another value!") {
+		t.Error("Panics should return false")
+	}
+
+}
+
 func TestNotPanics(t *testing.T) {
 
 	mockT := new(testing.T)
