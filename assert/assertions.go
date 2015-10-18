@@ -39,6 +39,12 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return true
 	}
 
+	// This was removed in https://github.com/stretchr/testify/commit/e22aedd37671fb115be6c0c25129c405cb575cfd which
+	// breaks nearly all of our tests that test interface values
+	if fmt.Sprintf("%#v", expected) == fmt.Sprintf("%#v", actual) {
+		return true
+	}
+
 	return false
 
 }
