@@ -273,3 +273,12 @@ func (a *Assertions) Zero(i interface{}, msgAndArgs ...interface{}) bool {
 func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) bool {
 	return NotZero(a.t, i, msgAndArgs...)
 }
+
+// JSONEq asserts that two JSON strings are equivalent.
+//
+//  assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) JSONEq(expected string, actual string, msgAndArgs ...interface{}) bool {
+	return JSONEq(a.t, expected, actual, msgAndArgs...)
+}

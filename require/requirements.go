@@ -1,6 +1,7 @@
 package require
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -226,6 +227,25 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 	if !assert.NotRegexp(t, rx, str, msgAndArgs...) {
 		t.FailNow()
 	}
+}
+
+// JSONEq asserts that two JSON strings are equivalent.
+//
+//  assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
+	var expectedJSONAsInterface, actualJSONAsInterface interface{}
+
+	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
+		t.FailNow()
+	}
+
+	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
+		t.FailNow()
+	}
+
+	Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
 /*
