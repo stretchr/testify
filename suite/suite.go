@@ -31,6 +31,7 @@ func (suite *Suite) T() *testing.T {
 func (suite *Suite) SetT(t *testing.T) {
 	suite.t = t
 	suite.Assertions = assert.New(t)
+	suite.require = require.New(t)
 }
 
 // Require returns a require context for suite.
