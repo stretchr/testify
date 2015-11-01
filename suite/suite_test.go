@@ -9,6 +9,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// SuiteRequireTwice is intended to test the usage of suite.Require in two
+// different tests
+type SuiteRequireTwice struct{ Suite }
+
+// TestSuiteRequireTwice checks for regressions of issue #149 where
+// suite.requirements was not initialised in suite.SetT()
+// A regression would result on these tests panicking rather than failing.
+func TestSuiteRequireTwice(t *testing.T) {
+	ok := testing.RunTests(
+		func(_, _ string) (bool, error) { return true, nil },
+		[]testing.InternalTest{{
+			Name: "TestSuiteRequireTwice",
+			F: func(t *testing.T) {
+				suite := new(SuiteRequireTwice)
+				Run(t, suite)
+			},
+		}},
+	)
+	assert.Equal(t, false, ok)
+}
+
+func (s *SuiteRequireTwice) TestRequireOne() {
+	r := s.Require()
+	r.Equal(1, 2)
+}
+
+func (s *SuiteRequireTwice) TestRequireTwo() {
+	r := s.Require()
+	r.Equal(1, 2)
+}
+
 // This suite is intended to store values to make sure that only
 // testing-suite-related methods are run.  It's also a fully
 // functional example of a testing suite, using setup/teardown methods
