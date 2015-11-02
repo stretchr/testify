@@ -23,6 +23,22 @@ type TestingT interface {
 // Comparison a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
+type ErrorFormatter interface {
+	FormatNotEqual(expected, actual interface{}) string
+}
+
+var errorFormatter ErrorFormatter = new(DefaultErrorFormatter)
+
+func SetErrorFormatter(formatter ErrorFormatter) {
+	errorFormatter = formatter
+}
+
+type DefaultErrorFormatter struct {}
+
+func (m *DefaultErrorFormatter) FormatNotEqual(expected, actual interface{}) string {
+	return fmt.Sprintf("Not equal: %#v (expected)\n"+
+			"        != %#v (actual)", expected, actual)
+}
 /*
 	Helper functions
 */
@@ -233,8 +249,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
 	if !ObjectsAreEqual(expected, actual) {
-		return Fail(t, fmt.Sprintf("Not equal: %#v (expected)\n"+
-			"        != %#v (actual)", expected, actual), msgAndArgs...)
+		return Fail(t, errorFormatter.FormatNotEqual(expected, actual), msgAndArgs...)
 	}
 
 	return true
@@ -250,8 +265,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
 	if !ObjectsAreEqualValues(expected, actual) {
-		return Fail(t, fmt.Sprintf("Not equal: %#v (expected)\n"+
-			"        != %#v (actual)", expected, actual), msgAndArgs...)
+		return Fail(t, errorFormatter.FormatNotEqual(expected, actual), msgAndArgs...)
 	}
 
 	return true
