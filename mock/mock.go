@@ -249,7 +249,7 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 	if includeArgumentValues {
 		var argVals []string
 		for argIndex, arg := range arguments {
-			argVals = append(argVals, fmt.Sprintf("%d: %v", argIndex, arg))
+			argVals = append(argVals, fmt.Sprintf("%d: %#v", argIndex, arg))
 		}
 		argValsString = fmt.Sprintf("\n\t\t%s", strings.Join(argVals, "\n\t\t"))
 	}
