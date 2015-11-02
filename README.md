@@ -15,7 +15,7 @@ Features include:
 Get started:
 
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
-  * For an introduction to writing test code in Go, see our [blog post article](http://blog.stretchr.com/2014/03/05/test-driven-development-specifically-in-golang/) or check out  http://golang.org/doc/code.html#Testing
+  * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
   * Check out the API Documentation http://godoc.org/github.com/stretchr/testify
   * To make your testing life easier, check out our other project, [gorc](http://github.com/stretchr/gorc)
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
