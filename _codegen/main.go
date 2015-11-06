@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -13,6 +14,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -120,6 +122,24 @@ func main() {
 		imports.AddImportsFrom(sig.Params())
 	}
 
+	buff := bytes.NewBuffer(nil)
+
+	if err := tmplHead.Execute(buff, struct {
+		Name    string
+		Imports map[string]string
+	}{
+		*outputPkg,
+		imports.Imports(),
+	}); err != nil {
+		log.Fatal(err)
+	}
+	for _, fn := range funcs {
+		buff.Write([]byte("\n\n"))
+		if err := tmpl.Execute(buff, &fn); err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	var output *os.File
 	if *out == "-" || (*out == "" && *tmplFile == "") {
 		*out = "-"
@@ -132,23 +152,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer output.Close()
 	}
-
-	if err := tmplHead.Execute(output, struct {
-		Name    string
-		Imports map[string]string
-	}{
-		*outputPkg,
-		imports.Imports(),
-	}); err != nil {
-		log.Fatal(err)
-	}
-	for _, fn := range funcs {
-		output.Write([]byte("\n\n"))
-		if err := tmpl.Execute(output, &fn); err != nil {
-			log.Fatal(err)
-		}
-	}
+	io.Copy(output, buff)
 }
 
 var defaultTemplate = `/*
