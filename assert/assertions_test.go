@@ -984,3 +984,77 @@ func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
+
+func TestDiff(t *testing.T) {
+	expected := `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,3 +1,3 @@
+ (struct { foo string }) {
+- foo: (string) (len=5) "hello"
++ foo: (string) (len=3) "bar"
+ }
+`
+	actual := diff(
+		struct{ foo string }{"hello"},
+		struct{ foo string }{"bar"},
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -2,5 +2,5 @@
+  (int) 1,
+- (int) 2,
+  (int) 3,
+- (int) 4
++ (int) 5,
++ (int) 7
+ }
+`
+	actual = diff(
+		[]int{1, 2, 3, 4},
+		[]int{1, 3, 5, 7},
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -2,4 +2,4 @@
+  (int) 1,
+- (int) 2,
+- (int) 3
++ (int) 3,
++ (int) 5
+ }
+`
+	actual = diff(
+		[]int{1, 2, 3, 4}[0:3],
+		[]int{1, 3, 5, 7}[0:3],
+	)
+	Equal(t, expected, actual)
+
+	// output for maps cannot be equally tested since order is random
+	actual = diff(
+		map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
+		map[string]int{"one": 1, "three": 3, "five": 5, "seven": 7},
+	)
+	NotZero(t, len(actual))
+}
+
+func TestDiffEmptyCases(t *testing.T) {
+	Equal(t, "", diff(nil, nil))
+	Equal(t, "", diff(struct{ foo string }{}, nil))
+	Equal(t, "", diff(nil, struct{ foo string }{}))
+	Equal(t, "", diff(1, 2))
+	Equal(t, "", diff(1, 2))
+	Equal(t, "", diff([]int{1}, []bool{true}))
+}
