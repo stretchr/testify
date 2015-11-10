@@ -13,6 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	mu sync.Mutex
+)
+
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Logf(format string, args ...interface{})
@@ -64,17 +68,9 @@ func newCall(parent *Mock, methodName string, methodArguments ...interface{}) *C
 	}
 }
 
-func (self *Call) lock() {
-	self.Parent.mutex.Lock()
-}
-
-func (self *Call) unlock() {
-	self.Parent.mutex.Unlock()
-}
-
 func (self *Call) Return(returnArguments ...interface{}) *Call {
-	self.lock()
-	defer self.unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	self.ReturnArguments = returnArguments
 
@@ -100,8 +96,8 @@ func (self *Call) Twice() *Call {
 //
 //    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (self *Call) Times(i int) *Call {
-	self.lock()
-	defer self.unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	self.Repeatability = i
 	return self
 }
@@ -111,8 +107,8 @@ func (self *Call) Times(i int) *Call {
 //
 //    Mock.On("MyMethod", arg1, arg2).WaitUntil(time.After(time.Second))
 func (self *Call) WaitUntil(w <-chan time.Time) *Call {
-	self.lock()
-	defer self.unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	self.WaitFor = w
 	return self
 }
@@ -133,8 +129,8 @@ func (self *Call) After(d time.Duration) *Call {
 //    	arg["foo"] = "bar"
 //    })
 func (self *Call) Run(fn func(Arguments)) *Call {
-	self.lock()
-	defer self.unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	self.RunFn = fn
 	return self
 }
@@ -163,14 +159,11 @@ type Mock struct {
 	// TestData holds any data that might be useful for testing.  Testify ignores
 	// this data completely allowing you to do whatever you like with it.
 	testData objx.Map
-
-	mutex sync.Mutex
 }
 
 // TestData holds any data that might be useful for testing.  Testify ignores
 // this data completely allowing you to do whatever you like with it.
 func (m *Mock) TestData() objx.Map {
-
 	if m.testData == nil {
 		m.testData = make(objx.Map)
 	}
@@ -193,8 +186,8 @@ func (self *Mock) On(methodName string, arguments ...interface{}) *Call {
 		}
 	}
 
-	self.mutex.Lock()
-	defer self.mutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	c := newCall(self, methodName, arguments...)
 	self.ExpectedCalls = append(self.ExpectedCalls, c)
 	return c
@@ -204,9 +197,7 @@ func (self *Mock) On(methodName string, arguments ...interface{}) *Call {
 // 	Recording and responding to activity
 // */
 
-func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
+func (m *Mock) findExpectedCallLocked(method string, arguments ...interface{}) (int, *Call) {
 	for i, call := range m.ExpectedCalls {
 		if call.Method == method && call.Repeatability > -1 {
 
@@ -220,11 +211,11 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 	return -1, nil
 }
 
-func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *Call) {
+func (m *Mock) findClosestCallLocked(method string, arguments ...interface{}) (bool, *Call) {
 	diffCount := 0
 	var closestCall *Call = nil
 
-	for _, call := range m.expectedCalls() {
+	for _, call := range m.ExpectedCalls {
 		if call.Method == method {
 
 			_, tempDiffCount := call.Arguments.Diff(arguments)
@@ -243,7 +234,7 @@ func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *
 	return true, closestCall
 }
 
-func callString(method string, arguments Arguments, includeArgumentValues bool) string {
+func callStringLocked(method string, arguments Arguments, includeArgumentValues bool) string {
 
 	var argValsString string = ""
 	if includeArgumentValues {
@@ -279,9 +270,10 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
 
-	found, call := m.findExpectedCall(functionName, arguments...)
-
+	mu.Lock()
+	found, call := m.findExpectedCallLocked(functionName, arguments...)
 	if found < 0 {
+		defer mu.Unlock()
 		// we have to fail here - because we don't know what to do
 		// as the return arguments.  This is because:
 		//
@@ -289,15 +281,14 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
 
-		closestFound, closestCall := m.findClosestCall(functionName, arguments...)
+		closestFound, closestCall := m.findClosestCallLocked(functionName, arguments...)
 
 		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n", callString(functionName, arguments, true), callString(functionName, closestCall.Arguments, true)))
+			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n", callStringLocked(functionName, arguments, true), callStringLocked(functionName, closestCall.Arguments, true)))
 		} else {
-			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
+			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callStringLocked(functionName, arguments, true), assert.CallerInfo()))
 		}
 	} else {
-		m.mutex.Lock()
 		switch {
 		case call.Repeatability == 1:
 			call.Repeatability = -1
@@ -305,13 +296,11 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		case call.Repeatability > 1:
 			call.Repeatability -= 1
 		}
-		m.mutex.Unlock()
 	}
 
 	// add the call
-	m.mutex.Lock()
 	m.Calls = append(m.Calls, *newCall(m, functionName, arguments...))
-	m.mutex.Unlock()
+	mu.Unlock()
 
 	// block if specified
 	if call.WaitFor != nil {
@@ -356,14 +345,14 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 			failedExpectations++
 			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 		} else {
-			m.mutex.Lock()
+			mu.Lock()
 			if expectedCall.Repeatability > 0 {
 				somethingMissing = true
 				failedExpectations++
 			} else {
 				t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 			}
-			m.mutex.Unlock()
+			mu.Unlock()
 		}
 	}
 
@@ -421,14 +410,14 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 }
 
 func (m *Mock) expectedCalls() []*Call {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	return append([]*Call{}, m.ExpectedCalls...)
 }
 
 func (m *Mock) calls() []Call {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	return append([]Call{}, m.Calls...)
 }
 
