@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"math/rand"
+	"sync"
 	"testing"
 	"time"
 )
@@ -986,4 +988,70 @@ func Test_Arguments_Bool(t *testing.T) {
 	var args Arguments = []interface{}{"string", 123, true}
 	assert.Equal(t, true, args.Bool(2))
 
+}
+
+type SharedMockA interface {
+	GetA() bool
+}
+
+type SharedTestMockA struct {
+	Mock
+}
+
+func (a *SharedTestMockA) GetA() bool {
+	args := a.Called()
+	return args.Bool(0)
+}
+
+type SharedMockB interface {
+	GetB(a SharedMockA) bool
+}
+
+type SharedTestMockB struct {
+	Mock
+}
+
+func (b *SharedTestMockB) GetB(a SharedMockA) bool {
+	args := b.Called(a)
+	return args.Bool(0)
+}
+
+// This test aims to use multiple mocks concurrently independently
+// and shared (using mocks as parameters to stubbed methods) to
+// make it easier to detect race conditions when using Go's -race
+// build tag.
+func Test_Shared_Mocks_Concurrency(t *testing.T) {
+	var amocks []SharedMockA
+	for i := 0; i < 10; i++ {
+		a := &SharedTestMockA{}
+		a.On("GetA").Return(true)
+		amocks = append(amocks, a)
+	}
+
+	b := &SharedTestMockB{}
+	for _, a := range amocks {
+		b.On("GetB", a).Return(true)
+	}
+
+	results := make(chan bool, 100)
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			a := amocks[rand.Intn(len(amocks))]
+			results <- b.GetB(a)
+			results <- a.GetA()
+		}()
+	}
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for result := range results {
+		if !result {
+			t.Fail()
+		}
+	}
 }
