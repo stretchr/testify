@@ -961,6 +961,7 @@ func diff(expected interface{}, actual interface{}) string {
 		return ""
 	}
 
+	spew.Config.SortKeys = true
 	e := spew.Sdump(expected)
 	a := spew.Sdump(actual)
 

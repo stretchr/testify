@@ -1055,12 +1055,28 @@ Diff:
 	)
 	Equal(t, expected, actual)
 
-	// output for maps cannot be equally tested since order is random
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,6 +1,6 @@
+ (map[string]int) (len=4) {
+- (string) (len=4) "four": (int) 4,
++ (string) (len=4) "five": (int) 5,
+  (string) (len=3) "one": (int) 1,
+- (string) (len=5) "three": (int) 3,
+- (string) (len=3) "two": (int) 2
++ (string) (len=5) "seven": (int) 7,
++ (string) (len=5) "three": (int) 3
+ }
+`
+
 	actual = diff(
 		map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
 		map[string]int{"one": 1, "three": 3, "five": 5, "seven": 7},
 	)
-	NotZero(t, len(actual))
+	Equal(t, expected, actual)
 }
 
 func TestDiffEmptyCases(t *testing.T) {
