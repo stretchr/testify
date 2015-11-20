@@ -53,8 +53,8 @@
 //     // All methods that begin with "Test" are run as tests within a
 //     // suite.
 //     func (suite *ExampleTestSuite) TestExample() {
-//         assert.Equal(suite.T(), suite.VariableThatShouldStartAtFive, 5)
-//         suite.Equal(suite.VariableThatShouldStartAtFive, 5)
+//         assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
+//         suite.Equal(5, suite.VariableThatShouldStartAtFive)
 //     }
 //
 //     // In order for 'go test' to run this suite, we need to create

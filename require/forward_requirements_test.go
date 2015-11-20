@@ -258,3 +258,128 @@ func TestInDeltaWrapper(t *testing.T) {
 		t.Error("Check should fail")
 	}
 }
+
+func TestZeroWrapper(t *testing.T) {
+	require := New(t)
+	require.Zero(0)
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.Zero(1)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestNotZeroWrapper(t *testing.T) {
+	require := New(t)
+	require.NotZero(1)
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.NotZero(0)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestJSONEqWrapper_EqualSONString(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestJSONEqWrapper_EquivalentButNotEqual(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestJSONEqWrapper_HashOfArraysAndHashes(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq("{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
+		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}")
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestJSONEqWrapper_Array(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestJSONEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestJSONEqWrapper_HashesNotEquivalent(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestJSONEqWrapper_ActualIsNotJSON(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq(`{"foo": "bar"}`, "Not JSON")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestJSONEqWrapper_ExpectedIsNotJSON(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq("Not JSON", `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestJSONEqWrapper_ExpectedAndActualNotJSON(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq("Not JSON", "Not JSON")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestJSONEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}

@@ -209,3 +209,22 @@ func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...inter
 func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	NotRegexp(a.t, rx, str, msgAndArgs...)
 }
+
+// Zero asserts that i is the zero value for its type and returns the truth.
+func (a *Assertions) Zero(i interface{}, msgAndArgs ...interface{}) {
+	Zero(a.t, i, msgAndArgs...)
+}
+
+// NotZero asserts that i is not the zero value for its type and returns the truth.
+func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) {
+	NotZero(a.t, i, msgAndArgs...)
+}
+
+// JSONEq asserts that two JSON strings are equivalent.
+//
+//  assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) JSONEq(expected string, actual string, msgAndArgs ...interface{}) {
+	JSONEq(a.t, expected, actual, msgAndArgs...)
+}
