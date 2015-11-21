@@ -91,9 +91,9 @@ func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) bool {
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or a
 // slice with len == 0.
 //
-// if assert.NotEmpty(obj) {
-//   assert.Equal("two", obj[1])
-// }
+//  if assert.NotEmpty(obj) {
+//    assert.Equal("two", obj[1])
+//  }
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) bool {
