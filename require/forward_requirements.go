@@ -93,7 +93,7 @@ func (a *Assertions) True(value bool, msgAndArgs ...interface{}) {
 	True(a.t, value, msgAndArgs...)
 }
 
-// False asserts that the specified value is true.
+// False asserts that the specified value is false.
 //
 //    require.False(myBool, "myBool should be false")
 func (a *Assertions) False(value bool, msgAndArgs ...interface{}) {
