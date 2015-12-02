@@ -119,7 +119,7 @@ func (a *Assertions) True(value bool, msgAndArgs ...interface{}) bool {
 	return True(a.t, value, msgAndArgs...)
 }
 
-// False asserts that the specified value is true.
+// False asserts that the specified value is false.
 //
 //    assert.False(myBool, "myBool should be false")
 //
