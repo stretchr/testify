@@ -172,6 +172,21 @@ func TestPanics(t *testing.T) {
 	}
 }
 
+func TestPanicsWithValue(t *testing.T) {
+
+	PanicsWithValue(t, func() {
+		panic("Panic!")
+	}, "Panic!")
+
+	mockT := new(MockT)
+	PanicsWithValue(mockT, func() {
+		panic("Panic!")
+	}, "Another Panic!")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestNotPanics(t *testing.T) {
 
 	NotPanics(t, func() {})

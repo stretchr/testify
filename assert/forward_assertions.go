@@ -171,6 +171,17 @@ func (a *Assertions) Panics(f PanicTestFunc, msgAndArgs ...interface{}) bool {
 	return Panics(a.t, f, msgAndArgs...)
 }
 
+// PanicsWithValue asserts that the code inside the specified PanicTestFunc panics with a specified value.
+//
+//   assert.Panics(t, func(){
+//     GoCrazy()
+//   }, "Panic value", "Calling GoCrazy() should panic with value \"Panic value\"")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) PanicsWithValue(f PanicTestFunc, v interface{}, msgAndArgs ...interface{}) bool {
+	return PanicsWithValue(a.t, f, v, msgAndArgs...)
+}
+
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
 //   assert.NotPanics(func(){

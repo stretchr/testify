@@ -242,6 +242,24 @@ func TestPanicsWrapper(t *testing.T) {
 
 }
 
+func TestPanicsWithValueWrapper(t *testing.T) {
+
+	assert := New(new(testing.T))
+
+	if !assert.PanicsWithValue(func() {
+		panic("Panic!")
+	}, "Panic!") {
+		t.Error("PanicsWithValue should return true")
+	}
+
+	if assert.PanicsWithValue(func() {
+		panic("Panic!")
+	}, "Another Panic!") {
+		t.Error("PanicsWithValue should return false")
+	}
+
+}
+
 func TestNotPanicsWrapper(t *testing.T) {
 
 	assert := New(new(testing.T))

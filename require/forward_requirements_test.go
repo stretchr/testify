@@ -158,6 +158,22 @@ func TestPanicsWrapper(t *testing.T) {
 	}
 }
 
+func TestPanicsWithValueWrapper(t *testing.T) {
+	require := New(t)
+	require.PanicsWithValue(func() {
+		panic("Panic!")
+	}, "Panic!")
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.PanicsWithValue(func() {
+		panic("Panic!")
+	}, "Another Panic!")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestNotPanicsWrapper(t *testing.T) {
 	require := New(t)
 	require.NotPanics(func() {})

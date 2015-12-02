@@ -135,6 +135,15 @@ func (a *Assertions) Panics(f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	Panics(a.t, f, msgAndArgs...)
 }
 
+// PanicsWithValue asserts that the code inside the specified PanicTestFunc panics with a specified value.
+//
+//   assert.Panics(t, func(){
+//     GoCrazy()
+//   }, "Panic value", "Calling GoCrazy() should panic with value \"Panic value\"")
+func (a *Assertions) PanicsWithValue(f assert.PanicTestFunc, v interface{}, msgAndArgs ...interface{}) {
+	PanicsWithValue(a.t, f, v, msgAndArgs...)
+}
+
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
 //   require.NotPanics(func(){
