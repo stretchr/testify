@@ -107,8 +107,7 @@ func ExampleGetUnifiedDiffCode() {
 two
 three
 four
-fmt.Printf("%s,%T",a,b)
-`
+fmt.Printf("%s,%T",a,b)`
 	b := `zero
 one
 three
@@ -127,56 +126,21 @@ four`
 	// Output:
 	// --- Original 2005-01-26 23:30:50
 	// +++ Current 2010-04-02 10:20:52
-	// @@ -1,6 +1,4 @@
+	// @@ -1,5 +1,4 @@
 	// +zero
 	//  one
 	// -two
 	//  three
 	//  four
 	// -fmt.Printf("%s,%T",a,b)
-	// -
-}
-
-func ExampleGetUnifiedDiffString() {
-	a := `one
-two
-three
-four
-fmt.Printf("%s,%T",a,b)
-`
-	b := `zero
-one
-three
-four`
-	diff := UnifiedDiff{
-		A:        SplitLines(a),
-		B:        SplitLines(b),
-		FromFile: "Original",
-		FromDate: "2005-01-26 23:30:50",
-		ToFile:   "Current",
-		ToDate:   "2010-04-02 10:20:52",
-		Context:  3,
-	}
-	result, _ := GetUnifiedDiffString(diff)
-	fmt.Println(strings.Replace(result, "\t", " ", -1))
-	// Output:
-	// --- Original 2005-01-26 23:30:50
-	// +++ Current 2010-04-02 10:20:52
-	// @@ -1,6 +1,4 @@
-	// +zero
-	//  one
-	// -two
-	//  three
-	//  four
-	// -fmt.Printf("%s,%T",a,b)
-	// -
 }
 
 func ExampleGetContextDiffCode() {
 	a := `one
 two
 three
-four`
+four
+fmt.Printf("%s,%T",a,b)`
 	b := `zero
 one
 tree
@@ -190,16 +154,17 @@ four`
 		Eol:      "\n",
 	}
 	result, _ := GetContextDiffString(diff)
-	fmt.Printf(strings.Replace(result, "\t", " ", -1))
+	fmt.Print(strings.Replace(result, "\t", " ", -1))
 	// Output:
 	// *** Original
 	// --- Current
 	// ***************
-	// *** 1,4 ****
+	// *** 1,5 ****
 	//   one
 	// ! two
 	// ! three
 	//   four
+	// - fmt.Printf("%s,%T",a,b)
 	// --- 1,4 ----
 	// + zero
 	//   one

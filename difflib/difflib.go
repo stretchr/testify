@@ -673,13 +673,17 @@ func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
 	buf := bufio.NewWriter(writer)
 	defer buf.Flush()
 	var diffErr error
-	w := func(format string, args ...interface{}) {
+	wf := func(format string, args ...interface{}) {
 		_, err := buf.WriteString(fmt.Sprintf(format, args...))
 		if diffErr == nil && err != nil {
 			diffErr = err
 		}
 	}
-
+	ws := func(s string) error {
+		_, err := buf.WriteString(s)
+		return err
+	}
+	
 	if len(diff.Eol) == 0 {
 		diff.Eol = "\n"
 	}
@@ -704,15 +708,15 @@ func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
 			if len(diff.ToDate) > 0 {
 				toDate = "\t" + diff.ToDate
 			}
-			w("*** %s%s%s", diff.FromFile, fromDate, diff.Eol)
-			w("--- %s%s%s", diff.ToFile, toDate, diff.Eol)
+			wf("*** %s%s%s", diff.FromFile, fromDate, diff.Eol)
+			wf("--- %s%s%s", diff.ToFile, toDate, diff.Eol)
 		}
 
 		first, last := g[0], g[len(g)-1]
-		w("***************" + diff.Eol)
+		wf("***************" + diff.Eol)
 
 		range1 := formatRangeContext(first.I1, last.I2)
-		w("*** %s ****%s", range1, diff.Eol)
+		wf("*** %s ****%s", range1, diff.Eol)
 		for _, c := range g {
 			if c.Tag == 'r' || c.Tag == 'd' {
 				for _, cc := range g {
@@ -720,7 +724,7 @@ func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
 						continue
 					}
 					for _, line := range diff.A[cc.I1:cc.I2] {
-						w(prefix[cc.Tag] + line)
+						ws(prefix[cc.Tag] + line)
 					}
 				}
 				break
@@ -728,7 +732,7 @@ func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
 		}
 
 		range2 := formatRangeContext(first.J1, last.J2)
-		w("--- %s ----%s", range2, diff.Eol)
+		wf("--- %s ----%s", range2, diff.Eol)
 		for _, c := range g {
 			if c.Tag == 'r' || c.Tag == 'i' {
 				for _, cc := range g {
@@ -736,7 +740,7 @@ func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
 						continue
 					}
 					for _, line := range diff.B[cc.J1:cc.J2] {
-						w(prefix[cc.Tag] + line)
+						ws(prefix[cc.Tag] + line)
 					}
 				}
 				break
