@@ -679,11 +679,13 @@ func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
 			diffErr = err
 		}
 	}
-	ws := func(s string) error {
+	ws := func(s string) {
 		_, err := buf.WriteString(s)
-		return err
+		if diffErr == nil && err != nil {
+			diffErr = err
+		}
 	}
-	
+
 	if len(diff.Eol) == 0 {
 		diff.Eol = "\n"
 	}
@@ -713,7 +715,7 @@ func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
 		}
 
 		first, last := g[0], g[len(g)-1]
-		wf("***************" + diff.Eol)
+		ws("***************" + diff.Eol)
 
 		range1 := formatRangeContext(first.I1, last.I2)
 		wf("*** %s ****%s", range1, diff.Eol)
