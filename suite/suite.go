@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,25 @@ var matchMethod = flag.String("m", "", "regular expression to select tests of th
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
+type addr struct {
+	Addr   uintptr
+	Method string
+}
+
+type addrList []addr
+
+func (a addrList) Len() int {
+	return len(a)
+}
+
+func (a addrList) Less(i, j int) bool {
+	return a[i].Addr < a[j].Addr
+}
+func (a addrList) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+// Suite is the struct to embed in your testing suites
 type Suite struct {
 	*assert.Assertions
 	require *require.Assertions
@@ -70,8 +90,18 @@ func Run(t *testing.T, suite TestingSuite) {
 
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
-	for index := 0; index < methodFinder.NumMethod(); index++ {
-		method := methodFinder.Method(index)
+	methods := addrList{}
+
+	// find methods by order in memory
+	for i := 0; i < methodFinder.NumMethod(); i++ {
+		method := methodFinder.Method(i)
+		methods = append(methods, addr{method.Func.Pointer(), method.Name})
+	}
+
+	sort.Sort(methods)
+
+	for _, m := range methods {
+		method, _ := methodFinder.MethodByName(m.Method)
 		ok, err := methodFilter(method.Name)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
