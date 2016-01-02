@@ -480,9 +480,17 @@ func (f argumentMatcher) String() string {
 	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
 }
 
-// Builds an argumentMatcher from |fn|, which must be a function accepting a
-// single argument (of any type) which returns a bool. If |fn| doesn't match
-// the required signature, MathedBy() panics.
+// MatchedBy can be used to match a mock call based on only certain properties
+// from a complex struct or some calculation. It takes a function that will be
+// evaluated with the called argument and will return true when there's a match
+// and false otherwise.
+//
+// Example:
+// m.On("Do", func(req *http.Request) bool { return req.Host == "example.com" })
+//
+// |fn|, must be a function accepting a single argument (of the expected type)
+// which returns a bool. If |fn| doesn't match the required signature,
+// MathedBy() panics.
 func MatchedBy(fn interface{}) argumentMatcher {
 	fnType := reflect.TypeOf(fn)
 
