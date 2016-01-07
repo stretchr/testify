@@ -571,6 +571,7 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty(false))
 	True(t, isEmpty(map[string]string{}))
 	True(t, isEmpty(new(time.Time)))
+	True(t, isEmpty(time.Time{}))
 	True(t, isEmpty(make(chan struct{})))
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
@@ -587,7 +588,8 @@ func TestEmpty(t *testing.T) {
 	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
-	var ti *time.Time
+	var tiP *time.Time
+	var tiNP time.Time
 	var s *string
 	var f *os.File
 
@@ -599,7 +601,8 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, make(chan struct{})), "Channel without values is empty")
 	True(t, Empty(mockT, s), "Nil string pointer is empty")
 	True(t, Empty(mockT, f), "Nil os.File pointer is empty")
-	True(t, Empty(mockT, ti), "Nil time.Time pointer is empty")
+	True(t, Empty(mockT, tiP), "Nil time.Time pointer is empty")
+	True(t, Empty(mockT, tiNP), "time.Time is empty")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")

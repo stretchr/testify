@@ -363,6 +363,11 @@ func isEmpty(object interface{}) bool {
 		{
 			return (objValue.Len() == 0)
 		}
+	case reflect.Struct:
+		switch object.(type) {
+		case time.Time:
+			return object.(time.Time).IsZero()
+		}
 	case reflect.Ptr:
 		{
 			if objValue.IsNil() {
