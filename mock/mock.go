@@ -458,6 +458,55 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 	return AnythingOfTypeArgument(t)
 }
 
+// argumentMatcher performs custom argument matching, returning whether or
+// not the argument is matched by the expectation fixture function.
+type argumentMatcher struct {
+	// fn is a function which accepts one argument, and returns a bool.
+	fn reflect.Value
+}
+
+func (f argumentMatcher) Matches(argument interface{}) bool {
+	expectType := f.fn.Type().In(0)
+
+	if reflect.TypeOf(argument).AssignableTo(expectType) {
+		result := f.fn.Call([]reflect.Value{reflect.ValueOf(argument)})
+		return result[0].Bool()
+	} else {
+		return false
+	}
+}
+
+func (f argumentMatcher) String() string {
+	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
+}
+
+// MatchedBy can be used to match a mock call based on only certain properties
+// from a complex struct or some calculation. It takes a function that will be
+// evaluated with the called argument and will return true when there's a match
+// and false otherwise.
+//
+// Example:
+// m.On("Do", func(req *http.Request) bool { return req.Host == "example.com" })
+//
+// |fn|, must be a function accepting a single argument (of the expected type)
+// which returns a bool. If |fn| doesn't match the required signature,
+// MathedBy() panics.
+func MatchedBy(fn interface{}) argumentMatcher {
+	fnType := reflect.TypeOf(fn)
+
+	if fnType.Kind() != reflect.Func {
+		panic(fmt.Sprintf("assert: arguments: %s is not a func", fn))
+	}
+	if fnType.NumIn() != 1 {
+		panic(fmt.Sprintf("assert: arguments: %s does not take exactly one argument", fn))
+	}
+	if fnType.NumOut() != 1 || fnType.Out(0).Kind() != reflect.Bool {
+		panic(fmt.Sprintf("assert: arguments: %s does not return a bool", fn))
+	}
+
+	return argumentMatcher{fn: reflect.ValueOf(fn)}
+}
+
 // Get Returns the argument at the specified index.
 func (args Arguments) Get(index int) interface{} {
 	if index+1 > len(args) {
@@ -505,7 +554,14 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expected = args[i]
 		}
 
-		if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
+		if matcher, ok := expected.(argumentMatcher); ok {
+			if matcher.Matches(actual) {
+				output = fmt.Sprintf("%s\t%d: \u2705  %s matched by %s\n", output, i, actual, matcher)
+			} else {
+				differences++
+				output = fmt.Sprintf("%s\t%d: \u2705  %s not matched by %s\n", output, i, actual, matcher)
+			}
+		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 
 			// type checking
 			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {

@@ -36,7 +36,7 @@ func (a *Assertions) Contains(s interface{}, contains interface{}, msgAndArgs ..
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 // 
-// assert.Empty(t, obj)
+//  assert.Empty(t, obj)
 // 
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) {
@@ -108,7 +108,7 @@ func (a *Assertions) Fail(failureMessage string, msgAndArgs ...interface{}) {
 }
 
 
-// False asserts that the specified value is true.
+// False asserts that the specified value is false.
 // 
 //    assert.False(t, myBool, "myBool should be false")
 // 
@@ -274,9 +274,9 @@ func (a *Assertions) NotContains(s interface{}, contains interface{}, msgAndArgs
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 // 
-// if assert.NotEmpty(t, obj) {
-//   assert.Equal(t, "two", obj[1])
-// }
+//  if assert.NotEmpty(t, obj) {
+//    assert.Equal(t, "two", obj[1])
+//  }
 // 
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) {

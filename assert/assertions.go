@@ -13,6 +13,9 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/pmezard/go-difflib/difflib"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -48,8 +51,11 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	}
 
 	actualType := reflect.TypeOf(actual)
+	if actualType == nil {
+		return false
+	}
 	expectedValue := reflect.ValueOf(expected)
-	if expectedValue.Type().ConvertibleTo(actualType) {
+	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
 		// Attempt comparison after type conversion
 		return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
 	}
@@ -208,7 +214,7 @@ func Implements(t TestingT, interfaceObject interface{}, object interface{}, msg
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
 
 	if !reflect.TypeOf(object).Implements(interfaceType) {
-		return Fail(t, fmt.Sprintf("Object must implement %v", interfaceType), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%T must implement %v", object, interfaceType), msgAndArgs...)
 	}
 
 	return true
@@ -233,8 +239,9 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 
 	if !ObjectsAreEqual(expected, actual) {
+		diff := diff(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: %#v (expected)\n"+
-			"        != %#v (actual)", expected, actual), msgAndArgs...)
+			"        != %#v (actual)%s", expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
@@ -356,8 +363,16 @@ func isEmpty(object interface{}) bool {
 		{
 			return (objValue.Len() == 0)
 		}
+	case reflect.Struct:
+		switch object.(type) {
+		case time.Time:
+			return object.(time.Time).IsZero()
+		}
 	case reflect.Ptr:
 		{
+			if objValue.IsNil() {
+				return true
+			}
 			switch object.(type) {
 			case *time.Time:
 				return object.(*time.Time).IsZero()
@@ -372,7 +387,7 @@ func isEmpty(object interface{}) bool {
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
-// assert.Empty(t, obj)
+//  assert.Empty(t, obj)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
@@ -389,9 +404,9 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
-// if assert.NotEmpty(t, obj) {
-//   assert.Equal(t, "two", obj[1])
-// }
+//  if assert.NotEmpty(t, obj) {
+//    assert.Equal(t, "two", obj[1])
+//  }
 //
 // Returns whether the assertion was successful (true) or not (false).
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
@@ -450,7 +465,7 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 
 }
 
-// False asserts that the specified value is true.
+// False asserts that the specified value is false.
 //
 //    assert.False(t, myBool, "myBool should be false")
 //
@@ -920,4 +935,50 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	}
 
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
+}
+
+func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
+	t := reflect.TypeOf(v)
+	k := t.Kind()
+
+	if k == reflect.Ptr {
+		t = t.Elem()
+		k = t.Kind()
+	}
+	return t, k
+}
+
+// diff returns a diff of both values as long as both are of the same type and
+// are a struct, map, slice or array. Otherwise it returns an empty string.
+func diff(expected interface{}, actual interface{}) string {
+	if expected == nil || actual == nil {
+		return ""
+	}
+
+	et, ek := typeAndKind(expected)
+	at, _ := typeAndKind(actual)
+
+	if et != at {
+		return ""
+	}
+
+	if ek != reflect.Struct && ek != reflect.Map && ek != reflect.Slice && ek != reflect.Array {
+		return ""
+	}
+
+	spew.Config.SortKeys = true
+	e := spew.Sdump(expected)
+	a := spew.Sdump(actual)
+
+	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+		A:        difflib.SplitLines(e),
+		B:        difflib.SplitLines(a),
+		FromFile: "Expected",
+		FromDate: "",
+		ToFile:   "Actual",
+		ToDate:   "",
+		Context:  1,
+	})
+
+	return "\n\nDiff:\n" + diff
 }

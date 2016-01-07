@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"math"
+	"os"
 	"reflect"
 	"regexp"
 	"testing"
@@ -130,6 +131,12 @@ func TestObjectsAreEqual(t *testing.T) {
 	}
 	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
 		t.Error("ObjectsAreEqualValues should return true")
+	}
+	if ObjectsAreEqualValues(0, nil) {
+		t.Fail()
+	}
+	if ObjectsAreEqualValues(nil, 0) {
+		t.Fail()
 	}
 
 }
@@ -564,6 +571,7 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty(false))
 	True(t, isEmpty(map[string]string{}))
 	True(t, isEmpty(new(time.Time)))
+	True(t, isEmpty(time.Time{}))
 	True(t, isEmpty(make(chan struct{})))
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
@@ -580,6 +588,10 @@ func TestEmpty(t *testing.T) {
 	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
+	var tiP *time.Time
+	var tiNP time.Time
+	var s *string
+	var f *os.File
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
 	True(t, Empty(mockT, nil), "Nil is empty")
@@ -587,6 +599,10 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, 0), "Zero int value is empty")
 	True(t, Empty(mockT, false), "False value is empty")
 	True(t, Empty(mockT, make(chan struct{})), "Channel without values is empty")
+	True(t, Empty(mockT, s), "Nil string pointer is empty")
+	True(t, Empty(mockT, f), "Nil os.File pointer is empty")
+	True(t, Empty(mockT, tiP), "Nil time.Time pointer is empty")
+	True(t, Empty(mockT, tiNP), "time.Time is empty")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -983,4 +999,94 @@ func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
 func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
+}
+
+func TestDiff(t *testing.T) {
+	expected := `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,3 +1,3 @@
+ (struct { foo string }) {
+- foo: (string) (len=5) "hello"
++ foo: (string) (len=3) "bar"
+ }
+`
+	actual := diff(
+		struct{ foo string }{"hello"},
+		struct{ foo string }{"bar"},
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -2,5 +2,5 @@
+  (int) 1,
+- (int) 2,
+  (int) 3,
+- (int) 4
++ (int) 5,
++ (int) 7
+ }
+`
+	actual = diff(
+		[]int{1, 2, 3, 4},
+		[]int{1, 3, 5, 7},
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -2,4 +2,4 @@
+  (int) 1,
+- (int) 2,
+- (int) 3
++ (int) 3,
++ (int) 5
+ }
+`
+	actual = diff(
+		[]int{1, 2, 3, 4}[0:3],
+		[]int{1, 3, 5, 7}[0:3],
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,6 +1,6 @@
+ (map[string]int) (len=4) {
+- (string) (len=4) "four": (int) 4,
++ (string) (len=4) "five": (int) 5,
+  (string) (len=3) "one": (int) 1,
+- (string) (len=5) "three": (int) 3,
+- (string) (len=3) "two": (int) 2
++ (string) (len=5) "seven": (int) 7,
++ (string) (len=5) "three": (int) 3
+ }
+`
+
+	actual = diff(
+		map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
+		map[string]int{"one": 1, "three": 3, "five": 5, "seven": 7},
+	)
+	Equal(t, expected, actual)
+}
+
+func TestDiffEmptyCases(t *testing.T) {
+	Equal(t, "", diff(nil, nil))
+	Equal(t, "", diff(struct{ foo string }{}, nil))
+	Equal(t, "", diff(nil, struct{ foo string }{}))
+	Equal(t, "", diff(1, 2))
+	Equal(t, "", diff(1, 2))
+	Equal(t, "", diff([]int{1}, []bool{true}))
 }

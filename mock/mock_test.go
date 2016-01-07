@@ -147,6 +147,63 @@ func Test_Mock_On_WithFuncArg(t *testing.T) {
 	})
 }
 
+func Test_Mock_On_WithIntArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.On("TheExampleMethod",
+		MatchedBy(func(a int) bool {
+			return a == 1
+		}), MatchedBy(func(b int) bool {
+			return b == 2
+		}), MatchedBy(func(c int) bool {
+			return c == 3
+		})).Return(0, nil)
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethod(1, 2, 4)
+	})
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethod(2, 2, 3)
+	})
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethod(1, 2, 3)
+	})
+}
+
+func Test_Mock_On_WithPtrArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.On("TheExampleMethod3",
+		MatchedBy(func(a *ExampleType) bool { return a.ran == true }),
+	).Return(nil)
+
+	mockedService.On("TheExampleMethod3",
+		MatchedBy(func(a *ExampleType) bool { return a.ran == false }),
+	).Return(errors.New("error!"))
+
+	assert.Equal(t, mockedService.TheExampleMethod3(&ExampleType{true}), nil)
+	assert.EqualError(t, mockedService.TheExampleMethod3(&ExampleType{false}), "error!")
+}
+
+func Test_Mock_On_WithFuncArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	fixture1, fixture2 := errors.New("fixture1"), errors.New("fixture2")
+
+	mockedService.On("TheExampleMethodFunc",
+		MatchedBy(func(a func(string) error) bool { return a("string") == fixture1 }),
+	).Return(errors.New("fixture1"))
+
+	mockedService.On("TheExampleMethodFunc",
+		MatchedBy(func(a func(string) error) bool { return a("string") == fixture2 }),
+	).Return(errors.New("fixture2"))
+
+	assert.EqualError(t, mockedService.TheExampleMethodFunc(
+		func(string) error { return fixture1 }), "fixture1")
+	assert.EqualError(t, mockedService.TheExampleMethodFunc(
+		func(string) error { return fixture2 }), "fixture2")
+}
+
 func Test_Mock_On_WithVariadicFunc(t *testing.T) {
 
 	// make a test impl object
@@ -935,6 +992,28 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `string != type int - %!s(int=123)`)
 
+}
+
+func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
+	matchFn := func(a int) bool {
+		return a == 123
+	}
+	var args Arguments = []interface{}{"string", MatchedBy(matchFn), true}
+
+	diff, count := args.Diff([]interface{}{"string", 124, true})
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `%!s(int=124) not matched by func(int) bool`)
+
+	diff, count = args.Diff([]interface{}{"string", false, true})
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `%!s(bool=false) not matched by func(int) bool`)
+
+	diff, count = args.Diff([]interface{}{"string", 123, false})
+	assert.Contains(t, diff, `%!s(int=123) matched by func(int) bool`)
+
+	diff, count = args.Diff([]interface{}{"string", 123, true})
+	assert.Equal(t, 0, count)
+	assert.Contains(t, diff, `No differences.`)
 }
 
 func Test_Arguments_Assert(t *testing.T) {
