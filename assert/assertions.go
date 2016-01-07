@@ -995,7 +995,7 @@ func EventuallyTrue(t TestingT, test func() bool, timeout time.Duration, tick ti
 				return true
 			}
 		case <-timeoutChannel:
-			Fail(t, fmt.Sprintf("Timeout of %s reached", timeout))
+			Fail(t, fmt.Sprintf("Waiting for expression to eventually be true timed out (%s)", timeout))
 			return false
 		case <-ticker.C:
 			go func() {
