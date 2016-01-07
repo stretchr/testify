@@ -262,6 +262,12 @@ func (f *Func) Comment() string {
 	return "// " + strings.Replace(strings.TrimSpace(f.DocInfo.Doc), "\n", "\n// ", -1)
 }
 
+func (f *Func) CommentWithoutT(receiver string) string {
+	search := fmt.Sprintf("assert.%s(t, ", f.DocInfo.Name)
+	replace := fmt.Sprintf("%s.%s(", receiver, f.DocInfo.Name)
+	return strings.Replace(f.Comment(), search, replace, -1)
+}
+
 var headerTemplate = `/*
 * CODE GENERATED AUTOMATICALLY WITH github.com/stretchr/testify/_codegen
 * THIS FILE MUST NOT BE EDITED BY HAND
