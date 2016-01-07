@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stretchr/testify/Godeps/_workspace/src/github.com/stretchr/objx"
+	"github.com/stretchr/objx"
 	"github.com/stretchr/testify/assert"
 )
 
