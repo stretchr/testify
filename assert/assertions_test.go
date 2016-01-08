@@ -1090,3 +1090,24 @@ func TestDiffEmptyCases(t *testing.T) {
 	Equal(t, "", diff(1, 2))
 	Equal(t, "", diff([]int{1}, []bool{true}))
 }
+
+func TestEventuallyTrueTimeout(t *testing.T) {
+	mockT := new(testing.T)
+
+	False(t, EventuallyTrue(mockT, func() bool {
+		time.Sleep(120 * time.Millisecond)
+		return true
+	}, 100*time.Millisecond, 10*time.Millisecond))
+
+	False(t, EventuallyTrue(mockT, func() bool {
+		return false
+	}, 100*time.Millisecond, 10*time.Millisecond))
+
+}
+
+func TestEventuallyTrue(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, EventuallyTrue(mockT, func() bool {
+		return true
+	}, 100*time.Millisecond, 10*time.Millisecond))
+}

@@ -990,3 +990,27 @@ func diff(expected interface{}, actual interface{}) string {
 
 	return "\n\nDiff:\n" + diff
 }
+
+// EventuallyTrue asserts that a given test function will return true
+// before a given duration, the function will be called at each tick
+func EventuallyTrue(t TestingT, test func() bool, timeout time.Duration, tick time.Duration) bool {
+	timeoutChannel := time.After(timeout)
+	ticker := time.NewTicker(tick)
+	results := make(chan bool)
+	defer ticker.Stop()
+	for {
+		select {
+		case result := <-results:
+			if result {
+				return true
+			}
+		case <-timeoutChannel:
+			Fail(t, fmt.Sprintf("Waiting for expression to eventually be true timed out (%s)", timeout))
+			return false
+		case <-ticker.C:
+			go func() {
+				results <- test()
+			}()
+		}
+	}
+}
