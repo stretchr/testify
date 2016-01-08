@@ -21,6 +21,7 @@ import (
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...interface{})
+	FailNow()
 }
 
 // Comparison a custom function that returns true on success and false on failure
@@ -179,6 +180,13 @@ func indentMessageLines(message string, tabs int) string {
 	}
 
 	return outBuf.String()
+}
+
+// FailNow fails test
+func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
+	Fail(t, failureMessage, msgAndArgs...)
+	t.FailNow()
+	return false
 }
 
 // Fail reports a failure through

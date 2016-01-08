@@ -126,6 +126,14 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) {
 }
 
 
+// FailNow fails test
+func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) {
+  if !assert.FailNow(t, failureMessage, msgAndArgs...) {
+    t.FailNow()
+  }
+}
+
+
 // False asserts that the specified value is false.
 // 
 //    assert.False(t, myBool, "myBool should be false")
