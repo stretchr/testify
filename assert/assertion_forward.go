@@ -107,6 +107,12 @@ func (a *Assertions) Fail(failureMessage string, msgAndArgs ...interface{}) bool
 }
 
 
+// FailNow fails test
+func (a *Assertions) FailNow(failureMessage string, msgAndArgs ...interface{}) bool {
+	return FailNow(a.t, failureMessage, msgAndArgs...)
+}
+
+
 // False asserts that the specified value is false.
 // 
 //    a.False(myBool, "myBool should be false")
