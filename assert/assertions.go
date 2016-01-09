@@ -766,42 +766,40 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	return true
 }
 
-// min(|expected|, |actual|) * epsilon
-func calcEpsilonDelta(expected, actual interface{}, epsilon float64) float64 {
+func calcRelativeError(expected, actual interface{}) (float64, error) {
 	af, aok := toFloat(expected)
+	if !aok {
+		return 0, fmt.Errorf("expected value %q cannot be converted to float", expected)
+	}
+	if af == 0 {
+		return 0, fmt.Errorf("expected value must have a value other than zero to calculate the relative error")
+	}
 	bf, bok := toFloat(actual)
-
-	if !aok || !bok {
-		// invalid input
-		return 0
+	if !bok {
+		return 0, fmt.Errorf("expected value %q cannot be converted to float", actual)
 	}
 
-	if af < 0 {
-		af = -af
-	}
-	if bf < 0 {
-		bf = -bf
-	}
-	var delta float64
-	if af < bf {
-		delta = af * epsilon
-	} else {
-		delta = bf * epsilon
-	}
-	return delta
+	return math.Abs(af-bf) / math.Abs(af), nil
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon
 //
 // Returns whether the assertion was successful (true) or not (false).
 func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
-	delta := calcEpsilonDelta(expected, actual, epsilon)
+	actualEpsilon, err := calcRelativeError(expected, actual)
+	if err != nil {
+		return Fail(t, err.Error(), msgAndArgs...)
+	}
+	if actualEpsilon > epsilon {
+		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
+			"        < %#v (actual)", actualEpsilon, epsilon), msgAndArgs...)
+	}
 
-	return InDelta(t, expected, actual, delta, msgAndArgs...)
+	return true
 }
 
-// InEpsilonSlice is the same as InEpsilon, except it compares two slices.
-func InEpsilonSlice(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+// InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
+func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
@@ -812,7 +810,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, delta float64, msg
 	expectedSlice := reflect.ValueOf(expected)
 
 	for i := 0; i < actualSlice.Len(); i++ {
-		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta)
+		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon)
 		if !result {
 			return result
 		}
