@@ -188,6 +188,13 @@ func indentMessageLines(message string, tabs int) string {
 // FailNow fails test
 func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 	Fail(t, failureMessage, msgAndArgs...)
+
+	// We cannot extend TestingT with FailNow() and
+	// maintain backwards compatibility, so we fallback
+	// to panicking when FailNow is not available in
+	// TestingT.
+	// See issue #263
+
 	if t, ok := t.(FailNower); ok {
 		t.FailNow()
 	} else {
