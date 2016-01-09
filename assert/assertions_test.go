@@ -830,10 +830,11 @@ func TestInEpsilon(t *testing.T) {
 		{-2.2, -2.1, 0.1},
 		{uint64(100), uint8(101), 0.01},
 		{0.1, -0.1, 2},
+		{0.1, 0, 2},
 	}
 
 	for _, tc := range cases {
-		True(t, InEpsilon(mockT, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
+		True(t, InEpsilon(t, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon), "test: %q", tc)
 	}
 
 	cases = []struct {
@@ -847,6 +848,7 @@ func TestInEpsilon(t *testing.T) {
 		{2.1, -2.2, 1},
 		{2.1, "bla-bla", 0},
 		{0.1, -0.1, 1.99},
+		{0, 0.1, 2}, // expected must be different to zero
 	}
 
 	for _, tc := range cases {
