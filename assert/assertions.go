@@ -21,6 +21,9 @@ import (
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...interface{})
+}
+
+type FailNower interface {
 	FailNow()
 }
 
@@ -185,7 +188,11 @@ func indentMessageLines(message string, tabs int) string {
 // FailNow fails test
 func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 	Fail(t, failureMessage, msgAndArgs...)
-	t.FailNow()
+	if t, ok := t.(FailNower); ok {
+		t.FailNow()
+	} else {
+		panic("test failed and t is missing `FailNow()`")
+	}
 	return false
 }
 
