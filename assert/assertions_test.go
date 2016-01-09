@@ -1090,3 +1090,31 @@ func TestDiffEmptyCases(t *testing.T) {
 	Equal(t, "", diff(1, 2))
 	Equal(t, "", diff([]int{1}, []bool{true}))
 }
+
+type mockTestingT struct {
+}
+
+func (m *mockTestingT) Errorf(format string, args ...interface{}) {}
+
+func TestFailNowWithPlainTestingT(t *testing.T) {
+	mockT := &mockTestingT{}
+
+	Panics(t, func() {
+		FailNow(mockT, "failed")
+	}, "should panic since mockT is missing FailNow()")
+}
+
+type mockFailNowTestingT struct {
+}
+
+func (m *mockFailNowTestingT) Errorf(format string, args ...interface{}) {}
+
+func (m *mockFailNowTestingT) FailNow() {}
+
+func TestFailNowWithFullTestingT(t *testing.T) {
+	mockT := &mockFailNowTestingT{}
+
+	NotPanics(t, func() {
+		FailNow(mockT, "failed")
+	}, "should call mockT.FailNow() rather than panicking")
+}
