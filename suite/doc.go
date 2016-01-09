@@ -1,4 +1,4 @@
-// The suite package contains logic for creating testing suite structs
+// Package suite contains logic for creating testing suite structs
 // and running the methods on those structs as tests.  The most useful
 // piece of this package is that you can create setup/teardown methods
 // on your testing suites, which will run before/after the whole suite

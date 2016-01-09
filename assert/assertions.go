@@ -23,10 +23,6 @@ type TestingT interface {
 	Errorf(format string, args ...interface{})
 }
 
-type FailNower interface {
-	FailNow()
-}
-
 // Comparison a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
@@ -185,6 +181,10 @@ func indentMessageLines(message string, tabs int) string {
 	return outBuf.String()
 }
 
+type failNower interface {
+	FailNow()
+}
+
 // FailNow fails test
 func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 	Fail(t, failureMessage, msgAndArgs...)
@@ -195,7 +195,7 @@ func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool 
 	// TestingT.
 	// See issue #263
 
-	if t, ok := t.(FailNower); ok {
+	if t, ok := t.(failNower); ok {
 		t.FailNow()
 	} else {
 		panic("test failed and t is missing `FailNow()`")

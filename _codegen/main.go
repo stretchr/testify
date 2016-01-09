@@ -46,11 +46,11 @@ func main() {
 	}
 
 	if err := generateCode(importer, funcs); err != nil {
-		log.Fatal()
+		log.Fatal(err)
 	}
 }
 
-func generateCode(importer imports.Importer, funcs []Func) error {
+func generateCode(importer imports.Importer, funcs []testFunc) error {
 	buff := bytes.NewBuffer(nil)
 
 	tmplHead, tmplFunc, err := parseTemplates()
@@ -119,11 +119,11 @@ func outputFile() (*os.File, error) {
 
 // analyzeCode takes the types scope and the docs and returns the import
 // information and information about all the assertion functions.
-func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []Func, error) {
+func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []testFunc, error) {
 	testingT := scope.Lookup("TestingT").Type().Underlying().(*types.Interface)
 
 	importer := imports.New(*outputPkg)
-	funcs := make([]Func, 0)
+	var funcs []testFunc
 	// Go through all the top level functions
 	for _, fdocs := range docs.Funcs {
 		// Find the function
@@ -151,7 +151,7 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []Fun
 			continue
 		}
 
-		funcs = append(funcs, Func{*outputPkg, fdocs, fn})
+		funcs = append(funcs, testFunc{*outputPkg, fdocs, fn})
 		importer.AddImportsFrom(sig.Params())
 	}
 	return importer, funcs, nil
@@ -199,20 +199,20 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	return scope, docs, nil
 }
 
-type Func struct {
+type testFunc struct {
 	CurrentPkg string
 	DocInfo    *doc.Func
 	TypeInfo   *types.Func
 }
 
-func (f *Func) Qualifier(p *types.Package) string {
+func (f *testFunc) Qualifier(p *types.Package) string {
 	if p == nil || p.Name() == f.CurrentPkg {
 		return ""
 	}
 	return p.Name()
 }
 
-func (f *Func) Params() string {
+func (f *testFunc) Params() string {
 	sig := f.TypeInfo.Type().(*types.Signature)
 	params := sig.Params()
 	p := ""
@@ -235,7 +235,7 @@ func (f *Func) Params() string {
 	return p
 }
 
-func (f *Func) ForwardedParams() string {
+func (f *testFunc) ForwardedParams() string {
 	sig := f.TypeInfo.Type().(*types.Signature)
 	params := sig.Params()
 	p := ""
@@ -258,11 +258,11 @@ func (f *Func) ForwardedParams() string {
 	return p
 }
 
-func (f *Func) Comment() string {
+func (f *testFunc) Comment() string {
 	return "// " + strings.Replace(strings.TrimSpace(f.DocInfo.Doc), "\n", "\n// ", -1)
 }
 
-func (f *Func) CommentWithoutT(receiver string) string {
+func (f *testFunc) CommentWithoutT(receiver string) string {
 	search := fmt.Sprintf("assert.%s(t, ", f.DocInfo.Name)
 	replace := fmt.Sprintf("%s.%s(", receiver, f.DocInfo.Name)
 	return strings.Replace(f.Comment(), search, replace, -1)
