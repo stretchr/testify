@@ -357,6 +357,41 @@ func TestOutputFormatNoTrailingTabOnEmptyFiledate(t *testing.T) {
 	assertEqual(t, SplitLines(cd)[:2], []string{"*** Original\n", "--- Current\n"})
 }
 
+func TestOmitFilenames(t *testing.T) {
+	diff := UnifiedDiff{
+		A:   SplitLines("o\nn\ne\n"),
+		B:   SplitLines("t\nw\no\n"),
+		Eol: "\n",
+	}
+	ud, err := GetUnifiedDiffString(diff)
+	assertEqual(t, err, nil)
+	assertEqual(t, SplitLines(ud), []string{
+		"@@ -0,0 +1,2 @@\n",
+		"+t\n",
+		"+w\n",
+		"@@ -2,2 +3,0 @@\n",
+		"-n\n",
+		"-e\n",
+		"\n",
+	})
+
+	cd, err := GetContextDiffString(ContextDiff(diff))
+	assertEqual(t, err, nil)
+	assertEqual(t, SplitLines(cd), []string{
+		"***************\n",
+		"*** 0 ****\n",
+		"--- 1,2 ----\n",
+		"+ t\n",
+		"+ w\n",
+		"***************\n",
+		"*** 2,3 ****\n",
+		"- n\n",
+		"- e\n",
+		"--- 3 ----\n",
+		"\n",
+	})
+}
+
 func TestSplitLines(t *testing.T) {
 	allTests := []struct {
 		input string
