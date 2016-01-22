@@ -261,6 +261,34 @@ func TestExampleTestSuite(t *testing.T) {
 }
 ```
 
+During debugging, you can focus (ie: only run) on certain tests in a suite by prefixing them with an `X`, eg:
+
+```go
+import (
+    "testing"
+    "github.com/stretchr/testify/suite"
+)
+
+type ExampleTestSuite struct {
+    suite.Suite
+}
+
+// This test is "focused" and will run
+func (suite *ExampleTestSuite) XTestSomething() {
+    suite.Equal(/* ... */)
+}
+
+// This test is not "focused" so will be ignored.
+func (suite *ExampleTestSuite) TestSomething() {
+    suite.Equal(/* ... */)
+}
+
+// Run the suite.
+func TestExampleTestSuite(t *testing.T) {
+    suite.Run(t, new(ExampleTestSuite))
+}
+```
+
 ------
 
 Installation

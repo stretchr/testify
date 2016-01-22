@@ -167,6 +167,18 @@ func TestRunSuite(t *testing.T) {
 	// called Skip()
 	assert.Equal(t, suiteSkipTester.SetupSuiteRunCount, 1)
 	assert.Equal(t, suiteSkipTester.TearDownSuiteRunCount, 1)
+	
+	suiteFocusTester := new(SuiteFocusTester)
+	Run(t, suiteFocusTester)
+
+	// Normally, the test would end here.  The following are simply
+	// some assertions to ensure that the Run function is working as
+	// intended - they are not part of the example.
+
+	// Only the Focused tests should have been executed
+	assert.Equal(t, suiteFocusTester.NotFocusedTestRunCount, 0)
+	assert.Equal(t, suiteFocusTester.FocusedTestRunCount, 1)
+	assert.Equal(t, suiteFocusTester.AlsoFocusedTestRunCount, 1)
 
 }
 
@@ -236,4 +248,28 @@ func TestSuiteLogging(t *testing.T) {
 	} else {
 		assert.NotContains(t, output, "TESTLOGPASS")
 	}
+}
+
+
+type SuiteFocusTester struct {
+	// Include our basic suite logic.
+	Suite
+	
+	// Keep counts of how many times each method is run.
+	NotFocusedTestRunCount  int
+	FocusedTestRunCount     int
+	AlsoFocusedTestRunCount int
+	
+}
+
+func (suite *SuiteFocusTester) TestNotFocused() {
+	suite.NotFocusedTestRunCount++
+}
+
+func (suite *SuiteFocusTester) XTestFocused() {
+	suite.FocusedTestRunCount++
+}
+
+func (suite *SuiteFocusTester) XTestAlsoFocused() {
+	suite.AlsoFocusedTestRunCount++
 }

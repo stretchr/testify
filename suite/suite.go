@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -70,6 +71,7 @@ func Run(t *testing.T, suite TestingSuite) {
 
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
+	focusedTests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
 		ok, err := methodFilter(method.Name)
@@ -95,10 +97,21 @@ func Run(t *testing.T, suite TestingSuite) {
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 				},
 			}
-			tests = append(tests, test)
+			if strings.HasPrefix(method.Name, "X") {
+				focusedTests = append(focusedTests, test)
+			} else {
+				tests = append(tests, test)
+			}
 		}
 	}
-
+	if (len(focusedTests) > 0) {
+		for i := range tests {
+			tests[i].F = func (t *testing.T) {
+				t.Skip("Skipping " + tests[i].Name + " as it is not focused")
+			}
+		}
+		tests = append(tests, focusedTests...)
+	}
 	if !testing.RunTests(func(_, _ string) (bool, error) { return true, nil },
 		tests) {
 		t.Fail()
