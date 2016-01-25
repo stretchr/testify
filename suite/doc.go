@@ -1,4 +1,4 @@
-// The suite package contains logic for creating testing suite structs
+// Package suite contains logic for creating testing suite structs
 // and running the methods on those structs as tests.  The most useful
 // piece of this package is that you can create setup/teardown methods
 // on your testing suites, which will run before/after the whole suite
@@ -53,8 +53,8 @@
 //     // All methods that begin with "Test" are run as tests within a
 //     // suite.
 //     func (suite *ExampleTestSuite) TestExample() {
-//         assert.Equal(suite.T(), suite.VariableThatShouldStartAtFive, 5)
-//         suite.Equal(suite.VariableThatShouldStartAtFive, 5)
+//         assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
+//         suite.Equal(5, suite.VariableThatShouldStartAtFive)
 //     }
 //
 //     // In order for 'go test' to run this suite, we need to create
