@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	i      interface{}
+	i     interface{}
 	zeros = []interface{}{
 		false,
 		byte(0),
@@ -129,6 +129,15 @@ func TestObjectsAreEqual(t *testing.T) {
 		t.Error("objectsAreEqual should return false")
 	}
 	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
+		t.Error("ObjectsAreEqualValues should return true")
+	}
+	if ObjectsAreEqualValues(uint32(10), nil) {
+		t.Error("ObjectsAreEqualValues should return false")
+	}
+	if ObjectsAreEqualValues(nil, uint32(10)) {
+		t.Error("ObjectsAreEqualValues should return false")
+	}
+	if !ObjectsAreEqualValues(nil, nil) {
 		t.Error("ObjectsAreEqualValues should return true")
 	}
 
