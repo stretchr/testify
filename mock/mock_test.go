@@ -103,12 +103,14 @@ func Test_Mock_Chained_On(t *testing.T) {
 			Method:          "TheExampleMethod",
 			Arguments:       []interface{}{1, 2, 3},
 			ReturnArguments: []interface{}{0},
+			Repeatability:   Unlimited,
 		},
 		&Call{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod3",
 			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
 			ReturnArguments: []interface{}{nil},
+			Repeatability:   Unlimited,
 		},
 	}
 	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
@@ -318,7 +320,7 @@ func Test_Mock_Return(t *testing.T) {
 	assert.Equal(t, 1, call.ReturnArguments[0])
 	assert.Equal(t, "two", call.ReturnArguments[1])
 	assert.Equal(t, true, call.ReturnArguments[2])
-	assert.Equal(t, 0, call.Repeatability)
+	assert.Equal(t, Unlimited, call.Repeatability)
 	assert.Nil(t, call.WaitFor)
 }
 
@@ -345,7 +347,7 @@ func Test_Mock_Return_WaitUntil(t *testing.T) {
 	assert.Equal(t, 1, call.ReturnArguments[0])
 	assert.Equal(t, "two", call.ReturnArguments[1])
 	assert.Equal(t, true, call.ReturnArguments[2])
-	assert.Equal(t, 0, call.Repeatability)
+	assert.Equal(t, Unlimited, call.Repeatability)
 	assert.Equal(t, ch, call.WaitFor)
 }
 
@@ -370,7 +372,7 @@ func Test_Mock_Return_After(t *testing.T) {
 	assert.Equal(t, 1, call.ReturnArguments[0])
 	assert.Equal(t, "two", call.ReturnArguments[1])
 	assert.Equal(t, true, call.ReturnArguments[2])
-	assert.Equal(t, 0, call.Repeatability)
+	assert.Equal(t, Unlimited, call.Repeatability)
 	assert.NotEqual(t, nil, call.WaitFor)
 
 }
@@ -397,7 +399,7 @@ func Test_Mock_Return_Run(t *testing.T) {
 	assert.Equal(t, "TheExampleMethod3", call.Method)
 	assert.Equal(t, AnythingOfType("*mock.ExampleType"), call.Arguments[0])
 	assert.Equal(t, nil, call.ReturnArguments[0])
-	assert.Equal(t, 0, call.Repeatability)
+	assert.Equal(t, Unlimited, call.Repeatability)
 	assert.NotEqual(t, nil, call.WaitFor)
 	assert.NotNil(t, call.Run)
 
@@ -427,7 +429,7 @@ func Test_Mock_Return_Run_Out_Of_Order(t *testing.T) {
 	assert.Equal(t, "TheExampleMethod3", call.Method)
 	assert.Equal(t, AnythingOfType("*mock.ExampleType"), call.Arguments[0])
 	assert.Equal(t, nil, call.ReturnArguments[0])
-	assert.Equal(t, 0, call.Repeatability)
+	assert.Equal(t, Unlimited, call.Repeatability)
 	assert.NotEqual(t, nil, call.WaitFor)
 	assert.NotNil(t, call.Run)
 }
@@ -698,6 +700,34 @@ func Test_Mock_Called_For_SetTime_Expectation(t *testing.T) {
 	assert.Panics(t, func() {
 		mockedService.TheExampleMethod(1, 2, 3)
 	})
+
+}
+
+func Test_Mock_Not_Called_For_SetTime_0_Expectation(t *testing.T) {
+
+	// Test that .Times(0) raises error when prohibited call is made.
+	var mockedService1 = new(TestExampleImplementation)
+
+	mockedService1.On("TheExampleMethod", 1, 2, 18).Return(5, "6", true).Times(0)
+	assert.Panics(t, func() {
+		mockedService1.TheExampleMethod(1, 2, 5)
+	})
+
+	// Test that .Times(0) does not affect AssertExpectations calls.
+	var mockedService2 = new(TestExampleImplementation)
+
+	mockedService2.On("TheExampleMethod", 1, 2, 18).Return(5, "6", true).Times(0)
+	tt := new(testing.T)
+	assert.True(t, mockedService2.AssertExpectations(tt))
+
+	// make sure .Times(0) works in the presense of other expectations.
+	var mockedService3 = new(TestExampleImplementation)
+
+	mockedService3.On("TheExampleMethod", 1, 2, 3).Return(5, "6", true).Times(1)
+	mockedService3.On("TheExampleMethod", 1, 2, 18).Return(5, "6", true).Times(0)
+
+	mockedService3.TheExampleMethod(1, 2, 3)
+	assert.True(t, mockedService3.AssertExpectations(tt))
 
 }
 

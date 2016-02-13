@@ -2,6 +2,7 @@ package mock
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -40,7 +41,7 @@ type Call struct {
 	ReturnArguments Arguments
 
 	// The number of times to return the return arguments when setting
-	// expectations. 0 means to always return the value.
+	// expectations. Unlimited means to always return the value.
 	Repeatability int
 
 	// Holds a channel that will be used to block the Return until it either
@@ -59,7 +60,7 @@ func newCall(parent *Mock, methodName string, methodArguments ...interface{}) *C
 		Method:          methodName,
 		Arguments:       methodArguments,
 		ReturnArguments: make([]interface{}, 0),
-		Repeatability:   0,
+		Repeatability:   Unlimited,
 		WaitFor:         nil,
 		RunFn:           nil,
 	}
@@ -100,7 +101,8 @@ func (c *Call) Twice() *Call {
 }
 
 // Times indicates that that the mock should only return the indicated number
-// of times.
+// of times.  The argument can be zero to indicate that the mock should not be
+// called at all.
 //
 //    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (c *Call) Times(i int) *Call {
@@ -212,7 +214,7 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	for i, call := range m.ExpectedCalls {
-		if call.Method == method && call.Repeatability > -1 {
+		if call.Method == method && call.Repeatability > 0 {
 
 			_, diffCount := call.Arguments.Diff(arguments)
 			if diffCount == 0 {
@@ -302,11 +304,11 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		}
 	} else {
 		m.mutex.Lock()
-		switch {
-		case call.Repeatability == 1:
-			call.Repeatability = -1
-
-		case call.Repeatability > 1:
+		switch call.Repeatability {
+		case Unlimited:
+		case 0:
+			break
+		default:
 			call.Repeatability--
 		}
 		m.mutex.Unlock()
@@ -349,33 +351,35 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 // AssertExpectations asserts that everything specified with On and Return was
 // in fact called as expected.  Calls may have occurred in any order.
 func (m *Mock) AssertExpectations(t TestingT) bool {
-	var somethingMissing bool
 	var failedExpectations int
 
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
 	for _, expectedCall := range expectedCalls {
-		if !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) {
-			somethingMissing = true
-			failedExpectations++
-			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
-		} else {
-			m.mutex.Lock()
-			if expectedCall.Repeatability > 0 {
-				somethingMissing = true
+		methodWasCalled := m.methodWasCalled(expectedCall.Method, expectedCall.Arguments)
+		m.mutex.Lock()
+		if !methodWasCalled {
+			if expectedCall.Repeatability != 0 {
 				failedExpectations++
-			} else {
-				t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+				t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 			}
-			m.mutex.Unlock()
+		} else {
+			switch expectedCall.Repeatability {
+			case 0:
+			case Unlimited:
+				t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+			default:
+				failedExpectations++
+			}
 		}
+		m.mutex.Unlock()
 	}
 
-	if somethingMissing {
+	if failedExpectations > 0 {
 		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
 	}
 
-	return !somethingMissing
+	return failedExpectations == 0
 }
 
 // AssertNumberOfCalls asserts that the method was called expectedCalls times.
@@ -447,6 +451,10 @@ const (
 	// Anything is used in Diff and Assert when the argument being tested
 	// shouldn't be taken into consideration.
 	Anything string = "mock.Anything"
+
+	// Used in Times to specify that the mock can return unlimited positive
+	// number of times. Is a default when Times is not called.
+	Unlimited int = math.MaxInt32
 )
 
 // AnythingOfTypeArgument is a string that contains the type of an argument
