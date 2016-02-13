@@ -41,7 +41,7 @@ type Call struct {
 	ReturnArguments Arguments
 
 	// The number of times to return the return arguments when setting
-	// expectations. 0 means to always return the value.
+	// expectations. Unlimited means to always return the value.
 	Repeatability int
 
 	// Holds a channel that will be used to block the Return until it either
