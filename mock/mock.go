@@ -296,7 +296,9 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		closestFound, closestCall := m.findClosestCall(functionName, arguments...)
 
 		if closestFound {
-			if functionName == closestCall.Method && closestCall.Repeatability == -1 {
+			m.mutex.lock()
+			defer m.mutex.unlock()
+			if closestCall.Repeatability == -1 {
 				panic(fmt.Sprintf(
 					"\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\n" +
 					"Found call, but Repeatability is exhausted. Use Times(n), Once(), Twice() or nothing to finetune.\n\n",
