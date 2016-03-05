@@ -91,6 +91,21 @@ func init() {
 		flagKindShift = 0
 		flagRO = 1 << 5
 		flagIndir = 1 << 6
+
+		// Commit adf9b30e5594 modified the flags to separate the
+		// flagRO flag into two bits which specifies whether or not the
+		// field is embedded.  This causes flagIndir to move over a bit
+		// and means that flagRO is the combination of either of the
+		// original flagRO bit and the new bit.
+		//
+		// This code detects the change by extracting what used to be
+		// the indirect bit to ensure it's set.  When it's not, the flag
+		// order has been changed to the newer format, so the flags are
+		// updated accordingly.
+		if upfv&flagIndir == 0 {
+			flagRO = 3 << 5
+			flagIndir = 1 << 7
+		}
 	}
 }
 
