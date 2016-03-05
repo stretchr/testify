@@ -181,8 +181,6 @@ func (d *dumpState) dumpSlice(v reflect.Value) {
 		// Try to use existing uint8 slices and fall back to converting
 		// and copying if that fails.
 		case vt.Kind() == reflect.Uint8:
-			// TODO(davec): Fix up the disableUnsafe bits...
-
 			// We need an addressable interface to convert the type
 			// to a byte slice.  However, the reflect package won't
 			// give us an interface on certain things like
