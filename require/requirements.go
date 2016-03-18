@@ -136,18 +136,22 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 	}
 }
 
-// Contains asserts that the specified string contains the specified substring.
+// Contains asserts that the specified string or list(array, slice...) contains the
+// specified substring or element.
 //
 //    require.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
+//    require.Contains(t, ["Hello", "World"], "World", "But ["Hello", "World"] does contain 'World'")
 func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
 	if !assert.Contains(t, s, contains, msgAndArgs...) {
 		t.FailNow()
 	}
 }
 
-// NotContains asserts that the specified string does NOT contain the specified substring.
+// NotContains asserts that the specified string or list(array, slice...) does NOT contain the
+// specified substring or element.
 //
 //    require.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
+//    require.NotContains(t, ["Hello", "World"], "Earth", "But ['Hello', 'World'] does NOT contain 'Earth'")
 func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotContains(t, s, contains, msgAndArgs...) {
 		t.FailNow()
