@@ -489,7 +489,7 @@ func (f argumentMatcher) String() string {
 // and false otherwise.
 //
 // Example:
-// m.On("Do", func(req *http.Request) bool { return req.Host == "example.com" })
+// m.On("Do", MatchedBy(func(req *http.Request) bool { return req.Host == "example.com" }))
 //
 // |fn|, must be a function accepting a single argument (of the expected type)
 // which returns a bool. If |fn| doesn't match the required signature,
