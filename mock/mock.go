@@ -43,6 +43,9 @@ type Call struct {
 	// expectations. 0 means to always return the value.
 	Repeatability int
 
+	// Amount of times this call has been called
+	totalCalls int
+
 	// Holds a channel that will be used to block the Return until it either
 	// recieves a message or is closed. nil means it returns immediately.
 	WaitFor <-chan time.Time
@@ -305,9 +308,14 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		switch {
 		case call.Repeatability == 1:
 			call.Repeatability = -1
+			call.totalCalls++
 
 		case call.Repeatability > 1:
 			call.Repeatability--
+			call.totalCalls++
+
+		case call.Repeatability == 0:
+			call.totalCalls++
 		}
 		m.mutex.Unlock()
 	}
@@ -355,7 +363,7 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
 	for _, expectedCall := range expectedCalls {
-		if !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) {
+		if expectedCall.totalCalls == 0 {
 			somethingMissing = true
 			failedExpectations++
 			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())

@@ -765,6 +765,27 @@ func Test_Mock_AssertExpectations(t *testing.T) {
 
 }
 
+func Test_Mock_AssertExpectations_With_Pointers(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectations_With_Pointers", &struct{ Foo int }{1}).Return(1)
+	mockedService.On("Test_Mock_AssertExpectations_With_Pointers", &struct{ Foo int }{2}).Return(2)
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	s := struct{ Foo int }{1}
+	// make the calls now
+	mockedService.Called(&s)
+	s.Foo = 2
+	mockedService.Called(&s)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
 func Test_Mock_AssertExpectationsCustomType(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
