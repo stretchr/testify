@@ -253,6 +253,26 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 	return true
 }
 
+// IsAssignableTo asserts that an object is assignable to the specified type.
+func IsAssignableTo(t TestingT, assignableToType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+
+	if !reflect.TypeOf(object).AssignableTo(reflect.TypeOf(assignableToType)) {
+		return Fail(t, fmt.Sprintf("Object %v is not assignable to %v", reflect.TypeOf(object), reflect.TypeOf(assignableToType)), msgAndArgs...)
+	}
+
+	return true
+}
+
+// IsNotAssignableTo asserts that an object is not assignable to the specified type.
+func IsNotAssignableTo(t TestingT, notAssignableToType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+
+	if reflect.TypeOf(object).AssignableTo(reflect.TypeOf(notAssignableToType)) {
+		return Fail(t, fmt.Sprintf("Object %v is assignable to %v", reflect.TypeOf(object), reflect.TypeOf(notAssignableToType)), msgAndArgs...)
+	}
+
+	return true
+}
+
 // Equal asserts that two objects are equal.
 //
 //    assert.Equal(t, 123, 123, "123 and 123 should be equal")
