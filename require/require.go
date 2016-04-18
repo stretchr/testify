@@ -397,6 +397,18 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 }
 
 
+// Equal asserts that two objects are actually the same one.
+// 
+//    assert.NotSame(t, []int{123}, []int{123}, "should be different objects")
+// 
+// Returns whether the assertion was successful (true) or not (false).
+func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+  if !assert.NotSame(t, expected, actual, msgAndArgs...) {
+    t.FailNow()
+  }
+}
+
+
 // NotZero asserts that i is not the zero value for its type and returns the truth.
 func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
   if !assert.NotZero(t, i, msgAndArgs...) {
@@ -427,6 +439,19 @@ func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 // Returns whether the assertion was successful (true) or not (false).
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
   if !assert.Regexp(t, rx, str, msgAndArgs...) {
+    t.FailNow()
+  }
+}
+
+
+// Equal asserts that two objects are actually the same one.
+// 
+//    obj := []int{123}
+//    assert.Same(t, obj, obj, "should be the same object")
+// 
+// Returns whether the assertion was successful (true) or not (false).
+func Same(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+  if !assert.Same(t, expected, actual, msgAndArgs...) {
     t.FailNow()
   }
 }

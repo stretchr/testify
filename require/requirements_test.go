@@ -56,6 +56,36 @@ func TestIsType(t *testing.T) {
 	}
 }
 
+func TestSame(t *testing.T) {
+
+	a := float32(1)
+	b := float32(1)
+	c := float64(1)
+
+	Same(t, a, b)
+
+	mockT := new(MockT)
+	Same(mockT, a, c)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestNotSame(t *testing.T) {
+
+	a := float32(1)
+	b := float32(1)
+	c := float64(1)
+
+	NotSame(t, a, c)
+
+	mockT := new(MockT)
+	NotSame(mockT, a, b)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestEqual(t *testing.T) {
 
 	Equal(t, 1, 1)

@@ -333,6 +333,16 @@ func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...in
 }
 
 
+// Equal asserts that two objects are actually the same one.
+// 
+//    a.NotSame([]int{123}, []int{123}, "should be different objects")
+// 
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) NotSame(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	NotSame(a.t, expected, actual, msgAndArgs...)
+}
+
+
 // NotZero asserts that i is not the zero value for its type and returns the truth.
 func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) {
 	NotZero(a.t, i, msgAndArgs...)
@@ -359,6 +369,17 @@ func (a *Assertions) Panics(f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	Regexp(a.t, rx, str, msgAndArgs...)
+}
+
+
+// Equal asserts that two objects are actually the same one.
+// 
+//    obj := []int{123}
+//    a.Same(obj, obj, "should be the same object")
+// 
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) Same(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	Same(a.t, expected, actual, msgAndArgs...)
 }
 
 

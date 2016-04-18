@@ -253,6 +253,51 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 	return true
 }
 
+// Equal asserts that two objects are actually the same one.
+//
+//    obj := []int{123}
+//    assert.Same(t, obj, obj, "should be the same object")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+
+	aType := reflect.TypeOf(expected)
+	bType := reflect.TypeOf(actual)
+
+	if aType != bType {
+		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\r\t%v != %v", aType, bType), msgAndArgs...)
+	}
+
+	if expected != actual {
+		return Fail(t, fmt.Sprintf("Not the same: %#v (expected)\n"+
+			"        != %#v (actual)%s", expected, actual), msgAndArgs...)
+	}
+
+	return true
+}
+
+// Equal asserts that two objects are actually the same one.
+//
+//    assert.NotSame(t, []int{123}, []int{123}, "should be different objects")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+
+	aType := reflect.TypeOf(expected)
+	bType := reflect.TypeOf(actual)
+
+	if aType != bType {
+		return true
+	}
+
+	if expected == actual {
+		return Fail(t, fmt.Sprintf("Objects are the same: %#v (expected)\n"+
+			"        == %#v (actual)", expected, actual), msgAndArgs...)
+	}
+
+	return true
+}
+
 // Equal asserts that two objects are equal.
 //
 //    assert.Equal(t, 123, 123, "123 and 123 should be equal")
