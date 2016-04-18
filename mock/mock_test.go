@@ -765,6 +765,47 @@ func Test_Mock_AssertExpectations(t *testing.T) {
 
 }
 
+func Test_Mock_AssertExpectations_Placeholder_NoArgs(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectations_Placeholder_NoArgs").Return(5, 6, 7).Once()
+	mockedService.On("Test_Mock_AssertExpectations_Placeholder_NoArgs").Return(7, 6, 5)
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	mockedService.Called()
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
+func Test_Mock_AssertExpectations_Placeholder(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectations_Placeholder", 1, 2, 3).Return(5, 6, 7).Once()
+	mockedService.On("Test_Mock_AssertExpectations_Placeholder", 3, 2, 1).Return(7, 6, 5)
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	mockedService.Called(1, 2, 3)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make call to the second expectation
+	mockedService.Called(3, 2, 1)
+
+	// now assert expectations again
+	assert.True(t, mockedService.AssertExpectations(tt))
+}
+
 func Test_Mock_AssertExpectations_With_Pointers(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
