@@ -666,6 +666,34 @@ func NotPanics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 	return true
 }
 
+// Before asserts that the actual time is before the expected time.
+//
+//   assert.Before(t, time.Now(), time.Now().Add(time.Hour), "The current time should be befote one hour from now")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Before(t TestingT, actual, target time.Time, msgAndArgs ...interface{}) bool {
+
+	if !actual.Before(target) {
+		return Fail(t, fmt.Sprintf("%v is not before %v", actual, target), msgAndArgs...)
+	}
+
+	return true
+}
+
+// After asserts that the actual time is before the expected time.
+//
+//   assert.After(t, time.Now().Add(time.Hour), time.Now(), "One hour later should be after the current time")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func After(t TestingT, actual, target time.Time, msgAndArgs ...interface{}) bool {
+
+	if !actual.After(target) {
+		return Fail(t, fmt.Sprintf("%v is not after %v", actual, target), msgAndArgs...)
+	}
+
+	return true
+}
+
 // WithinDuration asserts that the two times are within duration delta of each other.
 //
 //   assert.WithinDuration(t, time.Now(), time.Now(), 10*time.Second, "The difference should not be more than 10s")

@@ -740,6 +740,32 @@ func TestLen(t *testing.T) {
 	}
 }
 
+func TestBefore(t *testing.T) {
+
+	mockT := new(testing.T)
+	noonUTC, _ := time.Parse(time.RFC3339, "2016-04-23T12:00:00+00:00")
+	oneUTC := noonUTC.Add(time.Hour)
+	noonEST, _ := time.Parse(time.RFC3339, "2016-04-23T12:00:00-05:00")
+
+	True(t, Before(mockT, noonUTC, oneUTC), "Noon should be before 1pm")
+	True(t, Before(mockT, noonUTC, noonEST), "Noon UTC should be before noon EST")
+	False(t, Before(mockT, oneUTC, noonUTC), "1pm should not be before noon")
+	False(t, Before(mockT, noonUTC, noonUTC), "Noon should not be before itself")
+}
+
+func TestAfter(t *testing.T) {
+
+	mockT := new(testing.T)
+	noonUTC, _ := time.Parse(time.RFC3339, "2016-04-23T12:00:00+00:00")
+	oneUTC := noonUTC.Add(time.Hour)
+	noonEST, _ := time.Parse(time.RFC3339, "2016-04-23T12:00:00-05:00")
+
+	True(t, After(mockT, oneUTC, noonUTC), "1pm should be after noon")
+	True(t, After(mockT, noonEST, noonUTC), "Noon EST should be after noon UTC")
+	False(t, After(mockT, noonUTC, oneUTC), "Noon should not be after 1pm")
+	False(t, After(mockT, noonUTC, noonUTC), "Noon should not be after itself")
+}
+
 func TestWithinDuration(t *testing.T) {
 
 	mockT := new(testing.T)
