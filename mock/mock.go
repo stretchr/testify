@@ -265,7 +265,7 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 }
 
 // Called tells the mock object that a method has been called, and gets an array
-// of arguments to return.  Panics if the call is unexpected (i.e. not preceeded by
+// of arguments to return.  Panics if the call is unexpected (i.e. not preceded by
 // appropriate .On .Return() calls)
 // If Call.WaitFor is set, blocks until the channel is closed or receives a message.
 func (m *Mock) Called(arguments ...interface{}) Arguments {
@@ -398,7 +398,7 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 }
 
 // AssertCalled asserts that the method was called.
-// It can produce a false result when an arugment is a pointer type and the underyling value changed after calling the mocked method.
+// It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
 func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
 		t.Logf("%v", m.expectedCalls())
@@ -408,7 +408,7 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 }
 
 // AssertNotCalled asserts that the method was not called.
-// It can produce a false result when an arugment is a pointer type and the underyling value changed after calling the mocked method.
+// It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
 func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
 		t.Logf("%v", m.expectedCalls())
