@@ -265,7 +265,7 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 }
 
 // Called tells the mock object that a method has been called, and gets an array
-// of arguments to return.  Panics if the call is unexpected (i.e. not preceeded by
+// of arguments to return.  Panics if the call is unexpected (i.e. not preceded by
 // appropriate .On .Return() calls)
 // If Call.WaitFor is set, blocks until the channel is closed or receives a message.
 func (m *Mock) Called(arguments ...interface{}) Arguments {
