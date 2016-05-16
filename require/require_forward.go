@@ -333,7 +333,7 @@ func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...in
 }
 
 
-// Equal asserts that two objects are actually the same one.
+// NotSame asserts that two objects are not the same one.
 // 
 //    a.NotSame([]int{123}, []int{123}, "should be different objects")
 // 
@@ -372,7 +372,7 @@ func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...inter
 }
 
 
-// Equal asserts that two objects are actually the same one.
+// Same asserts that two objects are actually the same one.
 // 
 //    obj := []int{123}
 //    a.Same(obj, obj, "should be the same object")

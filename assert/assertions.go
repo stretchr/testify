@@ -253,7 +253,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 	return true
 }
 
-// Equal asserts that two objects are actually the same one.
+// Same asserts that two objects are actually the same one.
 //
 //    obj := []int{123}
 //    assert.Same(t, obj, obj, "should be the same object")
@@ -276,7 +276,7 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 	return true
 }
 
-// Equal asserts that two objects are actually the same one.
+// NotSame asserts that two objects are not the same one.
 //
 //    assert.NotSame(t, []int{123}, []int{123}, "should be different objects")
 //

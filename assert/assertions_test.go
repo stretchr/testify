@@ -94,7 +94,7 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct {
 }
 
-// AssertionTesterConformingObject is an object that conforms to the AssertionTesterInterface interface
+// samenessTestHelper is a reference-type object to help with sameness tests
 type samenessTestHelper struct {
 	_ int
 }
