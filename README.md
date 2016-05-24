@@ -1,7 +1,7 @@
 Testify - Thou Shalt Write Tests
 ================================
 
-[![Build Status](https://travis-ci.org/stretchr/testify.svg)](https://travis-ci.org/stretchr/testify)
+[![Build Status](https://travis-ci.org/stretchr/testify.svg)](https://travis-ci.org/stretchr/testify) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify)
 
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
 
