@@ -523,7 +523,25 @@ func TestNoError(t *testing.T) {
 
 	False(t, NoError(mockT, err), "NoError with error should return False")
 
+	// returning an empty error interface
+	err = func() error {
+		var err *customError
+		if err != nil {
+			t.Fatal("err should be nil here")
+		}
+		return err
+	}()
+
+	if err == nil { // err is not nil here!
+		t.Errorf("Error should be nil due to empty interface", err)
+	}
+
+	False(t, NoError(mockT, err), "NoError should fail with empty error interface")
 }
+
+type customError struct{}
+
+func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
 
@@ -539,6 +557,20 @@ func TestError(t *testing.T) {
 
 	True(t, Error(mockT, err), "Error with error should return True")
 
+	// returning an empty error interface
+	err = func() error {
+		var err *customError
+		if err != nil {
+			t.Fatal("err should be nil here")
+		}
+		return err
+	}()
+
+	if err == nil { // err is not nil here!
+		t.Errorf("Error should be nil due to empty interface", err)
+	}
+
+	True(t, Error(mockT, err), "Error should pass with empty error interface")
 }
 
 func TestEqualError(t *testing.T) {
