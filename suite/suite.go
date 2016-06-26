@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -87,11 +88,11 @@ func Run(t *testing.T, suite TestingSuite) {
 						setupTestSuite.SetupTest()
 					}
 					if beforeTestSuite, ok := suite.(BeforeTest); ok {
-						beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+						beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name, time.Now())
 					}
 					defer func() {
 						if afterTestSuite, ok := suite.(AfterTest); ok {
-							afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
+							afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name, time.Now())
 						}
 						if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 							tearDownTestSuite.TearDownTest()

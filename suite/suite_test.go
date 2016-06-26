@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -64,6 +65,9 @@ type SuiteTester struct {
 
 	SuiteNameAfter []string
 	TestNameAfter  []string
+
+	TimeBefore []time.Time
+	TimeAfter  []time.Time
 }
 
 type SuiteSkipTester struct {
@@ -81,14 +85,16 @@ func (suite *SuiteTester) SetupSuite() {
 	suite.SetupSuiteRunCount++
 }
 
-func (suite *SuiteTester) BeforeTest(suiteName, testName string) {
+func (suite *SuiteTester) BeforeTest(suiteName, testName string, when time.Time) {
 	suite.SuiteNameBefore = append(suite.SuiteNameBefore, suiteName)
 	suite.TestNameBefore = append(suite.TestNameBefore, testName)
+	suite.TimeBefore = append(suite.TimeBefore, when)
 }
 
-func (suite *SuiteTester) AfterTest(suiteName, testName string) {
+func (suite *SuiteTester) AfterTest(suiteName, testName string, when time.Time) {
 	suite.SuiteNameAfter = append(suite.SuiteNameAfter, suiteName)
 	suite.TestNameAfter = append(suite.TestNameAfter, testName)
+	suite.TimeAfter = append(suite.TimeAfter, when)
 }
 
 func (suite *SuiteSkipTester) SetupSuite() {
@@ -166,10 +172,6 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, len(suiteTester.TestNameAfter), 3)
 	assert.Equal(t, len(suiteTester.TestNameBefore), 3)
 
-	for _, suiteName := range suiteTester.SuiteNameAfter {
-		assert.Equal(t, "SuiteTester", suiteName)
-	}
-
 	assert.Contains(t, suiteTester.TestNameAfter, "TestOne")
 	assert.Contains(t, suiteTester.TestNameAfter, "TestTwo")
 	assert.Contains(t, suiteTester.TestNameAfter, "TestSkip")
@@ -178,8 +180,20 @@ func TestRunSuite(t *testing.T) {
 	assert.Contains(t, suiteTester.TestNameBefore, "TestTwo")
 	assert.Contains(t, suiteTester.TestNameBefore, "TestSkip")
 
+	for _, suiteName := range suiteTester.SuiteNameAfter {
+		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
 	for _, suiteName := range suiteTester.SuiteNameBefore {
 		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
+	for _, when := range suiteTester.TimeAfter {
+		assert.False(t, when.IsZero())
+	}
+
+	for _, when := range suiteTester.TimeBefore {
+		assert.False(t, when.IsZero())
 	}
 
 	// There are three test methods (TestOne, TestTwo, and TestSkip), so
