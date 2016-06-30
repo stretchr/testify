@@ -47,7 +47,7 @@ type Call struct {
 	totalCalls int
 
 	// Holds a channel that will be used to block the Return until it either
-	// recieves a message or is closed. nil means it returns immediately.
+	// receives a message or is closed. nil means it returns immediately.
 	WaitFor <-chan time.Time
 
 	// Holds a handler used to manipulate arguments content that are passed by
