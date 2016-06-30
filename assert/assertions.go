@@ -849,9 +849,8 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 // Returns whether the assertion was successful (true) or not (false).
 func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
-	message := messageFromMsgAndArgs(msgAndArgs...)
 	if err == nil {
-		return Fail(t, "An error is expected but got nil. %s", message)
+		return Fail(t, "An error is expected but got nil.", msgAndArgs...)
 	}
 
 	return true
@@ -861,9 +860,7 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 // and that it is equal to the provided error.
 //
 //   actualObj, err := SomeFunction()
-//   if assert.Error(t, err, "An error was expected") {
-//	   assert.Equal(t, err, expectedError)
-//   }
+//   assert.EqualError(t, err,  expectedErrorString, "An error was expected")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
