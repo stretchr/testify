@@ -82,7 +82,7 @@ func CallerInfo() []string {
 	for i := 0; ; i++ {
 		pc, file, line, ok = runtime.Caller(i)
 		if !ok {
-			return nil
+			break
 		}
 
 		// This is a huge edge case, but it will panic if this is the case, see #180
