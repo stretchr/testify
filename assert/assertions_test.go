@@ -195,6 +195,20 @@ func TestEqual(t *testing.T) {
 
 }
 
+func TestFormatUnequalValues(t *testing.T) {
+	expected, actual := formatUnequalValues("foo", "bar")
+	Equal(t, `"foo"`, expected, "value should not include type")
+	Equal(t, `"bar"`, actual, "value should not include type")
+
+	expected, actual = formatUnequalValues(123, 123)
+	Equal(t, `123`, expected, "value should not include type")
+	Equal(t, `123`, actual, "value should not include type")
+
+	expected, actual = formatUnequalValues(int64(123), int32(123))
+	Equal(t, `int64(123)`, expected, "value should include type")
+	Equal(t, `int32(123)`, actual, "value should include type")
+}
+
 func TestNotNil(t *testing.T) {
 
 	mockT := new(testing.T)
