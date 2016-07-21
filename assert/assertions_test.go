@@ -2,6 +2,7 @@ package assert
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"math"
 	"os"
@@ -789,6 +790,69 @@ func TestWithinDuration(t *testing.T) {
 
 	False(t, WithinDuration(mockT, a, b, -11*time.Second), "A 10s difference is not within a 9s time difference")
 	False(t, WithinDuration(mockT, b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
+}
+
+func TestOrderedOperations(t *testing.T) {
+	mockT := new(testing.T)
+
+	True(t, GreaterThan(mockT, 1.001, 1), "1.001 > 1")
+	True(t, GreaterThanOrEqual(mockT, 1.00, 1), "1.00 > 1")
+	False(t, LessThan(mockT, "NotComparable", 1), "Can not compare string and number.")
+	False(t, LessThan(mockT, make(map[string]interface{}), 1), "Can not compare map and number.")
+	False(t, LessThan(mockT, make(map[string]interface{}), interface{}(nil)), "Can not compare, expected and actual should be numerical or a string.")
+	False(t, LessThanOrEqual(mockT, 42, math.NaN()), "Expected NaN for actual to fail")
+
+	type ops map[string]struct {
+		result bool
+		msg    string
+	}
+
+	defOps := ops{
+		"<":  {false, "Expected %V %v %V"},
+		"<=": {false, "Expected %V %v %V"},
+		">":  {true, "Expected %V %v %V"},
+		">=": {true, "Expected %V %v %V"},
+	}
+
+	cases := []struct {
+		a, b interface{}
+		ops  ops
+	}{
+		{uint8(2), uint8(1), defOps},
+		{uint16(2), uint16(1), defOps},
+		{uint32(2), uint32(1), defOps},
+		{uint64(2), uint64(1), defOps},
+
+		{int(2), int(1), defOps},
+		{int8(2), int8(1), defOps},
+		{int16(2), int16(1), defOps},
+		{int32(2), int32(1), defOps},
+		{int64(2), int64(1), defOps},
+
+		{float32(2), float32(1), defOps},
+		{float64(2), float64(1), defOps},
+	}
+
+	for _, tc := range cases {
+		for op, expected := range tc.ops {
+			var actual bool
+			switch op {
+			case "<":
+				actual = LessThan(mockT, tc.a, tc.b)
+			case "<=":
+				actual = LessThanOrEqual(mockT, tc.a, tc.b)
+			case ">":
+				actual = GreaterThan(mockT, tc.a, tc.b)
+			case ">=":
+				actual = GreaterThanOrEqual(mockT, tc.a, tc.b)
+			}
+			if expected.result {
+				True(t, actual, fmt.Sprintf(expected.msg, tc.a, op, tc.b))
+			} else {
+				False(t, actual, fmt.Sprintf(expected.msg, tc.a, op, tc.b))
+			}
+		}
+	}
 }
 
 func TestInDelta(t *testing.T) {

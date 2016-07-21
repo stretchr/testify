@@ -715,6 +715,127 @@ func toFloat(x interface{}) (float64, bool) {
 	return xf, xok
 }
 
+func isNumber(x interface{}) bool {
+	xok := false
+	switch x.(type) {
+	case uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
+		xok = true
+	}
+
+	return xok
+}
+
+type op int
+
+const (
+	LT op = 1 << iota
+	GT
+	EQ
+	ERR
+)
+
+// returns EQ if a==b, LT if a < b, and GT if a > b, or ERR if not comparable
+func compare(a, b interface{}) op {
+	op := ERR
+	if reflect.TypeOf(a).Kind() == reflect.String && reflect.TypeOf(b).Kind() == reflect.String {
+		as, bs := a.(string), b.(string)
+		if as < bs {
+			op = LT
+		} else if as > bs {
+			op = GT
+		} else {
+			op = EQ
+		}
+	}
+
+	af, aok := toFloat(a)
+	bf, bok := toFloat(b)
+	if aok && bok && !math.IsNaN(af) && !math.IsNaN(bf) {
+		if af < bf {
+			op = LT
+		} else if af > bf {
+			op = GT
+		} else {
+			op = EQ
+		}
+	}
+
+	return op
+}
+
+func LessThan(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	aok := isNumber(expected)
+	bok := isNumber(actual)
+
+	if !aok || !bok {
+		if reflect.TypeOf(expected).Kind() != reflect.String || reflect.TypeOf(actual).Kind() != reflect.String {
+			return Fail(t, fmt.Sprintf("Expected and Actual are not comparable, both should be numerical or a string"), msgAndArgs...)
+		}
+	}
+
+	res := compare(expected, actual)
+
+	if res == ERR {
+		Fail(t, fmt.Sprintf("Expected/Actual must not be NaN"), msgAndArgs...)
+	}
+
+	return LT == res
+}
+
+func LessThanOrEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	aok := isNumber(expected)
+	bok := isNumber(actual)
+
+	if !aok || !bok {
+		if reflect.TypeOf(expected).Kind() != reflect.String || reflect.TypeOf(actual).Kind() != reflect.String {
+			return Fail(t, fmt.Sprintf("Expected and Actual are not comparable, both should be numerical or a string"), msgAndArgs...)
+		}
+	}
+
+	res := compare(expected, actual)
+	if res == ERR {
+		Fail(t, fmt.Sprintf("Expected/Actual must not be NaN"), msgAndArgs...)
+	}
+
+	return (LT == res || EQ == res)
+}
+
+func GreaterThan(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	aok := isNumber(expected)
+	bok := isNumber(actual)
+
+	if !aok || !bok {
+		if reflect.TypeOf(expected).Kind() != reflect.String || reflect.TypeOf(actual).Kind() != reflect.String {
+			return Fail(t, fmt.Sprintf("Expected and Actual are not comparable, both should be numerical or a string"), msgAndArgs...)
+		}
+	}
+
+	res := compare(expected, actual)
+	if res == ERR {
+		Fail(t, fmt.Sprintf("Expected/Actual must not be NaN"), msgAndArgs...)
+	}
+
+	return GT == res
+}
+
+func GreaterThanOrEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	aok := isNumber(expected)
+	bok := isNumber(actual)
+
+	if !aok || !bok {
+		if reflect.TypeOf(expected).Kind() != reflect.String || reflect.TypeOf(actual).Kind() != reflect.String {
+			return Fail(t, fmt.Sprintf("Expected and Actual are not comparable, both should be numerical or a string"), msgAndArgs...)
+		}
+	}
+
+	res := compare(expected, actual)
+	if res == ERR {
+		Fail(t, fmt.Sprintf("Expected/Actual must not be NaN"), msgAndArgs...)
+	}
+
+	return (GT == res || EQ == res)
+}
+
 // InDelta asserts that the two numerals are within delta of each other.
 //
 // 	 assert.InDelta(t, math.Pi, (22 / 7.0), 0.01)
