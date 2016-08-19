@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	pkg       = flag.String("assert-path", "github.com/stretchr/testify/assert", "Path to the assert package")
+	pkg       = flag.String("assert-path", "github.com/nyarly/testify/assert", "Path to the assert package")
 	outputPkg = flag.String("output-package", "", "package for the resulting code")
 	tmplFile  = flag.String("template", "", "What file to load the function template from")
 	out       = flag.String("out", "", "What file to write the source code to")
