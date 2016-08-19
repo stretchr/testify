@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nyarly/testify/assert"
 	"github.com/stretchr/objx"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestingT is an interface wrapper around *testing.T

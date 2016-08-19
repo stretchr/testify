@@ -2,8 +2,8 @@ package mock
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/nyarly/testify/assert"
+	"github.com/nyarly/testify/require"
 	"testing"
 	"time"
 )

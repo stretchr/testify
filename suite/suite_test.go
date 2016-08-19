@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/nyarly/testify/assert"
 )
 
 // SuiteRequireTwice is intended to test the usage of suite.Require in two
