@@ -1125,6 +1125,40 @@ func TestDiffEmptyCases(t *testing.T) {
 	Equal(t, "", diff([]int{1}, []bool{true}))
 }
 
+// Ensure there are no data races
+func TestDiffRace(t *testing.T) {
+	t.Parallel()
+
+	expected := map[string]string{
+		"a": "A",
+		"b": "B",
+		"c": "C",
+	}
+
+	actual := map[string]string{
+		"d": "D",
+		"e": "E",
+		"f": "F",
+	}
+
+	// run diffs in parallel simulating tests with t.Parallel()
+	numRoutines := 10
+	rChans := make([]chan string, numRoutines)
+	for idx := range rChans {
+		rChans[idx] = make(chan string)
+		go func(ch chan string) {
+			defer close(ch)
+			ch <- diff(expected, actual)
+		}(rChans[idx])
+	}
+
+	for _, ch := range rChans {
+		for msg := range ch {
+			NotZero(t, msg) // dummy assert
+		}
+	}
+}
+
 type mockTestingT struct {
 }
 
