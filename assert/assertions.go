@@ -63,6 +63,8 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	return false
 }
 
+var clojureFuncPattern = regexp.MustCompile(`\.func\d+(\.\d+)*`)
+
 /* CallerInfo is necessary because the assert functions use the testing object
 internally, causing it to print the file:line of the assert method, rather than where
 the problem actually occured in calling code.*/
@@ -102,6 +104,8 @@ func CallerInfo() []string {
 			break
 		}
 		name = f.Name()
+		// Drop subtest clojure
+		name = clojureFuncPattern.ReplaceAllString(name, "")
 		// Drop the package
 		segments := strings.Split(name, ".")
 		name = segments[len(segments)-1]
