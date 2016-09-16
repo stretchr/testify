@@ -1116,6 +1116,38 @@ Diff:
 	Equal(t, expected, actual)
 }
 
+func TestDiff_pointerValues(t *testing.T) {
+	s1, s2 := "hello", "hello"
+	i1, i2 := 1, 1
+	b1, b2 := true, false
+	expected := `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,5 +1,5 @@
+ (struct { foo *string; baz *int; flag *bool }) {
+  foo: (*string)((len=5) "hello"),
+  baz: (*int)(1),
+- flag: (*bool)(true)
++ flag: (*bool)(false)
+ }
+`
+	actual := diff(
+		struct {
+			foo  *string
+			baz  *int
+			flag *bool
+		}{&s1, &i1, &b1},
+		struct {
+			foo  *string
+			baz  *int
+			flag *bool
+		}{&s2, &i2, &b2},
+	)
+	Equal(t, expected, actual)
+}
+
 func TestDiffEmptyCases(t *testing.T) {
 	Equal(t, "", diff(nil, nil))
 	Equal(t, "", diff(struct{ foo string }{}, nil))
