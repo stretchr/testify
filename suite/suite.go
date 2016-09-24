@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var matchMethod = flag.String("m", "", "regular expression to select tests of the suite to run")
+var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
