@@ -64,7 +64,7 @@ type ConfigState struct {
 	// inside these interface methods.  As a result, this option relies on
 	// access to the unsafe package, so it will not have any effect when
 	// running in environments without access to the unsafe package such as
-	// Google App Engine or with the "disableunsafe" build tag specified.
+	// Google App Engine or with the "safe" build tag specified.
 	DisablePointerMethods bool
 
 	// ContinueOnMethod specifies whether or not recursion should continue once
