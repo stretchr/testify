@@ -341,17 +341,26 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	Assertions
 */
 
+type assertExpectationser interface {
+	AssertExpectations(TestingT) bool
+}
+
 // AssertExpectationsForObjects asserts that everything specified with On and Return
 // of the specified objects was in fact called as expected.
 //
 // Calls may have occurred in any order.
 func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
-	var success = true
 	for _, obj := range testObjects {
-		mockObj := obj.(Mock)
-		success = success && mockObj.AssertExpectations(t)
+		if m, ok := obj.(Mock); ok {
+			t.Logf("Deprecated mock.AssertExpectationsForObjects(myMock.Mock) use mock.AssertExpectationsForObjects(myMock)")
+			obj = &m
+		}
+		m := obj.(assertExpectationser)
+		if !m.AssertExpectations(t) {
+			return false
+		}
 	}
-	return success
+	return true
 }
 
 // AssertExpectations asserts that everything specified with On and Return was
