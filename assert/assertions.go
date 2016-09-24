@@ -18,6 +18,10 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 )
 
+func init() {
+	spew.Config.SortKeys = true
+}
+
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...interface{})
@@ -1001,7 +1005,6 @@ func diff(expected interface{}, actual interface{}) string {
 		return ""
 	}
 
-	spew.Config.SortKeys = true
 	e := spew.Sdump(expected)
 	a := spew.Sdump(actual)
 
