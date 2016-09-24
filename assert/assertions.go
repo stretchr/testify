@@ -18,6 +18,8 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 )
 
+//go:generate go run ../_codegen/main.go -output-package=assert -template=assertion_format.go.tmpl
+
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...interface{})
@@ -268,7 +270,7 @@ func labeledOutput(content ...labeledContent) string {
 
 // Implements asserts that an object is implemented by the specified interface.
 //
-//    assert.Implements(t, (*MyInterface)(nil), new(MyObject), "MyObject")
+//    assert.Implements(t, (*MyInterface)(nil), new(MyObject))
 func Implements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
 
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
@@ -293,7 +295,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 
 // Equal asserts that two objects are equal.
 //
-//    assert.Equal(t, 123, 123, "123 and 123 should be equal")
+//    assert.Equal(t, 123, 123)
 //
 // Returns whether the assertion was successful (true) or not (false).
 //
@@ -332,7 +334,7 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 // EqualValues asserts that two objects are equal or convertable to the same types
 // and equal.
 //
-//    assert.EqualValues(t, uint32(123), int32(123), "123 and 123 should be equal")
+//    assert.EqualValues(t, uint32(123), int32(123))
 //
 // Returns whether the assertion was successful (true) or not (false).
 func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
@@ -351,7 +353,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 
 // Exactly asserts that two objects are equal is value and type.
 //
-//    assert.Exactly(t, int32(123), int64(123), "123 and 123 should NOT be equal")
+//    assert.Exactly(t, int32(123), int64(123))
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
@@ -369,7 +371,7 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 
 // NotNil asserts that the specified object is not nil.
 //
-//    assert.NotNil(t, err, "err should be something")
+//    assert.NotNil(t, err)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
@@ -396,7 +398,7 @@ func isNil(object interface{}) bool {
 
 // Nil asserts that the specified object is nil.
 //
-//    assert.Nil(t, err, "err should be nothing")
+//    assert.Nil(t, err)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
@@ -519,7 +521,7 @@ func getLen(x interface{}) (ok bool, length int) {
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
-//    assert.Len(t, mySlice, 3, "The size of slice is not 3")
+//    assert.Len(t, mySlice, 3)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) bool {
@@ -536,7 +538,7 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 
 // True asserts that the specified value is true.
 //
-//    assert.True(t, myBool, "myBool should be true")
+//    assert.True(t, myBool)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func True(t TestingT, value bool, msgAndArgs ...interface{}) bool {
@@ -551,7 +553,7 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 
 // False asserts that the specified value is false.
 //
-//    assert.False(t, myBool, "myBool should be false")
+//    assert.False(t, myBool)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
@@ -566,7 +568,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 
 // NotEqual asserts that the specified values are NOT equal.
 //
-//    assert.NotEqual(t, obj1, obj2, "two objects shouldn't be equal")
+//    assert.NotEqual(t, obj1, obj2)
 //
 // Returns whether the assertion was successful (true) or not (false).
 //
@@ -623,9 +625,9 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 // Contains asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //
-//    assert.Contains(t, "Hello World", "World", "But 'Hello World' does contain 'World'")
-//    assert.Contains(t, ["Hello", "World"], "World", "But ["Hello", "World"] does contain 'World'")
-//    assert.Contains(t, {"Hello": "World"}, "Hello", "But {'Hello': 'World'} does contain 'Hello'")
+//    assert.Contains(t, "Hello World", "World")
+//    assert.Contains(t, ["Hello", "World"], "World")
+//    assert.Contains(t, {"Hello": "World"}, "Hello")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
@@ -645,9 +647,9 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
 //
-//    assert.NotContains(t, "Hello World", "Earth", "But 'Hello World' does NOT contain 'Earth'")
-//    assert.NotContains(t, ["Hello", "World"], "Earth", "But ['Hello', 'World'] does NOT contain 'Earth'")
-//    assert.NotContains(t, {"Hello": "World"}, "Earth", "But {'Hello': 'World'} does NOT contain 'Earth'")
+//    assert.NotContains(t, "Hello World", "Earth")
+//    assert.NotContains(t, ["Hello", "World"], "Earth")
+//    assert.NotContains(t, {"Hello": "World"}, "Earth")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
@@ -787,9 +789,7 @@ func didPanic(f PanicTestFunc) (bool, interface{}) {
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
 //
-//   assert.Panics(t, func(){
-//     GoCrazy()
-//   }, "Calling GoCrazy() should panic")
+//   assert.Panics(t, func(){ GoCrazy() })
 //
 // Returns whether the assertion was successful (true) or not (false).
 func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
@@ -803,9 +803,7 @@ func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
-//   assert.NotPanics(t, func(){
-//     RemainCalm()
-//   }, "Calling RemainCalm() should NOT panic")
+//   assert.NotPanics(t, func(){ RemainCalm() })
 //
 // Returns whether the assertion was successful (true) or not (false).
 func NotPanics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
@@ -819,7 +817,7 @@ func NotPanics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 
 // WithinDuration asserts that the two times are within duration delta of each other.
 //
-//   assert.WithinDuration(t, time.Now(), time.Now(), 10*time.Second, "The difference should not be more than 10s")
+//   assert.WithinDuration(t, time.Now(), time.Now(), 10*time.Second)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration, msgAndArgs ...interface{}) bool {
@@ -993,7 +991,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
 //   actualObj, err := SomeFunction()
-//   if assert.Error(t, err, "An error was expected") {
+//   if assert.Error(t, err) {
 //	   assert.Equal(t, expectedError, err)
 //   }
 //
@@ -1011,7 +1009,7 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 // and that it is equal to the provided error.
 //
 //   actualObj, err := SomeFunction()
-//   assert.EqualError(t, err,  expectedErrorString, "An error was expected")
+//   assert.EqualError(t, err,  expectedErrorString)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
