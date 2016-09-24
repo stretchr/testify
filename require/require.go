@@ -146,6 +146,22 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 }
 
 
+// 
+func GreaterThan(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+  if !assert.GreaterThan(t, expected, actual, msgAndArgs...) {
+    t.FailNow()
+  }
+}
+
+
+// 
+func GreaterThanOrEqual(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+  if !assert.GreaterThanOrEqual(t, expected, actual, msgAndArgs...) {
+    t.FailNow()
+  }
+}
+
+
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 // 
@@ -248,9 +264,9 @@ func InEpsilon(t TestingT, expected interface{}, actual interface{}, epsilon flo
 }
 
 
-// InEpsilonSlice is the same as InEpsilon, except it compares two slices.
-func InEpsilonSlice(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
-  if !assert.InEpsilonSlice(t, expected, actual, delta, msgAndArgs...) {
+// InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
+func InEpsilonSlice(t TestingT, expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
+  if !assert.InEpsilonSlice(t, expected, actual, epsilon, msgAndArgs...) {
     t.FailNow()
   }
 }
@@ -284,6 +300,22 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 // Returns whether the assertion was successful (true) or not (false).
 func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) {
   if !assert.Len(t, object, length, msgAndArgs...) {
+    t.FailNow()
+  }
+}
+
+
+// 
+func LessThan(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+  if !assert.LessThan(t, expected, actual, msgAndArgs...) {
+    t.FailNow()
+  }
+}
+
+
+// 
+func LessThanOrEqual(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+  if !assert.LessThanOrEqual(t, expected, actual, msgAndArgs...) {
     t.FailNow()
   }
 }

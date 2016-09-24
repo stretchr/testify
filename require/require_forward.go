@@ -124,6 +124,18 @@ func (a *Assertions) False(value bool, msgAndArgs ...interface{}) {
 }
 
 
+// 
+func (a *Assertions) GreaterThan(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	GreaterThan(a.t, expected, actual, msgAndArgs...)
+}
+
+
+// 
+func (a *Assertions) GreaterThanOrEqual(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	GreaterThanOrEqual(a.t, expected, actual, msgAndArgs...)
+}
+
+
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 // 
@@ -208,9 +220,9 @@ func (a *Assertions) InEpsilon(expected interface{}, actual interface{}, epsilon
 }
 
 
-// InEpsilonSlice is the same as InEpsilon, except it compares two slices.
-func (a *Assertions) InEpsilonSlice(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
-	InEpsilonSlice(a.t, expected, actual, delta, msgAndArgs...)
+// InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
+func (a *Assertions) InEpsilonSlice(expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
+	InEpsilonSlice(a.t, expected, actual, epsilon, msgAndArgs...)
 }
 
 
@@ -238,6 +250,18 @@ func (a *Assertions) JSONEq(expected string, actual string, msgAndArgs ...interf
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface{}) {
 	Len(a.t, object, length, msgAndArgs...)
+}
+
+
+// 
+func (a *Assertions) LessThan(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	LessThan(a.t, expected, actual, msgAndArgs...)
+}
+
+
+// 
+func (a *Assertions) LessThanOrEqual(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	LessThanOrEqual(a.t, expected, actual, msgAndArgs...)
 }
 
 
