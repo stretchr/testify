@@ -849,7 +849,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 // Returns whether the assertion was successful (true) or not (false).
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	if err != nil {
-		return Fail(t, fmt.Sprintf("Received unexpected error %q", err), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Received unexpected error %+v", err), msgAndArgs...)
 	}
 
 	return true
