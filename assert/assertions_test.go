@@ -207,6 +207,14 @@ func TestFormatUnequalValues(t *testing.T) {
 	expected, actual = formatUnequalValues(int64(123), int32(123))
 	Equal(t, `int64(123)`, expected, "value should include type")
 	Equal(t, `int32(123)`, actual, "value should include type")
+
+	type testStructType struct {
+		Val string
+	}
+
+	expected, actual = formatUnequalValues(&testStructType{Val: "test"}, &testStructType{Val: "test"})
+	Equal(t, `&assert.testStructType{Val:"test"}`, expected, "value should not include type annotation")
+	Equal(t, `&assert.testStructType{Val:"test"}`, actual, "value should not include type annotation")
 }
 
 func TestNotNil(t *testing.T) {
