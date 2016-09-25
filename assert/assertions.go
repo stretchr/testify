@@ -290,23 +290,17 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 		fmt.Sprintf("%#v", actual)
 }
 
-var numericTypes = map[string]bool{
-	"float32": true,
-	"float64": true,
-	"int":     true,
-	"int8":    true,
-	"int16":   true,
-	"int32":   true,
-	"int64":   true,
-	"uint":    true,
-	"uint8":   true,
-	"uint16":  true,
-	"uint32":  true,
-	"uint64":  true,
-}
-
 func isNumericType(t reflect.Type) bool {
-	return numericTypes[t.String()]
+	switch t.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return true
+	case reflect.Float32, reflect.Float64:
+		return true
+	}
+
+	return false
 }
 
 // EqualValues asserts that two objects are equal or convertable to the same types
