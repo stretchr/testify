@@ -51,9 +51,7 @@ func (a *Assertions) Equal(expected interface{}, actual interface{}, msgAndArgs 
 // and that it is equal to the provided error.
 //
 //   actualObj, err := SomeFunction()
-//   if assert.Error(t, err, "An error was expected") {
-// 	   assert.Equal(t, err, expectedError)
-//   }
+//   a.EqualError(err,  expectedErrorString, "An error was expected")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) bool {
@@ -185,9 +183,9 @@ func (a *Assertions) InEpsilon(expected interface{}, actual interface{}, epsilon
 	return InEpsilon(a.t, expected, actual, epsilon, msgAndArgs...)
 }
 
-// InEpsilonSlice is the same as InEpsilon, except it compares two slices.
-func (a *Assertions) InEpsilonSlice(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
-	return InEpsilonSlice(a.t, expected, actual, delta, msgAndArgs...)
+// InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
+func (a *Assertions) InEpsilonSlice(expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+	return InEpsilonSlice(a.t, expected, actual, epsilon, msgAndArgs...)
 }
 
 // IsType asserts that the specified objects are of the same type.
