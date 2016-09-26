@@ -85,16 +85,16 @@ func (suite *SuiteTester) SetupSuite() {
 	suite.SetupSuiteRunCount++
 }
 
-func (suite *SuiteTester) BeforeTest(suiteName, testName string, when time.Time) {
+func (suite *SuiteTester) BeforeTest(suiteName, testName string) {
 	suite.SuiteNameBefore = append(suite.SuiteNameBefore, suiteName)
 	suite.TestNameBefore = append(suite.TestNameBefore, testName)
-	suite.TimeBefore = append(suite.TimeBefore, when)
+	suite.TimeBefore = append(suite.TimeBefore, time.Now())
 }
 
-func (suite *SuiteTester) AfterTest(suiteName, testName string, when time.Time) {
+func (suite *SuiteTester) AfterTest(suiteName, testName string) {
 	suite.SuiteNameAfter = append(suite.SuiteNameAfter, suiteName)
 	suite.TestNameAfter = append(suite.TestNameAfter, testName)
-	suite.TimeAfter = append(suite.TimeAfter, when)
+	suite.TimeAfter = append(suite.TimeAfter, time.Now())
 }
 
 func (suite *SuiteSkipTester) SetupSuite() {
