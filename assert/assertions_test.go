@@ -1208,3 +1208,59 @@ func TestFailNowWithFullTestingT(t *testing.T) {
 		FailNow(mockT, "failed")
 	}, "should call mockT.FailNow() rather than panicking")
 }
+
+func TestGreaterThan(t *testing.T) {
+	mockT := new(testing.T)
+
+	if GreaterThan(mockT, "1", "2") {
+		t.Error("Parameters must be numerical")
+	}
+
+	if GreaterThan(mockT, true, false) {
+		t.Error("Parameters must be numerical")
+	}
+
+	if GreaterThan(mockT, 1, 1) {
+		t.Error("Values can not be equals")
+	}
+
+	if GreaterThan(mockT, 5, 50) {
+		t.Error("Should return false")
+	}
+
+	if !GreaterThan(mockT, 10, 1) {
+		t.Error("GreaterThan should return true")
+	}
+
+	if !GreaterThan(mockT, 100.0, 1.0) {
+		t.Error("GreaterThan should return true")
+	}
+}
+
+func TestSmallerThan(t *testing.T) {
+	mockT := new(testing.T)
+
+	if SmallerThan(mockT, "1", "2") {
+		t.Error("Parameters must be numerical")
+	}
+
+	if SmallerThan(mockT, true, false) {
+		t.Error("Parameters must be numerical")
+	}
+
+	if SmallerThan(mockT, 1, 1) {
+		t.Error("Values can not be equals")
+	}
+
+	if SmallerThan(mockT, 50, 5) {
+		t.Error("Should return false")
+	}
+
+	if !SmallerThan(mockT, 1, 10) {
+		t.Error("SmallerThan should return true")
+	}
+
+	if !SmallerThan(mockT, 1.0, 10.0) {
+		t.Error("SmallerThan should return true")
+	}
+}
