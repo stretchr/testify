@@ -1058,3 +1058,51 @@ func diff(expected interface{}, actual interface{}) string {
 
 	return "\n\nDiff:\n" + diff
 }
+
+// GreaterThan asserts that first numerical value is greater than second numerical value.
+//
+//    assert.GreaterThan(t, firstNumericalValue, secondNumericalValue, "First value must be greater than second value")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func GreaterThan(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	expectedToFloat, expectedOk := toFloat(expected)
+	actualToFloat, actualOk := toFloat(actual)
+
+	if !expectedOk || !actualOk {
+		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
+	}
+
+	if expectedToFloat == actualToFloat {
+		return Fail(t, fmt.Sprintf("Values can not be equals"), msgAndArgs...)
+	}
+
+	if expectedToFloat < actualToFloat {
+		return Fail(t, fmt.Sprintf("Should be false"), msgAndArgs...)
+	}
+
+	return true
+}
+
+// SmallerThan asserts that first numerical value is less than second numerical value.
+//
+//    assert.SmallerThan(t, firstNumericalValue, secondNumericalValue, "First value must be less than second value")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func SmallerThan(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	expectedToFloat, expectedOk := toFloat(expected)
+	actualToFloat, actualOk := toFloat(actual)
+
+	if !expectedOk || !actualOk {
+		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
+	}
+
+	if expectedToFloat == actualToFloat {
+		return Fail(t, fmt.Sprintf("Values can not be equals"), msgAndArgs...)
+	}
+
+	if expectedToFloat > actualToFloat {
+		return Fail(t, fmt.Sprintf("Should be false"), msgAndArgs...)
+	}
+
+	return true
+}
