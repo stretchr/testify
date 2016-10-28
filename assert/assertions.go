@@ -1043,8 +1043,8 @@ func diff(expected interface{}, actual interface{}) string {
 		return ""
 	}
 
-	e := spew.Sdump(expected)
-	a := spew.Sdump(actual)
+	e := spew.Sprintf("%#v", expected)
+	a := spew.Sprintf("%#v", actual)
 
 	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
 		A:        difflib.SplitLines(e),
