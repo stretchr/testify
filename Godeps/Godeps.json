@@ -9,7 +9,7 @@
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
 			"Comment": "v1.0.0-3-g6d21280",
-			"Rev": "6d212800a42e8ab5c146b8ace3490ee17e5225f9"
+			"Rev": "04cdfd42973bb9c8589fd6a731800cf222fde1a9"
 		},
 		{
 			"ImportPath": "github.com/pmezard/go-difflib/difflib",
