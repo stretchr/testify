@@ -208,6 +208,10 @@ func TestFormatUnequalValues(t *testing.T) {
 	Equal(t, `int64(123)`, expected, "value should include type")
 	Equal(t, `int32(123)`, actual, "value should include type")
 
+	expected, actual = formatUnequalValues(int64(123), nil)
+	Equal(t, `int64(123)`, expected, "value should include type")
+	Equal(t, `<nil>(<nil>)`, actual, "value should include type")
+
 	type testStructType struct {
 		Val string
 	}
