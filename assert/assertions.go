@@ -295,29 +295,13 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 // with the type name, and the value will be enclosed in parenthesis similar
 // to a type conversion in the Go grammar.
 func formatUnequalValues(expected, actual interface{}) (e string, a string) {
-	aType := reflect.TypeOf(expected)
-	bType := reflect.TypeOf(actual)
-
-	if aType != bType && isNumericType(aType) && isNumericType(bType) {
-		return fmt.Sprintf("%v(%#v)", aType, expected),
-			fmt.Sprintf("%v(%#v)", bType, actual)
+	if reflect.TypeOf(expected) != reflect.TypeOf(actual) {
+		return fmt.Sprintf("%T(%#v)", expected, expected),
+			fmt.Sprintf("%T(%#v)", actual, actual)
 	}
 
 	return fmt.Sprintf("%#v", expected),
 		fmt.Sprintf("%#v", actual)
-}
-
-func isNumericType(t reflect.Type) bool {
-	switch t.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return true
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return true
-	case reflect.Float32, reflect.Float64:
-		return true
-	}
-
-	return false
 }
 
 // EqualValues asserts that two objects are equal or convertable to the same types
