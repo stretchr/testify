@@ -18,10 +18,6 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 )
 
-func init() {
-	spew.Config.SortKeys = true
-}
-
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...interface{})
@@ -1043,8 +1039,8 @@ func diff(expected interface{}, actual interface{}) string {
 		return ""
 	}
 
-	e := spew.Sdump(expected)
-	a := spew.Sdump(actual)
+	e := spewConfig.Sdump(expected)
+	a := spewConfig.Sdump(actual)
 
 	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
 		A:        difflib.SplitLines(e),
@@ -1057,4 +1053,11 @@ func diff(expected interface{}, actual interface{}) string {
 	})
 
 	return "\n\nDiff:\n" + diff
+}
+
+var spewConfig = spew.ConfigState{
+	Indent:                  " ",
+	DisablePointerAddresses: true,
+	DisableCapacities:       true,
+	SortKeys:                true,
 }

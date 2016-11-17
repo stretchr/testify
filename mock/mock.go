@@ -15,10 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func inin() {
-	spew.Config.SortKeys = true
-}
-
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Logf(format string, args ...interface{})
@@ -746,8 +742,8 @@ func diff(expected interface{}, actual interface{}) string {
 		return ""
 	}
 
-	e := spew.Sdump(expected)
-	a := spew.Sdump(actual)
+	e := spewConfig.Sdump(expected)
+	a := spewConfig.Sdump(actual)
 
 	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
 		A:        difflib.SplitLines(e),
@@ -760,4 +756,11 @@ func diff(expected interface{}, actual interface{}) string {
 	})
 
 	return diff
+}
+
+var spewConfig = spew.ConfigState{
+	Indent:                  " ",
+	DisablePointerAddresses: true,
+	DisableCapacities:       true,
+	SortKeys:                true,
 }
