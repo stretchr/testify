@@ -1,5 +1,5 @@
 // This program reads all assertion functions from the assert package and
-// automatically generates the corersponding requires and forwarded assertions
+// automatically generates the corresponding requires and forwarded assertions
 
 package main
 
@@ -139,7 +139,7 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []tes
 		if !ok {
 			continue
 		}
-		// Check function signatuer has at least two arguments
+		// Check function signature has at least two arguments
 		sig := fn.Type().(*types.Signature)
 		if sig.Params().Len() < 2 {
 			continue
@@ -163,7 +163,7 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []tes
 	return importer, funcs, nil
 }
 
-// parsePackageSource returns the types scope and the package documentation from the pa
+// parsePackageSource returns the types scope and the package documentation from the package
 func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	pd, err := build.Import(pkg, ".", 0)
 	if err != nil {
