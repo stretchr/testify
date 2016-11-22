@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -217,22 +218,39 @@ func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool 
 
 // Fail reports a failure through
 func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
-
+	location := ""
+	printLocation, _ := os.LookupEnv("TESTIFY_PRINT_LOCATION")
+	if printLocation == "1" {
+		for i := 0; ; i++ {
+			_, file, line, ok := runtime.Caller(i)
+			if !ok {
+				break
+			}
+			parts := strings.Split(file, "/")
+			dir := parts[len(parts)-2]
+			if dir != "assert" && dir != "mock" && dir != "require" {
+				location = fmt.Sprintf("%s:%d:0\n", file, line)
+				break
+			}
+		}
+	}
 	message := messageFromMsgAndArgs(msgAndArgs...)
 
 	errorTrace := strings.Join(CallerInfo(), "\n\r\t\t\t")
 	if len(message) > 0 {
-		t.Errorf("\r%s\r\tError Trace:\t%s\n"+
+		t.Errorf("\r%s\r%s\tError Trace:\t%s\n"+
 			"\r\tError:%s\n"+
 			"\r\tMessages:\t%s\n\r",
 			getWhitespaceString(),
+			location,
 			errorTrace,
 			indentMessageLines(failureMessage, 2),
 			message)
 	} else {
-		t.Errorf("\r%s\r\tError Trace:\t%s\n"+
+		t.Errorf("\r%s\r%s\tError Trace:\t%s\n"+
 			"\r\tError:%s\n\r",
 			getWhitespaceString(),
+			location,
 			errorTrace,
 			indentMessageLines(failureMessage, 2))
 	}
