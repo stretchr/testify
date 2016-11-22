@@ -1130,3 +1130,19 @@ func Test_Arguments_Bool(t *testing.T) {
 	assert.Equal(t, true, args.Bool(2))
 
 }
+
+func Test_Mock_T312(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodVariadicInterface", Anything).
+		Return(nil)
+
+	mp := make(map[int]int)
+
+	go func() {
+		mp[1] = 1
+	}()
+
+	mockedService.TheExampleMethodVariadicInterface(mp)
+}
