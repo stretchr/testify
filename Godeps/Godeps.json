@@ -12,6 +12,14 @@
 			"Rev": "04cdfd42973bb9c8589fd6a731800cf222fde1a9"
 		},
 		{
+			"ImportPath": "github.com/mitchellh/copystructure",
+			"Rev": "5af94aef99f597e6a9e1f6ac6be6ce0f3c96b49d"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/reflectwalk",
+			"Rev": "9ad27c461a633e32a235a061d523aefe8f18571d"
+		},
+		{
 			"ImportPath": "github.com/pmezard/go-difflib/difflib",
 			"Rev": "d8ed2627bdf02c080bf22230dbb337003b7aba2d"
 		},

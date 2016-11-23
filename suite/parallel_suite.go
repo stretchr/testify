@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"sync"
 	"testing"
+
+	"github.com/mitchellh/copystructure"
 )
 
 // RunParallel takes a testing suite and runs all of the tests attached
@@ -17,8 +18,6 @@ import (
 //    internalState int
 // }
 //
-// Setup and Teardown functions which need to modify test state can accept pointer receivers safely.
-// The calling of these functions is synchronized between the tests.
 // func (s *ParallelTestSuite) SetupTest() {
 //     s.internalState++
 // }
@@ -28,9 +27,8 @@ import (
 // }
 //
 // All test methods in the suite will be run in parallel.
-// All tests should accept value receivers to prevent data races in the test suite.
-// All tests must accept t *testing.T as their only argument.
-// func (s ParallelTestSuite) Test(t *testing.T) {
+// All test methods must accept t *testing.T as their only argument.
+// func (s *ParallelTestSuite) Test(t *testing.T) {
 //     // do something
 // }
 //
@@ -38,8 +36,7 @@ import (
 // func TestParallelSuite(t *testing.T) {
 // 	RunParallel(t, new(ParallelTestSuite))
 // }
-// RunParallel synchronizes calls to SetupTestSuite and TearDownTestSuite. Any data accessed outside
-// of those functions must be manually synchronized to be goroutine safe.
+// RunParallel creates a copy of the test suite for each test method to prevent sharing data.
 func RunParallel(t *testing.T, suite interface{}) {
 	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 		setupAllSuite.SetupSuite()
@@ -49,9 +46,6 @@ func RunParallel(t *testing.T, suite interface{}) {
 			tearDownAllSuite.TearDownSuite()
 		}
 	}()
-
-	// Locks for synchronizing access to SetupTest() and TearDownTest().
-	setupMtx, teardownMtx := sync.Mutex{}, sync.Mutex{}
 
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
@@ -64,30 +58,15 @@ func RunParallel(t *testing.T, suite interface{}) {
 		}
 
 		if ok {
+			var err error
+			suite, err = copystructure.Copy(suite)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			test := testing.InternalTest{
 				Name: method.Name,
-				F: func(t *testing.T) {
-					t.Parallel()
-					setupTestSuite, ok := suite.(SetupTestSuite)
-					if ok {
-						setupMtx.Lock()
-						setupTestSuite.SetupTest()
-						// This will deadlock if SetupTest() panics.
-						// We cannot defer unlocking here because that would seralize running the tests.
-						setupMtx.Unlock()
-					}
-
-					defer func() {
-						if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-							teardownMtx.Lock()
-							tearDownTestSuite.TearDownTest()
-							// This will deadlock if TearDownTest() panics.
-							teardownMtx.Unlock()
-						}
-					}()
-
-					method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
-				},
+				F:    makeInnerTest(t, suite, method),
 			}
 			tests = append(tests, test)
 		}
@@ -96,5 +75,27 @@ func RunParallel(t *testing.T, suite interface{}) {
 	if !testing.RunTests(func(_, _ string) (bool, error) { return true, nil },
 		tests) {
 		t.Fail()
+	}
+}
+
+// makeInnerTest is it's own function to prevent closing in the suite value.
+// This allows us to pass in different copies of the suite value which is
+// would not be possible if makeInnerTest's logic was defined as an anonymous
+// function in RunParallel.
+func makeInnerTest(t *testing.T, suite interface{}, method reflect.Method) func(t *testing.T) {
+	return func(t *testing.T) {
+		t.Parallel()
+		setupTestSuite, ok := suite.(SetupTestSuite)
+		if ok {
+			setupTestSuite.SetupTest()
+		}
+
+		defer func() {
+			if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+				tearDownTestSuite.TearDownTest()
+			}
+		}()
+
+		method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
 	}
 }
