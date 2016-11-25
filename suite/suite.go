@@ -57,6 +57,12 @@ func (suite *Suite) Assert() *assert.Assertions {
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
+	RunWithPrefix(t, suite, "")
+}
+
+// RunWithPrefix takes a testing suite and runs all of the tests attached
+// to it, prepending the specified prefix to each test name
+func RunWithPrefix(t *testing.T, suite TestingSuite, prefix string) {
 	suite.SetT(t)
 
 	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
@@ -67,6 +73,10 @@ func Run(t *testing.T, suite TestingSuite) {
 			tearDownAllSuite.TearDownSuite()
 		}
 	}()
+
+	if prefixer, ok := suite.(TestNamePrefixer); ok {
+		prefix = prefixer.SuiteTestNamePrefix()
+	}
 
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
@@ -79,7 +89,7 @@ func Run(t *testing.T, suite TestingSuite) {
 		}
 		if ok {
 			test := testing.InternalTest{
-				Name: method.Name,
+				Name: prefix + method.Name,
 				F: func(t *testing.T) {
 					parentT := suite.T()
 					suite.SetT(t)

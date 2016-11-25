@@ -32,3 +32,10 @@ type TearDownAllSuite interface {
 type TearDownTestSuite interface {
 	TearDownTest()
 }
+
+// TestNamePrefixer has a SuiteTestNamePrefix method, which will run
+// before the tests in the suite are run, causing the returned prefix
+// to be prepended to the method name of each test in the suite.
+type TestNamePrefixer interface {
+	SuiteTestNamePrefix() string
+}
