@@ -48,6 +48,7 @@ func RunParallel(t *testing.T, suite interface{}) {
 	}()
 
 	methodFinder := reflect.TypeOf(suite)
+
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
@@ -85,6 +86,17 @@ func RunParallel(t *testing.T, suite interface{}) {
 func makeInnerTest(t *testing.T, suite interface{}, method reflect.Method) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Parallel()
+
+		var (
+			parentT      *testing.T
+			testingSuite TestingSuite
+		)
+		isTestingSuite := false
+		if testingSuite, isTestingSuite = suite.(TestingSuite); isTestingSuite {
+			parentT = testingSuite.T()
+			testingSuite.SetT(t)
+		}
+
 		setupTestSuite, ok := suite.(SetupTestSuite)
 		if ok {
 			setupTestSuite.SetupTest()
@@ -94,8 +106,15 @@ func makeInnerTest(t *testing.T, suite interface{}, method reflect.Method) func(
 			if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 				tearDownTestSuite.TearDownTest()
 			}
+			if isTestingSuite {
+				testingSuite.SetT(parentT)
+			}
 		}()
 
-		method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
+		if isTestingSuite {
+			method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+		} else {
+			method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
+		}
 	}
 }

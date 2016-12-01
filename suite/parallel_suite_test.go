@@ -26,7 +26,6 @@ type complexData struct {
 }
 
 type ParallelTestSuite struct {
-	Suite
 	suiteInt         int64
 	setupSimpleData  int
 	setupComplexData complexData
@@ -76,4 +75,16 @@ func TestParallelSuiteRunner(t *testing.T) {
 	assert.Equal(t, int64(0), suite.suiteInt)
 	assert.Equal(t, 1, suite.setupSimpleData)
 	assert.Equal(t, 7, suite.setupComplexData.nested.n)
+}
+
+type EmbeddedParallelTestSuite struct {
+	Suite
+}
+
+func (s *EmbeddedParallelTestSuite) TestOne() {
+}
+
+func TestEmbeddedParallelSuiteRunner(t *testing.T) {
+	suite := new(EmbeddedParallelTestSuite)
+	RunParallel(t, suite)
 }
