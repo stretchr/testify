@@ -294,7 +294,9 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 	aType := reflect.TypeOf(expected)
 	bType := reflect.TypeOf(actual)
 
-	if aType != bType && isAmbiguousType(aType) && isAmbiguousType(bType) {
+	// if the types are both numeric or both strings,
+	// print them with type information
+	if aType != bType && ((isNumericType(aType) && isNumericType(bType)) || (aType.Kind() == reflect.String && bType.Kind() == reflect.String)) {
 		return fmt.Sprintf("%v(%#v)", aType, expected),
 			fmt.Sprintf("%v(%#v)", bType, actual)
 	}
@@ -303,17 +305,13 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 		fmt.Sprintf("%#v", actual)
 }
 
-func isAmbiguousType(t reflect.Type) bool {
+func isNumericType(t reflect.Type) bool {
 	switch t.Kind() {
-	// numbers are ambiguous when printed
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return true
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return true
 	case reflect.Float32, reflect.Float64:
-		return true
-		// strings are also ambiguous as printed
-	case reflect.String:
 		return true
 	}
 
