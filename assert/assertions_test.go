@@ -1,12 +1,16 @@
 package assert
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"math"
 	"os"
 	"reflect"
 	"regexp"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -194,6 +198,64 @@ func TestEqual(t *testing.T) {
 	}
 	if !Equal(mockT, &struct{}{}, &struct{}{}) {
 		t.Error("Equal should return true (pointer equality is based on equality of underlying value)")
+	}
+}
+
+// bufferT implements TestingT. Its implementation of Errorf writes the output that would be produced by
+// testing.T.Errorf to an internal bytes.Buffer.
+type bufferT struct {
+	buf bytes.Buffer
+}
+
+func (t *bufferT) Errorf(format string, args ...interface{}) {
+	// implementation of decorate is copied from testing.T
+	decorate := func(s string) string {
+		_, file, line, ok := runtime.Caller(3) // decorate + log + public function.
+		if ok {
+			// Truncate file name at last file name separator.
+			if index := strings.LastIndex(file, "/"); index >= 0 {
+				file = file[index+1:]
+			} else if index = strings.LastIndex(file, "\\"); index >= 0 {
+				file = file[index+1:]
+			}
+		} else {
+			file = "???"
+			line = 1
+		}
+		buf := new(bytes.Buffer)
+		// Every line is indented at least one tab.
+		buf.WriteByte('\t')
+		fmt.Fprintf(buf, "%s:%d: ", file, line)
+		lines := strings.Split(s, "\n")
+		if l := len(lines); l > 1 && lines[l-1] == "" {
+			lines = lines[:l-1]
+		}
+		for i, line := range lines {
+			if i > 0 {
+				// Second and subsequent lines are indented an extra tab.
+				buf.WriteString("\n\t\t")
+			}
+			buf.WriteString(line)
+		}
+		buf.WriteByte('\n')
+		return buf.String()
+	}
+	t.buf.WriteString(decorate(fmt.Sprintf(format, args...)))
+}
+
+func TestEqualFormatting(t *testing.T) {
+	for i, currCase := range []struct {
+		equalWant  string
+		equalGot   string
+		msgAndArgs []interface{}
+		want       string
+	}{
+		{equalWant:"want", equalGot: "got", want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \treceived: \"got\"\n"},
+		{equalWant:"want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \treceived: \"got\"\n\t\t\r\tMessages:   \thello, world!\n"},
+	} {
+		mockT := &bufferT{}
+		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
+		Regexp(t, regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
 	}
 }
 
