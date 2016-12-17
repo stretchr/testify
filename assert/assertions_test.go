@@ -192,7 +192,9 @@ func TestEqual(t *testing.T) {
 	if !Equal(mockT, uint64(123), uint64(123)) {
 		t.Error("Equal should return true")
 	}
-
+	if !Equal(mockT, &struct{}{}, &struct{}{}) {
+		t.Error("Equal should return true (pointer equality is based on equality of underlying value)")
+	}
 }
 
 func TestFormatUnequalValues(t *testing.T) {
@@ -341,6 +343,9 @@ func TestNotEqual(t *testing.T) {
 		t.Error("NotEqual should return false")
 	}
 	if NotEqual(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
+		t.Error("NotEqual should return false")
+	}
+	if NotEqual(mockT, &struct{}{}, &struct{}{}) {
 		t.Error("NotEqual should return false")
 	}
 }
