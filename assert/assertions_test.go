@@ -78,6 +78,8 @@ var (
 	}
 )
 
+type StringAlias string
+
 // AssertionTesterInterface defines an interface to be used for testing assertion methods
 type AssertionTesterInterface interface {
 	TestMethod()
@@ -209,6 +211,15 @@ func TestFormatUnequalValues(t *testing.T) {
 	expected, actual = formatUnequalValues(int64(123), int32(123))
 	Equal(t, `int64(123)`, expected, "value should include type")
 	Equal(t, `int32(123)`, actual, "value should include type")
+
+	expected, actual = formatUnequalValues("different string types", StringAlias("different string types"))
+	Equal(t, `string("different string types")`, expected, "value should include type")
+	Equal(t, `assert.StringAlias("different string types")`, actual, "value should include type")
+
+	// when strings are compared to numeric types, extra type information should not be present.
+	expected, actual = formatUnequalValues("string type", 12345)
+	Equal(t, `"string type"`, expected, "value should not include type")
+	Equal(t, "12345", actual, "value should not include type")
 
 	type testStructType struct {
 		Val string

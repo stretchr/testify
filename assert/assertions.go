@@ -297,7 +297,9 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 	aType := reflect.TypeOf(expected)
 	bType := reflect.TypeOf(actual)
 
-	if aType != bType && isNumericType(aType) && isNumericType(bType) {
+	// if the types are both numeric or both strings,
+	// print them with type information
+	if aType != bType && ((isNumericType(aType) && isNumericType(bType)) || (aType.Kind() == reflect.String && bType.Kind() == reflect.String)) {
 		return fmt.Sprintf("%v(%#v)", aType, expected),
 			fmt.Sprintf("%v(%#v)", bType, actual)
 	}
