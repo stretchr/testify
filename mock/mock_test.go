@@ -1130,3 +1130,29 @@ func Test_Arguments_Bool(t *testing.T) {
 	assert.Equal(t, true, args.Bool(2))
 
 }
+
+func Test_WaitUntil_Parallel(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	ch1 := make(chan time.Time)
+	ch2 := make(chan time.Time)
+
+	mockedService.Mock.On("TheExampleMethod2", true).Return().WaitUntil(ch2).Run(func(args Arguments) {
+		ch1 <- time.Now()
+	})
+
+	mockedService.Mock.On("TheExampleMethod2", false).Return().WaitUntil(ch1)
+
+	// Lock both goroutines on the .WaitUntil method
+	go func() {
+		mockedService.TheExampleMethod2(false)
+	}()
+	go func() {
+		mockedService.TheExampleMethod2(true)
+	}()
+
+	// Allow the first call to execute, so the second one executes afterwards
+	ch2 <- time.Now()
+}
