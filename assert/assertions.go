@@ -664,6 +664,92 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 
 }
 
+// Subset asserts that the specified list(array, slice...) contains all
+// elements given in the specified subset(array, slice...).
+//
+//    assert.Subset(t, [1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
+	if subset == nil {
+		return true // we consider nil to be equal to the nil set
+	}
+
+	subsetValue := reflect.ValueOf(subset)
+	defer func() {
+		if e := recover(); e != nil {
+			ok = false
+		}
+	}()
+
+	listKind := reflect.TypeOf(list).Kind()
+	subsetKind := reflect.TypeOf(subset).Kind()
+
+	if listKind != reflect.Array && listKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
+	}
+
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+	}
+
+	for i := 0; i < subsetValue.Len(); i++ {
+		element := subsetValue.Index(i).Interface()
+		ok, found := includeElement(list, element)
+		if !ok {
+			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+		}
+		if !found {
+			return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
+		}
+	}
+
+	return true
+}
+
+// NotSubset asserts that the specified list(array, slice...) contains not all
+// elements given in the specified subset(array, slice...).
+//
+//    assert.NotSubset(t, [1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
+	if subset == nil {
+		return false // we consider nil to be equal to the nil set
+	}
+
+	subsetValue := reflect.ValueOf(subset)
+	defer func() {
+		if e := recover(); e != nil {
+			ok = false
+		}
+	}()
+
+	listKind := reflect.TypeOf(list).Kind()
+	subsetKind := reflect.TypeOf(subset).Kind()
+
+	if listKind != reflect.Array && listKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
+	}
+
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+	}
+
+	for i := 0; i < subsetValue.Len(); i++ {
+		element := subsetValue.Index(i).Interface()
+		ok, found := includeElement(list, element)
+		if !ok {
+			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+		}
+		if !found {
+			return true
+		}
+	}
+
+	return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
+}
+
 // Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	result := comp()

@@ -493,6 +493,66 @@ func TestNotContains(t *testing.T) {
 	}
 }
 
+func TestSubset(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !Subset(mockT, []int{1, 2, 3}, nil) {
+		t.Error("Subset should return true: given subset is nil")
+	}
+	if !Subset(mockT, []int{1, 2, 3}, []int{}) {
+		t.Error("Subset should return true: any set contains the nil set")
+	}
+	if !Subset(mockT, []int{1, 2, 3}, []int{1, 2}) {
+		t.Error("Subset should return true: [1, 2, 3] contains [1, 2]")
+	}
+	if !Subset(mockT, []int{1, 2, 3}, []int{1, 2, 3}) {
+		t.Error("Subset should return true: [1, 2, 3] contains [1, 2, 3]")
+	}
+	if !Subset(mockT, []string{"hello", "world"}, []string{"hello"}) {
+		t.Error("Subset should return true: [\"hello\", \"world\"] contains [\"hello\"]")
+	}
+
+	if Subset(mockT, []string{"hello", "world"}, []string{"hello", "testify"}) {
+		t.Error("Subset should return false: [\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]")
+	}
+	if Subset(mockT, []int{1, 2, 3}, []int{4, 5}) {
+		t.Error("Subset should return false: [1, 2, 3] does not contain [4, 5]")
+	}
+	if Subset(mockT, []int{1, 2, 3}, []int{1, 5}) {
+		t.Error("Subset should return false: [1, 2, 3] does not contain [1, 5]")
+	}
+}
+
+func TestNotSubset(t *testing.T) {
+	mockT := new(testing.T)
+
+	if NotSubset(mockT, []int{1, 2, 3}, nil) {
+		t.Error("NotSubset should return false: given subset is nil")
+	}
+	if NotSubset(mockT, []int{1, 2, 3}, []int{}) {
+		t.Error("NotSubset should return false: any set contains the nil set")
+	}
+	if NotSubset(mockT, []int{1, 2, 3}, []int{1, 2}) {
+		t.Error("NotSubset should return false: [1, 2, 3] contains [1, 2]")
+	}
+	if NotSubset(mockT, []int{1, 2, 3}, []int{1, 2, 3}) {
+		t.Error("NotSubset should return false: [1, 2, 3] contains [1, 2, 3]")
+	}
+	if NotSubset(mockT, []string{"hello", "world"}, []string{"hello"}) {
+		t.Error("NotSubset should return false: [\"hello\", \"world\"] contains [\"hello\"]")
+	}
+
+	if !NotSubset(mockT, []string{"hello", "world"}, []string{"hello", "testify"}) {
+		t.Error("NotSubset should return true: [\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]")
+	}
+	if !NotSubset(mockT, []int{1, 2, 3}, []int{4, 5}) {
+		t.Error("NotSubset should return true: [1, 2, 3] does not contain [4, 5]")
+	}
+	if !NotSubset(mockT, []int{1, 2, 3}, []int{1, 5}) {
+		t.Error("NotSubset should return true: [1, 2, 3] does not contain [1, 5]")
+	}
+}
+
 func Test_includeElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
