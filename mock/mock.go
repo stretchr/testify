@@ -457,6 +457,13 @@ func (m *Mock) calls() []Call {
 	return append([]Call{}, m.Calls...)
 }
 
+// Reset removes all programmed expectations from a mock
+func (m *Mock) Reset() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.ExpectedCalls = nil
+}
+
 /*
 	Arguments
 */
