@@ -50,6 +50,14 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		return true
 	}
 
+	if actual == nil && expected == nil {
+		return true
+	}
+
+	if actual == nil || expected == nil {
+		return false
+	}
+
 	actualType := reflect.TypeOf(actual)
 	if actualType == nil {
 		return false
