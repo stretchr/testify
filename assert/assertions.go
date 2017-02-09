@@ -882,7 +882,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 //
 //   actualObj, err := SomeFunction()
 //   if assert.NoError(t, err) {
-//	   assert.Equal(t, actualObj, expectedObj)
+//	   assert.Equal(t, expectedObj, actualObj)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
@@ -898,7 +898,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 //
 //   actualObj, err := SomeFunction()
 //   if assert.Error(t, err, "An error was expected") {
-//	   assert.Equal(t, err, expectedError)
+//	   assert.Equal(t, expectedError, err)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
