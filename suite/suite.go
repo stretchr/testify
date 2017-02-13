@@ -18,8 +18,7 @@ var matchMethod = flag.String("testify.m", "", "regular expression to select tes
 // retrieving the current *testing.T context.
 type Suite struct {
 	*assert.Assertions
-	require *require.Assertions
-	t       *testing.T
+	t *testing.T
 }
 
 // T retrieves the current *testing.T context.
@@ -36,10 +35,7 @@ func (suite *Suite) SetT(t *testing.T) {
 
 // Require returns a require context for suite.
 func (suite *Suite) Require() *require.Assertions {
-	if suite.require == nil {
-		suite.require = require.New(suite.T())
-	}
-	return suite.require
+	return require.New(suite.T())
 }
 
 // Assert returns an assert context for suite.  Normally, you can call

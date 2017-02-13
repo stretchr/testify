@@ -227,7 +227,6 @@ func TestSuiteGetters(t *testing.T) {
 	assert.NotNil(t, suite.Assert())
 	assert.Equal(t, suite.Assertions, suite.Assert())
 	assert.NotNil(t, suite.Require())
-	assert.Equal(t, suite.require, suite.Require())
 }
 
 type SuiteLoggingTester struct {
