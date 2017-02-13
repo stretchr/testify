@@ -1283,3 +1283,19 @@ func TestFailNowWithFullTestingT(t *testing.T) {
 		FailNow(mockT, "failed")
 	}, "should call mockT.FailNow() rather than panicking")
 }
+
+func TestAssignableTo(t *testing.T) {
+	type kv struct {
+		Key   string
+		Value int
+	}
+	IsAssignableTo(t, kv{}, kv{"one", 1})
+	IsAssignableTo(t, kv{}, struct {
+		Key   string
+		Value int
+	}{"one", 1})
+	IsNotAssignableTo(t, kv{}, struct {
+		Key   string
+		Value string
+	}{"one", "1"})
+}
