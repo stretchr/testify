@@ -116,10 +116,12 @@ func CallerInfo() []string {
 		}
 
 		parts := strings.Split(file, "/")
-		dir := parts[len(parts)-2]
 		file = parts[len(parts)-1]
-		if (dir != "assert" && dir != "mock" && dir != "require") || file == "mock_test.go" {
-			callers = append(callers, fmt.Sprintf("%s:%d", file, line))
+		if len(parts) > 1 {
+			dir := parts[len(parts)-2]
+			if (dir != "assert" && dir != "mock" && dir != "require") || file == "mock_test.go" {
+				callers = append(callers, fmt.Sprintf("%s:%d", file, line))
+			}
 		}
 
 		// Drop the package
