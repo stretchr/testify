@@ -2,10 +2,11 @@ package mock
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 /*
@@ -52,6 +53,11 @@ func (i *TestExampleImplementation) TheExampleMethodVariadic(a ...int) error {
 
 func (i *TestExampleImplementation) TheExampleMethodVariadicInterface(a ...interface{}) error {
 	args := i.Called(a)
+	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleMethodMixedVariadic(a int, b ...int) error {
+	args := i.Called(a, b)
 	return args.Error(0)
 }
 
@@ -222,6 +228,29 @@ func Test_Mock_On_WithVariadicFunc(t *testing.T) {
 	})
 	assert.Panics(t, func() {
 		mockedService.TheExampleMethodVariadic(1, 2)
+	})
+
+}
+
+func Test_Mock_On_WithMixedVariadicFunc(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethodMixedVariadic", 1, []int{2, 3, 4}).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, 2, len(c.Arguments))
+	assert.Equal(t, 1, c.Arguments[0])
+	assert.Equal(t, []int{2, 3, 4}, c.Arguments[1])
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodMixedVariadic(1, 2, 3, 4)
+	})
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodMixedVariadic(1, 2, 3, 5)
 	})
 
 }
