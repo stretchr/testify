@@ -998,6 +998,28 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 }
 
+func Test_Mock_CallsForMethod(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethod", Anything, Anything, Anything).Return(0, nil)
+	mockedService.On("TheExampleMethod2", Anything)
+	mockedService.On("TheExampleMethodVariadic", Anything).Return(nil)
+
+	mockedService.TheExampleMethod(0, 0, 0)
+	mockedService.TheExampleMethod(1, 1, 1)
+	mockedService.TheExampleMethod2(true)
+	mockedService.TheExampleMethod2(false)
+	mockedService.TheExampleMethodVariadic(0, 1, 2, 3)
+
+	theExampleMethodCalls := mockedService.CallsForMethod("TheExampleMethod")
+	theExampleMethod2Calls := mockedService.CallsForMethod("TheExampleMethod2")
+	theExampleMethodVariadicCalls := mockedService.CallsForMethod("TheExampleMethodVariadic")
+
+	assert.Len(t, theExampleMethodCalls, 2)
+	assert.Len(t, theExampleMethod2Calls, 2)
+	assert.Len(t, theExampleMethodVariadicCalls, 1)
+}
+
 /*
 	Arguments helper methods
 */
