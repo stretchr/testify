@@ -514,7 +514,7 @@ func (f argumentMatcher) String() string {
 //
 // |fn|, must be a function accepting a single argument (of the expected type)
 // which returns a bool. If |fn| doesn't match the required signature,
-// MathedBy() panics.
+// MatchedBy() panics.
 func MatchedBy(fn interface{}) argumentMatcher {
 	fnType := reflect.TypeOf(fn)
 
