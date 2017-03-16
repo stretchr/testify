@@ -2,6 +2,7 @@ package mock
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -1157,6 +1158,15 @@ func Test_Arguments_Bool(t *testing.T) {
 
 	var args = Arguments([]interface{}{"string", 123, true})
 	assert.Equal(t, true, args.Bool(2))
+
+}
+
+func Test_ArgumentMatcher_Matches_Nil(t *testing.T) {
+
+	var matcher = argumentMatcher{fn: reflect.ValueOf(func(v interface{}) bool {
+		return v == nil
+	})}
+	assert.True(t, matcher.Matches(nil))
 
 }
 
