@@ -304,7 +304,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"received: %s%s", expected, actual, diff), msgAndArgs...)
+			"actual: %s%s", expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
@@ -340,7 +340,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"received: %s%s", expected, actual, diff), msgAndArgs...)
+			"actual: %s%s", expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
@@ -936,7 +936,7 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	if expected != actual {
 		return Fail(t, fmt.Sprintf("Error message not equal:\n"+
 			"expected: %q\n"+
-			"received: %q", expected, actual), msgAndArgs...)
+			"actual: %q", expected, actual), msgAndArgs...)
 	}
 	return true
 }
