@@ -21,6 +21,7 @@ import (
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Errorf(format string, args ...interface{})
+	Error(args ...interface{})
 }
 
 // Comparison a custom function that returns true on success and false on failure
@@ -223,7 +224,7 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 		content = append(content, labeledContent{"Messages", message})
 	}
 
-	t.Errorf("\r" + getWhitespaceString() + labeledOutput(content...))
+	t.Error("\r" + getWhitespaceString() + labeledOutput(content...))
 
 	return false
 }
