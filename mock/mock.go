@@ -715,10 +715,8 @@ func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
 }
 
 func diffArguments(expected Arguments, actual Arguments) string {
-	for x := range expected {
-		if diffString := diff(expected[x], actual[x]); diffString != "" {
-			return fmt.Sprintf("Difference found in argument %v:\n\n%s", x, diffString)
-		}
+	if diffString := diff(expected, actual); diffString != "" {
+		return fmt.Sprintf("Difference found in arguments:\n\n%s", diffString)
 	}
 
 	return ""
