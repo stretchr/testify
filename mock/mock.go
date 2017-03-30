@@ -146,7 +146,7 @@ func (c *Call) After(d time.Duration) *Call {
 //    	arg := args.Get(0).(*map[string]interface{})
 //    	arg["foo"] = "bar"
 //    })
-func (c *Call) Run(fn func(Arguments)) *Call {
+func (c *Call) Run(fn func(args Arguments)) *Call {
 	c.lock()
 	defer c.unlock()
 	c.RunFn = fn
