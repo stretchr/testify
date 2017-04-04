@@ -13,6 +13,11 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
 	"github.com/stretchr/testify/assert"
+	"bytes"
+)
+
+const (
+	convey_test_passed_message = ""
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -371,6 +376,25 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 // AssertExpectations asserts that everything specified with On and Return was
 // in fact called as expected.  Calls may have occurred in any order.
 func (m *Mock) AssertExpectations(t TestingT) bool {
+	errorMsg := ExpectationsWereMet(m)
+	if errorMsg != convey_test_passed_message {
+		t.Errorf(errorMsg)
+		return false
+	} else {
+		return true
+	}
+}
+
+// ExpectationsWereMet is a goconvey style assertion see: https://github.com/smartystreets/goconvey/wiki/Assertions
+// It asserts that everything specified with On and Return was
+// in fact called as expected.  Calls may have occurred in any order
+func ExpectationsWereMet(iFace interface{}, args ...interface{}) string  {
+	m, err := getMock(iFace)
+	if err != nil {
+		return err.Error()
+	}
+
+	b := new(bytes.Buffer)
 	var somethingMissing bool
 	var failedExpectations int
 
@@ -380,55 +404,176 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 		if !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0 {
 			somethingMissing = true
 			failedExpectations++
-			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+			fmt.Fprintf(b, "\u274C\t%s(%s)\n", expectedCall.Method, expectedCall.Arguments.String())
 		} else {
 			m.mutex.Lock()
 			if expectedCall.Repeatability > 0 {
 				somethingMissing = true
 				failedExpectations++
 			} else {
-				t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+				fmt.Fprintf(b, "\u2705\t%s(%s)\n", expectedCall.Method, expectedCall.Arguments.String())
 			}
 			m.mutex.Unlock()
 		}
 	}
 
 	if somethingMissing {
-		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+		fmt.Fprintf(b, "FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+		return b.String()
+	} else {
+		return convey_test_passed_message
 	}
-
-	return !somethingMissing
 }
 
 // AssertNumberOfCalls asserts that the method was called expectedCalls times.
 func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls int) bool {
+	msg := NumberOfCalls(m, methodName, expectedCalls)
+	passedTest := msg == convey_test_passed_message
+	if !passedTest {
+		assert.Fail(t, msg)
+	}
+
+	return passedTest
+}
+
+func getMock(iFace interface{})(Mock, error) {
+	var mock Mock
+	if m, ok := iFace.(Mock); ok {
+		mock = m
+	} else {
+		iVal := reflect.ValueOf(iFace)
+		if iVal.Type().Kind() == reflect.Ptr {
+			return getMock(iVal.Elem().Interface())
+		} else if iVal.Type().Kind() == reflect.Struct && iVal.NumField() >= 1 {
+			v := iVal.Field(0)
+			if m, ok := v.Interface().(Mock); ok {
+				mock = m
+			} else {
+				return Mock{}, fmt.Errorf("Could not get mock from interface %v. Had type %v", iFace, reflect.TypeOf(iFace))
+			}
+		} else {
+			return Mock{}, fmt.Errorf("Could not get mock from interface %v. Had type %v", iFace, reflect.TypeOf(iFace))
+		}
+	}
+
+	return mock, nil
+}
+
+// NumberOfCalls is a goconvey style assertion see: https://github.com/smartystreets/goconvey/wiki/Assertions
+// It  asserts that the method was called expectedCalls times.
+func NumberOfCalls(iFace interface{}, args ...interface{}) string {
+	m, err := getMock(iFace)
+	if err != nil {
+		return err.Error()
+	}
+
+	var methodName string
+	if stringVal, ok := args[0].(string); !ok {
+		typ := reflect.TypeOf(iFace)
+		return fmt.Sprintf("Argument 0 (methodName) should be a string. (was %s)", typ.Name())
+	} else {
+		methodName = stringVal
+	}
+
+	var expectedCalls int
+	if intVal, ok := args[1].(int); !ok {
+		typ := reflect.TypeOf(iFace)
+		return fmt.Sprintf("Argument 1 (expectedCalls) should be a int. (was %s)", typ.Name())
+	} else {
+		expectedCalls = intVal
+	}
+
 	var actualCalls int
 	for _, call := range m.calls() {
 		if call.Method == methodName {
 			actualCalls++
 		}
 	}
-	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) does not match the actual number of calls (%d).", expectedCalls, actualCalls))
+
+	if actualCalls != expectedCalls {
+		return fmt.Sprintf("Expected number of calls (%d) does not match the actual number of calls (%d).", expectedCalls, actualCalls)
+	} else {
+		return convey_test_passed_message
+	}
 }
 
 // AssertCalled asserts that the method was called.
 // It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
 func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
-	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
+	args := make([]interface{}, len(arguments) + 1)
+	args[0] = methodName
+	copy(args[1:], arguments)
+	message := MethodWasCalled(m, args...)
+	if message == convey_test_passed_message {
+		return true
+	} else {
+		assert.Fail(t, message)
 		t.Logf("%v", m.expectedCalls())
 		return false
 	}
-	return true
+}
+
+// MethodWasCalled is a goconvey style assertion see: https://github.com/smartystreets/goconvey/wiki/Assertions
+// It asserts that the method was called.
+// It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
+func MethodWasCalled(iFace interface{}, args ...interface{}) string {
+	m, err := getMock(iFace)
+	if err != nil {
+		return err.Error()
+	}
+	var methodName string
+	if stringVal, ok := args[0].(string); !ok {
+		typ := reflect.TypeOf(iFace)
+		return fmt.Sprintf("Argument 0 (methodName) should be a string. (was %s)", typ.Name())
+	} else {
+		methodName = stringVal
+	}
+
+	if !m.methodWasCalled(methodName, args[1:]) {
+		return fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(args[1:]))
+	}
+
+	return convey_test_passed_message
 }
 
 // AssertNotCalled asserts that the method was not called.
 // It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
 func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...interface{}) bool {
-	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
+	args := make([]interface{}, len(arguments) + 1)
+	args[0] = methodName
+	copy(args[1:], arguments)
+
+	message := MethodWasNotCalled(m, args...)
+	if message == convey_test_passed_message {
+		return true
+	} else {
+		assert.Fail(t, message)
 		t.Logf("%v", m.expectedCalls())
 		return false
 	}
-	return true
+}
+
+// MethodWasNotCalled is a goconvey style assertion see: https://github.com/smartystreets/goconvey/wiki/Assertions
+// It asserts that the method was not called.
+// It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
+func MethodWasNotCalled(iFace interface{}, args ...interface{}) string {
+	m, err := getMock(iFace)
+	if err != nil {
+		return err.Error()
+	}
+	var methodName string
+	if stringVal, ok := args[0].(string); !ok {
+		typ := reflect.TypeOf(iFace)
+		return fmt.Sprintf("Argument 0 (methodName) should be a string. (was %s)", typ.Name())
+	} else {
+		methodName = stringVal
+	}
+
+	if m.methodWasCalled(methodName, args[1:]) {
+		return fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(args[1:]))
+	}
+
+	return convey_test_passed_message
 }
 
 func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
