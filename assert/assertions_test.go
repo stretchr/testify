@@ -1283,3 +1283,32 @@ func TestFailNowWithFullTestingT(t *testing.T) {
 		FailNow(mockT, "failed")
 	}, "should call mockT.FailNow() rather than panicking")
 }
+
+func TestBytesEqual(t *testing.T) {
+	var cases = []struct {
+		a, b []byte
+	}{
+		{make([]byte, 2), make([]byte, 2)},
+		{make([]byte, 2), make([]byte, 2, 3)},
+		{nil, make([]byte, 0)},
+	}
+	for i, c := range cases {
+		Equal(t, reflect.DeepEqual(c.a, c.b), ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
+	}
+}
+
+func BenchmarkBytesEqual(b *testing.B) {
+	const size = 1024 * 8
+	s := make([]byte, size)
+	for i := range s {
+		s[i] = byte(i % 255)
+	}
+	s2 := make([]byte, size)
+	copy(s2, s)
+
+	mockT := &mockFailNowTestingT{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Equal(mockT, s, s2)
+	}
+}
