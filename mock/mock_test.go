@@ -2,10 +2,11 @@ package mock
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 /*
@@ -533,7 +534,7 @@ func Test_Mock_findExpectedCall(t *testing.T) {
 	m.On("Two", 2).Return("two")
 	m.On("Two", 3).Return("three")
 
-	f, c := m.findExpectedCall("Two", 3)
+	f, c := m.FindExpectedCall("Two", 3)
 
 	if assert.Equal(t, 2, f) {
 		if assert.NotNil(t, c) {
@@ -552,7 +553,7 @@ func Test_Mock_findExpectedCall_For_Unknown_Method(t *testing.T) {
 	m.On("Two", 2).Return("two")
 	m.On("Two", 3).Return("three")
 
-	f, _ := m.findExpectedCall("Two")
+	f, _ := m.FindExpectedCall("Two")
 
 	assert.Equal(t, -1, f)
 
@@ -566,7 +567,7 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 	m.On("Two", 3).Return("three").Twice()
 	m.On("Two", 3).Return("three").Times(8)
 
-	f, c := m.findExpectedCall("Two", 3)
+	f, c := m.FindExpectedCall("Two", 3)
 
 	if assert.Equal(t, 2, f) {
 		if assert.NotNil(t, c) {
@@ -1155,4 +1156,16 @@ func Test_WaitUntil_Parallel(t *testing.T) {
 
 	// Allow the first call to execute, so the second one executes afterwards
 	ch2 <- time.Now()
+}
+
+func Test_MethodCalled(t *testing.T) {
+	m := new(Mock)
+	m.On("foo", "hello").Return("world")
+
+	found, _ := m.FindExpectedCall("foo", "hello")
+	require.True(t, found >= 0)
+	retArgs := m.MethodCalled("foo", "hello")
+	require.True(t, len(retArgs) == 1)
+	require.Equal(t, "world", retArgs[0])
+	m.AssertExpectations(t)
 }
