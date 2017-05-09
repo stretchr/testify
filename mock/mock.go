@@ -715,6 +715,10 @@ func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
 }
 
 func diffArguments(expected Arguments, actual Arguments) string {
+	if len(expected) != len(actual) {
+		return fmt.Sprintf("Provided %v arguments, mocked for %v arguments", len(expected), len(actual))
+	}
+
 	for x := range expected {
 		if diffString := diff(expected[x], actual[x]); diffString != "" {
 			return fmt.Sprintf("Difference found in argument %v:\n\n%s", x, diffString)
