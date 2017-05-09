@@ -3,9 +3,6 @@ language: go
 sudo: false
 
 go:
-  - 1.1 # broken?
-  - 1.2 # broken?
-  - 1.3 # broken?
   - 1.4
   - 1.5
   - 1.6
