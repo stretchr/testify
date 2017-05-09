@@ -213,7 +213,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 // 	Recording and responding to activity
 // */
 
-func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
+func (m *Mock) FindExpectedCall(method string, arguments ...interface{}) (int, *Call) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	for i, call := range m.ExpectedCalls {
@@ -287,8 +287,11 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	}
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
+	return m.MethodCalled(functionName, arguments...)
+}
 
-	found, call := m.findExpectedCall(functionName, arguments...)
+func (m *Mock) MethodCalled(functionName string, arguments ...interface{}) Arguments {
+	found, call := m.FindExpectedCall(functionName, arguments...)
 
 	if found < 0 {
 		// we have to fail here - because we don't know what to do
