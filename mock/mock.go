@@ -252,18 +252,16 @@ func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *
 	return true, closestCall
 }
 
-func callString(method string, arguments Arguments, includeArgumentValues bool) string {
-
-	var argValsString string
-	if includeArgumentValues {
-		var argVals []string
-		for argIndex, arg := range arguments {
-			argVals = append(argVals, fmt.Sprintf("%d: %#v", argIndex, arg))
+func callString(method string, arguments Arguments) string {
+	var argVals []string
+	for i, arg := range arguments {
+		if i > 0 {
+			argVals = append(argVals, ",")
 		}
-		argValsString = fmt.Sprintf("\n\t\t%s", strings.Join(argVals, "\n\t\t"))
+		argVals = append(argVals, fmt.Sprintf("%#v", arg))
 	}
 
-	return fmt.Sprintf("%s(%s)%s", method, arguments.String(), argValsString)
+	return fmt.Sprintf("%s(%s) with arguments %s", method, arguments.String(), argVals)
 }
 
 // Called tells the mock object that a method has been called, and gets an array
@@ -300,10 +298,38 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 
 		closestFound, closestCall := m.findClosestCall(functionName, arguments...)
 
+		const header string = "\n\n" +
+			"mock: Unexpected Method Call\n" +
+			"-----------------------------\n\n"
 		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(functionName, arguments, true), callString(functionName, closestCall.Arguments, true), diffArguments(arguments, closestCall.Arguments)))
+			panic(
+				fmt.Sprintf(
+					"%s"+
+						"Expected \"%s\" to be called with\n"+
+						"%v\n"+
+						"but it was called with\n"+
+						"%v\n",
+					header,
+					functionName,
+					arguments,
+					closestCall.Arguments,
+				),
+			)
 		} else {
-			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
+			bt := assert.CallerInfo()
+			panic(
+				fmt.Sprintf(
+					"%s"+
+						"Call to \"%s\" was unexpected. Return value is unknown.\n"+
+						"\tEither set the expected return value using\n"+
+						"\t\tMock.On(\"%s\").Return(...)\n"+
+						"\tor remove the call to\n"+
+						"\t\t%s at %s",
+					header,
+					functionName,
+					functionName,
+					callString(functionName, arguments),
+					bt[len(bt)-1]))
 		}
 	} else {
 		m.mutex.Lock()
@@ -715,6 +741,8 @@ func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
 }
 
 func diffArguments(expected Arguments, actual Arguments) string {
+	fmt.Printf("Excpected args: %+v\n", expected)
+	fmt.Printf("Actual args: %+v\n", actual)
 	for x := range expected {
 		if diffString := diff(expected[x], actual[x]); diffString != "" {
 			return fmt.Sprintf("Difference found in argument %v:\n\n%s", x, diffString)
