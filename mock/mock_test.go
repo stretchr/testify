@@ -2,10 +2,11 @@ package mock
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 /*
@@ -533,7 +534,7 @@ func Test_Mock_findExpectedCall(t *testing.T) {
 	m.On("Two", 2).Return("two")
 	m.On("Two", 3).Return("three")
 
-	f, c := m.findExpectedCall("Two", 3)
+	f, c := m.FindExpectedCall("Two", 3)
 
 	if assert.Equal(t, 2, f) {
 		if assert.NotNil(t, c) {
@@ -552,7 +553,7 @@ func Test_Mock_findExpectedCall_For_Unknown_Method(t *testing.T) {
 	m.On("Two", 2).Return("two")
 	m.On("Two", 3).Return("three")
 
-	f, _ := m.findExpectedCall("Two")
+	f, _ := m.FindExpectedCall("Two")
 
 	assert.Equal(t, -1, f)
 
@@ -566,7 +567,7 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 	m.On("Two", 3).Return("three").Twice()
 	m.On("Two", 3).Return("three").Times(8)
 
-	f, c := m.findExpectedCall("Two", 3)
+	f, c := m.FindExpectedCall("Two", 3)
 
 	if assert.Equal(t, 2, f) {
 		if assert.NotNil(t, c) {
@@ -767,6 +768,20 @@ func Test_Mock_AssertExpectations(t *testing.T) {
 
 }
 
+func Test_Mock_Convey_Expectations(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_Expectations", 1, 2, 3).Return(5, 6, 7)
+
+	// make the call now
+	mockedService.Called(1, 2, 3)
+
+	// now assert expectations
+	assert.Empty(t, ExpectationsWereMet(mockedService))
+
+}
+
 func Test_Mock_AssertExpectations_Placeholder_NoArgs(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -900,6 +915,19 @@ func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 
 }
 
+func Test_Mock_Convey_NumberOfCalls(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_NumberOfCalls", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+	assert.Empty(t, NumberOfCalls(mockedService, "Test_Mock_Convey_NumberOfCalls", 1))
+
+	mockedService.Called(1, 2, 3)
+	assert.Empty(t, NumberOfCalls(mockedService, "Test_Mock_Convey_NumberOfCalls", 2))
+}
+
 func Test_Mock_AssertCalled(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -910,6 +938,17 @@ func Test_Mock_AssertCalled(t *testing.T) {
 
 	assert.True(t, mockedService.AssertCalled(t, "Test_Mock_AssertCalled", 1, 2, 3))
 
+}
+
+func Test_Mock_Convey_Called(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_Called", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+
+	assert.Empty(t, MethodWasCalled(mockedService, "Test_Mock_Convey_Called", 1, 2, 3))
 }
 
 func Test_Mock_AssertCalled_WithAnythingOfTypeArgument(t *testing.T) {
@@ -967,6 +1006,17 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 	assert.True(t, mockedService.AssertNotCalled(t, "Test_Mock_NotCalled"))
 
+}
+
+func Test_Mock_Convey_NotCalled(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_NotCalled", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+
+	assert.Empty(t, MethodWasNotCalled(mockedService, "Test_Mock_NotCalled"))
 }
 
 /*
@@ -1155,4 +1205,16 @@ func Test_WaitUntil_Parallel(t *testing.T) {
 
 	// Allow the first call to execute, so the second one executes afterwards
 	ch2 <- time.Now()
+}
+
+func Test_MethodCalled(t *testing.T) {
+	m := new(Mock)
+	m.On("foo", "hello").Return("world")
+
+	found, _ := m.FindExpectedCall("foo", "hello")
+	require.True(t, found >= 0)
+	retArgs := m.MethodCalled("foo", "hello")
+	require.True(t, len(retArgs) == 1)
+	require.Equal(t, "world", retArgs[0])
+	m.AssertExpectations(t)
 }
