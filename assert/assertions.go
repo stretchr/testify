@@ -50,8 +50,7 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		}
 		return bytes.Equal(exp, act)
 	}
-	return reflect.DeepEqual(expected, actual)
-
+	return deepEqual(expected, actual)
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
@@ -68,7 +67,7 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	expectedValue := reflect.ValueOf(expected)
 	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
 		// Attempt comparison after type conversion
-		return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
+		return deepEqual(expectedValue.Convert(actualType).Interface(), actual)
 	}
 
 	return false
