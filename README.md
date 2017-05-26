@@ -180,37 +180,6 @@ For more information on how to write mock code, check out the [API documentation
 
 You can use the [mockery tool](http://github.com/vektra/mockery) to autogenerate the mock code against an interface as well, making using mocks much quicker.
 
-### Plays well with [`goconvey`](https://github.com/smartystreets/goconvey)
-`goconvey` is a BDD style testing framework for gophers. The `mock` package defines several assertion functions intended to 
-work with that framework
-
-Here is an example test function testing a piece of code that operates on a mock called `Example`.
-The test function can setup expectations (testify) for `Example` and assert that they indeed happened:
-
-```go
-package convey
-
-import (
-	"testing"
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/vektra/mockery/mocks"
-	m "github.com/stretchr/testify/mock"
-)
-
-func TestExampleMock(t *testing.T)	{
-	Convey( "Given the example mock" , t, func() {
-		mock := new(mocks.Example)
-		mock.On("A").Return(nil)
-		Convey("When A is called", func() {
-			mock.A()
-			Convey("Assert A is called", func() {
-				So(mock, m.MethodWasCalled, "A")
-			})
-		})
-	})
-}
-```
-
 [`suite`](http://godoc.org/github.com/stretchr/testify/suite "API documentation") package
 -----------------------------------------------------------------------------------------
 
