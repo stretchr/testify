@@ -285,9 +285,16 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	}
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
+	return m.MethodCalled(functionName, arguments...)
+}
 
+// MethodCalled tells the mock object that the given method has been called, and gets
+// an array of arguments to return. Panics if the call is unexpected (i.e. not preceded
+// by appropriate .On .Return() calls)
+// If Call.WaitFor is set, blocks until the channel is closed or receives a message.
+func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Arguments {
 	m.mutex.Lock()
-	found, call := m.findExpectedCall(functionName, arguments...)
+	found, call := m.findExpectedCall(methodName, arguments...)
 
 	if found < 0 {
 		// we have to fail here - because we don't know what to do
@@ -297,13 +304,13 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
 
-		closestFound, closestCall := m.findClosestCall(functionName, arguments...)
+		closestFound, closestCall := m.findClosestCall(methodName, arguments...)
 		m.mutex.Unlock()
 
 		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(functionName, arguments, true), callString(functionName, closestCall.Arguments, true), diffArguments(arguments, closestCall.Arguments)))
+			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(arguments, closestCall.Arguments)))
 		} else {
-			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", functionName, functionName, callString(functionName, arguments, true), assert.CallerInfo()))
+			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo()))
 		}
 	}
 
@@ -321,7 +328,7 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	}
 
 	// add the call
-	m.Calls = append(m.Calls, *newCall(m, functionName, arguments...))
+	m.Calls = append(m.Calls, *newCall(m, methodName, arguments...))
 	m.mutex.Unlock()
 
 	// block if specified

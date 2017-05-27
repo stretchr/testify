@@ -2,10 +2,11 @@ package mock
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 /*
@@ -1183,4 +1184,14 @@ func Test_WaitUntil_Parallel(t *testing.T) {
 
 	// Allow the first call to execute, so the second one executes afterwards
 	ch2 <- time.Now()
+}
+
+func Test_MockMethodCalled(t *testing.T) {
+	m := new(Mock)
+	m.On("foo", "hello").Return("world")
+
+	retArgs := m.MethodCalled("foo", "hello")
+	require.True(t, len(retArgs) == 1)
+	require.Equal(t, "world", retArgs[0])
+	m.AssertExpectations(t)
 }
