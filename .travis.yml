@@ -10,4 +10,5 @@ go:
   - tip
 
 script:
+  - ./.travis.gofmt.sh
   - go test -v ./...
