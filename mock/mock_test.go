@@ -795,6 +795,20 @@ func Test_Mock_AssertExpectations(t *testing.T) {
 
 }
 
+func Test_Mock_Convey_Expectations(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_Expectations", 1, 2, 3).Return(5, 6, 7)
+
+	// make the call now
+	mockedService.Called(1, 2, 3)
+
+	// now assert expectations
+	assert.Empty(t, ExpectationsWereMet(mockedService))
+
+}
+
 func Test_Mock_AssertExpectations_Placeholder_NoArgs(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -928,6 +942,19 @@ func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 
 }
 
+func Test_Mock_Convey_NumberOfCalls(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_NumberOfCalls", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+	assert.Empty(t, NumberOfCalls(mockedService, "Test_Mock_Convey_NumberOfCalls", 1))
+
+	mockedService.Called(1, 2, 3)
+	assert.Empty(t, NumberOfCalls(mockedService, "Test_Mock_Convey_NumberOfCalls", 2))
+}
+
 func Test_Mock_AssertCalled(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -938,6 +965,17 @@ func Test_Mock_AssertCalled(t *testing.T) {
 
 	assert.True(t, mockedService.AssertCalled(t, "Test_Mock_AssertCalled", 1, 2, 3))
 
+}
+
+func Test_Mock_Convey_Called(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_Called", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+
+	assert.Empty(t, MethodWasCalled(mockedService, "Test_Mock_Convey_Called", 1, 2, 3))
 }
 
 func Test_Mock_AssertCalled_WithAnythingOfTypeArgument(t *testing.T) {
@@ -995,6 +1033,17 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 	assert.True(t, mockedService.AssertNotCalled(t, "Test_Mock_NotCalled"))
 
+}
+
+func Test_Mock_Convey_NotCalled(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_Convey_NotCalled", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+
+	assert.Empty(t, MethodWasNotCalled(mockedService, "Test_Mock_NotCalled"))
 }
 
 /*
