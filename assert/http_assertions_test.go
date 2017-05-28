@@ -44,7 +44,7 @@ func TestHTTPRedirect(t *testing.T) {
 
 	mockT2 := new(testing.T)
 	assert.Equal(HTTPRedirect(mockT2, httpRedirect, "GET", "/", nil), true)
-	assert.False(mockT2.Failed(), "WHAT")
+	assert.False(mockT2.Failed())
 
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPRedirect(mockT3, httpError, "GET", "/", nil), false)
