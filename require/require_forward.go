@@ -76,7 +76,7 @@ func (a *Assertions) EqualValues(expected interface{}, actual interface{}, msgAn
 //
 //   actualObj, err := SomeFunction()
 //   if a.Error(err, "An error was expected") {
-// 	   assert.Equal(t, err, expectedError)
+// 	   assert.Equal(t, expectedError, err)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
@@ -229,7 +229,7 @@ func (a *Assertions) Nil(object interface{}, msgAndArgs ...interface{}) {
 //
 //   actualObj, err := SomeFunction()
 //   if a.NoError(err) {
-// 	   assert.Equal(t, actualObj, expectedObj)
+// 	   assert.Equal(t, expectedObj, actualObj)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
@@ -303,6 +303,16 @@ func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...in
 	NotRegexp(a.t, rx, str, msgAndArgs...)
 }
 
+// NotSubset asserts that the specified list(array, slice...) contains not all
+// elements given in the specified subset(array, slice...).
+//
+//    a.NotSubset([1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) NotSubset(list interface{}, subset interface{}, msgAndArgs ...interface{}) {
+	NotSubset(a.t, list, subset, msgAndArgs...)
+}
+
 // NotZero asserts that i is not the zero value for its type and returns the truth.
 func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) {
 	NotZero(a.t, i, msgAndArgs...)
@@ -327,6 +337,16 @@ func (a *Assertions) Panics(f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	Regexp(a.t, rx, str, msgAndArgs...)
+}
+
+// Subset asserts that the specified list(array, slice...) contains all
+// elements given in the specified subset(array, slice...).
+//
+//    a.Subset([1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) Subset(list interface{}, subset interface{}, msgAndArgs ...interface{}) {
+	Subset(a.t, list, subset, msgAndArgs...)
 }
 
 // True asserts that the specified value is true.
