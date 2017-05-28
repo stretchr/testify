@@ -411,9 +411,14 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 // AssertCalled asserts that the method was called.
 // It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
 func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
-	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
-		t.Logf("%v", m.expectedCalls())
-		return false
+	if !m.methodWasCalled(methodName, arguments) {
+		var calledWithArgs []string
+		for _, call := range m.calls() {
+			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
+		}
+		return assert.Fail(t, "Should have called with given arguments",
+			fmt.Sprintf("Expected \"%s\" to have been called with:\n"+
+				"        %v\n        but actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n        ")))
 	}
 	return true
 }
@@ -421,9 +426,14 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 // AssertNotCalled asserts that the method was not called.
 // It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
 func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...interface{}) bool {
-	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
-		t.Logf("%v", m.expectedCalls())
-		return false
+	if m.methodWasCalled(methodName, arguments) {
+		var calledWithArgs []string
+		for _, call := range m.calls() {
+			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
+		}
+		return assert.Fail(t, "Should not have called with given arguments",
+			fmt.Sprintf("Expected \"%s\" to not have been called with:\n"+
+				"        %v\n        but actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n        ")))
 	}
 	return true
 }
