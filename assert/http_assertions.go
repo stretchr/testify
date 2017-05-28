@@ -34,7 +34,7 @@ func HTTPSuccess(t TestingT, handler http.HandlerFunc, method, url string, value
 
 	isSuccessCode := code >= http.StatusOK && code <= http.StatusPartialContent
 	if !isSuccessCode {
-		Fail(t, fmt.Sprintf("Expected HTTP success status code for \"%s\" but received \"%d\"", url+"?"+values.Encode(), code))
+		Fail(t, fmt.Sprintf("Expected HTTP success status code for %q but received %d", url+"?"+values.Encode(), code))
 	}
 
 	return isSuccessCode
@@ -54,7 +54,7 @@ func HTTPRedirect(t TestingT, handler http.HandlerFunc, method, url string, valu
 
 	isRedirectCode := code >= http.StatusMultipleChoices && code <= http.StatusTemporaryRedirect
 	if !isRedirectCode {
-		Fail(t, fmt.Sprintf("Expected HTTP redirect status code for \"%s\" but received \"%d\"", url+"?"+values.Encode(), code))
+		Fail(t, fmt.Sprintf("Expected HTTP redirect status code for %q but received %d", url+"?"+values.Encode(), code))
 	}
 
 	return isRedirectCode
@@ -74,7 +74,7 @@ func HTTPError(t TestingT, handler http.HandlerFunc, method, url string, values 
 
 	isErrorCode := code >= http.StatusBadRequest
 	if !isErrorCode {
-		Fail(t, fmt.Sprintf("Expected HTTP error status code for \"%s\" but received \"%d\"", url+"?"+values.Encode(), code))
+		Fail(t, fmt.Sprintf("Expected HTTP error status code for %q but received %d", url+"?"+values.Encode(), code))
 	}
 
 	return isErrorCode
