@@ -88,7 +88,7 @@ func EqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArg
 //
 //   actualObj, err := SomeFunction()
 //   if assert.Error(t, err, "An error was expected") {
-// 	   assert.Equal(t, err, expectedError)
+// 	   assert.Equal(t, expectedError, err)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
@@ -279,7 +279,7 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //
 //   actualObj, err := SomeFunction()
 //   if assert.NoError(t, err) {
-// 	   assert.Equal(t, actualObj, expectedObj)
+// 	   assert.Equal(t, expectedObj, actualObj)
 //   }
 //
 // Returns whether the assertion was successful (true) or not (false).
@@ -367,6 +367,18 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 	}
 }
 
+// NotSubset asserts that the specified list(array, slice...) contains not all
+// elements given in the specified subset(array, slice...).
+//
+//    assert.NotSubset(t, [1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func NotSubset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
+	if !assert.NotSubset(t, list, subset, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
 // NotZero asserts that i is not the zero value for its type and returns the truth.
 func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
 	if !assert.NotZero(t, i, msgAndArgs...) {
@@ -395,6 +407,18 @@ func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 // Returns whether the assertion was successful (true) or not (false).
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if !assert.Regexp(t, rx, str, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// Subset asserts that the specified list(array, slice...) contains all
+// elements given in the specified subset(array, slice...).
+//
+//    assert.Subset(t, [1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func Subset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
+	if !assert.Subset(t, list, subset, msgAndArgs...) {
 		t.FailNow()
 	}
 }
