@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
@@ -300,8 +301,13 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 // Returns whether the assertion was successful (true) or not (false).
 //
 // Pointer variable equality is determined based on the equality of the
-// referenced values (as opposed to the memory addresses).
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
 func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if err := validateEqualArgs(expected, actual); err != nil {
+		return Fail(t, fmt.Sprintf("Invalid operation: %#v == %#v (%s)",
+			expected, actual, err), msgAndArgs...)
+	}
 
 	if !ObjectsAreEqual(expected, actual) {
 		diff := diff(expected, actual)
@@ -575,6 +581,10 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
 func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if err := validateEqualArgs(expected, actual); err != nil {
+		return Fail(t, fmt.Sprintf("Invalid operation: %#v != %#v (%s)",
+			expected, actual, err), msgAndArgs...)
+	}
 
 	if ObjectsAreEqual(expected, actual) {
 		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
@@ -1153,6 +1163,22 @@ func diff(expected interface{}, actual interface{}) string {
 	})
 
 	return "\n\nDiff:\n" + diff
+}
+
+// validateEqualArgs checks whether provided arguments can be safely used in the
+// Equal/NotEqual functions.
+func validateEqualArgs(expected, actual interface{}) error {
+	if isFunction(expected) || isFunction(actual) {
+		return errors.New("cannot take func type as argument")
+	}
+	return nil
+}
+
+func isFunction(arg interface{}) bool {
+	if arg == nil {
+		return false
+	}
+	return reflect.TypeOf(arg).Kind() == reflect.Func
 }
 
 var spewConfig = spew.ConfigState{

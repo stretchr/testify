@@ -73,7 +73,8 @@ func (a *Assertions) Emptyf(object interface{}, msg string, args ...interface{})
 // Returns whether the assertion was successful (true) or not (false).
 //
 // Pointer variable equality is determined based on the equality of the
-// referenced values (as opposed to the memory addresses).
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
 func (a *Assertions) Equal(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	Equal(a.t, expected, actual, msgAndArgs...)
 }
@@ -127,7 +128,8 @@ func (a *Assertions) EqualValuesf(expected interface{}, actual interface{}, msg 
 // Returns whether the assertion was successful (true) or not (false).
 //
 // Pointer variable equality is determined based on the equality of the
-// referenced values (as opposed to the memory addresses).
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
 func (a *Assertions) Equalf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	Equalf(a.t, expected, actual, msg, args...)
 }

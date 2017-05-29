@@ -45,7 +45,8 @@ func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) boo
 // Returns whether the assertion was successful (true) or not (false).
 //
 // Pointer variable equality is determined based on the equality of the
-// referenced values (as opposed to the memory addresses).
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
 func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
 	return Equal(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
