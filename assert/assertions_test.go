@@ -396,8 +396,8 @@ func TestNotEqual(t *testing.T) {
 	}
 	funcA := func() int { return 23 }
 	funcB := func() int { return 42 }
-	if !NotEqual(mockT, funcA, funcB) {
-		t.Error("NotEqual should return true")
+	if NotEqual(mockT, funcA, funcB) {
+		t.Error("NotEqual should return false")
 	}
 
 	if NotEqual(mockT, "Hello World", "Hello World") {
@@ -1374,4 +1374,9 @@ func BenchmarkBytesEqual(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Equal(mockT, s, s2)
 	}
+}
+
+func TestEqualArgsValidation(t *testing.T) {
+	err := validateEqualArgs(time.Now, time.Now)
+	EqualError(t, err, "cannot take func type as argument")
 }
