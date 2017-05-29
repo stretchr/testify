@@ -85,7 +85,8 @@ func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 // Returns whether the assertion was successful (true) or not (false).
 //
 // Pointer variable equality is determined based on the equality of the
-// referenced values (as opposed to the memory addresses).
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
 func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if !assert.Equal(t, expected, actual, msgAndArgs...) {
 		t.FailNow()
@@ -149,7 +150,8 @@ func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg stri
 // Returns whether the assertion was successful (true) or not (false).
 //
 // Pointer variable equality is determined based on the equality of the
-// referenced values (as opposed to the memory addresses).
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
 func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if !assert.Equalf(t, expected, actual, msg, args...) {
 		t.FailNow()
