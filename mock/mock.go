@@ -285,14 +285,18 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	}
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
-	return m.MethodCalled(functionName, arguments...)
+	result, err := m.MethodCalled(functionName, arguments...)
+	if err != nil {
+		panic(err)
+	}
+	return result
 }
 
 // MethodCalled tells the mock object that the given method has been called, and gets
-// an array of arguments to return. Panics if the call is unexpected (i.e. not preceded
+// an array of arguments to return, and error if the call is unexpected (i.e. not preceded
 // by appropriate .On .Return() calls)
 // If Call.WaitFor is set, blocks until the channel is closed or receives a message.
-func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Arguments {
+func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) (Arguments, error) {
 	m.mutex.Lock()
 	found, call := m.findExpectedCall(methodName, arguments...)
 
@@ -308,9 +312,9 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		m.mutex.Unlock()
 
 		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(arguments, closestCall.Arguments)))
+			return nil, fmt.Errorf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(arguments, closestCall.Arguments))
 		} else {
-			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo()))
+			return nil, fmt.Errorf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
 		}
 	}
 
@@ -340,7 +344,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		call.RunFn(arguments)
 	}
 
-	return call.ReturnArguments
+	return call.ReturnArguments, nil
 }
 
 /*
