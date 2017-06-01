@@ -209,6 +209,15 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
+// IsCallExpected checks whether a method call is expected.
+func (m *Mock) IsCallExpected(method string, arguments ...interface{}) bool {
+	m.mutex.Lock()
+	found, _ := m.findExpectedCall(method, arguments...)
+	m.mutex.Unlock()
+
+	return found >= 0
+}
+
 // /*
 // 	Recording and responding to activity
 // */
