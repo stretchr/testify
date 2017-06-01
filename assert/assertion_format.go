@@ -325,6 +325,16 @@ func Panicsf(t TestingT, f PanicTestFunc, msg string, args ...interface{}) bool 
 	return Panics(t, f, append([]interface{}{msg}, args...)...)
 }
 
+// PanicsWithValuef asserts that the code inside the specified PanicTestFunc panics, and that
+// the recovered panic value equals the expected panic value.
+//
+//   assert.PanicsWithValuef(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func PanicsWithValuef(t TestingT, expected interface{}, f PanicTestFunc, msg string, args ...interface{}) bool {
+	return PanicsWithValue(t, expected, f, append([]interface{}{msg}, args...)...)
+}
+
 // Regexpf asserts that a specified regexp matches a string.
 //
 //  assert.Regexpf(t, regexp.MustCompile("start", "error message %s", "formatted"), "it's starting")

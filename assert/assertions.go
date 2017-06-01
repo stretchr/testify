@@ -811,6 +811,25 @@ func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 	return true
 }
 
+// PanicsWithValue asserts that the code inside the specified PanicTestFunc panics, and that
+// the recovered panic value equals the expected panic value.
+//
+//   assert.PanicsWithValue(t, "crazy error", func(){ GoCrazy() })
+//
+// Returns whether the assertion was successful (true) or not (false).
+func PanicsWithValue(t TestingT, expected interface{}, f PanicTestFunc, msgAndArgs ...interface{}) bool {
+
+	funcDidPanic, panicValue := didPanic(f)
+	if !funcDidPanic {
+		return Fail(t, fmt.Sprintf("func %#v should panic\n\r\tPanic value:\t%v", f, panicValue), msgAndArgs...)
+	}
+	if panicValue != expected {
+		return Fail(t, fmt.Sprintf("func %#v should panic with value:\t%v\n\r\tPanic value:\t%v", f, expected, panicValue), msgAndArgs...)
+	}
+
+	return true
+}
+
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
 //   assert.NotPanics(t, func(){ RemainCalm() })

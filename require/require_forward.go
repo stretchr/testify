@@ -631,6 +631,26 @@ func (a *Assertions) Panics(f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	Panics(a.t, f, msgAndArgs...)
 }
 
+// PanicsWithValue asserts that the code inside the specified PanicTestFunc panics, and that
+// the recovered panic value equals the expected panic value.
+//
+//   a.PanicsWithValue("crazy error", func(){ GoCrazy() })
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) PanicsWithValue(expected interface{}, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
+	PanicsWithValue(a.t, expected, f, msgAndArgs...)
+}
+
+// PanicsWithValuef asserts that the code inside the specified PanicTestFunc panics, and that
+// the recovered panic value equals the expected panic value.
+//
+//   a.PanicsWithValuef("crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) PanicsWithValuef(expected interface{}, f assert.PanicTestFunc, msg string, args ...interface{}) {
+	PanicsWithValuef(a.t, expected, f, msg, args...)
+}
+
 // Panicsf asserts that the code inside the specified PanicTestFunc panics.
 //
 //   a.Panicsf(func(){ GoCrazy() }, "error message %s", "formatted")
