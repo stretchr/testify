@@ -176,6 +176,11 @@ type Mock struct {
 	mutex sync.Mutex
 }
 
+// Default Struct definition using Mock
+type MockStruct struct {
+	Mock
+}
+
 // TestData holds any data that might be useful for testing.  Testify ignores
 // this data completely allowing you to do whatever you like with it.
 func (m *Mock) TestData() objx.Map {
