@@ -22,6 +22,25 @@ type TestingT interface {
 	FailNow()
 }
 
+// Clock is an interface around time
+type Clock interface {
+	Now() time.Time
+	After(d time.Duration) <-chan time.Time
+}
+
+type realClock struct{}
+
+// Now returns the current local time.
+func (realClock) Now() time.Time {
+	return time.Now()
+}
+
+// After waits for the duration to elapse and then sends the current time
+// on the returned channel.
+func (realClock) After(d time.Duration) <-chan time.Time {
+	return time.After(d)
+}
+
 /*
 	Call
 */
@@ -130,7 +149,10 @@ func (c *Call) WaitUntil(w <-chan time.Time) *Call {
 //
 //    Mock.On("MyMethod", arg1, arg2).After(time.Second)
 func (c *Call) After(d time.Duration) *Call {
-	return c.WaitUntil(time.After(d))
+	c.lock()
+	defer c.unlock()
+	c.WaitFor = c.Parent.clock.After(d)
+	return c
 }
 
 // Run sets a handler to be called before returning. It can be used when
@@ -174,6 +196,8 @@ type Mock struct {
 	testData objx.Map
 
 	mutex sync.Mutex
+
+	clock Clock
 }
 
 // TestData holds any data that might be useful for testing.  Testify ignores
@@ -204,9 +228,17 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+	if m.clock == nil {
+		m.clock = realClock{}
+	}
 	c := newCall(m, methodName, arguments...)
 	m.ExpectedCalls = append(m.ExpectedCalls, c)
 	return c
+}
+
+// SetClock sets a clock to the mock.
+func (m *Mock) SetClock(clock Clock) {
+	m.clock = clock
 }
 
 // /*
