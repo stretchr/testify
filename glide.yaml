@@ -1,0 +1,10 @@
+package: github.com/stretchr/testify
+import:
+  - package: github.com/davecgh/go-spew
+    ref:     master
+    repo:    https://github.com/davecgh/go-spew.git
+    vcs:     git
+  - package: github.com/pmezard/go-difflib
+    ref:     master
+    repo:    https://github.com/pmezard/go-difflib.git
+    vcs:     git
