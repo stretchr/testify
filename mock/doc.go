@@ -19,7 +19,7 @@
 // For example, to mock a method that saves the name and age of a person and returns
 // the year of their birth or an error, you might write this:
 //
-//     func (o *MyTestObject) SavePersonDetails(firstname, lastname string, age int) (int, error) {
+//     func (o *MyTestObject) SavePersonDetails(firstname string, lastname string, age int) (int, error) {
 //       args := o.Called(firstname, lastname, age)
 //       return args.Int(0), args.Error(1)
 //     }
