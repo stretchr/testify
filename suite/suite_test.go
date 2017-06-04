@@ -134,16 +134,16 @@ func (suite *SuiteTester) TestOne() {
 	suite.Equal(suite.TestOneRunCount, beforeCount+1)
 }
 
+func (suite *SuiteTester) TestSkip() {
+	suite.T().Skip()
+}
+
 // TestTwo is another example of a test.
 func (suite *SuiteTester) TestTwo() {
 	beforeCount := suite.TestTwoRunCount
 	suite.TestTwoRunCount++
 	assert.NotEqual(suite.T(), suite.TestTwoRunCount, beforeCount)
 	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
-}
-
-func (suite *SuiteTester) TestSkip() {
-	suite.T().Skip()
 }
 
 // NonTestMethod does not begin with "Test", so it will not be run by
