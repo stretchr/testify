@@ -745,7 +745,11 @@ func (a *Assertions) Zerof(i interface{}, msg string, args ...interface{}) bool 
 	return Zerof(a.t, i, msg, args...)
 }
 
-// FileExists asserts that filename represents an existing file and returns the truth.
+// FileExists asserts that the filename passed represents an existing file.
+//
+//  assert.FileExists("main.go")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
 func (a *Assertions) FileExists(filename string) bool {
 	return FileExists(a.t, filename)
 }

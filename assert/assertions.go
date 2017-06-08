@@ -1123,7 +1123,7 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 
 // FileExists asserts that the filename passed represents an existing file.
 //
-//  assert.FileExists("main.go")
+//  assert.FileExists(t, "main.go")
 //
 // Returns whether the assertion was successful (true) or calls Fail.
 func FileExists(t TestingT, filename string) bool {
