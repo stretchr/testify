@@ -112,6 +112,15 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) bool {
 	return False(t, value, append([]interface{}{msg}, args...)...)
 }
 
+// FileExistsf asserts that the filename passed represents an existing file.
+//
+//  assert.FileExistsf(t, "main.go", "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
+func FileExistsf(t TestingT, filename string, msg string, args ...interface{}) bool {
+	return FileExists(t, filename, append([]interface{}{msg}, args...)...)
+}
+
 // HTTPBodyContainsf asserts that a specified handler returns a
 // body that contains a string.
 //

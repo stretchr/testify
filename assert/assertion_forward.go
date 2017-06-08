@@ -213,6 +213,24 @@ func (a *Assertions) Falsef(value bool, msg string, args ...interface{}) bool {
 	return Falsef(a.t, value, msg, args...)
 }
 
+// FileExists asserts that the filename passed represents an existing file.
+//
+//  a.FileExists("main.go")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
+func (a *Assertions) FileExists(filename string, msgAndArgs ...interface{}) bool {
+	return FileExists(a.t, filename, msgAndArgs...)
+}
+
+// FileExistsf asserts that the filename passed represents an existing file.
+//
+//  a.FileExistsf("main.go", "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
+func (a *Assertions) FileExistsf(filename string, msg string, args ...interface{}) bool {
+	return FileExistsf(a.t, filename, msg, args...)
+}
+
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 //
@@ -743,13 +761,4 @@ func (a *Assertions) Zero(i interface{}, msgAndArgs ...interface{}) bool {
 // Zerof asserts that i is the zero value for its type and returns the truth.
 func (a *Assertions) Zerof(i interface{}, msg string, args ...interface{}) bool {
 	return Zerof(a.t, i, msg, args...)
-}
-
-// FileExists asserts that the filename passed represents an existing file.
-//
-//  assert.FileExists("main.go")
-//
-// Returns whether the assertion was successful (true) or calls Fail.
-func (a *Assertions) FileExists(filename string) bool {
-	return FileExists(a.t, filename)
 }

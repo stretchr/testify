@@ -1126,14 +1126,14 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 //  assert.FileExists(t, "main.go")
 //
 // Returns whether the assertion was successful (true) or calls Fail.
-func FileExists(t TestingT, filename string) bool {
+func FileExists(t TestingT, filename string, msgAndArgs ...interface{}) bool {
 	_, err := os.Lstat(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return Fail(t, fmt.Sprintf("unable to find file %q", filename), err.Error())
+			return Fail(t, fmt.Sprintf("unable to find file %q (%s)", filename, err), msgAndArgs...)
 		}
 
-		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q)", filename), err.Error())
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q) (%s)", filename, err), msgAndArgs...)
 	}
 
 	return true
