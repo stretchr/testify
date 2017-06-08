@@ -1382,6 +1382,14 @@ func TestBytesEqual(t *testing.T) {
 	}
 }
 
+func TestFileExists(t *testing.T) {
+	var cases = []string{"assertions.go", "assertions_test.go"}
+
+	for i, c := range cases {
+		Equal(t, FileExists(t, c), true, "case %d failed", i+1)
+	}
+}
+
 func BenchmarkBytesEqual(b *testing.B) {
 	const size = 1024 * 8
 	s := make([]byte, size)

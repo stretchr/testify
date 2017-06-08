@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -1117,6 +1118,24 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
 		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
 	}
+	return true
+}
+
+// FileExists asserts that the filename passed represents an existing file.
+//
+//  assert.FileExists("main.go")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
+func FileExists(t TestingT, filename string) bool {
+	_, err := os.Lstat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return Fail(t, fmt.Sprintf("unable to find file %q", filename), err.Error())
+		}
+
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q)", filename), err.Error())
+	}
+
 	return true
 }
 
