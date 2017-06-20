@@ -155,6 +155,9 @@ func TestImplements(t *testing.T) {
 	if Implements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
 		t.Error("Implements method should return false: AssertionTesterNonConformingObject does not implements AssertionTesterInterface")
 	}
+	if Implements(mockT, (*AssertionTesterInterface)(nil), nil) {
+		t.Error("Implements method should return false: nil does not implement AssertionTesterInterface")
+	}
 
 }
 
