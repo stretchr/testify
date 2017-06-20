@@ -280,15 +280,16 @@ func labeledOutput(content ...labeledContent) string {
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject))
 func Implements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
-
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
 
+	if object == nil {
+		return Fail(t, fmt.Sprintf("Cannot check if nil implements %v", interfaceType), msgAndArgs...)
+	}
 	if !reflect.TypeOf(object).Implements(interfaceType) {
 		return Fail(t, fmt.Sprintf("%T must implement %v", object, interfaceType), msgAndArgs...)
 	}
 
 	return true
-
 }
 
 // IsType asserts that the specified objects are of the same type.
