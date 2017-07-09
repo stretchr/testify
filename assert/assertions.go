@@ -30,6 +30,11 @@ type helper interface {
 	Helper()
 }
 
+// namer is implemented by testing.T in Go version greater than 1.7
+type namer interface {
+	Name() string
+}
+
 // Comparison a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
@@ -239,6 +244,10 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 		t.Helper()
 	} else {
 		content = append(content, labeledContent{"Error Trace", strings.Join(CallerInfo(), "\n\r\t\t\t")})
+	}
+	// add test name if th Go version supports it
+	if n, ok := t.(namer); ok {
+		content = append(content, labeledContent{"Test", n.Name()})
 	}
 
 	content = append(content, labeledContent{"Error", failureMessage})
