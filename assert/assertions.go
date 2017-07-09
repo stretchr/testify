@@ -231,6 +231,13 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 		{"Error", failureMessage},
 	}
 
+	// Add test name if the Go version supports it
+	if n, ok := t.(interface {
+		Name() string
+	}); ok {
+		content = append(content, labeledContent{"Test", n.Name()})
+	}
+
 	message := messageFromMsgAndArgs(msgAndArgs...)
 	if len(message) > 0 {
 		content = append(content, labeledContent{"Messages", message})
