@@ -886,6 +886,8 @@ func toFloat(x interface{}) (float64, bool) {
 		xf = float64(xn)
 	case float64:
 		xf = float64(xn)
+	case time.Duration:
+		xf = float64(xn)
 	default:
 		xok = false
 	}
