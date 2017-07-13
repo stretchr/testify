@@ -970,7 +970,7 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 	}
 	if actualEpsilon > epsilon {
 		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
-			"        < %#v (actual)", actualEpsilon, epsilon), msgAndArgs...)
+			"        < %#v (actual)", epsilon, actualEpsilon), msgAndArgs...)
 	}
 
 	return true
