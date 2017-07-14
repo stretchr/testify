@@ -910,7 +910,7 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	}
 
 	if math.IsNaN(af) {
-		return Fail(t, fmt.Sprintf("Actual must not be NaN"), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Expected must not be NaN"), msgAndArgs...)
 	}
 
 	if math.IsNaN(bf) {
