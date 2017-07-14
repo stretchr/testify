@@ -954,7 +954,7 @@ func calcRelativeError(expected, actual interface{}) (float64, error) {
 	}
 	bf, bok := toFloat(actual)
 	if !bok {
-		return 0, fmt.Errorf("expected value %q cannot be converted to float", actual)
+		return 0, fmt.Errorf("actual value %q cannot be converted to float", actual)
 	}
 
 	return math.Abs(af-bf) / math.Abs(af), nil
