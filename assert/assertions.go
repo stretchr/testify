@@ -588,7 +588,11 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 	}
 
 	if l != length {
-		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
+		suffix := "s"
+		if length == 1 {
+			suffix = ""
+		}
+		return Fail(t, fmt.Sprintf("\"%s\" should have %d item%s, but has %d", object, length, suffix, l), msgAndArgs...)
 	}
 	return true
 }
