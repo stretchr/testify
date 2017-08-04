@@ -1058,6 +1058,27 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	return true
 }
 
+// ErrorContains asserts that the error is not-nil and that it contains the
+// expected error string.
+//
+//   actualObj, err := SomeFunction()
+//   assert.ErrorContains(t, err,  expectedErrorString)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ErrorContains(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
+	if !Error(t, theError, msgAndArgs...) {
+		return false
+	}
+	expected := errString
+	actual := theError.Error()
+	if !strings.Contains(actual, expected) {
+		return Fail(t, fmt.Sprintf("Error message does not contain:\n"+
+			"expected: %q\n"+
+			"actual: %q", expected, actual), msgAndArgs...)
+	}
+	return true
+}
+
 // matchRegexp return true if a specified regexp matches a string.
 func matchRegexp(rx interface{}, str interface{}) bool {
 

@@ -218,6 +218,17 @@ func TestEqualError(t *testing.T) {
 	}
 }
 
+func TestErrorContains(t *testing.T) {
+
+	ErrorContains(t, errors.New("some error occurred"), "some error")
+
+	mockT := new(MockT)
+	ErrorContains(mockT, errors.New("some error"), "Not some error")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestEmpty(t *testing.T) {
 
 	Empty(t, "")
