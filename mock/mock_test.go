@@ -1195,3 +1195,27 @@ func Test_MockMethodCalled(t *testing.T) {
 	require.Equal(t, "world", retArgs[0])
 	m.AssertExpectations(t)
 }
+
+type naiveMockClock struct{}
+
+func (naiveMockClock) Now() time.Time {
+	return time.Now()
+}
+
+func (c naiveMockClock) After(d time.Duration) <-chan time.Time {
+	ch := make(chan time.Time, 1)
+	fireTime := c.Now().Add(d)
+	ch <- fireTime // always fire immediately, just for this test.
+	return ch
+}
+
+func Test_MockClock(t *testing.T) {
+	m := new(Mock)
+	m.SetClock(naiveMockClock{})
+	m.On("foo", "hello").After(time.Hour).Return("world")
+
+	retArgs := m.MethodCalled("foo", "hello")
+	require.True(t, len(retArgs) == 1)
+	require.Equal(t, "world", retArgs[0])
+	m.AssertExpectations(t)
+}
