@@ -1190,7 +1190,11 @@ func Test_MockMethodCalled(t *testing.T) {
 	m := new(Mock)
 	m.On("foo", "hello").Return("world")
 
-	retArgs := m.MethodCalled("foo", "hello")
+	retArgs, err := m.MethodCalled("bar", "hello")
+	require.NotNil(t, err)
+
+	retArgs, err = m.MethodCalled("foo", "hello")
+	require.NoError(t, err)
 	require.True(t, len(retArgs) == 1)
 	require.Equal(t, "world", retArgs[0])
 	m.AssertExpectations(t)
