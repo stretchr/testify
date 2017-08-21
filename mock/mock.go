@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -512,7 +513,10 @@ func (f argumentMatcher) Matches(argument interface{}) bool {
 		arg = reflect.ValueOf(argument)
 	}
 
-	if (argType == nil && expectTypeNilSupported) || argType.AssignableTo(expectType) {
+	if argType == nil && !expectTypeNilSupported {
+		panic(errors.New("attempting to call matcher with nil for non-nil expected type"))
+	}
+	if argType == nil || argType.AssignableTo(expectType) {
 		result := f.fn.Call([]reflect.Value{arg})
 		return result[0].Bool()
 	}
