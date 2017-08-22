@@ -46,6 +46,28 @@ func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, 
 	Containsf(a.t, s, contains, msg, args...)
 }
 
+// ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// a.ElementsMatch([1, 3, 2, 3], [1, 3, 3, 2]))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) ElementsMatch(listA interface{}, listB interface{}, msgAndArgs ...interface{}) {
+	ElementsMatch(a.t, listA, listB, msgAndArgs...)
+}
+
+// ElementsMatchf asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// a.ElementsMatchf([1, 3, 2, 3], [1, 3, 3, 2], "error message %s", "formatted"))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) ElementsMatchf(listA interface{}, listB interface{}, msg string, args ...interface{}) {
+	ElementsMatchf(a.t, listA, listB, msg, args...)
+}
+
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
