@@ -612,6 +612,57 @@ func Test_includeElement(t *testing.T) {
 	False(t, found)
 }
 
+func TestElementsMatch(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !ElementsMatch(mockT, nil, nil) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{}, []int{}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1}, []int{1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1, 1}, []int{1, 1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1, 2}, []int{1, 2}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1, 2}, []int{2, 1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, [2]int{1, 2}, [2]int{2, 1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []string{"hello", "world"}, []string{"world", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []string{"hello", "hello"}, []string{"hello", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, [3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+
+	if ElementsMatch(mockT, []int{}, nil) {
+		t.Error("ElementsMatch should return false")
+	}
+	if ElementsMatch(mockT, []int{1}, []int{1, 1}) {
+		t.Error("ElementsMatch should return false")
+	}
+	if ElementsMatch(mockT, []int{1, 2}, []int{2, 2}) {
+		t.Error("ElementsMatch should return false")
+	}
+	if ElementsMatch(mockT, []string{"hello", "hello"}, []string{"hello"}) {
+		t.Error("ElementsMatch should return false")
+	}
+}
+
 func TestCondition(t *testing.T) {
 	mockT := new(testing.T)
 

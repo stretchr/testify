@@ -728,6 +728,62 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
 }
 
+// ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// assert.ElementsMatch(t, [1, 3, 2, 3], [1, 3, 3, 2]))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface{}) (ok bool) {
+	if listA == nil || listB == nil {
+		return listA == listB
+	}
+
+	aKind := reflect.TypeOf(listA).Kind()
+	bKind := reflect.TypeOf(listB).Kind()
+
+	if aKind != reflect.Array && aKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listA, aKind), msgAndArgs...)
+	}
+
+	if bKind != reflect.Array && bKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listB, bKind), msgAndArgs...)
+	}
+
+	aValue := reflect.ValueOf(listA)
+	bValue := reflect.ValueOf(listB)
+
+	if aValue.Len() != bValue.Len() {
+		return false
+	}
+
+	// Mark indexes in bValue that we already used
+	visited := make([]bool, bValue.Len())
+
+	for i := 0; i < aValue.Len(); i++ {
+		element := aValue.Index(i).Interface()
+
+		found := false
+		for j := 0; j < bValue.Len(); j++ {
+			if visited[j] {
+				continue
+			}
+
+			if ObjectsAreEqual(bValue.Index(j).Interface(), element) {
+				visited[j] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	result := comp()
