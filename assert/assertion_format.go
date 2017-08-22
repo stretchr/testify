@@ -28,6 +28,17 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 	return Contains(t, s, contains, append([]interface{}{msg}, args...)...)
 }
 
+// ElementsMatchf asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// assert.ElementsMatchf(t, [1, 3, 2, 3], [1, 3, 3, 2], "error message %s", "formatted"))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string, args ...interface{}) bool {
+	return ElementsMatch(t, listA, listB, append([]interface{}{msg}, args...)...)
+}
+
 // Emptyf asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
