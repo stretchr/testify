@@ -614,7 +614,18 @@ func TestCondition(t *testing.T) {
 	if Condition(mockT, func() bool { return false }, "Lie") {
 		t.Error("Condition should return false")
 	}
+}
 
+func TestConditionWait(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !ConditionWait(mockT, func() bool { return true }, time.Millisecond, "Truth") {
+		t.Error("ConditionWait should return true")
+	}
+
+	if ConditionWait(mockT, func() bool { time.Sleep(10 * time.Millisecond); return true }, time.Millisecond, "Lie") {
+		t.Error("ConditionWait should return false")
+	}
 }
 
 func TestDidPanic(t *testing.T) {

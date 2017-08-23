@@ -769,6 +769,23 @@ func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	return result
 }
 
+// ConditionWait uses a Comparison to wait condition or assert by timeout.
+func ConditionWait(t TestingT, comp Comparison, timeout time.Duration, msgAndArgs ...interface{}) bool {
+	waitCh := make(chan struct{})
+	go func() {
+		for !comp() {
+		}
+		waitCh <- struct{}{}
+	}()
+	select {
+	case <-waitCh:
+		return true
+	case <-time.After(timeout):
+		Fail(t, "Condition failed by timeout!", msgAndArgs...)
+		return false
+	}
+}
+
 // PanicTestFunc defines a func that should be passed to the assert.Panics and assert.NotPanics
 // methods, and represents a simple func that takes no arguments, and returns nothing.
 type PanicTestFunc func()

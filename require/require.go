@@ -19,6 +19,20 @@ func Condition(t TestingT, comp assert.Comparison, msgAndArgs ...interface{}) {
 	}
 }
 
+// ConditionWait uses a Comparison to wait condition or assert by timeout.
+func ConditionWait(t TestingT, comp assert.Comparison, timeout time.Duration, msgAndArgs ...interface{}) {
+	if !assert.ConditionWait(t, comp, timeout, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// ConditionWaitf uses a Comparison to wait condition or assert by timeout.
+func ConditionWaitf(t TestingT, comp assert.Comparison, timeout time.Duration, msg string, args ...interface{}) {
+	if !assert.ConditionWaitf(t, comp, timeout, msg, args...) {
+		t.FailNow()
+	}
+}
+
 // Conditionf uses a Comparison to assert a complex condition.
 func Conditionf(t TestingT, comp assert.Comparison, msg string, args ...interface{}) {
 	if !assert.Conditionf(t, comp, msg, args...) {
