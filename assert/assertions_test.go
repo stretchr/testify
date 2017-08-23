@@ -553,6 +553,14 @@ func TestNotSubset(t *testing.T) {
 	}
 }
 
+func TestNotSubsetNil(t *testing.T) {
+	mockT := new(testing.T)
+	NotSubset(mockT, []string{"foo"}, nil)
+	if !mockT.Failed() {
+		t.Error("NotSubset on nil set should have failed the test")
+	}
+}
+
 func Test_includeElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
