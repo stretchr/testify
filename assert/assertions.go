@@ -765,11 +765,11 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 	}
 
 	// Mark indexes in bValue that we already used
-	visited := make([]bool, bValue.Len())
-	for i := 0; i < aValue.Len(); i++ {
+	visited := make([]bool, bLen)
+	for i := 0; i < aLen; i++ {
 		element := aValue.Index(i).Interface()
 		found := false
-		for j := 0; j < bValue.Len(); j++ {
+		for j := 0; j < bLen; j++ {
 			if visited[j] {
 				continue
 			}
