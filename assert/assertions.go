@@ -769,7 +769,10 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 // Returns whether the assertion was successful (true) or not (false).
 func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if listA == nil || listB == nil {
-		return listA == listB
+		if listA != listB {
+			return Fail(t, fmt.Sprintf("only one value is nil"), msgAndArgs...)
+		}
+		return true
 	}
 
 	aKind := reflect.TypeOf(listA).Kind()
@@ -786,8 +789,11 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 	aValue := reflect.ValueOf(listA)
 	bValue := reflect.ValueOf(listB)
 
-	if aValue.Len() != bValue.Len() {
-		return false
+	aLen := aValue.Len()
+	bLen := bValue.Len()
+
+	if aLen != bLen {
+		return Fail(t, fmt.Sprintf("lengths don't match: %d != %d", aLen, bLen), msgAndArgs...)
 	}
 
 	// Mark indexes in bValue that we already used
@@ -806,7 +812,7 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 			}
 		}
 		if !found {
-			return false
+			return Fail(t, fmt.Sprintf("element %s appears more times in %s than in %s", element, aValue, bValue), msgAndArgs...)
 		}
 	}
 
