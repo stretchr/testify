@@ -648,10 +648,10 @@ func TestElementsMatch(t *testing.T) {
 	if !ElementsMatch(mockT, [3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}) {
 		t.Error("ElementsMatch should return true")
 	}
-
-	if ElementsMatch(mockT, []int{}, nil) {
-		t.Error("ElementsMatch should return false")
+	if !ElementsMatch(mockT, []int{}, nil) {
+		t.Error("ElementsMatch should return true")
 	}
+
 	if ElementsMatch(mockT, []int{1}, []int{1, 1}) {
 		t.Error("ElementsMatch should return false")
 	}

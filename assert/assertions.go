@@ -736,10 +736,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 //
 // Returns whether the assertion was successful (true) or not (false).
 func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface{}) (ok bool) {
-	if listA == nil || listB == nil {
-		if listA != listB {
-			return Fail(t, fmt.Sprintf("only one value is nil"), msgAndArgs...)
-		}
+	if isEmpty(listA) && isEmpty(listB) {
 		return true
 	}
 
