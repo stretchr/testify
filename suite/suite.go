@@ -41,8 +41,8 @@ type Suite struct {
 	t *testing.T
 }
 
-// BenchmarkSuite is a basic testing suite with methods for storing and
-// retrieving the current *testing.T context.
+// BenchmarkSuite is a basic benchmark suite with methods for storing and
+// retrieving the current *testing.B context.
 type BenchmarkSuite struct {
 	BaseSuite
 	b *testing.B
