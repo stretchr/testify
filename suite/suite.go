@@ -90,83 +90,6 @@ func (suite *BaseSuite) Assert() *assert.Assertions {
 	return suite.Assertions
 }
 
-// RunBenchmark takes a benchmarking suite and runs all of the benchmarks
-// attached to it.
-func RunBenchmark(b *testing.B, suite BenchmarkingSuite) {
-	suite.SetB(b)
-
-	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-		setupAllSuite.SetupSuite()
-	}
-	defer func() {
-		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-			tearDownAllSuite.TearDownSuite()
-		}
-	}()
-
-	methodFinder := reflect.TypeOf(suite)
-	suiteName := methodFinder.Elem().Name()
-
-	benchmarks := []testing.InternalBenchmark{}
-	for index := 0; index < methodFinder.NumMethod(); index++ {
-		method := methodFinder.Method(index)
-		ok, err := methodFilter(method.Name, "Benchmark")
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
-			os.Exit(1)
-		}
-		if ok {
-			test := testing.InternalBenchmark{
-				Name: method.Name,
-				F: func(b *testing.B) {
-					parentB := suite.B()
-					suite.SetB(b)
-					beforeHandlers(suite, suiteName, method.Name)
-
-					defer func() {
-						afterHandlers(suite, suiteName, method.Name)
-						suite.SetB(parentB)
-					}()
-
-					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
-				},
-			}
-			benchmarks = append(benchmarks, test)
-		}
-	}
-	runBenchmarks(b, benchmarks)
-}
-
-func beforeHandlers(suite interface{}, suiteName, methodName string) {
-	if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-		setupTestSuite.SetupTest()
-	}
-	if beforeTestSuite, ok := suite.(BeforeTest); ok {
-		beforeTestSuite.BeforeTest(suiteName, methodName)
-	}
-}
-
-func afterHandlers(suite interface{}, suiteName, methodName string) {
-	if afterTestSuite, ok := suite.(AfterTest); ok {
-		afterTestSuite.AfterTest(suiteName, methodName)
-	}
-	if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-		tearDownTestSuite.TearDownTest()
-	}
-}
-
-func runBenchmarks(t testing.TB, benchmarks []testing.InternalBenchmark) {
-	r, ok := t.(benchmarkRunner)
-
-	if !ok { // backwards compatibility with Go 1.6 and below
-		testing.RunBenchmarks(allTestsFilter, benchmarks)
-	}
-
-	for _, benchmark := range benchmarks {
-		r.Run(strings.TrimPrefix(benchmark.Name, "Benchmark"), benchmark.F)
-	}
-}
-
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
@@ -214,6 +137,24 @@ func Run(t *testing.T, suite TestingSuite) {
 	runTests(t, tests)
 }
 
+func beforeHandlers(suite interface{}, suiteName, methodName string) {
+	if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+		setupTestSuite.SetupTest()
+	}
+	if beforeTestSuite, ok := suite.(BeforeTest); ok {
+		beforeTestSuite.BeforeTest(suiteName, methodName)
+	}
+}
+
+func afterHandlers(suite interface{}, suiteName, methodName string) {
+	if afterTestSuite, ok := suite.(AfterTest); ok {
+		afterTestSuite.AfterTest(suiteName, methodName)
+	}
+	if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+		tearDownTestSuite.TearDownTest()
+	}
+}
+
 func runTests(t testing.TB, tests []testing.InternalTest) {
 	r, ok := t.(testRunner)
 	if !ok { // backwards compatibility with Go 1.6 and below
@@ -225,6 +166,65 @@ func runTests(t testing.TB, tests []testing.InternalTest) {
 
 	for _, test := range tests {
 		r.Run(test.Name, test.F)
+	}
+}
+
+// RunBenchmark takes a benchmarking suite and runs all of the benchmarks
+// attached to it.
+func RunBenchmark(b *testing.B, suite BenchmarkingSuite) {
+	suite.SetB(b)
+
+	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+		setupAllSuite.SetupSuite()
+	}
+	defer func() {
+		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+			tearDownAllSuite.TearDownSuite()
+		}
+	}()
+
+	methodFinder := reflect.TypeOf(suite)
+	suiteName := methodFinder.Elem().Name()
+
+	benchmarks := []testing.InternalBenchmark{}
+	for index := 0; index < methodFinder.NumMethod(); index++ {
+		method := methodFinder.Method(index)
+		ok, err := methodFilter(method.Name, "Benchmark")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
+			os.Exit(1)
+		}
+		if ok {
+			test := testing.InternalBenchmark{
+				Name: method.Name,
+				F: func(b *testing.B) {
+					parentB := suite.B()
+					suite.SetB(b)
+					beforeHandlers(suite, suiteName, method.Name)
+
+					defer func() {
+						afterHandlers(suite, suiteName, method.Name)
+						suite.SetB(parentB)
+					}()
+
+					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+				},
+			}
+			benchmarks = append(benchmarks, test)
+		}
+	}
+	runBenchmarks(b, benchmarks)
+}
+
+func runBenchmarks(t testing.TB, benchmarks []testing.InternalBenchmark) {
+	r, ok := t.(benchmarkRunner)
+
+	if !ok { // backwards compatibility with Go 1.6 and below
+		testing.RunBenchmarks(allTestsFilter, benchmarks)
+	}
+
+	for _, benchmark := range benchmarks {
+		r.Run(strings.TrimPrefix(benchmark.Name, "Benchmark"), benchmark.F)
 	}
 }
 
