@@ -105,6 +105,8 @@ func RunBenchmark(b *testing.B, suite BenchmarkingSuite) {
 	}()
 
 	methodFinder := reflect.TypeOf(suite)
+	suiteName := methodFinder.Elem().Name()
+
 	benchmarks := []testing.InternalBenchmark{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
@@ -119,21 +121,13 @@ func RunBenchmark(b *testing.B, suite BenchmarkingSuite) {
 				F: func(b *testing.B) {
 					parentB := suite.B()
 					suite.SetB(b)
-					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-						setupTestSuite.SetupTest()
-					}
-					if beforeTestSuite, ok := suite.(BeforeTest); ok {
-						beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-					}
+					beforeHandlers(suite, suiteName, method.Name)
+
 					defer func() {
-						if afterTestSuite, ok := suite.(AfterTest); ok {
-							afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
-						}
-						if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-							tearDownTestSuite.TearDownTest()
-						}
+						afterHandlers(suite, suiteName, method.Name)
 						suite.SetB(parentB)
 					}()
+
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 				},
 			}
@@ -141,6 +135,24 @@ func RunBenchmark(b *testing.B, suite BenchmarkingSuite) {
 		}
 	}
 	runBenchmarks(b, benchmarks)
+}
+
+func beforeHandlers(suite interface{}, suiteName, methodName string) {
+	if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+		setupTestSuite.SetupTest()
+	}
+	if beforeTestSuite, ok := suite.(BeforeTest); ok {
+		beforeTestSuite.BeforeTest(suiteName, methodName)
+	}
+}
+
+func afterHandlers(suite interface{}, suiteName, methodName string) {
+	if afterTestSuite, ok := suite.(AfterTest); ok {
+		afterTestSuite.AfterTest(suiteName, methodName)
+	}
+	if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+		tearDownTestSuite.TearDownTest()
+	}
 }
 
 func runBenchmarks(t testing.TB, benchmarks []testing.InternalBenchmark) {
@@ -170,6 +182,8 @@ func Run(t *testing.T, suite TestingSuite) {
 	}()
 
 	methodFinder := reflect.TypeOf(suite)
+	suiteName := methodFinder.Elem().Name()
+
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
@@ -184,21 +198,13 @@ func Run(t *testing.T, suite TestingSuite) {
 				F: func(t *testing.T) {
 					parentT := suite.T()
 					suite.SetT(t)
-					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-						setupTestSuite.SetupTest()
-					}
-					if beforeTestSuite, ok := suite.(BeforeTest); ok {
-						beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-					}
+					beforeHandlers(suite, suiteName, method.Name)
+
 					defer func() {
-						if afterTestSuite, ok := suite.(AfterTest); ok {
-							afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
-						}
-						if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-							tearDownTestSuite.TearDownTest()
-						}
+						afterHandlers(suite, suiteName, method.Name)
 						suite.SetT(parentT)
 					}()
+
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 				},
 			}
