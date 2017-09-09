@@ -357,7 +357,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 
 }
 
-// Exactly asserts that two objects are equal is value and type.
+// Exactly asserts that two objects are equal in value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123))
 //

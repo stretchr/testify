@@ -84,7 +84,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) bool {
 	return Error(t, err, append([]interface{}{msg}, args...)...)
 }
 
-// Exactlyf asserts that two objects are equal is value and type.
+// Exactlyf asserts that two objects are equal in value and type.
 //
 //    assert.Exactlyf(t, int32(123, "error message %s", "formatted"), int64(123))
 //
