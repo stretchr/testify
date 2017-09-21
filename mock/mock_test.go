@@ -999,6 +999,31 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 }
 
+func Test_Mock_AssertOptional(t *testing.T) {
+	// Optional called
+	var ms1 = new(TestExampleImplementation)
+	ms1.On("TheExampleMethod", 1, 2, 3).Maybe().Return(4, nil)
+	ms1.TheExampleMethod(1, 2, 3)
+
+	tt1 := new(testing.T)
+	assert.Equal(t, true, ms1.AssertExpectations(tt1))
+
+	// Optional not called
+	var ms2 = new(TestExampleImplementation)
+	ms2.On("TheExampleMethod", 1, 2, 3).Maybe().Return(4, nil)
+
+	tt2 := new(testing.T)
+	assert.Equal(t, true, ms2.AssertExpectations(tt2))
+
+	// Non-optional called
+	var ms3 = new(TestExampleImplementation)
+	ms3.On("TheExampleMethod", 1, 2, 3).Return(4, nil)
+	ms3.TheExampleMethod(1, 2, 3)
+
+	tt3 := new(testing.T)
+	assert.Equal(t, true, ms3.AssertExpectations(tt3))
+}
+
 /*
 	Arguments helper methods
 */
