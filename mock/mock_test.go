@@ -998,6 +998,18 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 }
 
+func Test_Mock_AssertOptional(t *testing.T) {
+	for _, isOptional := range []bool{false, true} {
+		var mockedService = new(TestExampleImplementation)
+		mc := mockedService.On("TheExampleMethod", 1, 2, 3).Return(4, nil)
+		if isOptional {
+			mc.Maybe()
+		}
+		tt := new(testing.T)
+		assert.Equal(t, isOptional, mockedService.AssertExpectations(tt))
+	}
+}
+
 /*
 	Arguments helper methods
 */
