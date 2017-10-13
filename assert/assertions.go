@@ -912,6 +912,47 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	return true
 }
 
+// InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+	if expected == nil || actual == nil ||
+		reflect.TypeOf(actual).Kind() != reflect.Map ||
+		reflect.TypeOf(expected).Kind() != reflect.Map {
+		return Fail(t, "Arguments must be maps", msgAndArgs...)
+	}
+
+	expectedMap := reflect.ValueOf(expected)
+	actualMap := reflect.ValueOf(actual)
+
+	if expectedMap.Len() != actualMap.Len() {
+		return Fail(t, "Arguments must have the same numbe of keys", msgAndArgs...)
+	}
+
+	for _, k := range expectedMap.MapKeys() {
+		ev := expectedMap.MapIndex(k)
+		av := actualMap.MapIndex(k)
+
+		if !ev.IsValid() {
+			return Fail(t, fmt.Sprintf("missing key %q in expected map", k), msgAndArgs...)
+		}
+
+		if !av.IsValid() {
+			return Fail(t, fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
+		}
+
+		if !InDelta(
+			t,
+			ev.Interface(),
+			av.Interface(),
+			delta,
+			msgAndArgs...,
+		) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func calcRelativeError(expected, actual interface{}) (float64, error) {
 	af, aok := toFloat(expected)
 	if !aok {
