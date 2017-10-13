@@ -954,14 +954,14 @@ func InDeltaMap(
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Map ||
 		reflect.TypeOf(expected).Kind() != reflect.Map {
-		return Fail(t, "Parameters must be maps", msgAndArgs...)
+		return Fail(t, "Arguments must be maps", msgAndArgs...)
 	}
 
 	expectedMap := reflect.ValueOf(expected)
 	actualMap := reflect.ValueOf(actual)
 
 	if expectedMap.Len() != actualMap.Len() {
-		return Fail(t, "Parameters are of unequal length", msgAndArgs...)
+		return Fail(t, "Arguments are of unequal length", msgAndArgs...)
 	}
 
 	for _, k := range expectedMap.MapKeys() {
