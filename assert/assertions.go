@@ -944,6 +944,7 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	return true
 }
 
+// InDeltaMap asserts key equality and value delta equality on two maps.
 func InDeltaMap(
 	t TestingT,
 	expected,
