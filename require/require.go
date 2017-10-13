@@ -6,10 +6,11 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -411,6 +412,20 @@ func InDeltaSlice(t TestingT, expected interface{}, actual interface{}, delta fl
 // InDeltaSlicef is the same as InDelta, except it compares two slices.
 func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if !assert.InDeltaSlicef(t, expected, actual, delta, msg, args...) {
+		t.FailNow()
+	}
+}
+
+// InDeltaMap is the same as InDelta, expect it compares two maps.
+func InDeltaMap(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) {
+	if !assert.InDeltaMap(t, expected, actual, delta, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// InDeltaMapf is the same as InDeltaf, expect it compares two maps.
+func InDeltaMapf(t TestingT, expected, actual interface{}, delta float64, msg string, args ...interface{}) {
+	if !assert.InDeltaMap(t, expected, actual, delta, msg, args...) {
 		t.FailNow()
 	}
 }
