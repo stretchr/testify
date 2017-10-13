@@ -425,7 +425,7 @@ func InDeltaMap(t TestingT, expected, actual interface{}, delta float64, msgAndA
 
 // InDeltaMapf is the same as InDeltaf, expect it compares two maps.
 func InDeltaMapf(t TestingT, expected, actual interface{}, delta float64, msg string, args ...interface{}) {
-	if !assert.InDeltaMap(t, expected, actual, delta, msg, args...) {
+	if !assert.InDeltaMapf(t, expected, actual, delta, msg, args...) {
 		t.FailNow()
 	}
 }

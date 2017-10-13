@@ -180,6 +180,10 @@ func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta f
 	return InDeltaSlice(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
 }
 
+func InDeltaMapf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) bool {
+	return InDeltaSlice(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
+}
+
 // InEpsilonf asserts that expected and actual have a relative error less than epsilon
 //
 // Returns whether the assertion was successful (true) or not (false).

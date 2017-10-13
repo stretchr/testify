@@ -980,6 +980,7 @@ func InDeltaMap(
 	}
 	return true
 }
+
 func calcRelativeError(expected, actual interface{}) (float64, error) {
 	af, aok := toFloat(expected)
 	if !aok {
