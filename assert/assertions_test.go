@@ -1045,6 +1045,82 @@ func TestInDeltaSlice(t *testing.T) {
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
+func TestInDeltaMapValues(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, tc := range []struct {
+		title  string
+		expect interface{}
+		actual interface{}
+		f      func(TestingT, bool, ...interface{}) bool
+		delta  float64
+	}{
+		{
+			title: "Within delta",
+			expect: map[string]float64{
+				"foo": 1.0,
+				"bar": 2.0,
+			},
+			actual: map[string]float64{
+				"foo": 1.01,
+				"bar": 1.99,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "Within delta",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+				2: 1.99,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "Different number of keys",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+			},
+			delta: 0.1,
+			f:     False,
+		},
+		{
+			title: "Within delta with zero value",
+			expect: map[string]float64{
+				"zero": 0.0,
+			},
+			actual: map[string]float64{
+				"zero": 0.0,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "With missing key with zero value",
+			expect: map[string]float64{
+				"zero": 0.0,
+				"foo":  0.0,
+			},
+			actual: map[string]float64{
+				"zero": 0.0,
+				"bar":  0.0,
+			},
+			f: False,
+		},
+	} {
+		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+diff(tc.expect, tc.actual))
+	}
+}
+
 func TestInEpsilon(t *testing.T) {
 	mockT := new(testing.T)
 

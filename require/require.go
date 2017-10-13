@@ -401,6 +401,20 @@ func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64
 	}
 }
 
+// InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InDeltaMapValues(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
+	if !assert.InDeltaMapValues(t, expected, actual, delta, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// InDeltaMapValuesf is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InDeltaMapValuesf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
+	if !assert.InDeltaMapValuesf(t, expected, actual, delta, msg, args...) {
+		t.FailNow()
+	}
+}
+
 // InDeltaSlice is the same as InDelta, except it compares two slices.
 func InDeltaSlice(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if !assert.InDeltaSlice(t, expected, actual, delta, msgAndArgs...) {
