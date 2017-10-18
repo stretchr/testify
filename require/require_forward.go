@@ -146,6 +146,28 @@ func (a *Assertions) Error(err error, msgAndArgs ...interface{}) {
 	Error(a.t, err, msgAndArgs...)
 }
 
+// ErrorContains asserts that the error is not-nil and that it contains the
+// expected error string.
+//
+//   actualObj, err := SomeFunction()
+//   a.ErrorContains(err,  expectedErrorString)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) ErrorContains(theError error, errString string, msgAndArgs ...interface{}) {
+	ErrorContains(a.t, theError, errString, msgAndArgs...)
+}
+
+// ErrorContainsf asserts that the error is not-nil and that it contains the
+// expected error string.
+//
+//   actualObj, err := SomeFunction()
+//   a.ErrorContainsf(err,  expectedErrorString, "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) ErrorContainsf(theError error, errString string, msg string, args ...interface{}) {
+	ErrorContainsf(a.t, theError, errString, msg, args...)
+}
+
 // Errorf asserts that a function returned an error (i.e. not `nil`).
 //
 //   actualObj, err := SomeFunction()

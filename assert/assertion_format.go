@@ -84,6 +84,17 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) bool {
 	return Error(t, err, append([]interface{}{msg}, args...)...)
 }
 
+// ErrorContainsf asserts that the error is not-nil and that it contains the
+// expected error string.
+//
+//   actualObj, err := SomeFunction()
+//   assert.ErrorContainsf(t, err,  expectedErrorString, "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ErrorContainsf(t TestingT, theError error, errString string, msg string, args ...interface{}) bool {
+	return ErrorContains(t, theError, errString, append([]interface{}{msg}, args...)...)
+}
+
 // Exactlyf asserts that two objects are equal is value and type.
 //
 //    assert.Exactlyf(t, int32(123, "error message %s", "formatted"), int64(123))
