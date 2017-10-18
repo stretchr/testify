@@ -471,6 +471,17 @@ func (m *Mock) calls() []Call {
 	return append([]Call{}, m.Calls...)
 }
 
+// CallsForMethod returns a list of call for a given method
+func (m *Mock) CallsForMethod(method string) []Call {
+	calls := []Call{}
+	for _, call := range m.Calls {
+		if call.Method == method {
+			calls = append(calls, call)
+		}
+	}
+	return calls
+}
+
 /*
 	Arguments
 */
