@@ -2,6 +2,7 @@ package mock
 
 import (
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -1194,4 +1195,32 @@ func Test_MockMethodCalled(t *testing.T) {
 	require.True(t, len(retArgs) == 1)
 	require.Equal(t, "world", retArgs[0])
 	m.AssertExpectations(t)
+}
+
+// Test to validate fix for racy concurrent call access in MethodCalled()
+func Test_MockReturnAndCalledConcurrent(t *testing.T) {
+	iterations := 1000
+	m := &Mock{}
+	call := m.On("ConcurrencyTestMethod")
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		for i := 0; i < iterations; i++ {
+			call.Return(10)
+		}
+		wg.Done()
+	}()
+	go func() {
+		for i := 0; i < iterations; i++ {
+			ConcurrencyTestMethod(m)
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+}
+
+func ConcurrencyTestMethod(m *Mock) {
+	m.Called()
 }
