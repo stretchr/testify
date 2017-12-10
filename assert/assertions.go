@@ -414,64 +414,32 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
 }
 
-var numericZeros = []interface{}{
-	int(0),
-	int8(0),
-	int16(0),
-	int32(0),
-	int64(0),
-	uint(0),
-	uint8(0),
-	uint16(0),
-	uint32(0),
-	uint64(0),
-	float32(0),
-	float64(0),
-}
-
 // isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object interface{}) bool {
 
+	// get nil case out of the way
 	if object == nil {
 		return true
-	} else if object == "" {
-		return true
-	} else if object == false {
-		return true
-	}
-
-	for _, v := range numericZeros {
-		if object == v {
-			return true
-		}
 	}
 
 	objValue := reflect.ValueOf(object)
 
 	switch objValue.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
-		{
-			return (objValue.Len() == 0)
-		}
-	case reflect.Struct:
-		switch object.(type) {
-		case time.Time:
-			return object.(time.Time).IsZero()
-		}
+	// collection types are empty when they have no element
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
+		return objValue.Len() == 0
+	// pointers are empty if nil or if the value they point to is empty
 	case reflect.Ptr:
-		{
-			if objValue.IsNil() {
-				return true
-			}
-			switch object.(type) {
-			case *time.Time:
-				return object.(*time.Time).IsZero()
-			default:
-				return false
-			}
+		if objValue.IsNil() {
+			return true
 		}
+		deref := objValue.Elem().Interface()
+		return isEmpty(deref)
+	// for all other types, compare against the zero value
+	default:
+		zero := reflect.Zero(objValue.Type())
+		return reflect.DeepEqual(object, zero.Interface())
 	}
-	return false
 }
 
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
