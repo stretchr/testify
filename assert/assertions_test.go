@@ -806,6 +806,15 @@ func TestEmpty(t *testing.T) {
 	var tiNP time.Time
 	var s *string
 	var f *os.File
+	sP := &s
+	x := 1
+	xP := &x
+
+	type TString string
+	type TStruct struct {
+		x int
+		s []int
+	}
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
 	True(t, Empty(mockT, nil), "Nil is empty")
@@ -817,6 +826,9 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, f), "Nil os.File pointer is empty")
 	True(t, Empty(mockT, tiP), "Nil time.Time pointer is empty")
 	True(t, Empty(mockT, tiNP), "time.Time is empty")
+	True(t, Empty(mockT, TStruct{}), "struct with zero values is empty")
+	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
+	True(t, Empty(mockT, sP), "ptr to nil value is empty")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -824,6 +836,9 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
 	False(t, Empty(mockT, true), "True value is not empty")
 	False(t, Empty(mockT, chWithValue), "Channel with values is not empty")
+	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
+	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
+	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
 }
 
 func TestNotEmpty(t *testing.T) {
