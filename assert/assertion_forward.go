@@ -1,5 +1,5 @@
 /*
-* CODE GENERATED AUTOMATICALLY WITH github.com/stretchr/testify/_codegen
+* CODE GENERATED AUTOMATICALLY WITH github.com/test-go/testify/_codegen
 * THIS FILE MUST NOT BE EDITED BY HAND
  */
 
