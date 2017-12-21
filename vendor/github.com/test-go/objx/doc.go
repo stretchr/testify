@@ -24,7 +24,7 @@
 //
 //     m.Get("places[0].latlng")
 //
-// Once you have saught the `Value` you're interested in, you can use the `Is*` methods
+// Once you have sought the `Value` you're interested in, you can use the `Is*` methods
 // to determine its type.
 //
 //     if m.Get("code").IsStr() { /* ... */ }
