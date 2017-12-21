@@ -11,7 +11,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
-	"github.com/stretchr/objx"
+	"github.com/test-go/objx"
 	"github.com/test-go/testify/assert"
 )
 
