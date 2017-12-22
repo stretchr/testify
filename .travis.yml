@@ -8,10 +8,11 @@ go:
   - 1.6
   - 1.7
   - 1.8
+  - 1.9
   - tip
 
 script:
   - ./.travis.gogenerate.sh
   - ./.travis.gofmt.sh
   - ./.travis.govet.sh
-  - go test -v ./...
+  - go test $(go list ./... | grep -v /vendor/)
