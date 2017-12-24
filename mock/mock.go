@@ -11,8 +11,8 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
-	"github.com/stretchr/objx"
-	"github.com/stretchr/testify/assert"
+	"github.com/test-go/objx"
+	"github.com/test-go/testify/assert"
 )
 
 // TestingT is an interface wrapper around *testing.T

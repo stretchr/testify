@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/test-go/testify/assert"
+	"github.com/test-go/testify/require"
 )
 
 /*
@@ -105,13 +105,13 @@ func Test_Mock_Chained_On(t *testing.T) {
 		Return(nil)
 
 	expectedCalls := []*Call{
-		&Call{
+		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod",
 			Arguments:       []interface{}{1, 2, 3},
 			ReturnArguments: []interface{}{0},
 		},
-		&Call{
+		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod3",
 			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
