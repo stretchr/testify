@@ -541,3 +541,16 @@ func Zerof(t TestingT, i interface{}, msg string, args ...interface{}) bool {
 
 	return Zero(t, i, append([]interface{}{msg}, args...)...)
 }
+
+// FileExistsf asserts that the filename passed represents an existing file.
+//
+//  assert.FileExistsf(t, "main.go", "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
+func FileExistsf(t TestingT, filename string, msg string, args ...interface{}) bool {
+	if t, ok := t.(helper); ok {
+		t.Helper()
+	}
+
+	return FileExists(t, filename, append([]interface{}{msg}, args...)...)
+}

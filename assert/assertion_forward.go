@@ -1072,3 +1072,29 @@ func (a *Assertions) Zerof(i interface{}, msg string, args ...interface{}) bool 
 
 	return Zerof(a.t, i, msg, args...)
 }
+
+// FileExists asserts that the filename passed represents an existing file.
+//
+//  a.FileExists("main.go")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
+func (a *Assertions) FileExists(filename string, msgAndArgs ...interface{}) bool {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
+	return FileExists(a.t, filename, msgAndArgs...)
+}
+
+// FileExistsf asserts that the filename passed represents an existing file.
+//
+//  a.FileExistsf("main.go", "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or calls Fail.
+func (a *Assertions) FileExistsf(filename string, msg string, args ...interface{}) bool {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
+	return FileExistsf(a.t, filename, msg, args...)
+}
