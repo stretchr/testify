@@ -254,8 +254,8 @@ func TestEqualFormatting(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "want", equalGot: "got", want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual: \"got\"\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual: \"got\"\n\t\t\r\tMessages:   \thello, world!\n"},
+		{equalWant: "want", equalGot: "got", want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual:   \"got\"\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual:   \"got\"\n\t\t\r\tMessages:   \thello, world!\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -1382,6 +1382,20 @@ func TestBytesEqual(t *testing.T) {
 	for i, c := range cases {
 		Equal(t, reflect.DeepEqual(c.a, c.b), ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
 	}
+}
+
+func TestFileExists(t *testing.T) {
+	var cases = []string{"assertions.go", "assertions_test.go"}
+
+	for i, c := range cases {
+		res, _ := FileExists(t, c)
+		Equal(t, res, true, "case %d failed", i+1)
+	}
+}
+
+func TestFileExistsError(t *testing.T) {
+	_, err := FileExists(t, "fsociety.dat")
+	Error(t, err, "unable to find file \"fsociety.dat\" (lstat fsociety.dat: no such file or directory)")
 }
 
 func BenchmarkBytesEqual(b *testing.B) {

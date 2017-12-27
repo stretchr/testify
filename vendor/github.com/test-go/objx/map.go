@@ -49,7 +49,7 @@ func New(data interface{}) Map {
 //
 // Panics
 //
-// Panics if any key arugment is non-string or if there are an odd number of arguments.
+// Panics if any key argument is non-string or if there are an odd number of arguments.
 //
 // Example
 //
