@@ -1237,33 +1237,3 @@ func Zerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 		t.FailNow()
 	}
 }
-
-// FileExists asserts that the filename passed represents an existing file.
-//
-//  assert.FileExists(t, "main.go")
-//
-// Returns whether the assertion was successful (true) or calls Fail.
-func FileExists(t TestingT, filename string, msgAndArgs ...interface{}) {
-	if t, ok := t.(helper); ok {
-		t.Helper()
-	}
-
-	if !assert.FileExists(t, filename, msgAndArgs...) {
-		t.FailNow()
-	}
-}
-
-// FileExistsf asserts that the filename passed represents an existing file.
-//
-//  assert.FileExistsf(t, "main.go", "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or calls Fail.
-func FileExistsf(t TestingT, filename string, msg string, args ...interface{}) {
-	if t, ok := t.(helper); ok {
-		t.Helper()
-	}
-
-	if !assert.FileExistsf(t, filename, msg, args...) {
-		t.FailNow()
-	}
-}
