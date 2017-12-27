@@ -1,12 +1,12 @@
 /*
-* CODE GENERATED AUTOMATICALLY WITH github.com/stretchr/testify/_codegen
+* CODE GENERATED AUTOMATICALLY WITH github.com/test-go/testify/_codegen
 * THIS FILE MUST NOT BE EDITED BY HAND
  */
 
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
+	assert "github.com/test-go/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
@@ -14,11 +14,19 @@ import (
 
 // Condition uses a Comparison to assert a complex condition.
 func (a *Assertions) Condition(comp assert.Comparison, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Condition(a.t, comp, msgAndArgs...)
 }
 
 // Conditionf uses a Comparison to assert a complex condition.
 func (a *Assertions) Conditionf(comp assert.Comparison, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Conditionf(a.t, comp, msg, args...)
 }
 
@@ -31,6 +39,10 @@ func (a *Assertions) Conditionf(comp assert.Comparison, msg string, args ...inte
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Contains(s interface{}, contains interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Contains(a.t, s, contains, msgAndArgs...)
 }
 
@@ -43,6 +55,10 @@ func (a *Assertions) Contains(s interface{}, contains interface{}, msgAndArgs ..
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Containsf(a.t, s, contains, msg, args...)
 }
 
@@ -53,6 +69,10 @@ func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, 
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Empty(a.t, object, msgAndArgs...)
 }
 
@@ -63,6 +83,10 @@ func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Emptyf(object interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Emptyf(a.t, object, msg, args...)
 }
 
@@ -76,6 +100,10 @@ func (a *Assertions) Emptyf(object interface{}, msg string, args ...interface{})
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
 func (a *Assertions) Equal(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Equal(a.t, expected, actual, msgAndArgs...)
 }
 
@@ -87,6 +115,10 @@ func (a *Assertions) Equal(expected interface{}, actual interface{}, msgAndArgs 
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	EqualError(a.t, theError, errString, msgAndArgs...)
 }
 
@@ -98,6 +130,10 @@ func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) EqualErrorf(theError error, errString string, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	EqualErrorf(a.t, theError, errString, msg, args...)
 }
 
@@ -108,6 +144,10 @@ func (a *Assertions) EqualErrorf(theError error, errString string, msg string, a
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) EqualValues(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	EqualValues(a.t, expected, actual, msgAndArgs...)
 }
 
@@ -118,6 +158,10 @@ func (a *Assertions) EqualValues(expected interface{}, actual interface{}, msgAn
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) EqualValuesf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	EqualValuesf(a.t, expected, actual, msg, args...)
 }
 
@@ -131,6 +175,10 @@ func (a *Assertions) EqualValuesf(expected interface{}, actual interface{}, msg 
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
 func (a *Assertions) Equalf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Equalf(a.t, expected, actual, msg, args...)
 }
 
@@ -143,6 +191,10 @@ func (a *Assertions) Equalf(expected interface{}, actual interface{}, msg string
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Error(err error, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Error(a.t, err, msgAndArgs...)
 }
 
@@ -155,6 +207,10 @@ func (a *Assertions) Error(err error, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Errorf(err error, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Errorf(a.t, err, msg, args...)
 }
 
@@ -164,6 +220,10 @@ func (a *Assertions) Errorf(err error, msg string, args ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Exactly(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Exactly(a.t, expected, actual, msgAndArgs...)
 }
 
@@ -173,26 +233,46 @@ func (a *Assertions) Exactly(expected interface{}, actual interface{}, msgAndArg
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Exactlyf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Exactlyf(a.t, expected, actual, msg, args...)
 }
 
 // Fail reports a failure through
 func (a *Assertions) Fail(failureMessage string, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Fail(a.t, failureMessage, msgAndArgs...)
 }
 
 // FailNow fails test
 func (a *Assertions) FailNow(failureMessage string, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	FailNow(a.t, failureMessage, msgAndArgs...)
 }
 
 // FailNowf fails test
 func (a *Assertions) FailNowf(failureMessage string, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	FailNowf(a.t, failureMessage, msg, args...)
 }
 
 // Failf reports a failure through
 func (a *Assertions) Failf(failureMessage string, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Failf(a.t, failureMessage, msg, args...)
 }
 
@@ -202,6 +282,10 @@ func (a *Assertions) Failf(failureMessage string, msg string, args ...interface{
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) False(value bool, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	False(a.t, value, msgAndArgs...)
 }
 
@@ -211,6 +295,10 @@ func (a *Assertions) False(value bool, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Falsef(value bool, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Falsef(a.t, value, msg, args...)
 }
 
@@ -239,6 +327,10 @@ func (a *Assertions) FileExistsf(filename string, msg string, args ...interface{
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPBodyContains(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPBodyContains(a.t, handler, method, url, values, str)
 }
 
@@ -249,6 +341,10 @@ func (a *Assertions) HTTPBodyContains(handler http.HandlerFunc, method string, u
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPBodyContainsf(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPBodyContainsf(a.t, handler, method, url, values, str)
 }
 
@@ -259,6 +355,10 @@ func (a *Assertions) HTTPBodyContainsf(handler http.HandlerFunc, method string, 
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPBodyNotContains(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPBodyNotContains(a.t, handler, method, url, values, str)
 }
 
@@ -269,6 +369,10 @@ func (a *Assertions) HTTPBodyNotContains(handler http.HandlerFunc, method string
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPBodyNotContainsf(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPBodyNotContainsf(a.t, handler, method, url, values, str)
 }
 
@@ -278,6 +382,10 @@ func (a *Assertions) HTTPBodyNotContainsf(handler http.HandlerFunc, method strin
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPError(handler http.HandlerFunc, method string, url string, values url.Values) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPError(a.t, handler, method, url, values)
 }
 
@@ -287,6 +395,10 @@ func (a *Assertions) HTTPError(handler http.HandlerFunc, method string, url stri
 //
 // Returns whether the assertion was successful (true, "error message %s", "formatted") or not (false).
 func (a *Assertions) HTTPErrorf(handler http.HandlerFunc, method string, url string, values url.Values) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPErrorf(a.t, handler, method, url, values)
 }
 
@@ -296,6 +408,10 @@ func (a *Assertions) HTTPErrorf(handler http.HandlerFunc, method string, url str
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPRedirect(handler http.HandlerFunc, method string, url string, values url.Values) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPRedirect(a.t, handler, method, url, values)
 }
 
@@ -305,6 +421,10 @@ func (a *Assertions) HTTPRedirect(handler http.HandlerFunc, method string, url s
 //
 // Returns whether the assertion was successful (true, "error message %s", "formatted") or not (false).
 func (a *Assertions) HTTPRedirectf(handler http.HandlerFunc, method string, url string, values url.Values) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPRedirectf(a.t, handler, method, url, values)
 }
 
@@ -314,6 +434,10 @@ func (a *Assertions) HTTPRedirectf(handler http.HandlerFunc, method string, url 
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPSuccess(handler http.HandlerFunc, method string, url string, values url.Values) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPSuccess(a.t, handler, method, url, values)
 }
 
@@ -323,6 +447,10 @@ func (a *Assertions) HTTPSuccess(handler http.HandlerFunc, method string, url st
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) HTTPSuccessf(handler http.HandlerFunc, method string, url string, values url.Values) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	HTTPSuccessf(a.t, handler, method, url, values)
 }
 
@@ -330,6 +458,10 @@ func (a *Assertions) HTTPSuccessf(handler http.HandlerFunc, method string, url s
 //
 //    a.Implements((*MyInterface)(nil), new(MyObject))
 func (a *Assertions) Implements(interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Implements(a.t, interfaceObject, object, msgAndArgs...)
 }
 
@@ -337,6 +469,10 @@ func (a *Assertions) Implements(interfaceObject interface{}, object interface{},
 //
 //    a.Implementsf((*MyInterface, "error message %s", "formatted")(nil), new(MyObject))
 func (a *Assertions) Implementsf(interfaceObject interface{}, object interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Implementsf(a.t, interfaceObject, object, msg, args...)
 }
 
@@ -346,16 +482,28 @@ func (a *Assertions) Implementsf(interfaceObject interface{}, object interface{}
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) InDelta(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InDelta(a.t, expected, actual, delta, msgAndArgs...)
 }
 
 // InDeltaSlice is the same as InDelta, except it compares two slices.
 func (a *Assertions) InDeltaSlice(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InDeltaSlice(a.t, expected, actual, delta, msgAndArgs...)
 }
 
 // InDeltaSlicef is the same as InDelta, except it compares two slices.
 func (a *Assertions) InDeltaSlicef(expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InDeltaSlicef(a.t, expected, actual, delta, msg, args...)
 }
 
@@ -365,6 +513,10 @@ func (a *Assertions) InDeltaSlicef(expected interface{}, actual interface{}, del
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) InDeltaf(expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InDeltaf(a.t, expected, actual, delta, msg, args...)
 }
 
@@ -372,16 +524,28 @@ func (a *Assertions) InDeltaf(expected interface{}, actual interface{}, delta fl
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) InEpsilon(expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InEpsilon(a.t, expected, actual, epsilon, msgAndArgs...)
 }
 
 // InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
 func (a *Assertions) InEpsilonSlice(expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InEpsilonSlice(a.t, expected, actual, epsilon, msgAndArgs...)
 }
 
 // InEpsilonSlicef is the same as InEpsilon, except it compares each value from two slices.
 func (a *Assertions) InEpsilonSlicef(expected interface{}, actual interface{}, epsilon float64, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InEpsilonSlicef(a.t, expected, actual, epsilon, msg, args...)
 }
 
@@ -389,16 +553,28 @@ func (a *Assertions) InEpsilonSlicef(expected interface{}, actual interface{}, e
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) InEpsilonf(expected interface{}, actual interface{}, epsilon float64, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	InEpsilonf(a.t, expected, actual, epsilon, msg, args...)
 }
 
 // IsType asserts that the specified objects are of the same type.
 func (a *Assertions) IsType(expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	IsType(a.t, expectedType, object, msgAndArgs...)
 }
 
 // IsTypef asserts that the specified objects are of the same type.
 func (a *Assertions) IsTypef(expectedType interface{}, object interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	IsTypef(a.t, expectedType, object, msg, args...)
 }
 
@@ -408,6 +584,10 @@ func (a *Assertions) IsTypef(expectedType interface{}, object interface{}, msg s
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) JSONEq(expected string, actual string, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	JSONEq(a.t, expected, actual, msgAndArgs...)
 }
 
@@ -417,6 +597,10 @@ func (a *Assertions) JSONEq(expected string, actual string, msgAndArgs ...interf
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	JSONEqf(a.t, expected, actual, msg, args...)
 }
 
@@ -427,6 +611,10 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Len(a.t, object, length, msgAndArgs...)
 }
 
@@ -437,6 +625,10 @@ func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Lenf(object interface{}, length int, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Lenf(a.t, object, length, msg, args...)
 }
 
@@ -446,6 +638,10 @@ func (a *Assertions) Lenf(object interface{}, length int, msg string, args ...in
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Nil(object interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Nil(a.t, object, msgAndArgs...)
 }
 
@@ -455,6 +651,10 @@ func (a *Assertions) Nil(object interface{}, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Nilf(object interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Nilf(a.t, object, msg, args...)
 }
 
@@ -467,6 +667,10 @@ func (a *Assertions) Nilf(object interface{}, msg string, args ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NoError(err error, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NoError(a.t, err, msgAndArgs...)
 }
 
@@ -479,6 +683,10 @@ func (a *Assertions) NoError(err error, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NoErrorf(err error, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NoErrorf(a.t, err, msg, args...)
 }
 
@@ -491,6 +699,10 @@ func (a *Assertions) NoErrorf(err error, msg string, args ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotContains(s interface{}, contains interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotContains(a.t, s, contains, msgAndArgs...)
 }
 
@@ -503,6 +715,10 @@ func (a *Assertions) NotContains(s interface{}, contains interface{}, msgAndArgs
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotContainsf(s interface{}, contains interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotContainsf(a.t, s, contains, msg, args...)
 }
 
@@ -515,6 +731,10 @@ func (a *Assertions) NotContainsf(s interface{}, contains interface{}, msg strin
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotEmpty(a.t, object, msgAndArgs...)
 }
 
@@ -527,6 +747,10 @@ func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotEmptyf(object interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotEmptyf(a.t, object, msg, args...)
 }
 
@@ -539,6 +763,10 @@ func (a *Assertions) NotEmptyf(object interface{}, msg string, args ...interface
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
 func (a *Assertions) NotEqual(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotEqual(a.t, expected, actual, msgAndArgs...)
 }
 
@@ -551,6 +779,10 @@ func (a *Assertions) NotEqual(expected interface{}, actual interface{}, msgAndAr
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
 func (a *Assertions) NotEqualf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotEqualf(a.t, expected, actual, msg, args...)
 }
 
@@ -560,6 +792,10 @@ func (a *Assertions) NotEqualf(expected interface{}, actual interface{}, msg str
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotNil(object interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotNil(a.t, object, msgAndArgs...)
 }
 
@@ -569,6 +805,10 @@ func (a *Assertions) NotNil(object interface{}, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotNilf(object interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotNilf(a.t, object, msg, args...)
 }
 
@@ -578,6 +818,10 @@ func (a *Assertions) NotNilf(object interface{}, msg string, args ...interface{}
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotPanics(f assert.PanicTestFunc, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotPanics(a.t, f, msgAndArgs...)
 }
 
@@ -587,6 +831,10 @@ func (a *Assertions) NotPanics(f assert.PanicTestFunc, msgAndArgs ...interface{}
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotPanicsf(f assert.PanicTestFunc, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotPanicsf(a.t, f, msg, args...)
 }
 
@@ -597,6 +845,10 @@ func (a *Assertions) NotPanicsf(f assert.PanicTestFunc, msg string, args ...inte
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotRegexp(a.t, rx, str, msgAndArgs...)
 }
 
@@ -607,6 +859,10 @@ func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...in
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotRegexpf(rx interface{}, str interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotRegexpf(a.t, rx, str, msg, args...)
 }
 
@@ -617,6 +873,10 @@ func (a *Assertions) NotRegexpf(rx interface{}, str interface{}, msg string, arg
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotSubset(list interface{}, subset interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotSubset(a.t, list, subset, msgAndArgs...)
 }
 
@@ -627,16 +887,28 @@ func (a *Assertions) NotSubset(list interface{}, subset interface{}, msgAndArgs 
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) NotSubsetf(list interface{}, subset interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotSubsetf(a.t, list, subset, msg, args...)
 }
 
 // NotZero asserts that i is not the zero value for its type and returns the truth.
 func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotZero(a.t, i, msgAndArgs...)
 }
 
 // NotZerof asserts that i is not the zero value for its type and returns the truth.
 func (a *Assertions) NotZerof(i interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	NotZerof(a.t, i, msg, args...)
 }
 
@@ -646,6 +918,10 @@ func (a *Assertions) NotZerof(i interface{}, msg string, args ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Panics(f assert.PanicTestFunc, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Panics(a.t, f, msgAndArgs...)
 }
 
@@ -656,6 +932,10 @@ func (a *Assertions) Panics(f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) PanicsWithValue(expected interface{}, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	PanicsWithValue(a.t, expected, f, msgAndArgs...)
 }
 
@@ -666,6 +946,10 @@ func (a *Assertions) PanicsWithValue(expected interface{}, f assert.PanicTestFun
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) PanicsWithValuef(expected interface{}, f assert.PanicTestFunc, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	PanicsWithValuef(a.t, expected, f, msg, args...)
 }
 
@@ -675,6 +959,10 @@ func (a *Assertions) PanicsWithValuef(expected interface{}, f assert.PanicTestFu
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Panicsf(f assert.PanicTestFunc, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Panicsf(a.t, f, msg, args...)
 }
 
@@ -685,6 +973,10 @@ func (a *Assertions) Panicsf(f assert.PanicTestFunc, msg string, args ...interfa
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Regexp(a.t, rx, str, msgAndArgs...)
 }
 
@@ -695,6 +987,10 @@ func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...inter
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Regexpf(rx interface{}, str interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Regexpf(a.t, rx, str, msg, args...)
 }
 
@@ -705,6 +1001,10 @@ func (a *Assertions) Regexpf(rx interface{}, str interface{}, msg string, args .
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Subset(list interface{}, subset interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Subset(a.t, list, subset, msgAndArgs...)
 }
 
@@ -715,6 +1015,10 @@ func (a *Assertions) Subset(list interface{}, subset interface{}, msgAndArgs ...
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Subsetf(list interface{}, subset interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Subsetf(a.t, list, subset, msg, args...)
 }
 
@@ -724,6 +1028,10 @@ func (a *Assertions) Subsetf(list interface{}, subset interface{}, msg string, a
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) True(value bool, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	True(a.t, value, msgAndArgs...)
 }
 
@@ -733,6 +1041,10 @@ func (a *Assertions) True(value bool, msgAndArgs ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Truef(value bool, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Truef(a.t, value, msg, args...)
 }
 
@@ -742,6 +1054,10 @@ func (a *Assertions) Truef(value bool, msg string, args ...interface{}) {
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) WithinDuration(expected time.Time, actual time.Time, delta time.Duration, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	WithinDuration(a.t, expected, actual, delta, msgAndArgs...)
 }
 
@@ -751,15 +1067,27 @@ func (a *Assertions) WithinDuration(expected time.Time, actual time.Time, delta 
 //
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) WithinDurationf(expected time.Time, actual time.Time, delta time.Duration, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	WithinDurationf(a.t, expected, actual, delta, msg, args...)
 }
 
 // Zero asserts that i is the zero value for its type and returns the truth.
 func (a *Assertions) Zero(i interface{}, msgAndArgs ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Zero(a.t, i, msgAndArgs...)
 }
 
 // Zerof asserts that i is the zero value for its type and returns the truth.
 func (a *Assertions) Zerof(i interface{}, msg string, args ...interface{}) {
+	if t, ok := a.t.(helper); ok {
+		t.Helper()
+	}
+
 	Zerof(a.t, i, msg, args...)
 }
