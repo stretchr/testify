@@ -1260,7 +1260,7 @@ func FileExists(t TestingT, filename string, msgAndArgs ...interface{}) bool {
 			return Fail(t, fmt.Sprintf("unable to find file %q (%s)", filename, err), msgAndArgs...)
 		}
 
-                return Fail(t, fmt.Sprintf("error when reading file %q: %s", filename, err), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("error when reading file %q: %s", filename, err), msgAndArgs...)
 	}
 
 	return true

@@ -346,28 +346,6 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 	}
 }
 
-// FileExists asserts that the filename passed represents an existing file.
-//
-//  require.FileExists(t, "main.go")
-//
-// Returns whether the assertion was successful (true) or calls Fail.
-func FileExists(t TestingT, filename string, msgAndArgs ...interface{}) {
-	if !assert.FileExists(t, filename, msgAndArgs...) {
-		t.FailNow()
-	}
-}
-
-// FileExistsf asserts that the filename passed represents an existing file.
-//
-//  require.FileExistsf(t, "main.go", "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or calls Fail.
-func FileExistsf(t TestingT, filename string, msg string, args ...interface{}) {
-	if !assert.FileExistsf(t, filename, msg, args...) {
-		t.FailNow()
-	}
-}
-
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 //
