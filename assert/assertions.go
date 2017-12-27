@@ -1253,17 +1253,13 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 //  assert.FileExists(t, "main.go")
 //
 // Returns whether the assertion was successful (true) or calls Fail.
-func FileExists(t TestingT, filename string, msgAndArgs ...interface{}) bool {
+func FileExists(t TestingT, filename string, msgAndArgs ...interface{}) (bool, error) {
 	_, err := os.Lstat(filename)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return Fail(t, fmt.Sprintf("unable to find file %q (%s)", filename, err), msgAndArgs...)
-		}
-
-		return Fail(t, fmt.Sprintf("error when reading file %q: %s", filename, err), msgAndArgs...)
+		return false, err
 	}
 
-	return true
+	return true, nil
 }
 
 // JSONEq asserts that two JSON strings are equivalent.
