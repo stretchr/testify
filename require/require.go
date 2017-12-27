@@ -260,7 +260,7 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 
 // FileExists asserts that the filename passed represents an existing file.
 //
-//  assert.FileExists(t, "main.go")
+//  require.FileExists(t, "main.go")
 //
 // Returns whether the assertion was successful (true) or calls Fail.
 func FileExists(t TestingT, filename string, msgAndArgs ...interface{}) {
