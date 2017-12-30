@@ -206,6 +206,9 @@ func TestEqual(t *testing.T) {
 	if Equal(mockT, m["bar"], "something") {
 		t.Error("Equal should return false")
 	}
+	if !Equal(mockT, equalT{1, 2}, equalT{1, 1}) {
+		t.Error("Equal should return true: equalT{1, 2} equals equalT{1, 1}")
+	}
 }
 
 // bufferT implements TestingT. Its implementation of Errorf writes the output that would be produced by
