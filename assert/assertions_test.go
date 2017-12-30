@@ -1045,6 +1045,46 @@ func TestInDeltaSlice(t *testing.T) {
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
+func TestInDeltaMap(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, tc := range []struct {
+		in []map[interface{}]float64
+		f  func(TestingT, bool, ...interface{}) bool
+		m  string
+	}{
+		{
+			in: []map[interface{}]float64{
+				{
+					"foo": 1.0,
+					"bar": 2.0,
+				},
+				{
+					"foo": 1.01,
+					"bar": 1.99,
+				},
+			},
+			f: True,
+			m: "Expect %v and %v to be within delta",
+		},
+		{
+			in: []map[interface{}]float64{
+				{
+					1: 1.0,
+					2: 2.0,
+				},
+				{
+					1: 1.0,
+				},
+			},
+			f: False,
+			m: "Expect %v and %v to not be within delta",
+		},
+	} {
+		tc.f(t, InDeltaMap(mockT, tc.in[0], tc.in[1], 0.1), fmt.Sprintf(tc.m, tc.in[0], tc.in[1]))
+	}
+}
+
 func TestInEpsilon(t *testing.T) {
 	mockT := new(testing.T)
 

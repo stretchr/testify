@@ -175,6 +175,11 @@ func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float6
 	return InDelta(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
 }
 
+// InDeltaMapf asserts key equality and value delta equality on two maps.
+func InDeltaMapf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) bool {
+	return InDeltaMap(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
+}
+
 // InDeltaSlicef is the same as InDelta, except it compares two slices.
 func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) bool {
 	return InDeltaSlice(t, expected, actual, delta, append([]interface{}{msg}, args...)...)

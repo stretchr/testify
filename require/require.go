@@ -401,6 +401,20 @@ func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64
 	}
 }
 
+// InDeltaMap asserts key equality and value delta equality on two maps.
+func InDeltaMap(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
+	if !assert.InDeltaMap(t, expected, actual, delta, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// InDeltaMapf asserts key equality and value delta equality on two maps.
+func InDeltaMapf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
+	if !assert.InDeltaMapf(t, expected, actual, delta, msg, args...) {
+		t.FailNow()
+	}
+}
+
 // InDeltaSlice is the same as InDelta, except it compares two slices.
 func InDeltaSlice(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if !assert.InDeltaSlice(t, expected, actual, delta, msgAndArgs...) {

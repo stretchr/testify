@@ -331,6 +331,16 @@ func (a *Assertions) InDelta(expected interface{}, actual interface{}, delta flo
 	InDelta(a.t, expected, actual, delta, msgAndArgs...)
 }
 
+// InDeltaMap asserts key equality and value delta equality on two maps.
+func (a *Assertions) InDeltaMap(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
+	InDeltaMap(a.t, expected, actual, delta, msgAndArgs...)
+}
+
+// InDeltaMapf asserts key equality and value delta equality on two maps.
+func (a *Assertions) InDeltaMapf(expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
+	InDeltaMapf(a.t, expected, actual, delta, msg, args...)
+}
+
 // InDeltaSlice is the same as InDelta, except it compares two slices.
 func (a *Assertions) InDeltaSlice(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	InDeltaSlice(a.t, expected, actual, delta, msgAndArgs...)
