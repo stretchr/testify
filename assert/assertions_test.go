@@ -254,8 +254,8 @@ func TestEqualFormatting(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "want", equalGot: "got", want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual: \"got\"\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual: \"got\"\n\t\t\r\tMessages:   \thello, world!\n"},
+		{equalWant: "want", equalGot: "got", want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual  : \"got\"\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual  : \"got\"\n\t\t\r\tMessages:   \thello, world!\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -806,6 +806,15 @@ func TestEmpty(t *testing.T) {
 	var tiNP time.Time
 	var s *string
 	var f *os.File
+	sP := &s
+	x := 1
+	xP := &x
+
+	type TString string
+	type TStruct struct {
+		x int
+		s []int
+	}
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
 	True(t, Empty(mockT, nil), "Nil is empty")
@@ -817,6 +826,9 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, f), "Nil os.File pointer is empty")
 	True(t, Empty(mockT, tiP), "Nil time.Time pointer is empty")
 	True(t, Empty(mockT, tiNP), "time.Time is empty")
+	True(t, Empty(mockT, TStruct{}), "struct with zero values is empty")
+	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
+	True(t, Empty(mockT, sP), "ptr to nil value is empty")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -824,6 +836,9 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
 	False(t, Empty(mockT, true), "True value is not empty")
 	False(t, Empty(mockT, chWithValue), "Channel with values is not empty")
+	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
+	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
+	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
 }
 
 func TestNotEmpty(t *testing.T) {
@@ -1028,6 +1043,82 @@ func TestInDeltaSlice(t *testing.T) {
 		0.1), "{1, 2} is not element-wise close to {0, 3} in delta=0.1")
 
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
+}
+
+func TestInDeltaMapValues(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, tc := range []struct {
+		title  string
+		expect interface{}
+		actual interface{}
+		f      func(TestingT, bool, ...interface{}) bool
+		delta  float64
+	}{
+		{
+			title: "Within delta",
+			expect: map[string]float64{
+				"foo": 1.0,
+				"bar": 2.0,
+			},
+			actual: map[string]float64{
+				"foo": 1.01,
+				"bar": 1.99,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "Within delta",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+				2: 1.99,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "Different number of keys",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+			},
+			delta: 0.1,
+			f:     False,
+		},
+		{
+			title: "Within delta with zero value",
+			expect: map[string]float64{
+				"zero": 0.0,
+			},
+			actual: map[string]float64{
+				"zero": 0.0,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "With missing key with zero value",
+			expect: map[string]float64{
+				"zero": 0.0,
+				"foo":  0.0,
+			},
+			actual: map[string]float64{
+				"zero": 0.0,
+				"bar":  0.0,
+			},
+			f: False,
+		},
+	} {
+		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+diff(tc.expect, tc.actual))
+	}
 }
 
 func TestInEpsilon(t *testing.T) {
