@@ -12,7 +12,10 @@ import (
 // an error if building a new request fails.
 func httpCode(handler http.HandlerFunc, method, url string, values url.Values) (int, error) {
 	w := httptest.NewRecorder()
-	req, err := http.NewRequest(method, url+"?"+values.Encode(), nil)
+	if values != nil {
+		url = fmt.Sprintf("%s?%s", url, values.Encode())
+	}
+	req, err := http.NewRequest(method, url+values.Encode(), nil)
 	if err != nil {
 		return -1, err
 	}
