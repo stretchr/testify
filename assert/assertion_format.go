@@ -16,6 +16,11 @@ func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bo
 	return Condition(t, comp, append([]interface{}{msg}, args...)...)
 }
 
+// ConditionWaitf uses a Comparison to wait condition or assert by timeout.
+func ConditionWaitf(t TestingT, comp Comparison, timeout time.Duration, msg string, args ...interface{}) bool {
+	return ConditionWait(t, comp, timeout, append([]interface{}{msg}, args...)...)
+}
+
 // Containsf asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //
