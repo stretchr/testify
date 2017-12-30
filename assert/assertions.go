@@ -231,6 +231,13 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 		{"Error", failureMessage},
 	}
 
+	// Add test name if the Go version supports it
+	if n, ok := t.(interface {
+		Name() string
+	}); ok {
+		content = append(content, labeledContent{"Test", n.Name()})
+	}
+
 	message := messageFromMsgAndArgs(msgAndArgs...)
 	if len(message) > 0 {
 		content = append(content, labeledContent{"Messages", message})
@@ -273,15 +280,16 @@ func labeledOutput(content ...labeledContent) string {
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject))
 func Implements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
-
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
 
+	if object == nil {
+		return Fail(t, fmt.Sprintf("Cannot check if nil implements %v", interfaceType), msgAndArgs...)
+	}
 	if !reflect.TypeOf(object).Implements(interfaceType) {
 		return Fail(t, fmt.Sprintf("%T must implement %v", object, interfaceType), msgAndArgs...)
 	}
 
 	return true
-
 }
 
 // IsType asserts that the specified objects are of the same type.
@@ -726,6 +734,62 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	}
 
 	return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
+}
+
+// ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// assert.ElementsMatch(t, [1, 3, 2, 3], [1, 3, 3, 2]))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface{}) (ok bool) {
+	if isEmpty(listA) && isEmpty(listB) {
+		return true
+	}
+
+	aKind := reflect.TypeOf(listA).Kind()
+	bKind := reflect.TypeOf(listB).Kind()
+
+	if aKind != reflect.Array && aKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listA, aKind), msgAndArgs...)
+	}
+
+	if bKind != reflect.Array && bKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listB, bKind), msgAndArgs...)
+	}
+
+	aValue := reflect.ValueOf(listA)
+	bValue := reflect.ValueOf(listB)
+
+	aLen := aValue.Len()
+	bLen := bValue.Len()
+
+	if aLen != bLen {
+		return Fail(t, fmt.Sprintf("lengths don't match: %d != %d", aLen, bLen), msgAndArgs...)
+	}
+
+	// Mark indexes in bValue that we already used
+	visited := make([]bool, bLen)
+	for i := 0; i < aLen; i++ {
+		element := aValue.Index(i).Interface()
+		found := false
+		for j := 0; j < bLen; j++ {
+			if visited[j] {
+				continue
+			}
+			if ObjectsAreEqual(bValue.Index(j).Interface(), element) {
+				visited[j] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return Fail(t, fmt.Sprintf("element %s appears more times in %s than in %s", element, aValue, bValue), msgAndArgs...)
+		}
+	}
+
+	return true
 }
 
 // Condition uses a Comparison to assert a complex condition.

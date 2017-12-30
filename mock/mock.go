@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -325,7 +326,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		m.mutex.Unlock()
 
 		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(arguments, closestCall.Arguments)))
+			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(closestCall.Arguments, arguments)))
 		} else {
 			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo()))
 		}
@@ -519,9 +520,25 @@ type argumentMatcher struct {
 
 func (f argumentMatcher) Matches(argument interface{}) bool {
 	expectType := f.fn.Type().In(0)
+	expectTypeNilSupported := false
+	switch expectType.Kind() {
+	case reflect.Interface, reflect.Chan, reflect.Func, reflect.Map, reflect.Slice, reflect.Ptr:
+		expectTypeNilSupported = true
+	}
 
-	if reflect.TypeOf(argument).AssignableTo(expectType) {
-		result := f.fn.Call([]reflect.Value{reflect.ValueOf(argument)})
+	argType := reflect.TypeOf(argument)
+	var arg reflect.Value
+	if argType == nil {
+		arg = reflect.New(expectType).Elem()
+	} else {
+		arg = reflect.ValueOf(argument)
+	}
+
+	if argType == nil && !expectTypeNilSupported {
+		panic(errors.New("attempting to call matcher with nil for non-nil expected type"))
+	}
+	if argType == nil || argType.AssignableTo(expectType) {
+		result := f.fn.Call([]reflect.Value{arg})
 		return result[0].Bool()
 	}
 	return false
