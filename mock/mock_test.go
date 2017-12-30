@@ -2,6 +2,7 @@ package mock
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -1314,6 +1315,36 @@ func Test_MockReturnAndCalledConcurrent(t *testing.T) {
 		wg.Done()
 	}()
 	wg.Wait()
+}
+
+type timer struct{ Mock }
+
+func (s *timer) GetTime(i int) string {
+	return s.Called(i).Get(0).(string)
+}
+
+func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
+	waitDuration := 1
+	total, waitMs := 5, time.Millisecond*time.Duration(waitDuration)
+	aTimer := new(timer)
+	for i := 0; i < total; i++ {
+		aTimer.On("GetTime", i).After(waitMs).Return(fmt.Sprintf("Time%d", i)).Once()
+	}
+	time.Sleep(waitMs)
+	start := time.Now()
+	var results []string
+
+	for i := 0; i < total; i++ {
+		results = append(results, aTimer.GetTime(i))
+	}
+
+	end := time.Now()
+	elapsedTime := end.Sub(start)
+	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be atleast greater than %v", elapsedTime, waitMs))
+	assert.Equal(t, total, len(results))
+	for i, _ := range results {
+		assert.Equal(t, fmt.Sprintf("Time%d", i), results[i], "Return value of method should be same")
+	}
 }
 
 func ConcurrencyTestMethod(m *Mock) {

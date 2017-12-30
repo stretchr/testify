@@ -56,6 +56,8 @@ type Call struct {
 	// receives a message or is closed. nil means it returns immediately.
 	WaitFor <-chan time.Time
 
+	waitTime time.Duration
+
 	// Holds a handler used to manipulate arguments content that are passed by
 	// reference. It's useful when mocking methods such as unmarshalers or
 	// decoders.
@@ -134,7 +136,10 @@ func (c *Call) WaitUntil(w <-chan time.Time) *Call {
 //
 //    Mock.On("MyMethod", arg1, arg2).After(time.Second)
 func (c *Call) After(d time.Duration) *Call {
-	return c.WaitUntil(time.After(d))
+	c.lock()
+	defer c.unlock()
+	c.waitTime = d
+	return c
 }
 
 // Run sets a handler to be called before returning. It can be used when
@@ -327,18 +332,12 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		}
 	}
 
-	switch {
-	case call.Repeatability == 1:
+	if call.Repeatability == 1 {
 		call.Repeatability = -1
-		call.totalCalls++
-
-	case call.Repeatability > 1:
+	} else if call.Repeatability > 1 {
 		call.Repeatability--
-		call.totalCalls++
-
-	case call.Repeatability == 0:
-		call.totalCalls++
 	}
+	call.totalCalls++
 
 	// add the call
 	m.Calls = append(m.Calls, *newCall(m, methodName, arguments...))
@@ -347,6 +346,8 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	// block if specified
 	if call.WaitFor != nil {
 		<-call.WaitFor
+	} else {
+		time.Sleep(call.waitTime)
 	}
 
 	m.mutex.Lock()
