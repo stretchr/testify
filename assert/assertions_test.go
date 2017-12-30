@@ -257,8 +257,8 @@ func TestEqualFormatting(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "want", equalGot: "got", want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual: \"got\"\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual: \"got\"\n\t\t\r\tMessages:   \thello, world!\n"},
+		{equalWant: "want", equalGot: "got", want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual  : \"got\"\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \r                          \r\tError Trace:\t\n\t\t\r\tError:      \tNot equal: \n\t\t\r\t            \texpected: \"want\"\n\t\t\r\t            \tactual  : \"got\"\n\t\t\r\tMessages:   \thello, world!\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -556,6 +556,14 @@ func TestNotSubset(t *testing.T) {
 	}
 }
 
+func TestNotSubsetNil(t *testing.T) {
+	mockT := new(testing.T)
+	NotSubset(mockT, []string{"foo"}, nil)
+	if !mockT.Failed() {
+		t.Error("NotSubset on nil set should have failed the test")
+	}
+}
+
 func Test_includeElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
@@ -605,6 +613,57 @@ func Test_includeElement(t *testing.T) {
 	ok, found = includeElement(1433, "1")
 	False(t, ok)
 	False(t, found)
+}
+
+func TestElementsMatch(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !ElementsMatch(mockT, nil, nil) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{}, []int{}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1}, []int{1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1, 1}, []int{1, 1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1, 2}, []int{1, 2}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{1, 2}, []int{2, 1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, [2]int{1, 2}, [2]int{2, 1}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []string{"hello", "world"}, []string{"world", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []string{"hello", "hello"}, []string{"hello", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, [3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}) {
+		t.Error("ElementsMatch should return true")
+	}
+	if !ElementsMatch(mockT, []int{}, nil) {
+		t.Error("ElementsMatch should return true")
+	}
+
+	if ElementsMatch(mockT, []int{1}, []int{1, 1}) {
+		t.Error("ElementsMatch should return false")
+	}
+	if ElementsMatch(mockT, []int{1, 2}, []int{2, 2}) {
+		t.Error("ElementsMatch should return false")
+	}
+	if ElementsMatch(mockT, []string{"hello", "hello"}, []string{"hello"}) {
+		t.Error("ElementsMatch should return false")
+	}
 }
 
 func TestCondition(t *testing.T) {
@@ -809,6 +868,15 @@ func TestEmpty(t *testing.T) {
 	var tiNP time.Time
 	var s *string
 	var f *os.File
+	sP := &s
+	x := 1
+	xP := &x
+
+	type TString string
+	type TStruct struct {
+		x int
+		s []int
+	}
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
 	True(t, Empty(mockT, nil), "Nil is empty")
@@ -820,6 +888,9 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, f), "Nil os.File pointer is empty")
 	True(t, Empty(mockT, tiP), "Nil time.Time pointer is empty")
 	True(t, Empty(mockT, tiNP), "time.Time is empty")
+	True(t, Empty(mockT, TStruct{}), "struct with zero values is empty")
+	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
+	True(t, Empty(mockT, sP), "ptr to nil value is empty")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -827,6 +898,9 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
 	False(t, Empty(mockT, true), "True value is not empty")
 	False(t, Empty(mockT, chWithValue), "Channel with values is not empty")
+	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
+	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
+	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
 }
 
 func TestNotEmpty(t *testing.T) {
@@ -1033,6 +1107,82 @@ func TestInDeltaSlice(t *testing.T) {
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
+func TestInDeltaMapValues(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, tc := range []struct {
+		title  string
+		expect interface{}
+		actual interface{}
+		f      func(TestingT, bool, ...interface{}) bool
+		delta  float64
+	}{
+		{
+			title: "Within delta",
+			expect: map[string]float64{
+				"foo": 1.0,
+				"bar": 2.0,
+			},
+			actual: map[string]float64{
+				"foo": 1.01,
+				"bar": 1.99,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "Within delta",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+				2: 1.99,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "Different number of keys",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+			},
+			delta: 0.1,
+			f:     False,
+		},
+		{
+			title: "Within delta with zero value",
+			expect: map[string]float64{
+				"zero": 0.0,
+			},
+			actual: map[string]float64{
+				"zero": 0.0,
+			},
+			delta: 0.1,
+			f:     True,
+		},
+		{
+			title: "With missing key with zero value",
+			expect: map[string]float64{
+				"zero": 0.0,
+				"foo":  0.0,
+			},
+			actual: map[string]float64{
+				"zero": 0.0,
+				"bar":  0.0,
+			},
+			f: False,
+		},
+	} {
+		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+diff(tc.expect, tc.actual))
+	}
+}
+
 func TestInEpsilon(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -1048,6 +1198,7 @@ func TestInEpsilon(t *testing.T) {
 		{uint64(100), uint8(101), 0.01},
 		{0.1, -0.1, 2},
 		{0.1, 0, 2},
+		{time.Second, time.Second + time.Millisecond, 0.002},
 	}
 
 	for _, tc := range cases {
@@ -1066,6 +1217,7 @@ func TestInEpsilon(t *testing.T) {
 		{2.1, "bla-bla", 0},
 		{0.1, -0.1, 1.99},
 		{0, 0.1, 2}, // expected must be different to zero
+		{time.Second, time.Second + 10*time.Millisecond, 0.002},
 	}
 
 	for _, tc := range cases {

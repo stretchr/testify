@@ -48,6 +48,9 @@ type Call struct {
 	// Amount of times this call has been called
 	totalCalls int
 
+	// Call to this method can be optional
+	optional bool
+
 	// Holds a channel that will be used to block the Return until it either
 	// receives a message or is closed. nil means it returns immediately.
 	WaitFor <-chan time.Time
@@ -145,6 +148,15 @@ func (c *Call) Run(fn func(args Arguments)) *Call {
 	c.lock()
 	defer c.unlock()
 	c.RunFn = fn
+	return c
+}
+
+// Maybe allows the method call to be optional. Not calling an optional method
+// will not cause an error while asserting expectations
+func (c *Call) Maybe() *Call {
+	c.lock()
+	defer c.unlock()
+	c.optional = true
 	return c
 }
 
@@ -308,7 +320,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		m.mutex.Unlock()
 
 		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(arguments, closestCall.Arguments)))
+			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(closestCall.Arguments, arguments)))
 		} else {
 			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo()))
 		}
@@ -336,11 +348,19 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		<-call.WaitFor
 	}
 
-	if call.RunFn != nil {
-		call.RunFn(arguments)
+	m.mutex.Lock()
+	runFn := call.RunFn
+	m.mutex.Unlock()
+
+	if runFn != nil {
+		runFn(arguments)
 	}
 
-	return call.ReturnArguments
+	m.mutex.Lock()
+	returnArgs := call.ReturnArguments
+	m.mutex.Unlock()
+
+	return returnArgs
 }
 
 /*
@@ -380,7 +400,7 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
 	for _, expectedCall := range expectedCalls {
-		if !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0 {
+		if !expectedCall.optional && !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0 {
 			somethingMissing = true
 			failedExpectations++
 			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
