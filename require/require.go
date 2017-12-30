@@ -54,6 +54,20 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 	}
 }
 
+// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if !assert.DirExists(t, path, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if !assert.DirExistsf(t, path, msg, args...) {
+		t.FailNow()
+	}
+}
+
 // ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
 // listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should match.
@@ -280,6 +294,20 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 // Returns whether the assertion was successful (true) or not (false).
 func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 	if !assert.Falsef(t, value, msg, args...) {
+		t.FailNow()
+	}
+}
+
+// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if !assert.FileExists(t, path, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if !assert.FileExistsf(t, path, msg, args...) {
 		t.FailNow()
 	}
 }

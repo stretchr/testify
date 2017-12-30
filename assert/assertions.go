@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -1189,6 +1190,36 @@ func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
 		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
+	}
+	return true
+}
+
+// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
+		}
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+	if info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a directory", path), msgAndArgs...)
+	}
+	return true
+}
+
+// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
+		}
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+	if !info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
 	}
 	return true
 }
