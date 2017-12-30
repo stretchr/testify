@@ -46,6 +46,16 @@ func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, 
 	Containsf(a.t, s, contains, msg, args...)
 }
 
+// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func (a *Assertions) DirExists(path string, msgAndArgs ...interface{}) {
+	DirExists(a.t, path, msgAndArgs...)
+}
+
+// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func (a *Assertions) DirExistsf(path string, msg string, args ...interface{}) {
+	DirExistsf(a.t, path, msg, args...)
+}
+
 // ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
 // listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should match.
@@ -234,6 +244,16 @@ func (a *Assertions) False(value bool, msgAndArgs ...interface{}) {
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Falsef(value bool, msg string, args ...interface{}) {
 	Falsef(a.t, value, msg, args...)
+}
+
+// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func (a *Assertions) FileExists(path string, msgAndArgs ...interface{}) {
+	FileExists(a.t, path, msgAndArgs...)
+}
+
+// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func (a *Assertions) FileExistsf(path string, msg string, args ...interface{}) {
+	FileExistsf(a.t, path, msg, args...)
 }
 
 // HTTPBodyContains asserts that a specified handler returns a
