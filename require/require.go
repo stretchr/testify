@@ -212,7 +212,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	}
 }
 
-// Exactly asserts that two objects are equal is value and type.
+// Exactly asserts that two objects are equal in value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123))
 //
@@ -223,7 +223,7 @@ func Exactly(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 	}
 }
 
-// Exactlyf asserts that two objects are equal is value and type.
+// Exactlyf asserts that two objects are equal in value and type.
 //
 //    assert.Exactlyf(t, int32(123, "error message %s", "formatted"), int64(123))
 //
