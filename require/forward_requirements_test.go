@@ -31,6 +31,30 @@ func TestIsTypeWrapper(t *testing.T) {
 	}
 }
 
+func TestSameWrapper(t *testing.T) {
+	require := New(t)
+	require.Same(1, 1)
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.Same(1, 2)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestNotSameWrapper(t *testing.T) {
+	require := New(t)
+	require.NotSame(1, 2)
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.NotSame(2, 2)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestEqualWrapper(t *testing.T) {
 	require := New(t)
 	require.Equal(1, 1)

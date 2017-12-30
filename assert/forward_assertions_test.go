@@ -30,6 +30,58 @@ func TestIsTypeWrapper(t *testing.T) {
 
 }
 
+func TestSameWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	if !assert.Same("Hello World", "Hello World") {
+		t.Error("Same should return true")
+	}
+	if !assert.Same(123, 123) {
+		t.Error("Same should return true")
+	}
+	if !assert.Same(123.5, 123.5) {
+		t.Error("Same should return true")
+	}
+	if !assert.Same(nil, nil) {
+		t.Error("Same should return true")
+	}
+	if assert.Same(nil, new(samenessTestHelper)) {
+		t.Error("Same should return false")
+	}
+	if assert.Same(new(samenessTestHelper), new(samenessTestHelper)) {
+		t.Error("Same should return false")
+	}
+	obj := new(samenessTestHelper)
+	if !assert.Same(obj, obj) {
+		t.Error("Same should return true")
+	}
+}
+
+func TestNotSameWrapper(t *testing.T) {
+
+	assert := New(new(testing.T))
+
+	if !assert.NotSame("Hello World", "Hello World!") {
+		t.Error("NotSame should return true")
+	}
+	if !assert.NotSame(123, 1234) {
+		t.Error("NotSame should return true")
+	}
+	if !assert.NotSame(123.5, 123.55) {
+		t.Error("NotSame should return true")
+	}
+	if !assert.NotSame(nil, new(samenessTestHelper)) {
+		t.Error("NotSame should return true")
+	}
+	if !assert.NotSame(new(samenessTestHelper), new(samenessTestHelper)) {
+		t.Error("NotSame should return true")
+	}
+	obj := new(samenessTestHelper)
+	if assert.NotSame(obj, obj) {
+		t.Error("NotSame should return false")
+	}
+}
+
 func TestEqualWrapper(t *testing.T) {
 	assert := New(new(testing.T))
 

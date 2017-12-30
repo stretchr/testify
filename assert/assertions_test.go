@@ -98,6 +98,11 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct {
 }
 
+// samenessTestHelper is a reference-type object to help with sameness tests
+type samenessTestHelper struct {
+	_ int
+}
+
 func TestObjectsAreEqual(t *testing.T) {
 
 	if !ObjectsAreEqual("Hello World", "Hello World") {
@@ -172,6 +177,74 @@ func TestIsType(t *testing.T) {
 		t.Error("IsType should return false: AssertionTesterConformingObject is not the same type as AssertionTesterNonConformingObject")
 	}
 
+}
+
+func TestSame(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !Same(mockT, "Hello World", "Hello World") {
+		t.Error("Same should return true")
+	}
+	if !Same(mockT, 123, 123) {
+		t.Error("Same should return true")
+	}
+	if !Same(mockT, 123.5, 123.5) {
+		t.Error("Same should return true")
+	}
+	if !Same(mockT, nil, nil) {
+		t.Error("Same should return true")
+	}
+	if !Same(mockT, int32(123), int32(123)) {
+		t.Error("Same should return true")
+	}
+	if !Same(mockT, uint64(123), uint64(123)) {
+		t.Error("Same should return true")
+	}
+	if Same(mockT, nil, new(samenessTestHelper)) {
+		t.Error("Same should return false")
+	}
+	if Same(mockT, new(samenessTestHelper), new(samenessTestHelper)) {
+		t.Error("Same should return false")
+	}
+	obj := new(samenessTestHelper)
+	if !Same(mockT, obj, obj) {
+		t.Error("Same should return true")
+	}
+}
+
+func TestNotSame(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !NotSame(mockT, "Hello World", "Hello World!") {
+		t.Error("NotSame should return true")
+	}
+	if !NotSame(mockT, 123, 1234) {
+		t.Error("NotSame should return true")
+	}
+	if !NotSame(mockT, 123.5, 123.55) {
+		t.Error("NotSame should return true")
+	}
+	if NotSame(mockT, "Hello World", "Hello World") {
+		t.Error("NotSame should return false")
+	}
+	if NotSame(mockT, 123, 123) {
+		t.Error("NotSame should return false")
+	}
+	if NotSame(mockT, 123.5, 123.5) {
+		t.Error("NotSame should return false")
+	}
+	if !NotSame(mockT, nil, new(samenessTestHelper)) {
+		t.Error("NotSame should return true")
+	}
+	if !NotSame(mockT, new(samenessTestHelper), new(samenessTestHelper)) {
+		t.Error("NotSame should return true")
+	}
+	obj := new(samenessTestHelper)
+	if NotSame(mockT, obj, obj) {
+		t.Error("NotSame should return false")
+	}
 }
 
 func TestEqual(t *testing.T) {

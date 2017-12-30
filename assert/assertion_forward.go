@@ -643,6 +643,16 @@ func (a *Assertions) NotSubsetf(list interface{}, subset interface{}, msg string
 	return NotSubsetf(a.t, list, subset, msg, args...)
 }
 
+// NotSame asserts that two objects are not the same one.
+// 
+//    a.NotSame([]int{123}, []int{123}, "should be different objects")
+// 
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) NotSame(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	return NotSame(a.t, expected, actual, msgAndArgs...)
+}
+
+
 // NotZero asserts that i is not the zero value for its type and returns the truth.
 func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) bool {
 	return NotZero(a.t, i, msgAndArgs...)
@@ -730,6 +740,17 @@ func (a *Assertions) Subset(list interface{}, subset interface{}, msgAndArgs ...
 func (a *Assertions) Subsetf(list interface{}, subset interface{}, msg string, args ...interface{}) bool {
 	return Subsetf(a.t, list, subset, msg, args...)
 }
+
+// Same asserts that two objects are actually the same one.
+// 
+//    obj := []int{123}
+//    a.Same(obj, obj, "should be the same object")
+// 
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) Same(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	return Same(a.t, expected, actual, msgAndArgs...)
+}
+
 
 // True asserts that the specified value is true.
 //
