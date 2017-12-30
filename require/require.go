@@ -54,6 +54,32 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 	}
 }
 
+// ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// assert.ElementsMatch(t, [1, 3, 2, 3], [1, 3, 3, 2]))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ElementsMatch(t TestingT, listA interface{}, listB interface{}, msgAndArgs ...interface{}) {
+	if !assert.ElementsMatch(t, listA, listB, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// ElementsMatchf asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// assert.ElementsMatchf(t, [1, 3, 2, 3], [1, 3, 3, 2], "error message %s", "formatted"))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string, args ...interface{}) {
+	if !assert.ElementsMatchf(t, listA, listB, msg, args...) {
+		t.FailNow()
+	}
+}
+
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
@@ -186,7 +212,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	}
 }
 
-// Exactly asserts that two objects are equal is value and type.
+// Exactly asserts that two objects are equal in value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123))
 //
@@ -197,7 +223,7 @@ func Exactly(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 	}
 }
 
-// Exactlyf asserts that two objects are equal is value and type.
+// Exactlyf asserts that two objects are equal in value and type.
 //
 //    assert.Exactlyf(t, int32(123, "error message %s", "formatted"), int64(123))
 //
@@ -397,6 +423,20 @@ func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, ms
 // Returns whether the assertion was successful (true) or not (false).
 func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if !assert.InDelta(t, expected, actual, delta, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InDeltaMapValues(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
+	if !assert.InDeltaMapValues(t, expected, actual, delta, msgAndArgs...) {
+		t.FailNow()
+	}
+}
+
+// InDeltaMapValuesf is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InDeltaMapValuesf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
+	if !assert.InDeltaMapValuesf(t, expected, actual, delta, msg, args...) {
 		t.FailNow()
 	}
 }
