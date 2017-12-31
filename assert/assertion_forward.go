@@ -45,6 +45,38 @@ func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, 
 	return Containsf(a.t, s, contains, msg, args...)
 }
 
+// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func (a *Assertions) DirExists(path string, msgAndArgs ...interface{}) bool {
+	return DirExists(a.t, path, msgAndArgs...)
+}
+
+// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func (a *Assertions) DirExistsf(path string, msg string, args ...interface{}) bool {
+	return DirExistsf(a.t, path, msg, args...)
+}
+
+// ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// a.ElementsMatch([1, 3, 2, 3], [1, 3, 3, 2]))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) ElementsMatch(listA interface{}, listB interface{}, msgAndArgs ...interface{}) bool {
+	return ElementsMatch(a.t, listA, listB, msgAndArgs...)
+}
+
+// ElementsMatchf asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// a.ElementsMatchf([1, 3, 2, 3], [1, 3, 3, 2], "error message %s", "formatted"))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) ElementsMatchf(listA interface{}, listB interface{}, msg string, args ...interface{}) bool {
+	return ElementsMatchf(a.t, listA, listB, msg, args...)
+}
+
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
@@ -157,7 +189,7 @@ func (a *Assertions) Errorf(err error, msg string, args ...interface{}) bool {
 	return Errorf(a.t, err, msg, args...)
 }
 
-// Exactly asserts that two objects are equal is value and type.
+// Exactly asserts that two objects are equal in value and type.
 //
 //    a.Exactly(int32(123), int64(123))
 //
@@ -166,7 +198,7 @@ func (a *Assertions) Exactly(expected interface{}, actual interface{}, msgAndArg
 	return Exactly(a.t, expected, actual, msgAndArgs...)
 }
 
-// Exactlyf asserts that two objects are equal is value and type.
+// Exactlyf asserts that two objects are equal in value and type.
 //
 //    a.Exactlyf(int32(123, "error message %s", "formatted"), int64(123))
 //
@@ -213,14 +245,24 @@ func (a *Assertions) Falsef(value bool, msg string, args ...interface{}) bool {
 	return Falsef(a.t, value, msg, args...)
 }
 
+// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func (a *Assertions) FileExists(path string, msgAndArgs ...interface{}) bool {
+	return FileExists(a.t, path, msgAndArgs...)
+}
+
+// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func (a *Assertions) FileExistsf(path string, msg string, args ...interface{}) bool {
+	return FileExistsf(a.t, path, msg, args...)
+}
+
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 //
 //  a.HTTPBodyContains(myHandler, "www.google.com", nil, "I'm Feeling Lucky")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPBodyContains(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) bool {
-	return HTTPBodyContains(a.t, handler, method, url, values, str)
+func (a *Assertions) HTTPBodyContains(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) bool {
+	return HTTPBodyContains(a.t, handler, method, url, values, str, msgAndArgs...)
 }
 
 // HTTPBodyContainsf asserts that a specified handler returns a
@@ -229,8 +271,8 @@ func (a *Assertions) HTTPBodyContains(handler http.HandlerFunc, method string, u
 //  a.HTTPBodyContainsf(myHandler, "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPBodyContainsf(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) bool {
-	return HTTPBodyContainsf(a.t, handler, method, url, values, str)
+func (a *Assertions) HTTPBodyContainsf(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) bool {
+	return HTTPBodyContainsf(a.t, handler, method, url, values, str, msg, args...)
 }
 
 // HTTPBodyNotContains asserts that a specified handler returns a
@@ -239,8 +281,8 @@ func (a *Assertions) HTTPBodyContainsf(handler http.HandlerFunc, method string, 
 //  a.HTTPBodyNotContains(myHandler, "www.google.com", nil, "I'm Feeling Lucky")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPBodyNotContains(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) bool {
-	return HTTPBodyNotContains(a.t, handler, method, url, values, str)
+func (a *Assertions) HTTPBodyNotContains(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) bool {
+	return HTTPBodyNotContains(a.t, handler, method, url, values, str, msgAndArgs...)
 }
 
 // HTTPBodyNotContainsf asserts that a specified handler returns a
@@ -249,8 +291,8 @@ func (a *Assertions) HTTPBodyNotContains(handler http.HandlerFunc, method string
 //  a.HTTPBodyNotContainsf(myHandler, "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPBodyNotContainsf(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) bool {
-	return HTTPBodyNotContainsf(a.t, handler, method, url, values, str)
+func (a *Assertions) HTTPBodyNotContainsf(handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) bool {
+	return HTTPBodyNotContainsf(a.t, handler, method, url, values, str, msg, args...)
 }
 
 // HTTPError asserts that a specified handler returns an error status code.
@@ -258,8 +300,8 @@ func (a *Assertions) HTTPBodyNotContainsf(handler http.HandlerFunc, method strin
 //  a.HTTPError(myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPError(handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPError(a.t, handler, method, url, values)
+func (a *Assertions) HTTPError(handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) bool {
+	return HTTPError(a.t, handler, method, url, values, msgAndArgs...)
 }
 
 // HTTPErrorf asserts that a specified handler returns an error status code.
@@ -267,8 +309,8 @@ func (a *Assertions) HTTPError(handler http.HandlerFunc, method string, url stri
 //  a.HTTPErrorf(myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true, "error message %s", "formatted") or not (false).
-func (a *Assertions) HTTPErrorf(handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPErrorf(a.t, handler, method, url, values)
+func (a *Assertions) HTTPErrorf(handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) bool {
+	return HTTPErrorf(a.t, handler, method, url, values, msg, args...)
 }
 
 // HTTPRedirect asserts that a specified handler returns a redirect status code.
@@ -276,8 +318,8 @@ func (a *Assertions) HTTPErrorf(handler http.HandlerFunc, method string, url str
 //  a.HTTPRedirect(myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPRedirect(handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPRedirect(a.t, handler, method, url, values)
+func (a *Assertions) HTTPRedirect(handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) bool {
+	return HTTPRedirect(a.t, handler, method, url, values, msgAndArgs...)
 }
 
 // HTTPRedirectf asserts that a specified handler returns a redirect status code.
@@ -285,8 +327,8 @@ func (a *Assertions) HTTPRedirect(handler http.HandlerFunc, method string, url s
 //  a.HTTPRedirectf(myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true, "error message %s", "formatted") or not (false).
-func (a *Assertions) HTTPRedirectf(handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPRedirectf(a.t, handler, method, url, values)
+func (a *Assertions) HTTPRedirectf(handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) bool {
+	return HTTPRedirectf(a.t, handler, method, url, values, msg, args...)
 }
 
 // HTTPSuccess asserts that a specified handler returns a success status code.
@@ -294,8 +336,8 @@ func (a *Assertions) HTTPRedirectf(handler http.HandlerFunc, method string, url 
 //  a.HTTPSuccess(myHandler, "POST", "http://www.google.com", nil)
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPSuccess(handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPSuccess(a.t, handler, method, url, values)
+func (a *Assertions) HTTPSuccess(handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) bool {
+	return HTTPSuccess(a.t, handler, method, url, values, msgAndArgs...)
 }
 
 // HTTPSuccessf asserts that a specified handler returns a success status code.
@@ -303,8 +345,8 @@ func (a *Assertions) HTTPSuccess(handler http.HandlerFunc, method string, url st
 //  a.HTTPSuccessf(myHandler, "POST", "http://www.google.com", nil, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPSuccessf(handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPSuccessf(a.t, handler, method, url, values)
+func (a *Assertions) HTTPSuccessf(handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) bool {
+	return HTTPSuccessf(a.t, handler, method, url, values, msg, args...)
 }
 
 // Implements asserts that an object is implemented by the specified interface.
@@ -328,6 +370,16 @@ func (a *Assertions) Implementsf(interfaceObject interface{}, object interface{}
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) InDelta(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
 	return InDelta(a.t, expected, actual, delta, msgAndArgs...)
+}
+
+// InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func (a *Assertions) InDeltaMapValues(expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+	return InDeltaMapValues(a.t, expected, actual, delta, msgAndArgs...)
+}
+
+// InDeltaMapValuesf is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func (a *Assertions) InDeltaMapValuesf(expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) bool {
+	return InDeltaMapValuesf(a.t, expected, actual, delta, msg, args...)
 }
 
 // InDeltaSlice is the same as InDelta, except it compares two slices.

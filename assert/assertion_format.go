@@ -28,6 +28,22 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 	return Contains(t, s, contains, append([]interface{}{msg}, args...)...)
 }
 
+// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirExistsf(t TestingT, path string, msg string, args ...interface{}) bool {
+	return DirExists(t, path, append([]interface{}{msg}, args...)...)
+}
+
+// ElementsMatchf asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// assert.ElementsMatchf(t, [1, 3, 2, 3], [1, 3, 3, 2], "error message %s", "formatted"))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string, args ...interface{}) bool {
+	return ElementsMatch(t, listA, listB, append([]interface{}{msg}, args...)...)
+}
+
 // Emptyf asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
@@ -84,7 +100,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) bool {
 	return Error(t, err, append([]interface{}{msg}, args...)...)
 }
 
-// Exactlyf asserts that two objects are equal is value and type.
+// Exactlyf asserts that two objects are equal in value and type.
 //
 //    assert.Exactlyf(t, int32(123, "error message %s", "formatted"), int64(123))
 //
@@ -112,14 +128,19 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) bool {
 	return False(t, value, append([]interface{}{msg}, args...)...)
 }
 
+// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileExistsf(t TestingT, path string, msg string, args ...interface{}) bool {
+	return FileExists(t, path, append([]interface{}{msg}, args...)...)
+}
+
 // HTTPBodyContainsf asserts that a specified handler returns a
 // body that contains a string.
 //
 //  assert.HTTPBodyContainsf(t, myHandler, "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) bool {
-	return HTTPBodyContains(t, handler, method, url, values, str)
+func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) bool {
+	return HTTPBodyContains(t, handler, method, url, values, str, append([]interface{}{msg}, args...)...)
 }
 
 // HTTPBodyNotContainsf asserts that a specified handler returns a
@@ -128,8 +149,8 @@ func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url 
 //  assert.HTTPBodyNotContainsf(t, myHandler, "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}) bool {
-	return HTTPBodyNotContains(t, handler, method, url, values, str)
+func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) bool {
+	return HTTPBodyNotContains(t, handler, method, url, values, str, append([]interface{}{msg}, args...)...)
 }
 
 // HTTPErrorf asserts that a specified handler returns an error status code.
@@ -137,8 +158,8 @@ func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, u
 //  assert.HTTPErrorf(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true, "error message %s", "formatted") or not (false).
-func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPError(t, handler, method, url, values)
+func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) bool {
+	return HTTPError(t, handler, method, url, values, append([]interface{}{msg}, args...)...)
 }
 
 // HTTPRedirectf asserts that a specified handler returns a redirect status code.
@@ -146,8 +167,8 @@ func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string,
 //  assert.HTTPRedirectf(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true, "error message %s", "formatted") or not (false).
-func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPRedirect(t, handler, method, url, values)
+func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) bool {
+	return HTTPRedirect(t, handler, method, url, values, append([]interface{}{msg}, args...)...)
 }
 
 // HTTPSuccessf asserts that a specified handler returns a success status code.
@@ -155,8 +176,8 @@ func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url stri
 //  assert.HTTPSuccessf(t, myHandler, "POST", "http://www.google.com", nil, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values) bool {
-	return HTTPSuccess(t, handler, method, url, values)
+func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) bool {
+	return HTTPSuccess(t, handler, method, url, values, append([]interface{}{msg}, args...)...)
 }
 
 // Implementsf asserts that an object is implemented by the specified interface.
@@ -173,6 +194,11 @@ func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, ms
 // Returns whether the assertion was successful (true) or not (false).
 func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) bool {
 	return InDelta(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
+}
+
+// InDeltaMapValuesf is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InDeltaMapValuesf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) bool {
+	return InDeltaMapValues(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
 }
 
 // InDeltaSlicef is the same as InDelta, except it compares two slices.

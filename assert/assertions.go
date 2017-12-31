@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -231,6 +232,13 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 		{"Error", failureMessage},
 	}
 
+	// Add test name if the Go version supports it
+	if n, ok := t.(interface {
+		Name() string
+	}); ok {
+		content = append(content, labeledContent{"Test", n.Name()})
+	}
+
 	message := messageFromMsgAndArgs(msgAndArgs...)
 	if len(message) > 0 {
 		content = append(content, labeledContent{"Messages", message})
@@ -273,15 +281,16 @@ func labeledOutput(content ...labeledContent) string {
 //
 //    assert.Implements(t, (*MyInterface)(nil), new(MyObject))
 func Implements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
-
 	interfaceType := reflect.TypeOf(interfaceObject).Elem()
 
+	if object == nil {
+		return Fail(t, fmt.Sprintf("Cannot check if nil implements %v", interfaceType), msgAndArgs...)
+	}
 	if !reflect.TypeOf(object).Implements(interfaceType) {
 		return Fail(t, fmt.Sprintf("%T must implement %v", object, interfaceType), msgAndArgs...)
 	}
 
 	return true
-
 }
 
 // IsType asserts that the specified objects are of the same type.
@@ -314,7 +323,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"actual: %s%s", expected, actual, diff), msgAndArgs...)
+			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
@@ -350,14 +359,14 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"actual: %s%s", expected, actual, diff), msgAndArgs...)
+			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
 
 }
 
-// Exactly asserts that two objects are equal is value and type.
+// Exactly asserts that two objects are equal in value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123))
 //
@@ -414,66 +423,32 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
 }
 
-var numericZeros = []interface{}{
-	int(0),
-	int8(0),
-	int16(0),
-	int32(0),
-	int64(0),
-	uint(0),
-	uint8(0),
-	uint16(0),
-	uint32(0),
-	uint64(0),
-	float32(0),
-	float64(0),
-}
-
 // isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object interface{}) bool {
 
+	// get nil case out of the way
 	if object == nil {
 		return true
-	} else if object == "" {
-		return true
-	} else if object == false {
-		return true
-	}
-
-	for _, v := range numericZeros {
-		if object == v {
-			return true
-		}
 	}
 
 	objValue := reflect.ValueOf(object)
 
 	switch objValue.Kind() {
-	case reflect.Map:
-		fallthrough
-	case reflect.Slice, reflect.Chan:
-		{
-			return (objValue.Len() == 0)
-		}
-	case reflect.Struct:
-		switch object.(type) {
-		case time.Time:
-			return object.(time.Time).IsZero()
-		}
+	// collection types are empty when they have no element
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
+		return objValue.Len() == 0
+	// pointers are empty if nil or if the value they point to is empty
 	case reflect.Ptr:
-		{
-			if objValue.IsNil() {
-				return true
-			}
-			switch object.(type) {
-			case *time.Time:
-				return object.(*time.Time).IsZero()
-			default:
-				return false
-			}
+		if objValue.IsNil() {
+			return true
 		}
+		deref := objValue.Elem().Interface()
+		return isEmpty(deref)
+	// for all other types, compare against the zero value
+	default:
+		zero := reflect.Zero(objValue.Type())
+		return reflect.DeepEqual(object, zero.Interface())
 	}
-	return false
 }
 
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
@@ -727,7 +702,7 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 // Returns whether the assertion was successful (true) or not (false).
 func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if subset == nil {
-		return false // we consider nil to be equal to the nil set
+		return Fail(t, fmt.Sprintf("nil is the empty set which is a subset of every set"), msgAndArgs...)
 	}
 
 	subsetValue := reflect.ValueOf(subset)
@@ -760,6 +735,62 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	}
 
 	return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
+}
+
+// ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should match.
+//
+// assert.ElementsMatch(t, [1, 3, 2, 3], [1, 3, 3, 2]))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface{}) (ok bool) {
+	if isEmpty(listA) && isEmpty(listB) {
+		return true
+	}
+
+	aKind := reflect.TypeOf(listA).Kind()
+	bKind := reflect.TypeOf(listB).Kind()
+
+	if aKind != reflect.Array && aKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listA, aKind), msgAndArgs...)
+	}
+
+	if bKind != reflect.Array && bKind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listB, bKind), msgAndArgs...)
+	}
+
+	aValue := reflect.ValueOf(listA)
+	bValue := reflect.ValueOf(listB)
+
+	aLen := aValue.Len()
+	bLen := bValue.Len()
+
+	if aLen != bLen {
+		return Fail(t, fmt.Sprintf("lengths don't match: %d != %d", aLen, bLen), msgAndArgs...)
+	}
+
+	// Mark indexes in bValue that we already used
+	visited := make([]bool, bLen)
+	for i := 0; i < aLen; i++ {
+		element := aValue.Index(i).Interface()
+		found := false
+		for j := 0; j < bLen; j++ {
+			if visited[j] {
+				continue
+			}
+			if ObjectsAreEqual(bValue.Index(j).Interface(), element) {
+				visited[j] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return Fail(t, fmt.Sprintf("element %s appears more times in %s than in %s", element, aValue, bValue), msgAndArgs...)
+		}
+	}
+
+	return true
 }
 
 // Condition uses a Comparison to assert a complex condition.
@@ -886,6 +917,8 @@ func toFloat(x interface{}) (float64, bool) {
 		xf = float64(xn)
 	case float64:
 		xf = float64(xn)
+	case time.Duration:
+		xf = float64(xn)
 	default:
 		xok = false
 	}
@@ -908,7 +941,7 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	}
 
 	if math.IsNaN(af) {
-		return Fail(t, fmt.Sprintf("Actual must not be NaN"), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Expected must not be NaN"), msgAndArgs...)
 	}
 
 	if math.IsNaN(bf) {
@@ -944,6 +977,47 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	return true
 }
 
+// InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+	if expected == nil || actual == nil ||
+		reflect.TypeOf(actual).Kind() != reflect.Map ||
+		reflect.TypeOf(expected).Kind() != reflect.Map {
+		return Fail(t, "Arguments must be maps", msgAndArgs...)
+	}
+
+	expectedMap := reflect.ValueOf(expected)
+	actualMap := reflect.ValueOf(actual)
+
+	if expectedMap.Len() != actualMap.Len() {
+		return Fail(t, "Arguments must have the same numbe of keys", msgAndArgs...)
+	}
+
+	for _, k := range expectedMap.MapKeys() {
+		ev := expectedMap.MapIndex(k)
+		av := actualMap.MapIndex(k)
+
+		if !ev.IsValid() {
+			return Fail(t, fmt.Sprintf("missing key %q in expected map", k), msgAndArgs...)
+		}
+
+		if !av.IsValid() {
+			return Fail(t, fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
+		}
+
+		if !InDelta(
+			t,
+			ev.Interface(),
+			av.Interface(),
+			delta,
+			msgAndArgs...,
+		) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func calcRelativeError(expected, actual interface{}) (float64, error) {
 	af, aok := toFloat(expected)
 	if !aok {
@@ -954,7 +1028,7 @@ func calcRelativeError(expected, actual interface{}) (float64, error) {
 	}
 	bf, bok := toFloat(actual)
 	if !bok {
-		return 0, fmt.Errorf("expected value %q cannot be converted to float", actual)
+		return 0, fmt.Errorf("actual value %q cannot be converted to float", actual)
 	}
 
 	return math.Abs(af-bf) / math.Abs(af), nil
@@ -970,7 +1044,7 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 	}
 	if actualEpsilon > epsilon {
 		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
-			"        < %#v (actual)", actualEpsilon, epsilon), msgAndArgs...)
+			"        < %#v (actual)", epsilon, actualEpsilon), msgAndArgs...)
 	}
 
 	return true
@@ -1051,7 +1125,7 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	if expected != actual {
 		return Fail(t, fmt.Sprintf("Error message not equal:\n"+
 			"expected: %q\n"+
-			"actual: %q", expected, actual), msgAndArgs...)
+			"actual  : %q", expected, actual), msgAndArgs...)
 	}
 	return true
 }
@@ -1116,6 +1190,36 @@ func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
 		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
+	}
+	return true
+}
+
+// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
+		}
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+	if info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a directory", path), msgAndArgs...)
+	}
+	return true
+}
+
+// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
+		}
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+	if !info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
 	}
 	return true
 }
