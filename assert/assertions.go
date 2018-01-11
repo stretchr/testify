@@ -947,7 +947,7 @@ func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, m
 	actualMap := reflect.ValueOf(actual)
 
 	if expectedMap.Len() != actualMap.Len() {
-		return Fail(t, "Arguments must have the same numbe of keys", msgAndArgs...)
+		return Fail(t, "Arguments must have the same number of keys", msgAndArgs...)
 	}
 
 	for _, k := range expectedMap.MapKeys() {
