@@ -70,7 +70,7 @@ func Run(t *testing.T, suite TestingSuite) {
 	}()
 
 	methodFinder := reflect.TypeOf(suite)
-	tests := []testing.InternalTest{}
+	var tests = make([]testing.InternalTest, 0, methodFinder.NumMethod())
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
 		ok, err := methodFilter(method.Name)
