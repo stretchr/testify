@@ -306,7 +306,7 @@ package {{.Name}}
 
 import (
 {{range $path, $name := .Imports}}
-	{{$name}} "{{$path}}"{{end}}
+	"{{$path}}"{{end}}
 )
 `
 

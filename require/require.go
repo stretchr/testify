@@ -6,11 +6,11 @@
 package require
 
 import (
-	http "net/http"
-	url "net/url"
-	time "time"
+	"net/http"
+	"net/url"
+	"time"
 
-	assert "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
