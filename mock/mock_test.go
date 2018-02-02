@@ -3,6 +3,7 @@ package mock
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"sync"
 	"testing"
 	"time"
@@ -1326,6 +1327,37 @@ type timer struct{ Mock }
 
 func (s *timer) GetTime(i int) string {
 	return s.Called(i).Get(0).(string)
+}
+
+type tCustomLogger struct {
+	*testing.T
+	logs []string
+	errs []string
+}
+
+func (tc *tCustomLogger) Logf(format string, args ...interface{}) {
+	tc.T.Logf(format, args...)
+	tc.logs = append(tc.logs, fmt.Sprintf(format, args...))
+}
+
+func (tc *tCustomLogger) Errorf(format string, args ...interface{}) {
+	tc.errs = append(tc.errs, fmt.Sprintf(format, args...))
+}
+
+func (tc *tCustomLogger) FailNow() {}
+
+func TestLoggingAssertExpectations(t *testing.T) {
+	m := new(timer)
+	m.On("GetTime", 0).Return("")
+	tcl := &tCustomLogger{t, []string{}, []string{}}
+
+	AssertExpectationsForObjects(tcl, m, new(TestExampleImplementation))
+
+	require.Equal(t, 1, len(tcl.errs))
+	assert.Regexp(t, regexp.MustCompile("(?s)FAIL: 0 out of 1 expectation\\(s\\) were met.*The code you are testing needs to make 1 more call\\(s\\).*"), tcl.errs[0])
+	require.Equal(t, 2, len(tcl.logs))
+	assert.Regexp(t, regexp.MustCompile("(?s)FAIL:\tGetTime\\(int\\).*"), tcl.logs[0])
+	require.Equal(t, "Expectations didn't match for Mock: *mock.timer", tcl.logs[1])
 }
 
 func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
