@@ -249,27 +249,25 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 	return -1, nil
 }
 
-func (m *Mock) findClosestCall(method string, arguments ...interface{}) (bool, *Call) {
-	diffCount := 0
+func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
+	var diffCount int
 	var closestCall *Call
+	var err string
 
 	for _, call := range m.expectedCalls() {
 		if call.Method == method {
 
-			_, tempDiffCount := call.Arguments.Diff(arguments)
+			errInfo, tempDiffCount := call.Arguments.Diff(arguments)
 			if tempDiffCount < diffCount || diffCount == 0 {
 				diffCount = tempDiffCount
 				closestCall = call
+				err = errInfo
 			}
 
 		}
 	}
 
-	if closestCall == nil {
-		return false, nil
-	}
-
-	return true, closestCall
+	return closestCall, err
 }
 
 func callString(method string, arguments Arguments, includeArgumentValues bool) string {
@@ -316,6 +314,7 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 // If Call.WaitFor is set, blocks until the channel is closed or receives a message.
 func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Arguments {
 	m.mutex.Lock()
+	//TODO: could combine expected and closes in single loop
 	found, call := m.findExpectedCall(methodName, arguments...)
 
 	if found < 0 {
@@ -326,11 +325,16 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
 
-		closestFound, closestCall := m.findClosestCall(methodName, arguments...)
+		closestCall, mismatch := m.findClosestCall(methodName, arguments...)
 		m.mutex.Unlock()
 
-		if closestFound {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\n", callString(methodName, arguments, true), callString(methodName, closestCall.Arguments, true), diffArguments(closestCall.Arguments, arguments)))
+		if closestCall != nil {
+			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s",
+				callString(methodName, arguments, true),
+				callString(methodName, closestCall.Arguments, true),
+				diffArguments(closestCall.Arguments, arguments),
+				strings.TrimSpace(mismatch)),
+			)
 		} else {
 			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo()))
 		}
@@ -627,6 +631,7 @@ func (args Arguments) Is(objects ...interface{}) bool {
 //
 // Returns the diff string and number of differences found.
 func (args Arguments) Diff(objects []interface{}) (string, int) {
+	//TODO: could return string as error and nil for No difference
 
 	var output = "\n"
 	var differences int
