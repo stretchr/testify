@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"runtime"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"runtime"
 )
 
 /*
@@ -1382,6 +1383,43 @@ func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 	for i, _ := range results {
 		assert.Equal(t, fmt.Sprintf("Time%d", i), results[i], "Return value of method should be same")
 	}
+}
+
+func TestArgumentMatcherToPrintMismatch(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			matchingExp := regexp.MustCompile(
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTime\(int\)\s+0: 1\s+The closest call I have is:\s+GetTime\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(int=1\) not matched by func\(int\) bool`)
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(timer)
+	m.On("GetTime", MatchedBy(func(i int) bool { return false })).Return("SomeTime").Once()
+
+	res := m.GetTime(1)
+	require.Equal(t, "SomeTime", res)
+	m.AssertExpectations(t)
+}
+
+func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "1", "999", `0: FAIL:  %!s(int=1) != %!s(int=999)`))
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(timer)
+	m.On("GetTime", 999).Return("SomeTime").Once()
+
+	_ = m.GetTime(1)
+}
+
+func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
+	rMethod := regexp.QuoteMeta(method)
+	return fmt.Sprintf(`\s+mock: Unexpected Method Call\s+-*\s+%s\s+0: %s\s+The closest call I have is:\s+%s\s+0: %s\s+Diff: %s`,
+		rMethod, regexp.QuoteMeta(calledArg), rMethod, regexp.QuoteMeta(expectedArg), regexp.QuoteMeta(diff))
 }
 
 func ConcurrencyTestMethod(m *Mock) {
