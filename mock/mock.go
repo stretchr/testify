@@ -452,6 +452,11 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 		for _, call := range m.calls() {
 			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
 		}
+		if len(calledWithArgs) == 0 {
+			assert.Fail(t, "Should have called with given arguments",
+				fmt.Sprintf("Expected \"%s\" to have been called with:\n"+
+					"        %v\n        but no actual calls happened", methodName, arguments))
+		}
 		return assert.Fail(t, "Should have called with given arguments",
 			fmt.Sprintf("Expected \"%s\" to have been called with:\n"+
 				"        %v\n        but actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n        ")))
@@ -465,13 +470,9 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	if m.methodWasCalled(methodName, arguments) {
-		var calledWithArgs []string
-		for _, call := range m.calls() {
-			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
-		}
 		return assert.Fail(t, "Should not have called with given arguments",
 			fmt.Sprintf("Expected \"%s\" to not have been called with:\n"+
-				"        %v\n        but actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n        ")))
+				"        %v\n        but actually it was.", methodName, arguments))
 	}
 	return true
 }
