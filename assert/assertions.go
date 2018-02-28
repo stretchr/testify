@@ -18,7 +18,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pmezard/go-difflib/difflib"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -59,20 +58,7 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	if expected == nil || actual == nil {
 		return expected == actual
 	}
-
-	exp, ok := expected.([]byte)
-	if !ok {
-		return reflect.DeepEqual(expected, actual)
-	}
-
-	act, ok := actual.([]byte)
-	if !ok {
-		return false
-	}
-	if exp == nil || act == nil {
-		return exp == nil && act == nil
-	}
-	return bytes.Equal(exp, act)
+	return cmpEqual(expected, actual)
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
@@ -89,7 +75,7 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	expectedValue := reflect.ValueOf(expected)
 	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
 		// Attempt comparison after type conversion
-		return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
+		return cmpEqual(expectedValue.Convert(actualType).Interface(), actual)
 	}
 
 	return false
@@ -110,7 +96,7 @@ func CallerInfo() []string {
 	var line int
 	var name string
 
-	callers := []string{}
+	var callers []string
 	for i := 0; ; i++ {
 		pc, file, line, ok = runtime.Caller(i)
 		if !ok {
@@ -341,7 +327,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 	}
 
 	if !ObjectsAreEqual(expected, actual) {
-		diff := diff(expected, actual)
+		diff := cmpDiff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
@@ -462,7 +448,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 	}
 
 	if !ObjectsAreEqualValues(expected, actual) {
-		diff := diff(expected, actual)
+		diff := cmpDiff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
@@ -575,7 +561,7 @@ func isEmpty(object interface{}) bool {
 		// for all other types, compare against the zero value
 	default:
 		zero := reflect.Zero(objValue.Type())
-		return reflect.DeepEqual(object, zero.Interface())
+		return cmpEqual(object, zero.Interface())
 	}
 }
 
@@ -1369,7 +1355,7 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 		r = regexp.MustCompile(fmt.Sprint(rx))
 	}
 
-	return (r.FindStringIndex(fmt.Sprint(str)) != nil)
+	return r.FindStringIndex(fmt.Sprint(str)) != nil
 
 }
 
@@ -1414,7 +1400,7 @@ func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if i != nil && !reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
+	if i != nil && !cmpEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
 		return Fail(t, fmt.Sprintf("Should be zero, but was %v", i), msgAndArgs...)
 	}
 	return true
@@ -1425,7 +1411,7 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
+	if i == nil || cmpEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
 		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
 	}
 	return true
@@ -1540,57 +1526,6 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	}
 
 	return Equal(t, expectedYAMLAsInterface, actualYAMLAsInterface, msgAndArgs...)
-}
-
-func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
-	t := reflect.TypeOf(v)
-	k := t.Kind()
-
-	if k == reflect.Ptr {
-		t = t.Elem()
-		k = t.Kind()
-	}
-	return t, k
-}
-
-// diff returns a diff of both values as long as both are of the same type and
-// are a struct, map, slice, array or string. Otherwise it returns an empty string.
-func diff(expected interface{}, actual interface{}) string {
-	if expected == nil || actual == nil {
-		return ""
-	}
-
-	et, ek := typeAndKind(expected)
-	at, _ := typeAndKind(actual)
-
-	if et != at {
-		return ""
-	}
-
-	if ek != reflect.Struct && ek != reflect.Map && ek != reflect.Slice && ek != reflect.Array && ek != reflect.String {
-		return ""
-	}
-
-	var e, a string
-	if et != reflect.TypeOf("") {
-		e = spewConfig.Sdump(expected)
-		a = spewConfig.Sdump(actual)
-	} else {
-		e = reflect.ValueOf(expected).String()
-		a = reflect.ValueOf(actual).String()
-	}
-
-	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		A:        difflib.SplitLines(e),
-		B:        difflib.SplitLines(a),
-		FromFile: "Expected",
-		FromDate: "",
-		ToFile:   "Actual",
-		ToDate:   "",
-		Context:  1,
-	})
-
-	return "\n\nDiff:\n" + diff
 }
 
 func isFunction(arg interface{}) bool {

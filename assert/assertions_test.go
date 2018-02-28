@@ -1419,7 +1419,7 @@ func TestInDeltaMapValues(t *testing.T) {
 			f: False,
 		},
 	} {
-		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+diff(tc.expect, tc.actual))
+		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+cmpDiff(tc.expect, tc.actual))
 	}
 }
 
@@ -1855,13 +1855,11 @@ func TestDiff(t *testing.T) {
 Diff:
 --- Expected
 +++ Actual
-@@ -1,3 +1,3 @@
- (struct { foo string }) {
-- foo: (string) (len=5) "hello"
-+ foo: (string) (len=3) "bar"
- }
+root.foo:
+	-: "hello"
+	+: "bar"
 `
-	actual := diff(
+	actual := cmpDiff(
 		struct{ foo string }{"hello"},
 		struct{ foo string }{"bar"},
 	)
@@ -1872,16 +1870,11 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -2,5 +2,5 @@
-  (int) 1,
-- (int) 2,
-  (int) 3,
-- (int) 4
-+ (int) 5,
-+ (int) 7
- }
+{[]int}:
+	-: []int{1, 2, 3, 4}
+	+: []int{1, 3, 5, 7}
 `
-	actual = diff(
+	actual = cmpDiff(
 		[]int{1, 2, 3, 4},
 		[]int{1, 3, 5, 7},
 	)
@@ -1892,15 +1885,11 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -2,4 +2,4 @@
-  (int) 1,
-- (int) 2,
-- (int) 3
-+ (int) 3,
-+ (int) 5
- }
+{[]int}:
+	-: []int{1, 2, 3}
+	+: []int{1, 3, 5}
 `
-	actual = diff(
+	actual = cmpDiff(
 		[]int{1, 2, 3, 4}[0:3],
 		[]int{1, 3, 5, 7}[0:3],
 	)
@@ -1911,19 +1900,21 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -1,6 +1,6 @@
- (map[string]int) (len=4) {
-- (string) (len=4) "four": (int) 4,
-+ (string) (len=4) "five": (int) 5,
-  (string) (len=3) "one": (int) 1,
-- (string) (len=5) "three": (int) 3,
-- (string) (len=3) "two": (int) 2
-+ (string) (len=5) "seven": (int) 7,
-+ (string) (len=5) "three": (int) 3
- }
+{map[string]int}["five"]:
+	-: <non-existent>
+	+: 5
+{map[string]int}["four"]:
+	-: 4
+	+: <non-existent>
+{map[string]int}["seven"]:
+	-: <non-existent>
+	+: 7
+{map[string]int}["two"]:
+	-: 2
+	+: <non-existent>
 `
 
-	actual = diff(
+	actual = cmpDiff(
 		map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
 		map[string]int{"one": 1, "three": 3, "five": 5, "seven": 7},
 	)
@@ -1941,7 +1932,7 @@ Diff:
  })
 `
 
-	actual = diff(
+	actual = cmpDiff(
 		errors.New("some expected error"),
 		errors.New("actual error"),
 	)
@@ -1959,7 +1950,7 @@ Diff:
  }
 `
 
-	actual = diff(
+	actual = cmpDiff(
 		diffTestingStruct{A: "some string", B: 10},
 		diffTestingStruct{A: "some string", B: 15},
 	)
@@ -1976,12 +1967,12 @@ func TestTimeEqualityErrorFormatting(t *testing.T) {
 }
 
 func TestDiffEmptyCases(t *testing.T) {
-	Equal(t, "", diff(nil, nil))
-	Equal(t, "", diff(struct{ foo string }{}, nil))
-	Equal(t, "", diff(nil, struct{ foo string }{}))
-	Equal(t, "", diff(1, 2))
-	Equal(t, "", diff(1, 2))
-	Equal(t, "", diff([]int{1}, []bool{true}))
+	Equal(t, "", cmpDiff(nil, nil))
+	Equal(t, "", cmpDiff(struct{ foo string }{}, nil))
+	Equal(t, "", cmpDiff(nil, struct{ foo string }{}))
+	Equal(t, "", cmpDiff(1, 2))
+	Equal(t, "", cmpDiff(1, 2))
+	Equal(t, "", cmpDiff([]int{1}, []bool{true}))
 }
 
 // Ensure there are no data races
@@ -2007,7 +1998,7 @@ func TestDiffRace(t *testing.T) {
 		rChans[idx] = make(chan string)
 		go func(ch chan string) {
 			defer close(ch)
-			ch <- diff(expected, actual)
+			ch <- cmpDiff(expected, actual)
 		}(rChans[idx])
 	}
 
@@ -2064,7 +2055,7 @@ func TestBytesEqual(t *testing.T) {
 		{nil, make([]byte, 0)},
 	}
 	for i, c := range cases {
-		Equal(t, reflect.DeepEqual(c.a, c.b), ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
+		Equal(t, cmpEqual(c.a, c.b), ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
 	}
 }
 
