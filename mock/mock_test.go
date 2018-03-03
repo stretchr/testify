@@ -1402,10 +1402,25 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 	m.AssertExpectations(t)
 }
 
+func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod(int,int,int)`, `0: 1\s+1: 1\s+2: 2`, `0: 1\s+1: 1\s+2: 1`, `0: PASS:  %!s\(int=1\) == %!s\(int=1\)\s+1: PASS:  %!s\(int=1\) == %!s\(int=1\)\s+2: FAIL:  %!s\(int=2\) != %!s\(int=1\)`))
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(TestExampleImplementation)
+	m.On("TheExampleMethod", 1, 1, 1).Return(1, nil).Once()
+	m.On("TheExampleMethod", 2, 2, 2).Return(2, nil).Once()
+
+	m.TheExampleMethod(1, 1, 2)
+}
+
 func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
-			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "1", "999", `0: FAIL:  %!s(int=1) != %!s(int=999)`))
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "0: 1", "0: 999", `0: FAIL:  %!s\(int=1\) != %!s\(int=999\)`))
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
@@ -1418,8 +1433,8 @@ func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
 
 func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
 	rMethod := regexp.QuoteMeta(method)
-	return fmt.Sprintf(`\s+mock: Unexpected Method Call\s+-*\s+%s\s+0: %s\s+The closest call I have is:\s+%s\s+0: %s\s+Diff: %s`,
-		rMethod, regexp.QuoteMeta(calledArg), rMethod, regexp.QuoteMeta(expectedArg), regexp.QuoteMeta(diff))
+	return fmt.Sprintf(`\s+mock: Unexpected Method Call\s+-*\s+%s\s+%s\s+The closest call I have is:\s+%s\s+%s\s+Diff: %s`,
+		rMethod, calledArg, rMethod, expectedArg, diff)
 }
 
 func ConcurrencyTestMethod(m *Mock) {
