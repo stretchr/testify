@@ -447,9 +447,19 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
-		t.Logf("%v", m.expectedCalls())
-		return false
+	if !m.methodWasCalled(methodName, arguments) {
+		var calledWithArgs []string
+		for _, call := range m.calls() {
+			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
+		}
+		if len(calledWithArgs) == 0 {
+			assert.Fail(t, "Should have called with given arguments",
+				fmt.Sprintf("Expected \"%s\" to have been called with:\n"+
+					"        %v\n        but no actual calls happened", methodName, arguments))
+		}
+		return assert.Fail(t, "Should have called with given arguments",
+			fmt.Sprintf("Expected \"%s\" to have been called with:\n"+
+				"        %v\n        but actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n        ")))
 	}
 	return true
 }
@@ -459,9 +469,10 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
-		t.Logf("%v", m.expectedCalls())
-		return false
+	if m.methodWasCalled(methodName, arguments) {
+		return assert.Fail(t, "Should not have called with given arguments",
+			fmt.Sprintf("Expected \"%s\" to not have been called with:\n"+
+				"        %v\n        but actually it was.", methodName, arguments))
 	}
 	return true
 }
