@@ -130,14 +130,14 @@ func Test_Mock_Chained_On(t *testing.T) {
 		Return(nil)
 
 	expectedCalls := []*Call{
-		&Call{
+		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod",
 			Arguments:       []interface{}{1, 2, 3},
 			ReturnArguments: []interface{}{0},
 			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+2)},
 		},
-		&Call{
+		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod3",
 			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
@@ -1266,7 +1266,7 @@ func Test_Arguments_Bool(t *testing.T) {
 func Test_WaitUntil_Parallel(t *testing.T) {
 
 	// make a test impl object
-	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+	var mockedService = new(TestExampleImplementation)
 
 	ch1 := make(chan time.Time)
 	ch2 := make(chan time.Time)
@@ -1379,7 +1379,7 @@ func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 	elapsedTime := end.Sub(start)
 	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be atleast greater than %v", elapsedTime, waitMs))
 	assert.Equal(t, total, len(results))
-	for i, _ := range results {
+	for i := range results {
 		assert.Equal(t, fmt.Sprintf("Time%d", i), results[i], "Return value of method should be same")
 	}
 }
