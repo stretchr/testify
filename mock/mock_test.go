@@ -4,11 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
-
-	"runtime"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -91,6 +90,34 @@ type ExampleFuncType func(string) error
 func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType) error {
 	args := i.Called(fn)
 	return args.Error(0)
+}
+
+// MockTestingT mocks a test struct
+type MockTestingT struct {
+	logfCount, errorfCount, failNowCount int
+}
+
+const mockTestingTFailNowCalled = "FailNow was called"
+
+func (m *MockTestingT) Logf(string, ...interface{}) {
+	m.logfCount++
+}
+
+func (m *MockTestingT) Errorf(string, ...interface{}) {
+	m.errorfCount++
+}
+
+// FailNow mocks the FailNow call.
+// It panics in order to mimic the FailNow behavior in the sense that
+// the execution stops.
+// When expecting this method, the call that invokes it should use the following code:
+//
+//     assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
+func (m *MockTestingT) FailNow() {
+	m.failNowCount++
+
+	// this function should panic now to stop the execution as expected
+	panic(mockTestingTFailNowCalled)
 }
 
 /*
@@ -203,6 +230,34 @@ func Test_Mock_On_WithIntArgMatcher(t *testing.T) {
 	assert.NotPanics(t, func() {
 		mockedService.TheExampleMethod(1, 2, 3)
 	})
+}
+
+func TestMock_WithTest(t *testing.T) {
+	var (
+		mockedService TestExampleImplementation
+		mockedTest    MockTestingT
+	)
+
+	mockedService.Test(&mockedTest)
+	mockedService.On("TheExampleMethod", 1, 2, 3).Return(0, nil)
+
+	// Test that on an expected call, the test was not failed
+
+	mockedService.TheExampleMethod(1, 2, 3)
+
+	// Assert that Errorf and FailNow were not called
+	assert.Equal(t, 0, mockedTest.errorfCount)
+	assert.Equal(t, 0, mockedTest.failNowCount)
+
+	// Test that on unexpected call, the mocked test was called to fail the test
+
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		mockedService.TheExampleMethod(1, 1, 1)
+	})
+
+	// Assert that Errorf and FailNow were called once
+	assert.Equal(t, 1, mockedTest.errorfCount)
+	assert.Equal(t, 1, mockedTest.failNowCount)
 }
 
 func Test_Mock_On_WithPtrArgMatcher(t *testing.T) {

@@ -191,6 +191,10 @@ type Mock struct {
 	// Holds the calls that were made to this mocked object.
 	Calls []Call
 
+	// test is An optional variable that holds the test struct, to be used when an
+	// invalid mock call was made.
+	test TestingT
+
 	// TestData holds any data that might be useful for testing.  Testify ignores
 	// this data completely allowing you to do whatever you like with it.
 	testData objx.Map
@@ -212,6 +216,27 @@ func (m *Mock) TestData() objx.Map {
 /*
 	Setting expectations
 */
+
+// Test sets the test struct variable of the mock object
+func (m *Mock) Test(t TestingT) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.test = t
+}
+
+// fail fails the current test with the given formatted format and args.
+// In case that a test was defined, it uses the test APIs for failing a test,
+// otherwise it uses panic.
+func (m *Mock) fail(format string, args ...interface{}) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	if m.test == nil {
+		panic(fmt.Sprintf(format, args...))
+	}
+	m.test.Errorf(format, args...)
+	m.test.FailNow()
+}
 
 // On starts a description of an expectation of the specified method
 // being called.
@@ -329,14 +354,14 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		m.mutex.Unlock()
 
 		if closestCall != nil {
-			panic(fmt.Sprintf("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s",
+			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s",
 				callString(methodName, arguments, true),
 				callString(methodName, closestCall.Arguments, true),
 				diffArguments(closestCall.Arguments, arguments),
-				strings.TrimSpace(mismatch)),
+				strings.TrimSpace(mismatch),
 			)
 		} else {
-			panic(fmt.Sprintf("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo()))
+			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
 		}
 	}
 
