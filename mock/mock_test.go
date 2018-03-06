@@ -92,6 +92,34 @@ func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType)
 	return args.Error(0)
 }
 
+// MockTestingT mocks a test struct
+type MockTestingT struct {
+	Mock
+}
+
+const mockTestingTFailNowCalled = "FailNow was called"
+
+func (m *MockTestingT) Logf(format string, args ...interface{}) {
+	m.Called(format, args)
+}
+
+func (m *MockTestingT) Errorf(format string, args ...interface{}) {
+	m.Called(format, args)
+}
+
+// FailNow mocks the FailNow call.
+// It panics in order to mimic the FailNow behavior in the sense that
+// the execution stops.
+// When expecting this method, the call that invokes it should use the following code:
+//
+//     assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
+func (m *MockTestingT) FailNow() {
+	m.Called()
+
+	// this function should panic now to stop the execution as expected
+	panic(mockTestingTFailNowCalled)
+}
+
 /*
 	Mock
 */
@@ -202,6 +230,34 @@ func Test_Mock_On_WithIntArgMatcher(t *testing.T) {
 	assert.NotPanics(t, func() {
 		mockedService.TheExampleMethod(1, 2, 3)
 	})
+}
+
+func TestMock_WithTest(t *testing.T) {
+	var (
+		mockedService TestExampleImplementation
+		mockedTest    MockTestingT
+	)
+
+	mockedService.Test(&mockedTest)
+	mockedService.On("TheExampleMethod", 1, 2, 3).Return(0, nil)
+
+	// Test that on an expected call, the test was not failed
+
+	mockedService.TheExampleMethod(1, 2, 3)
+
+	mockedTest.AssertNotCalled(t, "Errorf", AnythingOfType("string"), Anything, Anything, Anything)
+	mockedTest.AssertNotCalled(t, "FailNow")
+
+	// Test that on unexpected call, the mocked test was called to fail the test
+
+	mockedTest.On("Errorf", AnythingOfType("string"), Anything, Anything, Anything).Return().Once()
+	mockedTest.On("FailNow").Return().Once()
+
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		mockedService.TheExampleMethod(1, 1, 1)
+	})
+
+	mockedTest.AssertExpectations(t)
 }
 
 func Test_Mock_On_WithPtrArgMatcher(t *testing.T) {
