@@ -501,7 +501,7 @@ type Arguments []interface{}
 const (
 	// Anything is used in Diff and Assert when the argument being tested
 	// shouldn't be taken into consideration.
-	Anything string = "mock.Anything"
+	Anything = "mock.Anything"
 )
 
 // AnythingOfTypeArgument is a string that contains the type of an argument
