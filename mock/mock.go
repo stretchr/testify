@@ -191,9 +191,9 @@ type Mock struct {
 	// Holds the calls that were made to this mocked object.
 	Calls []Call
 
-	// T is An optional variable that holds the test struct, to be used when an
+	// test is An optional variable that holds the test struct, to be used when an
 	// invalid mock call was made.
-	T TestingT
+	test TestingT
 
 	// TestData holds any data that might be useful for testing.  Testify ignores
 	// this data completely allowing you to do whatever you like with it.
@@ -221,7 +221,7 @@ func (m *Mock) TestData() objx.Map {
 func (m *Mock) Test(t TestingT) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	m.T = t
+	m.test = t
 }
 
 // fail fails the current test with the given formatted format and args.
@@ -231,11 +231,11 @@ func (m *Mock) fail(format string, args ...interface{}) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	if m.T == nil {
+	if m.test == nil {
 		panic(fmt.Sprintf(format, args...))
 	}
-	m.T.Errorf(format, args...)
-	m.T.FailNow()
+	m.test.Errorf(format, args...)
+	m.test.FailNow()
 }
 
 // On starts a description of an expectation of the specified method

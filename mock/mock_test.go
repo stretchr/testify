@@ -94,17 +94,17 @@ func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType)
 
 // MockTestingT mocks a test struct
 type MockTestingT struct {
-	Mock
+	logfCount, errorfCount, failNowCount int
 }
 
 const mockTestingTFailNowCalled = "FailNow was called"
 
-func (m *MockTestingT) Logf(format string, args ...interface{}) {
-	m.Called(format, args)
+func (m *MockTestingT) Logf(string, ...interface{}) {
+	m.logfCount++
 }
 
-func (m *MockTestingT) Errorf(format string, args ...interface{}) {
-	m.Called(format, args)
+func (m *MockTestingT) Errorf(string, ...interface{}) {
+	m.errorfCount++
 }
 
 // FailNow mocks the FailNow call.
@@ -114,7 +114,7 @@ func (m *MockTestingT) Errorf(format string, args ...interface{}) {
 //
 //     assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
 func (m *MockTestingT) FailNow() {
-	m.Called()
+	m.failNowCount++
 
 	// this function should panic now to stop the execution as expected
 	panic(mockTestingTFailNowCalled)
@@ -245,19 +245,19 @@ func TestMock_WithTest(t *testing.T) {
 
 	mockedService.TheExampleMethod(1, 2, 3)
 
-	mockedTest.AssertNotCalled(t, "Errorf", AnythingOfType("string"), Anything, Anything, Anything)
-	mockedTest.AssertNotCalled(t, "FailNow")
+	// Assert that Errorf and FailNow were not called
+	assert.Equal(t, 0, mockedTest.errorfCount)
+	assert.Equal(t, 0, mockedTest.failNowCount)
 
 	// Test that on unexpected call, the mocked test was called to fail the test
-
-	mockedTest.On("Errorf", AnythingOfType("string"), Anything, Anything, Anything).Return().Once()
-	mockedTest.On("FailNow").Return().Once()
 
 	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
 		mockedService.TheExampleMethod(1, 1, 1)
 	})
 
-	mockedTest.AssertExpectations(t)
+	// Assert that Errorf and FailNow were called once
+	assert.Equal(t, 1, mockedTest.errorfCount)
+	assert.Equal(t, 1, mockedTest.failNowCount)
 }
 
 func Test_Mock_On_WithPtrArgMatcher(t *testing.T) {
