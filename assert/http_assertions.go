@@ -12,10 +12,11 @@ import (
 // an error if building a new request fails.
 func httpCode(handler http.HandlerFunc, method, url string, values url.Values) (int, error) {
 	w := httptest.NewRecorder()
-	req, err := http.NewRequest(method, url+"?"+values.Encode(), nil)
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return -1, err
 	}
+	req.URL.RawQuery = values.Encode()
 	handler(w, req)
 	return w.Code, nil
 }
