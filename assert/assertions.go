@@ -54,21 +54,23 @@ type Comparison func() (success bool)
 //
 // This function does no assertion of any kind.
 func ObjectsAreEqual(expected, actual interface{}) bool {
-
 	if expected == nil || actual == nil {
 		return expected == actual
 	}
-	if exp, ok := expected.([]byte); ok {
-		act, ok := actual.([]byte)
-		if !ok {
-			return false
-		} else if exp == nil || act == nil {
-			return exp == nil && act == nil
-		}
-		return bytes.Equal(exp, act)
-	}
-	return reflect.DeepEqual(expected, actual)
 
+	exp, ok := expected.([]byte)
+	if !ok {
+		return reflect.DeepEqual(expected, actual)
+	}
+
+	act, ok := actual.([]byte)
+	if !ok {
+		return false
+	}
+	if exp == nil || act == nil {
+		return exp == nil && act == nil
+	}
+	return bytes.Equal(exp, act)
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
