@@ -409,6 +409,9 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	if isNonNillableType(object) {
+		return Fail(t, fmt.Sprintf("Non nillable type %T used in NotNil assertion.", object), msgAndArgs...)
+	}
 	if !isNil(object) {
 		return true
 	}
@@ -428,6 +431,16 @@ func isNil(object interface{}) bool {
 	}
 
 	return false
+}
+
+func isNonNillableType(object interface{}) bool {
+	switch reflect.ValueOf(object).Kind() {
+	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.Map,
+		reflect.Ptr, reflect.Slice, reflect.UnsafePointer:
+		return false
+	default:
+		return true
+	}
 }
 
 // Nil asserts that the specified object is nil.

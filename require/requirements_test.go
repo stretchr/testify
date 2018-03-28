@@ -465,7 +465,6 @@ func TestValueAssertionFunc(t *testing.T) {
 		value     interface{}
 		assertion ValueAssertionFunc
 	}{
-		{"notNil", true, NotNil},
 		{"nil", nil, Nil},
 		{"empty", []int{}, Empty},
 		{"notEmpty", []int{1}, NotEmpty},

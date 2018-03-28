@@ -309,7 +309,6 @@ func TestFormatUnequalValues(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !NotNil(mockT, new(AssertionTesterConformingObject)) {
@@ -321,7 +320,36 @@ func TestNotNil(t *testing.T) {
 	if NotNil(mockT, (*struct{})(nil)) {
 		t.Error("NotNil should return false: object is (*struct{})(nil)")
 	}
+}
 
+func TestNotNillIsFailingForNonNillableTypes(t *testing.T) {
+	someString := ""
+
+	testCases := []struct {
+		value  interface{}
+		failed bool
+	}{
+		{0, true},
+		{0.0, true},
+		{"", true},
+		{struct{}{}, true},
+		{'x', true},
+		{func() {}, false},
+		{make(chan struct{}), false},
+		{&someString, false},
+		{[]string{}, false},
+		{map[string]string{}, false},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(fmt.Sprintf("valueType=%T", testCase.value), func(subtest *testing.T) {
+			mockT := new(testing.T)
+			NotNil(mockT, testCase.value)
+			if testCase.failed != mockT.Failed() {
+				subtest.Errorf("NotNil should return %v for %T type", testCase.failed, testCase.value)
+			}
+		})
+	}
 }
 
 func TestNil(t *testing.T) {
@@ -1692,7 +1720,7 @@ func TestValueAssertionFunc(t *testing.T) {
 		value     interface{}
 		assertion ValueAssertionFunc
 	}{
-		{"notNil", true, NotNil},
+		{"notNil", []string{}, NotNil},
 		{"nil", nil, Nil},
 		{"empty", []int{}, Empty},
 		{"notEmpty", []int{1}, NotEmpty},
