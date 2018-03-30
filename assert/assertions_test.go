@@ -722,6 +722,12 @@ func TestPanicsWithValue(t *testing.T) {
 		t.Error("PanicsWithValue should return true")
 	}
 
+	if !PanicsWithValue(mockT, "{another type of panic}", func() {
+		panic(struct{ a string }{"another type of panic"})
+	}) {
+		t.Error("PanicsWithValue should return true")
+	}
+
 	if PanicsWithValue(mockT, "Panic!", func() {
 	}) {
 		t.Error("PanicsWithValue should return false")
