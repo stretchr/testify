@@ -426,7 +426,7 @@ func Panicsf(t TestingT, f PanicTestFunc, msg string, args ...interface{}) bool 
 // the recovered panic value equals the expected panic value.
 //
 //   assert.PanicsWithValuef(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
-func PanicsWithValuef(t TestingT, expected interface{}, f PanicTestFunc, msg string, args ...interface{}) bool {
+func PanicsWithValuef(t TestingT, expected string, f PanicTestFunc, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
