@@ -982,7 +982,7 @@ func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 // the recovered panic value equals the expected panic value.
 //
 //   assert.PanicsWithValue(t, "crazy error", func(){ GoCrazy() })
-func PanicsWithValue(t TestingT, expected interface{}, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
+func PanicsWithValue(t TestingT, expected string, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -995,7 +995,7 @@ func PanicsWithValue(t TestingT, expected interface{}, f assert.PanicTestFunc, m
 // the recovered panic value equals the expected panic value.
 //
 //   assert.PanicsWithValuef(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
-func PanicsWithValuef(t TestingT, expected interface{}, f assert.PanicTestFunc, msg string, args ...interface{}) {
+func PanicsWithValuef(t TestingT, expected string, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
