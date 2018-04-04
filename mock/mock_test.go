@@ -1204,6 +1204,18 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 
 }
 
+func Test_Arguments_Diff_DifferentNumberOfArgsWithAnything(t *testing.T) {
+
+	var args = Arguments([]interface{}{Anything})
+	var diff string
+	var count int
+	diff, count = args.Diff([]interface{}{})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(Missing) != mock.Anything`)
+
+}
+
 func Test_Arguments_Diff_WithAnythingArgument(t *testing.T) {
 
 	var args = Arguments([]interface{}{"string", 123, true})

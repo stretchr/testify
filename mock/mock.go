@@ -658,6 +658,7 @@ func (args Arguments) Is(objects ...interface{}) bool {
 func (args Arguments) Diff(objects []interface{}) (string, int) {
 	//TODO: could return string as error and nil for No difference
 
+	var missing = "(Missing)"
 	var output = "\n"
 	var differences int
 
@@ -671,16 +672,16 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		var actualFmt, expectedFmt string
 
 		if len(objects) <= i {
-			actual = "(Missing)"
-			actualFmt = "(Missing)"
+			actual = missing
+			actualFmt = missing
 		} else {
 			actual = objects[i]
 			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
 		}
 
 		if len(args) <= i {
-			expected = "(Missing)"
-			expectedFmt = "(Missing)"
+			expected = missing
+			expectedFmt = missing
 		} else {
 			expected = args[i]
 			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
@@ -706,7 +707,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 			// normal checking
 
-			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+			expectedAnythingAndRequired := assert.ObjectsAreEqual(expected, Anything) && actual != missing
+			actualAnythingAndRequired := assert.ObjectsAreEqual(actual, Anything) && expected != missing
+			if expectedAnythingAndRequired || actualAnythingAndRequired || assert.ObjectsAreEqual(actual, expected) {
 				// match
 				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 			} else {
