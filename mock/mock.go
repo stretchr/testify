@@ -658,7 +658,6 @@ func (args Arguments) Is(objects ...interface{}) bool {
 func (args Arguments) Diff(objects []interface{}) (string, int) {
 	//TODO: could return string as error and nil for No difference
 
-	var missing = "(Missing)"
 	var output = "\n"
 	var differences int
 
@@ -671,22 +670,14 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		var actual, expected interface{}
 		var actualFmt, expectedFmt string
 
-		if len(objects) <= i {
-			actual = missing
-			actualFmt = missing
-		} else {
-			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+		if len(objects) <= i || len(args) <= i {
+			differences++
+			output = fmt.Sprintf("%s\t%d: FAIL:  inconsistent function arity, mocked argument count (%d) != call argument count (%d) \n", output, i, len(args), len(objects))
+			return output, differences
 		}
 
-		if len(args) <= i {
-			expected = missing
-			expectedFmt = missing
-		} else {
-			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
-		}
-
+		actual = objects[i]
+		expected = args[i]
 		if matcher, ok := expected.(argumentMatcher); ok {
 			if matcher.Matches(actual) {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
@@ -707,9 +698,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 			// normal checking
 
-			expectedAnythingAndRequired := assert.ObjectsAreEqual(expected, Anything) && actual != missing
-			actualAnythingAndRequired := assert.ObjectsAreEqual(actual, Anything) && expected != missing
-			if expectedAnythingAndRequired || actualAnythingAndRequired || assert.ObjectsAreEqual(actual, expected) {
+			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 				// match
 				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 			} else {
