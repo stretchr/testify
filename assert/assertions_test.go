@@ -565,6 +565,83 @@ func TestNotSubsetNil(t *testing.T) {
 	}
 }
 
+func Test_assertIncludeElementTypes(t *testing.T) {
+	test := func(list, element interface{}) bool {
+		return assertIncludeElementTypes(list, element, false)
+	}
+
+	type stringAlias string
+	type intAlias int
+
+	t.Run("String", func(t *testing.T) {
+		True(t, test("", ""))
+		True(t, test("", stringAlias("")))
+
+		False(t, test("", int(0)))
+		False(t, test("", intAlias(0)))
+		False(t, test("", struct{}{}))
+		False(t, test("", nil))
+	})
+
+	t.Run("Slice", func(t *testing.T) {
+		True(t, test([]int(nil), int(0)))
+		True(t, test([]intAlias(nil), intAlias(0)))
+		True(t, test([]interface{}(nil), struct{}{}))
+
+		True(t, test([]interface{}(nil), nil))
+		True(t, test([][]int(nil), nil))
+		True(t, test(([]func())(nil), nil))
+
+		False(t, test([]int(nil), (*int)(nil)))
+		False(t, test([]int(nil), nil))
+		False(t, test([]struct{}(nil), nil))
+		False(t, test([]interface {
+			Foo()
+		}(nil), int(0)))
+	})
+
+	t.Run("Map", func(t *testing.T) {
+		type x struct{}
+
+		True(t, test(map[int]x(nil), int(0)))
+		True(t, test(map[intAlias]x(nil), intAlias(0)))
+		True(t, test(map[interface{}]x(nil), struct{}{}))
+
+		True(t, test(map[interface{}]x(nil), nil))
+
+		False(t, test(map[int]x(nil), (*int)(nil)))
+		False(t, test(map[int]x(nil), nil))
+		False(t, test(map[struct{}]x(nil), nil))
+		False(t, test(map[interface {
+			Foo()
+		}]x(nil), int(0)))
+	})
+
+	t.Run("InvalidListType", func(t *testing.T) {
+		False(t, test(int(0), int(0)))
+		False(t, test(int64(0), int64(0)))
+		False(t, test(true, true))
+		False(t, test(func() {}, func() {}))
+		False(t, test(struct{}{}, struct{}{}))
+		False(t, test((*interface{})(nil), (*interface{})(nil)))
+	})
+
+	t.Run("ElementList", func(t *testing.T) {
+		testList := func(list, element interface{}) bool {
+			return assertIncludeElementTypes(list, element, true)
+		}
+
+		True(t, testList([]int(nil), []int(nil)))
+		True(t, testList([]interface{}(nil), []int(nil)))
+		True(t, testList([]struct{}(nil), []interface{}(nil)))
+
+		False(t, testList([]int(nil), []*int(nil)))
+
+		False(t, testList([]int(nil), int(0)))
+		False(t, testList([]int(nil), map[int]int(nil)))
+	})
+}
+
 func Test_includeElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
