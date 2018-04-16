@@ -598,39 +598,62 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 
 }
 
-// assertIncludeElementTypes checks whether types are compatible as incompatible types indicate programmer error.
-// return true if list and element types are compatible and includeElement can possibly return found=true.
-// return false if list and element types aren't compatible and includeElement will always return found=false.
-func assertIncludeElementTypes(list interface{}, element interface{}, elementIsList bool) bool {
-
-	var elementType reflect.Type
+func assertIncludeElementTypesForContains(list, element interface{}) bool {
+	var elementType, listElementType reflect.Type
 	if element != nil {
 		elementType = reflect.TypeOf(element)
-		if elementIsList {
-			switch elementType.Kind() {
-			case reflect.Array, reflect.Slice:
-				elementType = elementType.Elem()
-			default:
-				return false
-			}
-		}
 	}
 
-	listType := reflect.TypeOf(list)
-	if listType.Kind() == reflect.String {
-		return element != nil && elementType.Kind() == reflect.String
-	}
+	switch listType := reflect.TypeOf(list); listType.Kind() {
+	case reflect.String:
+		listElementType = listType
 
-	var listElementType reflect.Type
-	switch listType.Kind() {
 	case reflect.Map:
 		listElementType = listType.Key()
+
 	case reflect.Slice, reflect.Array:
 		listElementType = listType.Elem()
+
 	default:
 		return false
 	}
 
+	return assertCompatibleTypes(listElementType, elementType)
+}
+
+func assertIncludeElementTypesForSubset(list, subset interface{}) bool {
+	var subsetElementType, listElementType reflect.Type
+	if subset != nil {
+		switch subsetType := reflect.TypeOf(subset); subsetType.Kind() {
+		case reflect.Array, reflect.Slice:
+			subsetElementType = subsetType.Elem()
+		default:
+			return false
+		}
+	}
+
+	switch listType := reflect.TypeOf(list); listType.Kind() {
+	case reflect.Map:
+		listElementType = listType.Key()
+
+	case reflect.Slice, reflect.Array:
+		listElementType = listType.Elem()
+
+	default:
+		return false
+	}
+
+	if subset == nil {
+		return true
+	}
+
+	return assertCompatibleTypes(listElementType, subsetElementType)
+}
+
+// assertIncludeElementTypes checks whether types are compatible as incompatible types indicate programmer error.
+// return true if list and element types are compatible and includeElement can possibly return found=true.
+// return false if list and element types aren't compatible and includeElement will always return found=false.
+func assertCompatibleTypes(listElementType reflect.Type, elementType reflect.Type) bool {
 	if elementType == nil {
 		switch listElementType.Kind() {
 		case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface, reflect.Func:
@@ -649,40 +672,34 @@ func assertIncludeElementTypes(list interface{}, element interface{}, elementIsL
 }
 
 // containsElement try loop over the list check if the list includes the element.
-// return (false, false) if impossible.
-// return (true, false) if element was not found.
-// return (true, true) if element was found.
-func includeElement(list interface{}, element interface{}) (ok, found bool) {
+// return false if element was not found.
+// return true if element was found.
+func includeElement(list interface{}, element interface{}) bool {
 
 	listValue := reflect.ValueOf(list)
 	elementValue := reflect.ValueOf(element)
-	defer func() {
-		if e := recover(); e != nil {
-			ok = false
-			found = false
-		}
-	}()
 
 	if reflect.TypeOf(list).Kind() == reflect.String {
-		return true, strings.Contains(listValue.String(), elementValue.String())
+		return strings.Contains(listValue.String(), elementValue.String())
 	}
 
 	if reflect.TypeOf(list).Kind() == reflect.Map {
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
 			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
-				return true, true
+				return true
 			}
 		}
-		return true, false
+		return false
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
 		if ObjectsAreEqual(listValue.Index(i).Interface(), element) {
-			return true, true
+			return true
 		}
 	}
-	return true, false
+
+	return false
 
 }
 
@@ -697,15 +714,11 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 		h.Helper()
 	}
 
-	if !assertIncludeElementTypes(s, contains, false) {
-		return Fail(t, fmt.Sprintf("\"%s\" can't contain \"%s\"", s, contains))
+	if !assertIncludeElementTypesForContains(s, contains) {
+		return Fail(t, fmt.Sprintf("\"%s\" can't contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
-	ok, found := includeElement(s, contains)
-	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
-	}
-	if !found {
+	if found := includeElement(s, contains); !found {
 		return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
@@ -724,15 +737,11 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 		h.Helper()
 	}
 
-	if !assertIncludeElementTypes(s, contains, false) {
-		return Fail(t, fmt.Sprintf("\"%s\" can't contain \"%s\"", s, contains))
+	if !assertIncludeElementTypesForContains(s, contains) {
+		return Fail(t, fmt.Sprintf("\"%s\" can't contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
-	ok, found := includeElement(s, contains)
-	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
-	}
-	if found {
+	if found := includeElement(s, contains); found {
 		return Fail(t, fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
 	}
 
@@ -748,40 +757,25 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if subset == nil {
-		return true // we consider nil to be equal to the nil set
-	}
 
-	subsetValue := reflect.ValueOf(subset)
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
 		}
 	}()
 
-	listKind := reflect.TypeOf(list).Kind()
-	subsetKind := reflect.TypeOf(subset).Kind()
-
-	if listKind != reflect.Array && listKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
+	if !assertIncludeElementTypesForSubset(list, subset) {
+		return Fail(t, fmt.Sprintf("\"%s\" can't contain subset of type \"%T\"", list, subset), msgAndArgs...)
 	}
 
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+	if subset == nil {
+		return true
 	}
 
-	if !assertIncludeElementTypes(list, subset, true) {
-		subsetElemType := subsetValue.Type().Elem()
-		return Fail(t, fmt.Sprintf("\"%s\" can't contain elements of type \"%s\"", list, subsetElemType))
-	}
-
+	subsetValue := reflect.ValueOf(subset)
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
-		ok, found := includeElement(list, element)
-		if !ok {
-			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
-		}
-		if !found {
+		if found := includeElement(list, element); !found {
 			return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
 		}
 	}
@@ -808,29 +802,13 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		}
 	}()
 
-	listKind := reflect.TypeOf(list).Kind()
-	subsetKind := reflect.TypeOf(subset).Kind()
-
-	if listKind != reflect.Array && listKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
-	}
-
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
-	}
-
-	if !assertIncludeElementTypes(list, subset, true) {
-		subsetElemType := subsetValue.Type().Elem()
-		return Fail(t, fmt.Sprintf("\"%s\" can't contain elements of type \"%s\"", list, subsetElemType))
+	if !assertIncludeElementTypesForSubset(list, subset) {
+		return Fail(t, fmt.Sprintf("\"%s\" can't contain subset of type \"%T\"", list, subset), msgAndArgs...)
 	}
 
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
-		ok, found := includeElement(list, element)
-		if !ok {
-			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
-		}
-		if !found {
+		if found := includeElement(list, element); !found {
 			return true
 		}
 	}
