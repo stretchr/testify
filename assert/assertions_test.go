@@ -251,6 +251,21 @@ func (t *bufferT) Errorf(format string, args ...interface{}) {
 	t.buf.WriteString(decorate(fmt.Sprintf(format, args...)))
 }
 
+func TestStringEqual(t *testing.T) {
+	for i, currCase := range []struct {
+		equalWant  string
+		equalGot   string
+		msgAndArgs []interface{}
+		want       string
+	}{
+		{equalWant: "hi, \nmy name is", equalGot: "what,\nmy name is", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"hi, \\\\nmy name is\"\n\\s+actual\\s+: \"what,\\\\nmy name is\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1,2 \\+1,2 @@\n\\s+-hi, \n\\s+\\+what,\n\\s+my name is"},
+	} {
+		mockT := &bufferT{}
+		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
+		Regexp(t, regexp.MustCompile(currCase.want), mockT.buf.String(), "Case %d", i)
+	}
+}
+
 func TestEqualFormatting(t *testing.T) {
 	for i, currCase := range []struct {
 		equalWant  string
@@ -258,8 +273,8 @@ func TestEqualFormatting(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "want", equalGot: "got", want: "\tassertions.go:[0-9]+: \n\t\t\tError Trace:\t\n\t\t\tError:      \tNot equal: \n\t\t\t            \texpected: \"want\"\n\t\t\t            \tactual  : \"got\"\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \n\t\t\tError Trace:\t\n\t\t\tError:      \tNot equal: \n\t\t\t            \texpected: \"want\"\n\t\t\t            \tactual  : \"got\"\n\t\t\tMessages:   \thello, world!\n"},
+		{equalWant: "want", equalGot: "got", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+hello, world!\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
