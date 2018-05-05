@@ -925,6 +925,49 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
 }
 
+func TestNotEmptyThenClear(t *testing.T) {
+	mockT := new(testing.T)
+	chWithValue := make(chan struct{}, 1)
+	chWithValue <- struct{}{}
+
+	cases := []struct {
+		testTitle string
+		value     interface{}
+	}{
+		{
+			testTitle: "String",
+			value:     "something",
+		},
+		{
+			testTitle: "Object",
+			value:     errors.New("something"),
+		},
+		{
+			testTitle: "Slice",
+			value:     []string{"a"},
+		},
+		{
+			testTitle: "Int",
+			value:     1,
+		},
+		{
+			testTitle: "Boolean",
+			value:     true,
+		},
+		{
+			testTitle: "Channel",
+			value:     chWithValue,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.testTitle, func(t *testing.T) {
+			True(t, NotEmptyThenClear(mockT, &tc.value), "Value was already empty before clearing")
+			Empty(t, tc.value, "Value not empty after clearing")
+		})
+	}
+}
+
 func Test_getLen(t *testing.T) {
 	falseCases := []interface{}{
 		nil,
