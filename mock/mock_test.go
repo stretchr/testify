@@ -1187,8 +1187,8 @@ func Test_Arguments_Diff(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"Hello World", 456, "false"})
 
 	assert.Equal(t, 2, count)
-	assert.Contains(t, diff, `456 != 123`)
-	assert.Contains(t, diff, `false != true`)
+	assert.Contains(t, diff, `(int=456) != (int=123)`)
+	assert.Contains(t, diff, `(string=false) != (bool=true)`)
 
 }
 
@@ -1200,7 +1200,7 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"string", 456, "false", "extra"})
 
 	assert.Equal(t, 3, count)
-	assert.Contains(t, diff, `extra != (Missing)`)
+	assert.Contains(t, diff, `(string=extra) != (Missing)`)
 
 }
 
@@ -1242,7 +1242,7 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"string", 123, true})
 
 	assert.Equal(t, 1, count)
-	assert.Contains(t, diff, `string != type int - 123`)
+	assert.Contains(t, diff, `string != type int - (int=123)`)
 
 }
 
@@ -1254,14 +1254,14 @@ func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 
 	diff, count := args.Diff([]interface{}{"string", 124, true})
 	assert.Equal(t, 1, count)
-	assert.Contains(t, diff, `124 not matched by func(int) bool`)
+	assert.Contains(t, diff, `(int=124) not matched by func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", false, true})
 	assert.Equal(t, 1, count)
-	assert.Contains(t, diff, `false not matched by func(int) bool`)
+	assert.Contains(t, diff, `(bool=false) not matched by func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, false})
-	assert.Contains(t, diff, `123 matched by func(int) bool`)
+	assert.Contains(t, diff, `(int=123) matched by func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, true})
 	assert.Equal(t, 0, count)
@@ -1444,7 +1444,7 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(
-				`\s+mock: Unexpected Method Call\s+-*\s+GetTime\(int\)\s+0: 1\s+The closest call I have is:\s+GetTime\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*1 not matched by func\(int\) bool`)
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTime\(int\)\s+0: 1\s+The closest call I have is:\s+GetTime\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(int=1\) not matched by func\(int\) bool`)
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
@@ -1460,7 +1460,7 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
-			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod(int,int,int)`, `0: 1\s+1: 1\s+2: 2`, `0: 1\s+1: 1\s+2: 1`, `0: PASS:  1 == 1\s+1: PASS:  1 == 1\s+2: FAIL:  2 != 1`))
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod(int,int,int)`, `0: 1\s+1: 1\s+2: 2`, `0: 1\s+1: 1\s+2: 1`, `0: PASS:  \(int=1\) == \(int=1\)\s+1: PASS:  \(int=1\) == \(int=1\)\s+2: FAIL:  \(int=2\) != \(int=1\)`))
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
@@ -1475,7 +1475,7 @@ func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
 func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
-			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "0: 1", "0: 999", `0: FAIL:  1 != 999`))
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "0: 1", "0: 999", `0: FAIL:  \(int=1\) != \(int=999\)`))
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
