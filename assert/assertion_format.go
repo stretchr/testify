@@ -349,6 +349,17 @@ func NotEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) 
 	return NotEmpty(t, object, append([]interface{}{msg}, args...)...)
 }
 
+// NotEmptyThenClearf asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0
+// or either a slice or a channel with len == 0. And then set it to empty.
+//
+//  assert.NotEmptyThenClearf(t, &obj, "error message %s", "formatted")
+func NotEmptyThenClearf(t TestingT, object *interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotEmptyThenClear(t, object, append([]interface{}{msg}, args...)...)
+}
+
 // NotEqualf asserts that the specified values are NOT equal.
 //
 //    assert.NotEqualf(t, obj1, obj2, "error message %s", "formatted")
