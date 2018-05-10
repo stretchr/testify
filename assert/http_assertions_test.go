@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+const applicationJson = "application/json; charset=utf-8"
+
 func httpOK(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
@@ -17,6 +19,10 @@ func httpRedirect(w http.ResponseWriter, r *http.Request) {
 
 func httpError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func httpHeader(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", applicationJson)
 }
 
 func TestHTTPSuccess(t *testing.T) {
@@ -142,5 +148,24 @@ func TestHttpBodyWrappers(t *testing.T) {
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
 	assert.True(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+}
+
+func TestHTTPHeaders(t *testing.T) {
+	assert := New(t)
+	mockT := new(testing.T)
+
+	presentHeaders := make(map[string][]string)
+
+	presentHeaders["Content-Type"] = []string{""}
+	assert.False(HTTPHeadersContains(mockT, httpHeader, "GET", "/", nil, presentHeaders))
+
+	presentHeaders["Content-Type"] = []string{applicationJson}
+	assert.True(HTTPHeadersContains(mockT, httpHeader, "GET", "/", nil, presentHeaders))
+
+	delete(presentHeaders, "Content-Type")
+	assert.False(HTTPHeadersContains(mockT, httpHeader, "GET", "/", nil, presentHeaders))
+
+	delete(presentHeaders, "Content-Length")
+	assert.False(HTTPHeadersContains(mockT, httpHeader, "GET", "/", nil, presentHeaders))
 
 }

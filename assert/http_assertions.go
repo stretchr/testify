@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -140,4 +141,38 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method, url strin
 	}
 
 	return !contains
+}
+
+// HTTPHeaders is a helper that returns HTTP headers of the response. It returns nil and
+// an error if building a new request fails.
+func HTTPHeaders(handler http.HandlerFunc, method, url string, values url.Values) (http.Header, error) {
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(method, url+"?"+values.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+	handler(w, req)
+	return w.HeaderMap, nil
+}
+
+// HTTPHeadersContains asserts that a specified handler returns a
+// headers that setuped as map of string slices.
+//
+//  headers := make(map[string][]string)
+//  header["Content-Type"] = "application/json"
+//  assert.HTTPHeadersContains(t, myHandler, "www.google.com", nil, headers)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func HTTPHeadersContains(t TestingT, handler http.HandlerFunc, method, url string, values url.Values, headers map[string][]string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	headersMap, err := HTTPHeaders(handler, method, url, values)
+	if err != nil {
+		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
+		return false
+	}
+
+	return reflect.DeepEqual(http.Header(headers), headersMap)
 }
