@@ -195,21 +195,6 @@ func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string,
 	return HTTPError(t, handler, method, url, values, append([]interface{}{msg}, args...)...)
 }
 
-// HTTPHeadersContainsf asserts that a specified handler returns a
-// headers that setuped as map of string slices.
-//
-//  headers := make(map[string][]string)
-//  header["Content-Type"] = "application/json"
-//  assert.HTTPHeadersContainsf(t, myHandler, "www.google.com", nil, headers, "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or not (false).
-func HTTPHeadersContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, headers map[string][]string, msg string, args ...interface{}) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	return HTTPHeadersContains(t, handler, method, url, values, headers, append([]interface{}{msg}, args...)...)
-}
-
 // HTTPRedirectf asserts that a specified handler returns a redirect status code.
 //
 //  assert.HTTPRedirectf(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}

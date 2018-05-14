@@ -380,36 +380,6 @@ func (a *Assertions) HTTPErrorf(handler http.HandlerFunc, method string, url str
 	HTTPErrorf(a.t, handler, method, url, values, msg, args...)
 }
 
-// HTTPHeadersContains asserts that a specified handler returns a
-// headers that setuped as map of string slices.
-//
-//  headers := make(map[string][]string)
-//  header["Content-Type"] = "application/json"
-//  a.HTTPHeadersContains(myHandler, "www.google.com", nil, headers)
-//
-// Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPHeadersContains(handler http.HandlerFunc, method string, url string, values url.Values, headers map[string][]string, msgAndArgs ...interface{}) {
-	if h, ok := a.t.(tHelper); ok {
-		h.Helper()
-	}
-	HTTPHeadersContains(a.t, handler, method, url, values, headers, msgAndArgs...)
-}
-
-// HTTPHeadersContainsf asserts that a specified handler returns a
-// headers that setuped as map of string slices.
-//
-//  headers := make(map[string][]string)
-//  header["Content-Type"] = "application/json"
-//  a.HTTPHeadersContainsf(myHandler, "www.google.com", nil, headers, "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or not (false).
-func (a *Assertions) HTTPHeadersContainsf(handler http.HandlerFunc, method string, url string, values url.Values, headers map[string][]string, msg string, args ...interface{}) {
-	if h, ok := a.t.(tHelper); ok {
-		h.Helper()
-	}
-	HTTPHeadersContainsf(a.t, handler, method, url, values, headers, msg, args...)
-}
-
 // HTTPRedirect asserts that a specified handler returns a redirect status code.
 //
 //  a.HTTPRedirect(myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
