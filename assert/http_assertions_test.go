@@ -165,7 +165,7 @@ func TestHTTPHeaders(t *testing.T) {
 	delete(presentHeaders, "Content-Type")
 	assert.False(HTTPHeadersContains(mockT, httpHeader, "GET", "/", nil, presentHeaders))
 
-	delete(presentHeaders, "Content-Length")
+	presentHeaders["Content-Length"] = []string{"1300"}
 	assert.False(HTTPHeadersContains(mockT, httpHeader, "GET", "/", nil, presentHeaders))
 
 }
