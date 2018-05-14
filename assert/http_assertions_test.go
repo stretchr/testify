@@ -22,7 +22,7 @@ func httpError(w http.ResponseWriter, r *http.Request) {
 }
 
 func httpHeader(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", applicationJson)
+	w.Header().Set("Content-Type", applicationJson)
 }
 
 func TestHTTPSuccess(t *testing.T) {
