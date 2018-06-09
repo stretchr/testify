@@ -489,6 +489,27 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 }
 
+// NotEmptyThenClear asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0
+// or either a slice or a channel with len == 0. And then set it to empty.
+//
+//  assert.NotEmptyThenClear(t, &obj)
+func NotEmptyThenClear(t TestingT, object *interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if object == nil {
+		return false
+	}
+	if Empty(t, *object, msgAndArgs...) {
+		return false
+	}
+
+	objValue := reflect.ValueOf(object)
+	objValue.Elem().Set(reflect.Zero(objValue.Type()))
+	return true
+}
+
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //

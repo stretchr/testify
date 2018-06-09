@@ -675,6 +675,28 @@ func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) {
 	NotEmpty(a.t, object, msgAndArgs...)
 }
 
+// NotEmptyThenClear asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0
+// or either a slice or a channel with len == 0. And then set it to empty.
+//
+//  a.NotEmptyThenClear(&obj)
+func (a *Assertions) NotEmptyThenClear(object *interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotEmptyThenClear(a.t, object, msgAndArgs...)
+}
+
+// NotEmptyThenClearf asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0
+// or either a slice or a channel with len == 0. And then set it to empty.
+//
+//  a.NotEmptyThenClearf(&obj, "error message %s", "formatted")
+func (a *Assertions) NotEmptyThenClearf(object *interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotEmptyThenClearf(a.t, object, msg, args...)
+}
+
 // NotEmptyf asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
