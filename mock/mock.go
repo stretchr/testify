@@ -661,23 +661,13 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 	var output = "\n"
 	var differences int
 
-	var maxArgCount = len(args)
-	if len(objects) > maxArgCount {
-		maxArgCount = len(objects)
-	}
+	for i := 0; i < len(args) && i < len(objects); i++ {
+		actual := objects[i]
+		actualFmt := fmt.Sprintf("(%[1]T=%[1]v)", actual)
 
-	for i := 0; i < maxArgCount; i++ {
-		var actual, expected interface{}
-		var actualFmt, expectedFmt string
+		expected := args[i]
+		expectedFmt := fmt.Sprintf("(%[1]T=%[1]v)", expected)
 
-		if len(objects) <= i || len(args) <= i {
-			differences++
-			output = fmt.Sprintf("%s\t%d: FAIL:  inconsistent function arity, mocked argument count (%d) != call argument count (%d) \n", output, i, len(args), len(objects))
-			return output, differences
-		}
-
-		actual = objects[i]
-		expected = args[i]
 		if matcher, ok := expected.(argumentMatcher); ok {
 			if matcher.Matches(actual) {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
@@ -708,6 +698,11 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			}
 		}
 
+	}
+
+	if len(args) != len(objects) {
+		differences++
+		output = fmt.Sprintf("%s\t FAIL:  inconsistent function arity, mocked argument count (%d) != call argument count (%d)\n", output, len(args), len(objects))
 	}
 
 	if differences == 0 {
