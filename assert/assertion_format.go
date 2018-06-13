@@ -82,11 +82,11 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 //
 //   actualObj, err := SomeFunction()
 //   assert.EqualErrorf(t, err,  expectedErrorString, "error message %s", "formatted")
-func EqualErrorf(t TestingT, theError error, errString string, msg string, args ...interface{}) bool {
+func EqualErrorf(t TestingT, theError error, errExpected interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return EqualError(t, theError, errString, append([]interface{}{msg}, args...)...)
+	return EqualError(t, theError, errExpected, append([]interface{}{msg}, args...)...)
 }
 
 // EqualValuesf asserts that two objects are equal or convertable to the same types

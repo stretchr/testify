@@ -134,11 +134,11 @@ func (a *Assertions) Equal(expected interface{}, actual interface{}, msgAndArgs 
 //
 //   actualObj, err := SomeFunction()
 //   a.EqualError(err,  expectedErrorString)
-func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) bool {
+func (a *Assertions) EqualError(theError error, errExpected interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return EqualError(a.t, theError, errString, msgAndArgs...)
+	return EqualError(a.t, theError, errExpected, msgAndArgs...)
 }
 
 // EqualErrorf asserts that a function returned an error (i.e. not `nil`)
@@ -146,11 +146,11 @@ func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...
 //
 //   actualObj, err := SomeFunction()
 //   a.EqualErrorf(err,  expectedErrorString, "error message %s", "formatted")
-func (a *Assertions) EqualErrorf(theError error, errString string, msg string, args ...interface{}) bool {
+func (a *Assertions) EqualErrorf(theError error, errExpected interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return EqualErrorf(a.t, theError, errString, msg, args...)
+	return EqualErrorf(a.t, theError, errExpected, msg, args...)
 }
 
 // EqualValues asserts that two objects are equal or convertable to the same types

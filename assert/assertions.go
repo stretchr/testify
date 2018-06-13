@@ -1169,14 +1169,24 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 //
 //   actualObj, err := SomeFunction()
 //   assert.EqualError(t, err,  expectedErrorString)
-func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
+func EqualError(t TestingT, theError error, errExpected interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 	if !Error(t, theError, msgAndArgs...) {
 		return false
 	}
-	expected := errString
+
+	var expected string
+	switch e := errExpected.(type) {
+	case string:
+		expected = e
+	case error:
+		expected = e.Error()
+	default:
+		return Fail(t, "Expected value must be either error or string", msgAndArgs...)
+	}
+
 	actual := theError.Error()
 	// don't need to use deep equals here, we know they are both strings
 	if expected != actual {
