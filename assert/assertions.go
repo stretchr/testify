@@ -480,16 +480,14 @@ func isEmpty(object interface{}) bool {
 //
 //  assert.Empty(t, obj)
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
-	pass := isEmpty(object)
-	if !pass {
+	if !isEmpty(object) {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should be empty, but was %v", object), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Should be empty, but was %v", object), msgAndArgs...)
 	}
 
-	return pass
-
+	return true
 }
 
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
@@ -499,16 +497,14 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 //    assert.Equal(t, "two", obj[1])
 //  }
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
-	pass := !isEmpty(object)
-	if !pass {
+	if isEmpty(object) {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should NOT be empty, but was %v", object), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Should NOT be empty, but was %v", object), msgAndArgs...)
 	}
 
-	return pass
-
+	return true
 }
 
 // getLen try to get length of object.
@@ -872,14 +868,13 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 
 // Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
-	result := comp()
-	if !result {
+	if !comp() {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, "Condition failed!", msgAndArgs...)
+		return Fail(t, "Condition failed!", msgAndArgs...)
 	}
-	return result
+	return true
 }
 
 // PanicTestFunc defines a func that should be passed to the assert.Panics and assert.NotPanics
@@ -1276,16 +1271,14 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 //  assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //  assert.NotRegexp(t, "^start", "it's not starting")
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
-	match := matchRegexp(rx, str)
-
-	if match {
+	if matchRegexp(rx, str) {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Expect \"%v\" to NOT match \"%v\"", str, rx), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Expect \"%v\" to NOT match \"%v\"", str, rx), msgAndArgs...)
 	}
 
-	return !match
+	return true
 
 }
 
