@@ -43,12 +43,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	importer, funcs, err := analyzeCode(scope, docs)
+	imported, funcs, err := analyzeCode(scope, docs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := generateCode(importer, funcs); err != nil {
+	if err := generateCode(imported, funcs); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -130,7 +130,7 @@ func outputFile() (*os.File, error) {
 func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []testFunc, error) {
 	testingT := scope.Lookup("TestingT").Type().Underlying().(*types.Interface)
 
-	importer := imports.New(*outputPkg)
+	imported := imports.New(*outputPkg)
 	var funcs []testFunc
 	// Go through all the top level functions
 	for _, fdocs := range docs.Funcs {
@@ -165,9 +165,9 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []tes
 		}
 
 		funcs = append(funcs, testFunc{*outputPkg, fdocs, fn})
-		importer.AddImportsFrom(sig.Params())
+		imported.AddImportsFrom(sig.Params())
 	}
-	return importer, funcs, nil
+	return imported, funcs, nil
 }
 
 // parsePackageSource returns the types scope and the package documentation from the package
@@ -306,7 +306,7 @@ package {{.Name}}
 
 import (
 {{range $path, $name := .Imports}}
-	{{$name}} "{{$path}}"{{end}}
+	"{{$path}}"{{end}}
 )
 `
 
