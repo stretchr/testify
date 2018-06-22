@@ -1486,6 +1486,19 @@ func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
 	_ = m.GetTime(1)
 }
 
+func TestShouldFailAssertExpectationsOnUnknownCall(t *testing.T) {
+
+	m := new(timer)
+	func(t *timer) {
+		defer func() {
+			recover()
+		}()
+		t.GetTime(1)
+	}(m)
+
+	require.False(t, m.AssertExpectations(t))
+}
+
 func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
 	rMethod := regexp.QuoteMeta(method)
 	return fmt.Sprintf(`\s+mock: Unexpected Method Call\s+-*\s+%s\s+%s\s+The closest call I have is:\s+%s\s+%s\s+Diff: %s`,

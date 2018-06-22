@@ -189,7 +189,8 @@ type Mock struct {
 	ExpectedCalls []*Call
 
 	// Holds the calls that were made to this mocked object.
-	Calls []Call
+	Calls      []Call
+	unexpected []Call
 
 	// test is An optional variable that holds the test struct, to be used when an
 	// invalid mock call was made.
@@ -350,6 +351,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
 
+		m.unexpected = append(m.unexpected, *newCall(m, methodName, assert.CallerInfo(), arguments...))
 		closestCall, mismatch := m.findClosestCall(methodName, arguments...)
 		m.mutex.Unlock()
 
@@ -459,6 +461,12 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 
 	if somethingMissing {
 		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+	}
+
+	if len(m.unexpected) != 0 {
+		//TODO: could add log from first unexpected call (methodName, args)
+		t.Logf("FAIL: There were %d unexpected method calls.", len(m.unexpected))
+		return false
 	}
 
 	return !somethingMissing
