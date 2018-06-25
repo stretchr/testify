@@ -1345,7 +1345,7 @@ func diff(expected interface{}, actual interface{}) string {
 	}
 
 	var e, a string
-	if ek != reflect.String {
+	if et.Name() != "string" {
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
 	} else {

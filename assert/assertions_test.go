@@ -1791,3 +1791,18 @@ func TestErrorAssertionFunc(t *testing.T) {
 		})
 	}
 }
+
+type notstring string
+
+// The code in the diff func used to check that the type was a kind of string
+// and then do `var.(type)` on the variable containing the expected and actual
+// values. This blew up when the type was a _kind_ of string but not actually
+// a string.
+func TestPanicOnStringLikeType(t *testing.T) {
+	f := func() {
+		mockT := new(testing.T)
+		Equal(mockT, notstring("value"), notstring("value2"))
+	}
+
+	NotPanics(t, f, "Should not panic when comparing string-ish types")
+}
