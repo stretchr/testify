@@ -8,6 +8,11 @@ go:
   - "1.10"
   - tip
 
+matrix:
+  allow_failures:
+    - go: master
+fast_finish: true
+
 script:
   - ./.travis.gogenerate.sh
   - ./.travis.gofmt.sh
