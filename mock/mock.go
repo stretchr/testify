@@ -543,6 +543,13 @@ func (m *Mock) calls() []Call {
 	return append([]Call{}, m.Calls...)
 }
 
+// Concurrency-safe way to get a copy of the list of calls made to this mock
+func (m *Mock) GetCalls() []Call {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.calls()
+}
+
 /*
 	Arguments
 */
