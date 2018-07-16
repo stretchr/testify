@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"time"
 	"unicode"
@@ -901,15 +902,17 @@ func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 type PanicTestFunc func()
 
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
-func didPanic(f PanicTestFunc) (bool, interface{}) {
+func didPanic(f PanicTestFunc) (bool, interface{}, string) {
 
 	didPanic := false
 	var message interface{}
+	var stack string
 	func() {
 
 		defer func() {
 			if message = recover(); message != nil {
 				didPanic = true
+				stack = string(debug.Stack())
 			}
 		}()
 
@@ -918,7 +921,7 @@ func didPanic(f PanicTestFunc) (bool, interface{}) {
 
 	}()
 
-	return didPanic, message
+	return didPanic, message, stack
 
 }
 
@@ -930,7 +933,7 @@ func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 		h.Helper()
 	}
 
-	if funcDidPanic, panicValue := didPanic(f); !funcDidPanic {
+	if funcDidPanic, panicValue, _ := didPanic(f); !funcDidPanic {
 		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
 
@@ -946,12 +949,12 @@ func PanicsWithValue(t TestingT, expected interface{}, f PanicTestFunc, msgAndAr
 		h.Helper()
 	}
 
-	funcDidPanic, panicValue := didPanic(f)
+	funcDidPanic, panicValue, panickedStack := didPanic(f)
 	if !funcDidPanic {
 		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
 	if panicValue != expected {
-		return Fail(t, fmt.Sprintf("func %#v should panic with value:\t%#v\n\tPanic value:\t%#v", f, expected, panicValue), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("func %#v should panic with value:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, expected, panicValue, panickedStack), msgAndArgs...)
 	}
 
 	return true
@@ -965,8 +968,8 @@ func NotPanics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 		h.Helper()
 	}
 
-	if funcDidPanic, panicValue := didPanic(f); funcDidPanic {
-		return Fail(t, fmt.Sprintf("func %#v should not panic\n\tPanic value:\t%v", f, panicValue), msgAndArgs...)
+	if funcDidPanic, panicValue, panickedStack := didPanic(f); funcDidPanic {
+		return Fail(t, fmt.Sprintf("func %#v should not panic\n\tPanic value:\t%v\n\tPanic stack:\t%s", f, panicValue, panickedStack), msgAndArgs...)
 	}
 
 	return true

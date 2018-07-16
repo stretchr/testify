@@ -212,13 +212,13 @@ func TestConditionWrapper(t *testing.T) {
 
 func TestDidPanicWrapper(t *testing.T) {
 
-	if funcDidPanic, _ := didPanic(func() {
+	if funcDidPanic, _, _ := didPanic(func() {
 		panic("Panic!")
 	}); !funcDidPanic {
 		t.Error("didPanic should return true")
 	}
 
-	if funcDidPanic, _ := didPanic(func() {
+	if funcDidPanic, _, _ := didPanic(func() {
 	}); funcDidPanic {
 		t.Error("didPanic should return false")
 	}
