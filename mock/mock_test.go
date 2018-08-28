@@ -1037,7 +1037,8 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 }
 
-func Test_Mock_AssertExpectationsServer(t *testing.T) {
+func Test_Mock_AssertExpectationsServerRace(t *testing.T) {
+	// This test reproduces the bug in https://github.com/stretchr/testify/issues/625
 	var mockedService = new(TestExampleImplementation)
 
 	mockedService.On("func1", AnythingOfType("*context.cancelCtx")).Return(nil).Once()
