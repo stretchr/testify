@@ -175,6 +175,8 @@ func TestIsType(t *testing.T) {
 
 }
 
+type myType string
+
 func TestEqual(t *testing.T) {
 
 	mockT := new(testing.T)
@@ -200,11 +202,17 @@ func TestEqual(t *testing.T) {
 	if !Equal(mockT, uint64(123), uint64(123)) {
 		t.Error("Equal should return true")
 	}
+	if !Equal(mockT, myType("1"), myType("1")) {
+		t.Error("Equal should return true")
+	}
 	if !Equal(mockT, &struct{}{}, &struct{}{}) {
 		t.Error("Equal should return true (pointer equality is based on equality of underlying value)")
 	}
 	var m map[string]interface{}
 	if Equal(mockT, m["bar"], "something") {
+		t.Error("Equal should return false")
+	}
+	if Equal(mockT, myType("1"), myType("2")) {
 		t.Error("Equal should return false")
 	}
 }
