@@ -319,10 +319,9 @@ To update Testify to the latest version, use `go get -u github.com/stretchr/test
 Supported go versions
 ==================
 
-We support the four major Go versions, which are 1.8, 1.9, 1.10, and 1.11 at the moment.
+We support the three major Go versions, which are 1.9, 1.10, and 1.11 at the moment.
 
 ------
-
 Contributing
 ============
 
