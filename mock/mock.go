@@ -580,7 +580,11 @@ type argumentMatcher struct {
 	fn reflect.Value
 }
 
-func (f argumentMatcher) Matches(argument interface{}) error {
+func (f argumentMatcher) Matches(argument interface{}) bool {
+	return f.match(argument) == nil
+}
+
+func (f argumentMatcher) match(argument interface{}) error {
 	expectType := f.fn.Type().In(0)
 	expectTypeNilSupported := false
 	switch expectType.Kind() {
@@ -718,7 +722,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
-			if matchError := matcher.Matches(actual); matchError == nil {
+			if matchError := matcher.match(actual); matchError == nil {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
 				differences++
