@@ -639,14 +639,15 @@ func (f argumentMatcher) GoString() string {
 // when there's a match and false otherwise) or an error (nil when there's a
 // match and error holding the failure message otherwise).
 //
-// Example:
-// m.On("Do", MatchedBy(func(req *http.Request) bool { return req.Host == "example.com" }))
-// m.On("Do", MatchedBy(func(req *http.Request) (err error) {
-//		if req.Host != "example.com" {
-//			err = errors.New("host was not example.com")
-//		}
-//		return
-//	})
+// Examples:
+//  m.On("Do", MatchedBy(func(req *http.Request) bool { return req.Host == "example.com" }))
+//
+//  m.On("Do", MatchedBy(func(req *http.Request) (err error) {
+//  	if req.Host != "example.com" {
+//  		err = errors.New("host was not example.com")
+//  	}
+//  	return
+//  })
 //
 // |fn|, must be a function accepting a single argument (of the expected type)
 // which returns a bool or error. If |fn| doesn't match the required signature,
