@@ -706,7 +706,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 			// normal checking
 
-			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) || len(diffArguments(actual, expected)) == 0 {
 				// match
 				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 			} else {
