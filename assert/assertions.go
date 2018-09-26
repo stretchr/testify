@@ -1422,8 +1422,8 @@ func diff(expected interface{}, actual interface{}) string {
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
 	} else {
-		e = expected.(string)
-		a = actual.(string)
+		e = reflect.ValueOf(expected).String()
+		a = reflect.ValueOf(actual).String()
 	}
 
 	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
