@@ -6,10 +6,11 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -627,7 +628,7 @@ func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta f
 
 // InDeltaf asserts that the two numerals are within delta of each other.
 //
-// 	 assert.InDeltaf(t, math.Pi, (22 / 7.0, "error message %s", "formatted"), 0.01)
+// 	 assert.InDeltaf(t, math.Pi, (22 / 7.0), 0.01, "error message %s", "formatted")
 func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if assert.InDeltaf(t, expected, actual, delta, msg, args...) {
 		return
