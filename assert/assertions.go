@@ -1315,15 +1315,17 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
-func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
+func typeAndKind(v interface{}) (reflect.Type, reflect.Kind, bool) {
 	t := reflect.TypeOf(v)
 	k := t.Kind()
+	isPointer := false
 
 	if k == reflect.Ptr {
 		t = t.Elem()
 		k = t.Kind()
+		isPointer = true
 	}
-	return t, k
+	return t, k, isPointer
 }
 
 // diff returns a diff of both values as long as both are of the same type and
@@ -1333,8 +1335,8 @@ func diff(expected interface{}, actual interface{}) string {
 		return ""
 	}
 
-	et, ek := typeAndKind(expected)
-	at, _ := typeAndKind(actual)
+	et, ek, expectedIsPointer := typeAndKind(expected)
+	at, _, actualIsPointer := typeAndKind(actual)
 
 	if et != at {
 		return ""
@@ -1345,7 +1347,7 @@ func diff(expected interface{}, actual interface{}) string {
 	}
 
 	var e, a string
-	if et != reflect.TypeOf("") {
+	if et != reflect.TypeOf("") || expectedIsPointer || actualIsPointer {
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
 	} else {
