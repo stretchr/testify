@@ -578,6 +578,23 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 	return AnythingOfTypeArgument(t)
 }
 
+// IsTypeArgument is a struct that contains the type of an argument
+// for use when type checking.  This is an alternative to AnythingOfType.
+// Used in Diff and Assert.
+type IsTypeArgument struct {
+	t interface{}
+}
+
+// IsType returns an IsTypeArgument object containing the type to check for.
+// You can provide a zero-value of the type to check.  This is an
+// alternative to AnythingOfType.  Used in Diff and Assert.
+//
+// For example:
+// Assert(t, IsType(""), IsType(0))
+func IsType(t interface{}) *IsTypeArgument {
+	return &IsTypeArgument{t: t}
+}
+
 // argumentMatcher performs custom argument matching, returning whether or
 // not the argument is matched by the expectation fixture function.
 type argumentMatcher struct {
@@ -711,6 +728,12 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 			}
 
+		} else if reflect.TypeOf(expected) == reflect.TypeOf((*IsTypeArgument)(nil)) {
+			t := expected.(*IsTypeArgument).t
+			if reflect.TypeOf(t) != reflect.TypeOf(actual) {
+				differences++
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
+			}
 		} else {
 
 			// normal checking
