@@ -39,7 +39,7 @@ type ValueAssertionFunc func(TestingT, interface{}, ...interface{}) bool
 // for table driven tests.
 type BoolAssertionFunc func(TestingT, bool, ...interface{}) bool
 
-// ValuesAssertionFunc is a common function prototype when validating an error value.  Can be useful
+// ErrorAssertionFunc is a common function prototype when validating an error value.  Can be useful
 // for table driven tests.
 type ErrorAssertionFunc func(TestingT, error, ...interface{}) bool
 
