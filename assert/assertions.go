@@ -1324,9 +1324,9 @@ func NotDirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 			return true
 		}
 		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
-		if !info.IsDir() {
-			return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
-		}
+	}
+	if !info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
 	}
 	return false
 }
