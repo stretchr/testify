@@ -1499,6 +1499,15 @@ Diff:
 	Equal(t, expected, actual)
 }
 
+func TestTimeEqualityErrorFormatting(t *testing.T) {
+	mockT := new(mockTestingT)
+
+	Equal(mockT, time.Second*2, time.Millisecond)
+
+	expectedErr := "\\s+Error Trace:\\s+Error:\\s+Not equal:\\s+\n\\s+expected: 2s\n\\s+actual\\s+: 1ms\n"
+	Regexp(t, regexp.MustCompile(expectedErr), mockT.errorString())
+}
+
 func TestDiffEmptyCases(t *testing.T) {
 	Equal(t, "", diff(nil, nil))
 	Equal(t, "", diff(struct{ foo string }{}, nil))
@@ -1543,9 +1552,18 @@ func TestDiffRace(t *testing.T) {
 }
 
 type mockTestingT struct {
+	errorFmt string
+	args     []interface{}
 }
 
-func (m *mockTestingT) Errorf(format string, args ...interface{}) {}
+func (m *mockTestingT) errorString() string {
+	return fmt.Sprintf(m.errorFmt, m.args...)
+}
+
+func (m *mockTestingT) Errorf(format string, args ...interface{}) {
+	m.errorFmt = format
+	m.args = args
+}
 
 func TestFailNowWithPlainTestingT(t *testing.T) {
 	mockT := &mockTestingT{}

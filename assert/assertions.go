@@ -357,9 +357,11 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 		return fmt.Sprintf("%T(%#v)", expected, expected),
 			fmt.Sprintf("%T(%#v)", actual, actual)
 	}
-
-	return fmt.Sprintf("%#v", expected),
-		fmt.Sprintf("%#v", actual)
+	switch expected.(type) {
+	case time.Duration:
+		return fmt.Sprintf("%v", expected), fmt.Sprintf("%v", actual)
+	}
+	return fmt.Sprintf("%#v", expected), fmt.Sprintf("%#v", actual)
 }
 
 // EqualValues asserts that two objects are equal or convertable to the same types
