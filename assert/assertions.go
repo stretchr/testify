@@ -933,6 +933,24 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 	return true
 }
 
+// WithinTimes asserts that the actual time is between the two given times.
+//
+//   before := time.Now()
+//   now := time.Now()
+//   after := time.Now()
+//   assert.WithinTimes(t, before, now, after)
+func WithinTimes(t TestingT, before time.Time, actual time.Time, after time.Time, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if actual.Before(before) || actual.After(after) {
+		return Fail(t, fmt.Sprintf("Actual time %v was not between %v and %v", actual, before, after), msgAndArgs...)
+	}
+
+	return true
+}
+
 func toFloat(x interface{}) (float64, bool) {
 	var xf float64
 	xok := true
