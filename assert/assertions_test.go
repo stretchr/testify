@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/cmplx"
 	"os"
 	"reflect"
 	"regexp"
@@ -346,6 +347,49 @@ func TestNil(t *testing.T) {
 		t.Error("Nil should return false: object is not nil")
 	}
 
+}
+
+func TestNaN(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !NaN(mockT, float32(math.NaN())) {
+		t.Error("NaN should return true")
+	}
+	if NaN(mockT, float32(1)) {
+		t.Error("NaN should return false")
+	}
+	if !NaN(mockT, float64(math.NaN())) {
+		t.Error("NaN should return true")
+	}
+	if NaN(mockT, float64(1)) {
+		t.Error("NaN should return false")
+	}
+
+	if !NaN(mockT, complex64(cmplx.NaN())) {
+		t.Error("NaN should return true")
+	}
+	if NaN(mockT, complex64(complex(1.0, 2.0))) {
+		t.Error("NaN should return false")
+	}
+	if !NaN(mockT, complex128(cmplx.NaN())) {
+		t.Error("NaN should return true")
+	}
+	if NaN(mockT, complex128(complex(1.0, 2.0))) {
+		t.Error("NaN should return false")
+	}
+
+	type Float64 float64
+
+	if !NaN(mockT, Float64(math.NaN())) {
+		t.Error("NaN should return true")
+	}
+	if NaN(mockT, Float64(1.0)) {
+		t.Error("NaN should return false")
+	}
+
+	if NaN(mockT, "fail") {
+		t.Error("NaN should return false")
+	}
 }
 
 func TestTrue(t *testing.T) {

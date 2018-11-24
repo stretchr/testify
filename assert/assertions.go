@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/cmplx"
 	"os"
 	"reflect"
 	"regexp"
@@ -441,6 +442,35 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 		return true
 	}
 	return Fail(t, fmt.Sprintf("Expected nil, but got: %#v", object), msgAndArgs...)
+}
+
+// NaN asserts that the specified object is NaN.
+// Complex NaN is defined by cmplx.NaN
+//
+//    assert.NaN(t, obj)
+func NaN(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	objValue := reflect.ValueOf(object)
+
+	switch objValue.Kind() {
+	case reflect.Float32, reflect.Float64:
+		if math.IsNaN(objValue.Float()) {
+			return true
+		}
+		return Fail(t, fmt.Sprintf("Expected NaN, but got: %v", objValue.Float()), msgAndArgs...)
+
+	case reflect.Complex64, reflect.Complex128:
+		if cmplx.IsNaN(objValue.Complex()) {
+			return true
+		}
+		return Fail(t, fmt.Sprintf("Expected NaN, but got: %v", objValue.Complex()), msgAndArgs...)
+
+	}
+	//the kind is not float or complex so it can't be NaN. therefore we fail
+
+	return Fail(t, fmt.Sprintf("Parameters must be float or complex"), msgAndArgs...)
 }
 
 // isEmpty gets whether the specified object is considered empty or not.
