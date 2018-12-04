@@ -1653,3 +1653,40 @@ func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
 func ConcurrencyTestMethod(m *Mock) {
 	m.Called()
 }
+
+func TestConcurrentArgumentRead(t *testing.T) {
+	methodUnderTest := func(c caller, u user) {
+		go u.Use(c)
+		c.Call()
+	}
+
+	c := &mockCaller{}
+	defer c.AssertExpectations(t)
+
+	u := &mockUser{}
+	defer u.AssertExpectations(t)
+
+	done := make(chan struct{})
+
+	c.On("Call").Return().Once()
+	u.On("Use", c).Return().Once().Run(func(args Arguments) { close(done) })
+
+	methodUnderTest(c, u)
+	<-done // wait until Use is called or assertions will fail
+}
+
+type caller interface {
+	Call()
+}
+
+type mockCaller struct{ Mock }
+
+func (m *mockCaller) Call() { m.Called() }
+
+type user interface {
+	Use(caller)
+}
+
+type mockUser struct{ Mock }
+
+func (m *mockUser) Use(c caller) { m.Called(c) }
