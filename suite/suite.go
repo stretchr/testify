@@ -55,10 +55,19 @@ func (suite *Suite) Assert() *assert.Assertions {
 	return suite.Assertions
 }
 
+func failOnPanic(t *testing.T) {
+	r := recover()
+	if r != nil {
+		t.Errorf("test panicked: %v", r)
+		t.FailNow()
+	}
+}
+
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
 	suite.SetT(t)
+	defer failOnPanic(t)
 
 	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 		setupAllSuite.SetupSuite()
@@ -84,6 +93,8 @@ func Run(t *testing.T, suite TestingSuite) {
 				F: func(t *testing.T) {
 					parentT := suite.T()
 					suite.SetT(t)
+					defer failOnPanic(t)
+
 					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 						setupTestSuite.SetupTest()
 					}
