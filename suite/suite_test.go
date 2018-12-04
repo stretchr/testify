@@ -42,6 +42,99 @@ func (s *SuiteRequireTwice) TestRequireTwo() {
 	r.Equal(1, 2)
 }
 
+type panickingSuite struct {
+	Suite
+	panicInSetupSuite    bool
+	panicInSetupTest     bool
+	panicInBeforeTest    bool
+	panicInTest          bool
+	panicInAfterTest     bool
+	panicInTearDownTest  bool
+	panicInTearDownSuite bool
+}
+
+func (s *panickingSuite) SetupSuite() {
+	if s.panicInSetupSuite {
+		panic("oops in setup suite")
+	}
+}
+
+func (s *panickingSuite) SetupTest() {
+	if s.panicInSetupTest {
+		panic("oops in setup test")
+	}
+}
+
+func (s *panickingSuite) BeforeTest(_, _ string) {
+	if s.panicInBeforeTest {
+		panic("oops in before test")
+	}
+}
+
+func (s *panickingSuite) Test() {
+	if s.panicInTest {
+		panic("oops in test")
+	}
+}
+
+func (s *panickingSuite) AfterTest(_, _ string) {
+	if s.panicInAfterTest {
+		panic("oops in after test")
+	}
+}
+
+func (s *panickingSuite) TearDownTest() {
+	if s.panicInTearDownTest {
+		panic("oops in tear down test")
+	}
+}
+
+func (s *panickingSuite) TearDownSuite() {
+	if s.panicInTearDownSuite {
+		panic("oops in tear down suite")
+	}
+}
+
+func TestSuiteRecoverPanic(t *testing.T) {
+	ok := true
+	panickingTests := []testing.InternalTest{
+		{
+			Name: "TestPanicInSetupSuite",
+			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInSetupSuite: true}) },
+		},
+		{
+			Name: "TestPanicInSetupTest",
+			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInSetupTest: true}) },
+		},
+		{
+			Name: "TestPanicInBeforeTest",
+			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInBeforeTest: true}) },
+		},
+		{
+			Name: "TestPanicInTest",
+			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTest: true}) },
+		},
+		{
+			Name: "TestPanicInAfterTest",
+			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInAfterTest: true}) },
+		},
+		{
+			Name: "TestPanicInTearDownTest",
+			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTearDownTest: true}) },
+		},
+		{
+			Name: "TestPanicInTearDownSuite",
+			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTearDownSuite: true}) },
+		},
+	}
+
+	require.NotPanics(t, func() {
+		ok = testing.RunTests(allTestsFilter, panickingTests)
+	})
+
+	assert.False(t, ok)
+}
+
 // This suite is intended to store values to make sure that only
 // testing-suite-related methods are run.  It's also a fully
 // functional example of a testing suite, using setup/teardown methods
