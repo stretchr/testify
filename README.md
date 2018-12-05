@@ -287,8 +287,10 @@ To install Testify, use `go get`:
 This will then make the following packages available to you:
 
     github.com/stretchr/testify/assert
+    github.com/stretchr/testify/require
     github.com/stretchr/testify/mock
-    github.com/stretchr/testify/http
+    github.com/stretchr/testify/suite
+    github.com/stretchr/testify/http (deprecated)
 
 Import the `testify/assert` package into your code using this template:
 
