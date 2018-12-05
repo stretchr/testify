@@ -179,7 +179,11 @@ func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
 		return ""
 	}
 	if len(msgAndArgs) == 1 {
-		return msgAndArgs[0].(string)
+		msg := msgAndArgs[0]
+		if msgAsStr, ok := msg.(string); ok {
+			return msgAsStr
+		}
+		return fmt.Sprintf("%+v", msg)
 	}
 	if len(msgAndArgs) > 1 {
 		return fmt.Sprintf(msgAndArgs[0].(string), msgAndArgs[1:]...)
