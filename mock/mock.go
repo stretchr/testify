@@ -238,6 +238,24 @@ func (m *Mock) fail(format string, args ...interface{}) {
 	m.test.FailNow()
 }
 
+// Drop removes any Call matching the methodName and arguments passed in from
+// the slice of ExpectedCalls held by the mock.
+func (m *Mock) Drop(methodName string, arguments ...interface{}) {
+	var expectedCalls []*Call
+	for _, call := range m.expectedCalls() {
+		if call.Method == methodName && call.Repeatability > -1 {
+			_, diffCount := call.Arguments.Diff(arguments)
+			if diffCount > 0 {
+				expectedCalls = append(expectedCalls, call)
+			}
+		} else if call.Repeatability > -1 {
+			expectedCalls = append(expectedCalls, call)
+		}
+	}
+
+	m.ExpectedCalls = expectedCalls
+}
+
 // On starts a description of an expectation of the specified method
 // being called.
 //
@@ -697,11 +715,13 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 			// type checking
 			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
-				// not match
-				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+				// Check that we don't have matching AnythingOfTypeArguments
+				// representing mocks of the same type.
+				if !(reflect.TypeOf(actual).Name() == "AnythingOfTypeArgument" && reflect.TypeOf(actual).Name() == reflect.TypeOf(expected).Name() && string(expected.(AnythingOfTypeArgument)) == string(actual.(AnythingOfTypeArgument))) {
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+				}
 			}
-
 		} else {
 
 			// normal checking

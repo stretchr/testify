@@ -135,6 +135,93 @@ func Test_Mock_TestData(t *testing.T) {
 	}
 }
 
+func Test_Mock_Drop(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.On("TheExampleMethod")
+	d := mockedService.On("TheExampleMethodTwo")
+	assert.Equal(t, len(mockedService.ExpectedCalls), 2)
+	assert.Equal(t, []*Call{c, d}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethod", c.Method)
+	assert.Equal(t, "TheExampleMethodTwo", d.Method)
+
+	mockedService.Drop("TheExampleMethod")
+	assert.Equal(t, len(mockedService.ExpectedCalls), 1)
+	assert.Equal(t, []*Call{d}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethodTwo", d.Method)
+	mockedService.Drop("TheExampleMethodTwo")
+
+	_, _, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod", 1, 2, 3).
+		Return(0).
+		On("TheExampleMethod2", AnythingOfType("int")).
+		Return(nil).
+		On("TheExampleMethod3", AnythingOfType("*mock.ExampleType")).
+		Return(nil)
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod",
+			Arguments:       []interface{}{1, 2, 3},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod2",
+			Arguments:       []interface{}{AnythingOfType("int")},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+4)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod3",
+			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+6)},
+		},
+	}
+
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+
+	mockedService.Drop("TheExampleMethod", 1, 2, 3)
+	expectedCalls = []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod2",
+			Arguments:       []interface{}{AnythingOfType("int")},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+4)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod3",
+			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+6)},
+		},
+	}
+
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+
+	mockedService.Drop("TheExampleMethod3", AnythingOfType("*mock.ExampleType"))
+	expectedCalls = []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod2",
+			Arguments:       []interface{}{AnythingOfType("int")},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+4)},
+		},
+	}
+
+	mockedService.Drop("TheExampleMethod2", AnythingOfType("int"))
+	expectedCalls = []*Call(nil)
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
 func Test_Mock_On(t *testing.T) {
 
 	// make a test impl object
