@@ -248,8 +248,6 @@ func (m *Mock) Drop(methodName string, arguments ...interface{}) {
 			if diffCount > 0 {
 				expectedCalls = append(expectedCalls, call)
 			}
-		} else if call.Repeatability > -1 {
-			expectedCalls = append(expectedCalls, call)
 		}
 	}
 
