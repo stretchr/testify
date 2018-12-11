@@ -3,7 +3,6 @@ package mock
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -716,11 +715,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
 				// Check that we don't have matching AnythingOfTypeArguments
 				// representing mocks of the same type.
-				if reflect.TypeOf(actual).Name() == "AnythingOfTypeArgument" && reflect.TypeOf(expected).Name() == "AnythingOfTypeArgument" {
-					log.Printf("string(expected.(AnythingOfTypeArgument)) = %+v\n", string(expected.(AnythingOfTypeArgument)))
-					log.Printf("string(actual.(AnythingOfTypeArgument)) = %+v\n", string(actual.(AnythingOfTypeArgument)))
-					if string(expected.(AnythingOfTypeArgument)) != string(actual.(AnythingOfTypeArgument)) {
-					}
+				if reflect.TypeOf(actual).Name() == "AnythingOfTypeArgument" &&
+					reflect.TypeOf(expected).Name() == "AnythingOfTypeArgument" &&
+					string(expected.(AnythingOfTypeArgument)) != string(actual.(AnythingOfTypeArgument)) {
 				} else {
 					differences++
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
