@@ -491,6 +491,14 @@ func TestContains(t *testing.T) {
 	if Contains(mockT, simpleMap, "Bar") {
 		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Bar\"")
 	}
+
+	type MyString string
+	if Contains(mockT, "hello world", MyString("hello")) {
+		t.Error("Contains should return false: incompatible types")
+	}
+	if Contains(mockT, []string{"hello", "world"}, MyString("hello")) {
+		t.Error("Contains should return false: incompatible types")
+	}
 }
 
 func TestNotContains(t *testing.T) {
@@ -517,6 +525,17 @@ func TestNotContains(t *testing.T) {
 	}
 	if !NotContains(mockT, simpleMap, "Bar") {
 		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Bar\"")
+	}
+
+	type MyString string
+	if NotContains(mockT, "hello world", MyString("unexpected")) {
+		t.Error("NotContains should return false: incompatible types")
+	}
+	if NotContains(mockT, []string{"hello", "world"}, MyString("unexpected")) {
+		t.Error("NotContains should return false: incompatible types")
+	}
+	if NotContains(mockT, []int{1, 2, 3}, []string{"1"}) {
+		t.Error("NotContains should return false: incompatible types")
 	}
 }
 
@@ -548,6 +567,16 @@ func TestSubset(t *testing.T) {
 	if Subset(mockT, []int{1, 2, 3}, []int{1, 5}) {
 		t.Error("Subset should return false: [1, 2, 3] does not contain [1, 5]")
 	}
+
+	if Subset(mockT, "hello world", []string{"hello", "world"}) {
+		t.Error("Subset should return false: unexpected list type")
+	}
+	if Subset(mockT, []int{1, 2, 3}, []string{}) {
+		t.Error("Subset should return false: incompatible types")
+	}
+	if Subset(mockT, struct{}{}, nil) {
+		t.Error("Subset should return false: incompatible types")
+	}
 }
 
 func TestNotSubset(t *testing.T) {
@@ -578,6 +607,13 @@ func TestNotSubset(t *testing.T) {
 	if !NotSubset(mockT, []int{1, 2, 3}, []int{1, 5}) {
 		t.Error("NotSubset should return true: [1, 2, 3] does not contain [1, 5]")
 	}
+
+	if NotSubset(mockT, "hello world", []string{"unexpected"}) {
+		t.Error("NotSubset should return false: unexpected list type")
+	}
+	if NotSubset(mockT, []int{1, 2, 3}, []string{"1"}) {
+		t.Error("NotSubset should return false: incompatible types")
+	}
 }
 
 func TestNotSubsetNil(t *testing.T) {
@@ -588,55 +624,91 @@ func TestNotSubsetNil(t *testing.T) {
 	}
 }
 
+func Test_assertIncludeElementTypes(t *testing.T) {
+	type stringAlias string
+	type intAlias int
+
+	t.Run("String", func(t *testing.T) {
+		True(t, assertIncludeElementTypesForContains("", ""))
+
+		False(t, assertIncludeElementTypesForContains("", stringAlias("")))
+		False(t, assertIncludeElementTypesForContains("", int(0)))
+		False(t, assertIncludeElementTypesForContains("", intAlias(0)))
+		False(t, assertIncludeElementTypesForContains("", struct{}{}))
+		False(t, assertIncludeElementTypesForContains("", nil))
+	})
+
+	t.Run("Slice", func(t *testing.T) {
+		True(t, assertIncludeElementTypesForContains([]int(nil), int(0)))
+		True(t, assertIncludeElementTypesForContains([]intAlias(nil), intAlias(0)))
+		True(t, assertIncludeElementTypesForContains([]interface{}(nil), struct{}{}))
+
+		True(t, assertIncludeElementTypesForContains([]interface{}(nil), nil))
+		True(t, assertIncludeElementTypesForContains([][]int(nil), nil))
+		True(t, assertIncludeElementTypesForContains(([]func())(nil), nil))
+
+		False(t, assertIncludeElementTypesForContains([]int(nil), (*int)(nil)))
+		False(t, assertIncludeElementTypesForContains([]int(nil), nil))
+		False(t, assertIncludeElementTypesForContains([]struct{}(nil), nil))
+		False(t, assertIncludeElementTypesForContains([]interface {
+			Foo()
+		}(nil), int(0)))
+	})
+
+	t.Run("Map", func(t *testing.T) {
+		type x struct{}
+
+		True(t, assertIncludeElementTypesForContains(map[int]x(nil), int(0)))
+		True(t, assertIncludeElementTypesForContains(map[intAlias]x(nil), intAlias(0)))
+		True(t, assertIncludeElementTypesForContains(map[interface{}]x(nil), struct{}{}))
+
+		True(t, assertIncludeElementTypesForContains(map[interface{}]x(nil), nil))
+
+		False(t, assertIncludeElementTypesForContains(map[int]x(nil), (*int)(nil)))
+		False(t, assertIncludeElementTypesForContains(map[int]x(nil), nil))
+		False(t, assertIncludeElementTypesForContains(map[struct{}]x(nil), nil))
+		False(t, assertIncludeElementTypesForContains(map[interface {
+			Foo()
+		}]x(nil), int(0)))
+	})
+
+	t.Run("InvalidListType", func(t *testing.T) {
+		False(t, assertIncludeElementTypesForContains(int(0), int(0)))
+		False(t, assertIncludeElementTypesForContains(int64(0), int64(0)))
+		False(t, assertIncludeElementTypesForContains(true, true))
+		False(t, assertIncludeElementTypesForContains(func() {}, func() {}))
+		False(t, assertIncludeElementTypesForContains(struct{}{}, struct{}{}))
+		False(t, assertIncludeElementTypesForContains((*interface{})(nil), (*interface{})(nil)))
+	})
+
+	t.Run("ElementList", func(t *testing.T) {
+		True(t, assertIncludeElementTypesForSubset([]int(nil), []int(nil)))
+		True(t, assertIncludeElementTypesForSubset([]interface{}(nil), []int(nil)))
+		True(t, assertIncludeElementTypesForSubset([]struct{}(nil), []interface{}(nil)))
+
+		False(t, assertIncludeElementTypesForSubset([]int(nil), []*int(nil)))
+
+		False(t, assertIncludeElementTypesForSubset([]int(nil), int(0)))
+		False(t, assertIncludeElementTypesForSubset([]int(nil), map[int]int(nil)))
+	})
+}
+
 func Test_includeElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
-	ok, found := includeElement("Hello World", "World")
-	True(t, ok)
-	True(t, found)
-
-	ok, found = includeElement(list1, "Foo")
-	True(t, ok)
-	True(t, found)
-
-	ok, found = includeElement(list1, "Bar")
-	True(t, ok)
-	True(t, found)
-
-	ok, found = includeElement(list2, 1)
-	True(t, ok)
-	True(t, found)
-
-	ok, found = includeElement(list2, 2)
-	True(t, ok)
-	True(t, found)
-
-	ok, found = includeElement(list1, "Foo!")
-	True(t, ok)
-	False(t, found)
-
-	ok, found = includeElement(list2, 3)
-	True(t, ok)
-	False(t, found)
-
-	ok, found = includeElement(list2, "1")
-	True(t, ok)
-	False(t, found)
-
-	ok, found = includeElement(simpleMap, "Foo")
-	True(t, ok)
-	True(t, found)
-
-	ok, found = includeElement(simpleMap, "Bar")
-	True(t, ok)
-	False(t, found)
-
-	ok, found = includeElement(1433, "1")
-	False(t, ok)
-	False(t, found)
+	True(t, includeElement("Hello World", "World"))
+	True(t, includeElement(list1, "Foo"))
+	True(t, includeElement(list1, "Bar"))
+	True(t, includeElement(list2, 1))
+	True(t, includeElement(list2, 2))
+	False(t, includeElement(list1, "Foo!"))
+	False(t, includeElement(list2, 3))
+	False(t, includeElement(list2, "1"))
+	True(t, includeElement(simpleMap, "Foo"))
+	False(t, includeElement(simpleMap, "Bar"))
 }
 
 func TestElementsMatch(t *testing.T) {
