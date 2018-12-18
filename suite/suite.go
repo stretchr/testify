@@ -55,6 +55,21 @@ func (suite *Suite) Assert() *assert.Assertions {
 	return suite.Assertions
 }
 
+// Run is a helper method to do a simple subtest. It sets `T()` to the
+// `*testing.T` of the subtest.
+func (suite *Suite) Run(name string, f func()) {
+	oldT := suite.T()
+	suite.T().Run(name, func(t *testing.T) {
+		suite.SetT(t)
+
+		defer func() {
+			suite.SetT(oldT)
+		}()
+
+		f()
+	})
+}
+
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
