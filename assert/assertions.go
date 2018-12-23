@@ -629,7 +629,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 func includeElement(list interface{}, element interface{}) (ok, found bool) {
 
 	listValue := reflect.ValueOf(list)
-	elementValue := reflect.ValueOf(element)
+	listValueKind := listValue.Kind()
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
@@ -637,11 +637,12 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}()
 
-	if reflect.TypeOf(list).Kind() == reflect.String {
+	if listValueKind == reflect.String {
+		elementValue := reflect.ValueOf(element)
 		return true, strings.Contains(listValue.String(), elementValue.String())
 	}
 
-	if reflect.TypeOf(list).Kind() == reflect.Map {
+	if listValueKind == reflect.Map {
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
 			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
