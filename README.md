@@ -1,7 +1,10 @@
 go-difflib
 ==========
 
-[![Build Status](https://travis-ci.org/pmezard/go-difflib.png?branch=master)](https://travis-ci.org/pmezard/go-difflib)
+THIS PACKAGE IS NO LONGER MAINTAINED.
+
+At this point, I have no longer the time nor the interest to work on go-difflib. I apologize for the inconvenience.
+
 [![GoDoc](https://godoc.org/github.com/pmezard/go-difflib/difflib?status.svg)](https://godoc.org/github.com/pmezard/go-difflib/difflib)
 
 Go-difflib is a partial port of python 3 difflib package. Its main goal
