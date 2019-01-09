@@ -168,8 +168,8 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...i
 //
 //   actualObj, err := SomeFunction()
 //   assert.EqualError(t, err,  expectedErrorString)
-func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) {
-	if assert.EqualError(t, theError, errString, msgAndArgs...) {
+func EqualError(t TestingT, theError error, errExpected interface{}, msgAndArgs ...interface{}) {
+	if assert.EqualError(t, theError, errExpected, msgAndArgs...) {
 		return
 	}
 	if h, ok := t.(tHelper); ok {
@@ -183,8 +183,8 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 //
 //   actualObj, err := SomeFunction()
 //   assert.EqualErrorf(t, err,  expectedErrorString, "error message %s", "formatted")
-func EqualErrorf(t TestingT, theError error, errString string, msg string, args ...interface{}) {
-	if assert.EqualErrorf(t, theError, errString, msg, args...) {
+func EqualErrorf(t TestingT, theError error, errExpected interface{}, msg string, args ...interface{}) {
+	if assert.EqualErrorf(t, theError, errExpected, msg, args...) {
 		return
 	}
 	if h, ok := t.(tHelper); ok {
