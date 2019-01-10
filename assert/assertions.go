@@ -350,6 +350,37 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 
 }
 
+// Same asserts that two pointers reference the same object.
+//
+//    assert.Same(t, ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	expectedPtr, actualPtr := reflect.ValueOf(expected), reflect.ValueOf(actual)
+	if expectedPtr.Kind() != reflect.Ptr || actualPtr.Kind() != reflect.Ptr {
+		return Fail(t, "Invalid operation: both arguments must be pointers", msgAndArgs...)
+	}
+
+	expectedType, actualType := reflect.TypeOf(expected), reflect.TypeOf(actual)
+	if expectedType != actualType {
+		return Fail(t, fmt.Sprintf("Pointer expected to be of type %v, but was %v",
+			expectedType, actualType), msgAndArgs...)
+	}
+
+	if expected != actual {
+		return Fail(t, fmt.Sprintf("Not same: \n"+
+			"expected: %p %#v\n"+
+			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
+	}
+
+	return true
+}
+
 // formatUnequalValues takes two values of arbitrary types and returns string
 // representations appropriate to be presented to the user.
 //
