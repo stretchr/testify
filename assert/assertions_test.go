@@ -217,6 +217,29 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+func TestSame(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	ptr := func(i int) *int {
+		return &i
+	}
+
+	if Same(mockT, ptr(1), ptr(1)) {
+		t.Error("Same should return false")
+	}
+	if Same(mockT, 1, 1) {
+		t.Error("Same should return false")
+	}
+	p := ptr(2)
+	if Same(mockT, p, *p) {
+		t.Error("Same should return false")
+	}
+	if !Same(mockT, p, p) {
+		t.Error("Same should return true")
+	}
+}
+
 // bufferT implements TestingT. Its implementation of Errorf writes the output that would be produced by
 // testing.T.Errorf to an internal bytes.Buffer.
 type bufferT struct {
