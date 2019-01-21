@@ -1189,7 +1189,7 @@ func Test_Arguments_Diff(t *testing.T) {
 
 	assert.Equal(t, 2, count)
 	assert.Contains(t, diff, `(int=456) != (int=123)`)
-	assert.Contains(t, diff, `(string=false) != (bool=true)`)
+	assert.Contains(t, diff, `(string="false") != (bool=true)`)
 
 }
 
@@ -1201,7 +1201,7 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"string", 456, "false", "extra"})
 
 	assert.Equal(t, 3, count)
-	assert.Contains(t, diff, `(string=extra) != (Missing)`)
+	assert.Contains(t, diff, `(string="extra") != (Missing)`)
 
 }
 
