@@ -19,6 +19,11 @@ type SuiteRequireTwice struct{ Suite }
 // suite.requirements was not initialised in suite.SetT()
 // A regression would result on these tests panicking rather than failing.
 func TestSuiteRequireTwice(t *testing.T) {
+	stdout := os.Stdout
+	os.Stdout, _ = ioutil.TempFile("", "")
+	defer func() {
+		os.Stdout = stdout
+	}()
 	ok := testing.RunTests(
 		allTestsFilter,
 		[]testing.InternalTest{{
@@ -127,6 +132,12 @@ func TestSuiteRecoverPanic(t *testing.T) {
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTearDownSuite: true}) },
 		},
 	}
+
+	stdout := os.Stdout
+	os.Stdout, _ = ioutil.TempFile("", "")
+	defer func() {
+		os.Stdout = stdout
+	}()
 
 	require.NotPanics(t, func() {
 		ok = testing.RunTests(allTestsFilter, panickingTests)
