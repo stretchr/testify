@@ -113,6 +113,17 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) bool {
 	return Error(t, err, append([]interface{}{msg}, args...)...)
 }
 
+// Eventuallyf asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Eventually(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
+}
+
 // Exactlyf asserts that two objects are equal in value and type.
 //
 //    assert.Exactlyf(t, int32(123, "error message %s", "formatted"), int64(123))
