@@ -216,6 +216,28 @@ func (a *Assertions) Errorf(err error, msg string, args ...interface{}) {
 	Errorf(a.t, err, msg, args...)
 }
 
+// Eventually asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    a.Eventually(func() bool { return true; }, time.Second, 10*time.Millisecond)
+func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Eventually(a.t, condition, waitFor, tick, msgAndArgs...)
+}
+
+// Eventuallyf asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    a.Eventuallyf(func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func (a *Assertions) Eventuallyf(condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Eventuallyf(a.t, condition, waitFor, tick, msg, args...)
+}
+
 // Exactly asserts that two objects are equal in value and type.
 //
 //    a.Exactly(int32(123), int64(123))
