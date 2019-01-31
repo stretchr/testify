@@ -270,6 +270,34 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// Eventually asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
+func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+	if assert.Eventually(t, condition, waitFor, tick, msgAndArgs...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
+// Eventuallyf asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+	if assert.Eventuallyf(t, condition, waitFor, tick, msg, args...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
 // Exactly asserts that two objects are equal in value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123))
