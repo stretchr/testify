@@ -165,15 +165,6 @@ type SuiteTester struct {
 	TimeAfter  []time.Time
 }
 
-type SuiteSkipTester struct {
-	// Include our basic suite logic.
-	Suite
-
-	// Keep counts of how many times each method is run.
-	SetupSuiteRunCount    int
-	TearDownSuiteRunCount int
-}
-
 // The SetupSuite method will be run by testify once, at the very
 // start of the testing suite, before any tests are run.
 func (suite *SuiteTester) SetupSuite() {
@@ -192,18 +183,9 @@ func (suite *SuiteTester) AfterTest(suiteName, testName string) {
 	suite.TimeAfter = append(suite.TimeAfter, time.Now())
 }
 
-func (suite *SuiteSkipTester) SetupSuite() {
-	suite.SetupSuiteRunCount++
-	suite.T().Skip()
-}
-
 // The TearDownSuite method will be run by testify once, at the very
 // end of the testing suite, after all tests have been run.
 func (suite *SuiteTester) TearDownSuite() {
-	suite.TearDownSuiteRunCount++
-}
-
-func (suite *SuiteSkipTester) TearDownSuite() {
 	suite.TearDownSuiteRunCount++
 }
 
@@ -266,6 +248,30 @@ func (suite *SuiteTester) TestSubtest() {
 		})
 		suite.Equal(suiteT, suite.T())
 	}
+}
+
+type SuiteSkipTester struct {
+	// Include our basic suite logic.
+	Suite
+
+	// Keep counts of how many times each method is run.
+	SetupSuiteRunCount    int
+	TearDownSuiteRunCount int
+}
+
+func (suite *SuiteSkipTester) SetupSuite() {
+	suite.SetupSuiteRunCount++
+	suite.T().Skip()
+}
+
+func (suite *SuiteSkipTester) TestNothing() {
+	// SetupSuite is only called when at least one test satisfies
+	// test filter. For this suite to be set up (and then tore down)
+	// it is necessary to add at least one test method.
+}
+
+func (suite *SuiteSkipTester) TearDownSuite() {
+	suite.TearDownSuiteRunCount++
 }
 
 // TestRunSuite will be run by the 'go test' command, so within it, we
