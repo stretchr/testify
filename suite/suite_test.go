@@ -265,7 +265,7 @@ func (suite *SuiteSkipTester) SetupSuite() {
 }
 
 func (suite *SuiteSkipTester) TestNothing() {
-	// SetupSuite is only called when at least one test satisfies
+	// SetupSuite() is only called when at least one test satisfies
 	// test filter. For this suite to be set up (and then tore down)
 	// it is necessary to add at least one test method.
 }
