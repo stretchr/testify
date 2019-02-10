@@ -82,7 +82,7 @@ func Run(t *testing.T, suite TestingSuite) {
 	suite.SetT(t)
 	defer failOnPanic(t)
 
-	setupDone := false
+	suiteSetupDone := false
 	
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
@@ -96,7 +96,7 @@ func Run(t *testing.T, suite TestingSuite) {
 		if !ok {
 			continue
 		}
-		if !setupDone {
+		if !suiteSetupDone {
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 				setupAllSuite.SetupSuite()
 			}
@@ -105,7 +105,7 @@ func Run(t *testing.T, suite TestingSuite) {
 					tearDownAllSuite.TearDownSuite()
 				}
 			}()
-			setupDone = true
+			suiteSetupDone = true
 		}
 		test := testing.InternalTest{
 			Name: method.Name,
