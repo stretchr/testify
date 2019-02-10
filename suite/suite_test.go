@@ -265,7 +265,7 @@ func (suite *SuiteSkipTester) SetupSuite() {
 }
 
 func (suite *SuiteSkipTester) TestNothing() {
-	// SetupSuite() is only called when at least one test satisfies
+	// SetupSuite is only called when at least one test satisfies
 	// test filter. For this suite to be set up (and then tore down)
 	// it is necessary to add at least one test method.
 }
@@ -344,6 +344,33 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, suiteSkipTester.SetupSuiteRunCount, 1)
 	assert.Equal(t, suiteSkipTester.TearDownSuiteRunCount, 1)
 
+}
+
+// This suite has no Test... methods. It's setup and teardown must be skipped.
+type SuiteSetupSkipTester struct {
+	Suite
+
+	setUp bool
+	toreDown bool
+}
+
+func (s *SuiteSetupSkipTester) SetupSuite() {
+	s.setUp = true
+}
+
+func (s *SuiteSetupSkipTester) NonTestMethod() {
+
+}
+
+func (s *SuiteSetupSkipTester) TearDownSuite() {
+	s.toreDown = true
+}
+
+func TestSkippingSuiteSetup(t *testing.T) {
+	suiteTester := new(SuiteSetupSkipTester)
+	Run(t, suiteTester)
+	assert.False(t, suiteTester.setUp)
+	assert.False(t, suiteTester.toreDown)
 }
 
 func TestSuiteGetters(t *testing.T) {
