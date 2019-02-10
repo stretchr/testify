@@ -193,6 +193,28 @@ func EqualErrorf(t TestingT, theError error, errString string, msg string, args 
 	t.FailNow()
 }
 
+// EqualFileContent checks whether a file has the expected content.
+func EqualFileContent(t TestingT, path string, content string, msgAndArgs ...interface{}) {
+	if assert.EqualFileContent(t, path, content, msgAndArgs...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
+// EqualFileContentf checks whether a file has the expected content.
+func EqualFileContentf(t TestingT, path string, content string, msg string, args ...interface{}) {
+	if assert.EqualFileContentf(t, path, content, msg, args...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
 // EqualValues asserts that two objects are equal or convertable to the same types
 // and equal.
 //

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
 	"reflect"
@@ -1316,6 +1317,20 @@ func DirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
 	}
 	return true
+}
+
+// EqualFileContent checks whether a file has the expected content.
+func EqualFileContent(t TestingT, path string, content string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("error when running ioutil.ReadFile(%q): %s", path, err), msgAndArgs...)
+	}
+
+	return Equal(t, content, string(data), msgAndArgs)
 }
 
 // JSONEq asserts that two JSON strings are equivalent.

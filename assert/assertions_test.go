@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 	"reflect"
@@ -1367,6 +1368,25 @@ func TestDirExists(t *testing.T) {
 
 	mockT = new(testing.T)
 	True(t, DirExists(mockT, "../_codegen"))
+}
+
+func TestEqualFileContent(t *testing.T) {
+	mockT := new(testing.T)
+	f, err := ioutil.TempFile("", "testify-test-equal-file-content-*")
+	if err != nil {
+		t.FailNow()
+	}
+	defer f.Close()
+
+	fc := `Foo Bar
+Example file content
+`
+
+	f.Write([]byte(fc))
+
+	f.Close()
+
+	False(t, EqualFileContent(mockT, f.Name(), fc))
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
