@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"runtime/debug"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,7 +59,7 @@ func (suite *Suite) Assert() *assert.Assertions {
 func failOnPanic(t *testing.T) {
 	r := recover()
 	if r != nil {
-		t.Errorf("test panicked: %v", r)
+		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
 		t.FailNow()
 	}
 }
