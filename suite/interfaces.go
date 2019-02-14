@@ -44,3 +44,8 @@ type BeforeTest interface {
 type AfterTest interface {
 	AfterTest(suiteName, testName string)
 }
+
+// BeforePanic has a function to be executed if a test panics
+type BeforePanic interface {
+	BeforePanic(suiteName, testName string)
+}

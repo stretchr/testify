@@ -115,6 +115,13 @@ func Run(t *testing.T, suite TestingSuite) {
 						beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 					}
 					defer func() {
+						err := recover()
+						if err != nil {
+							if beforePanicSuite, ok := suite.(BeforePanic); ok {
+								beforePanicSuite.BeforePanic(methodFinder.Elem().Name(), method.Name)
+							}
+							panic(err)
+						}
 						if afterTestSuite, ok := suite.(AfterTest); ok {
 							afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
 						}
