@@ -45,7 +45,7 @@ type BoolAssertionFunc func(TestingT, bool, ...interface{}) bool
 // for table driven tests.
 type ErrorAssertionFunc func(TestingT, error, ...interface{}) bool
 
-// Comparison a custom function that returns true on success and false on failure
+// Comparison is a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
 /*
