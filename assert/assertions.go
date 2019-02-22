@@ -553,6 +553,7 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 	}
 	ok, l := getLen(object)
 	if !ok {
+		//TODO: should it be - \"%s\" could not be applied <to> builtin len() or maybe "len() could not be applied to \"%s\" 
 		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
 	}
 
