@@ -29,7 +29,7 @@ func TestCompare(t *testing.T) {
 			t.Error("object should be comparable for type " + currCase.cType)
 		}
 
-		if resLess != 1 {
+		if resLess != -1 {
 			t.Errorf("object less should be less than greater for type " + currCase.cType)
 		}
 
@@ -38,7 +38,7 @@ func TestCompare(t *testing.T) {
 			t.Error("object are comparable for type " + currCase.cType)
 		}
 
-		if resGreater != -1 {
+		if resGreater != 1 {
 			t.Errorf("object greater should be greater than less for type " + currCase.cType)
 		}
 
