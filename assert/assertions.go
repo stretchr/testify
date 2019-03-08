@@ -1110,6 +1110,8 @@ func toFloat(x interface{}) (float64, bool) {
 	xok := true
 
 	switch xn := x.(type) {
+	case uint:
+		xf = float64(xn)
 	case uint8:
 		xf = float64(xn)
 	case uint16:
