@@ -1115,6 +1115,7 @@ func TestInDelta(t *testing.T) {
 		a, b  interface{}
 		delta float64
 	}{
+		{uint(2), uint(1), 1},
 		{uint8(2), uint8(1), 1},
 		{uint16(2), uint16(1), 1},
 		{uint32(2), uint32(1), 1},
