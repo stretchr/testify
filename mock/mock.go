@@ -32,6 +32,8 @@ type TestingT interface {
 	Call
 */
 
+type returnArgumentsFunc func(args Arguments) Arguments
+
 // Call represents a method call and is used for setting expectations,
 // as well as recording activity.
 type Call struct {
@@ -44,8 +46,14 @@ type Call struct {
 	Arguments Arguments
 
 	// Holds the arguments that should be returned when
-	// this method is called.
+	// this method is called.  If the first and only value is
+	// function which takes and returns Arguments, that will be invoked
+	// on each call of the mock to determine what to return.
 	ReturnArguments Arguments
+
+	// if the first arg in ReturnArguments is a returnArgumentsFunc, this
+	// stores that ready for use
+	returnFunc returnArgumentsFunc
 
 	// Holds the caller info for the On() call
 	callerInfo []string
@@ -102,14 +110,43 @@ func (c *Call) unlock() {
 	c.Parent.mutex.Unlock()
 }
 
+// If the only return arg is a function which takes and returns Arguments, invoke it instead of returning it as the value
+func (c *Call) getReturnArguments(args Arguments) Arguments {
+	if c.returnFunc != nil {
+		return c.returnFunc(args)
+	}
+
+	return c.ReturnArguments
+}
+
+var argumentsType = reflect.TypeOf(Arguments(nil))
+
 // Return specifies the return arguments for the expectation.
 //
 //	Mock.On("DoSomething").Return(errors.New("failed"))
+//
+// If you pass a single returnArg which is a function that itself takes Arguments and returns Arguments,
+// that will be invoked at runtime.
+//
+//    Mock.On("HelloWorld").Return(func(args mock.Arguments) mock.Arguments { return "Hello " + arg[0].(string) })
 func (c *Call) Return(returnArguments ...interface{}) *Call {
 	c.lock()
 	defer c.unlock()
 
 	c.ReturnArguments = returnArguments
+
+	if len(c.ReturnArguments) == 1 {
+		fn := reflect.ValueOf(c.ReturnArguments[0])
+		if fn.Kind() == reflect.Func {
+			fnType := fn.Type()
+			if fnType.NumIn() == 1 && fnType.NumOut() == 1 && fnType.In(0) == argumentsType && fnType.Out(0) == argumentsType {
+				c.returnFunc = func(args Arguments) Arguments {
+					ret := fn.Call([]reflect.Value{reflect.ValueOf(args)})
+					return ret[0].Interface().(Arguments)
+				}
+			}
+		}
+	}
 
 	return c
 }
@@ -581,7 +618,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	}
 
 	m.mutex.Lock()
-	returnArgs := call.ReturnArguments
+	returnArgs := call.getReturnArguments(arguments)
 	m.mutex.Unlock()
 
 	return returnArgs
