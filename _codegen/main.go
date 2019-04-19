@@ -28,11 +28,12 @@ import (
 )
 
 var (
-	pkg       = flag.String("assert-path", "github.com/stretchr/testify/assert", "Path to the assert package")
-	includeF  = flag.Bool("include-format-funcs", false, "include format functions such as Errorf and Equalf")
-	outputPkg = flag.String("output-package", "", "package for the resulting code")
-	tmplFile  = flag.String("template", "", "What file to load the function template from")
-	out       = flag.String("out", "", "What file to write the source code to")
+	pkg               = flag.String("assert-path", "github.com/stretchr/testify/assert", "Path to the assert package")
+	includeF          = flag.Bool("include-format-funcs", false, "include format functions such as Errorf and Equalf")
+	outputPkg         = flag.String("output-package", "", "package for the resulting code")
+	tmplFile          = flag.String("template", "", "What file to load the function template from")
+	out               = flag.String("out", "", "What file to write the source code to")
+	additionalImports = flag.String("additional-imports", "", "additional packages to import")
 )
 
 func main() {
@@ -61,13 +62,20 @@ func generateCode(importer imports.Importer, funcs []testFunc) error {
 		return err
 	}
 
+	imports := importer.Imports()
+	if len(*additionalImports) > 0 {
+		for _, pkg := range strings.Split(*additionalImports, ",") {
+			imports[pkg] = path.Base(pkg)
+		}
+	}
+
 	// Generate header
 	if err := tmplHead.Execute(buff, struct {
 		Name    string
 		Imports map[string]string
 	}{
 		*outputPkg,
-		importer.Imports(),
+		imports,
 	}); err != nil {
 		return err
 	}
