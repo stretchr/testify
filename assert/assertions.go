@@ -386,15 +386,43 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 //
 // If the values are not of like type, the returned strings will be prefixed
 // with the type name, and the value will be enclosed in parenthesis similar
-// to a type conversion in the Go grammar.
+// to a type conversion in the Go grammar. The value of type which implements
+// fmt.Stringer will be presented by the returned string of its String() method,
+// otherwise, default format will be used.
 func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 	if reflect.TypeOf(expected) != reflect.TypeOf(actual) {
-		return fmt.Sprintf("%T(%#v)", expected, expected),
-			fmt.Sprintf("%T(%#v)", actual, actual)
+		switch expected.(type) {
+		case fmt.Stringer:
+			e = fmt.Sprintf("%T(%s)", expected, expected)
+		default:
+			e = fmt.Sprintf("%T(%#v)", expected, expected)
+		}
+
+		switch actual.(type) {
+		case fmt.Stringer:
+			a = fmt.Sprintf("%T(%s)", actual, actual)
+		default:
+			a = fmt.Sprintf("%T(%#v)", actual, actual)
+		}
+		
+		return
 	}
 
-	return fmt.Sprintf("%#v", expected),
-		fmt.Sprintf("%#v", actual)
+	switch expected.(type) {
+	case fmt.Stringer:
+		e = fmt.Sprintf("%s", expected)
+	default:
+		e = fmt.Sprintf("%#v", expected)
+	}
+
+	switch actual.(type) {
+	case fmt.Stringer:
+		a = fmt.Sprintf("%s", actual)
+	default:
+		a = fmt.Sprintf("%#v", actual)
+	}
+
+	return
 }
 
 // EqualValues asserts that two objects are equal or convertable to the same types
