@@ -476,8 +476,191 @@ type A struct {
 	Name, Value string
 }
 
-func TestContains(t *testing.T) {
+func TestHasPrefix(t *testing.T) {
+	mockT := new(testing.T)
 
+	list := []string{"Foo", "Bar", "Baz"}
+	listPrefix := []string{list[0], list[1]}
+	listSuffix := []string{list[1], list[2]}
+
+	complexList := []*A{
+		{"b", "c"},
+		{"d", "e"},
+		{"g", "h"},
+		{"j", "k"},
+	}
+	complexListPrefix := []*A{complexList[0], complexList[1]}
+	complexListSuffix := []*A{complexList[2], complexList[3]}
+
+	if !HasPrefix(mockT, "", "") {
+		t.Error("HasPrefix should return true: the empty string is a prefix of the empty string")
+	}
+
+	if !HasPrefix(mockT, "Hello World", "Hello") {
+		t.Error("HasPrefix should return true: \"Hello World\" starts with \"Hello\"")
+	}
+	if HasPrefix(mockT, "Hello World", "World") {
+		t.Error("HasPrefix should return false: \"Hello World\" does not start with \"World\"")
+	}
+
+	if !HasPrefix(mockT, []string{}, []string{}) {
+		t.Error("HasPrefix should return true: the empty list is a prefix of the empty list")
+	}
+
+	if !HasPrefix(mockT, list, listPrefix) {
+		t.Errorf("HasPrefix should return true: %v starts with %v", list, listPrefix)
+	}
+	if HasPrefix(mockT, list, listSuffix) {
+		t.Errorf("HasPrefix should return false: %v does not start with %v", list, listSuffix)
+	}
+
+	if !HasPrefix(mockT, complexList, complexListPrefix) {
+		t.Errorf("HasPrefix should return true: %v starts with %v", complexList, complexListPrefix)
+	}
+	if HasPrefix(mockT, complexList, complexListSuffix) {
+		t.Errorf("HasPrefix should return false: %v does not start with %v", complexList, complexListSuffix)
+	}
+}
+
+func TestNotHasPrefix(t *testing.T) {
+	mockT := new(testing.T)
+
+	list := []string{"Foo", "Bar", "Baz"}
+	listPrefix := []string{list[0], list[1]}
+	listSuffix := []string{list[1], list[2]}
+
+	complexList := []*A{
+		{"b", "c"},
+		{"d", "e"},
+		{"g", "h"},
+		{"j", "k"},
+	}
+	complexListPrefix := []*A{complexList[0], complexList[1]}
+	complexListSuffix := []*A{complexList[2], complexList[3]}
+
+	if NotHasPrefix(mockT, "", "") {
+		t.Error("NotHasPrefix should return false: the empty string is a prefix of the empty string")
+	}
+
+	if NotHasPrefix(mockT, "Hello World", "Hello") {
+		t.Error("NotHasPrefix should return false: \"Hello World\" starts with \"Hello\"")
+	}
+	if !NotHasPrefix(mockT, "Hello World", "World") {
+		t.Error("NotHasPrefix should return true: \"Hello World\" does not start with \"World\"")
+	}
+
+	if NotHasPrefix(mockT, []string{}, []string{}) {
+		t.Error("NotHasPrefix should return false: the empty list is a prefix of the empty list")
+	}
+
+	if NotHasPrefix(mockT, list, listPrefix) {
+		t.Errorf("NotHasPrefix should return false: %v starts with %v", list, listPrefix)
+	}
+	if !NotHasPrefix(mockT, list, listSuffix) {
+		t.Errorf("NotHasPrefix should return true: %v does not start with %v", list, listSuffix)
+	}
+
+	if NotHasPrefix(mockT, complexList, complexListPrefix) {
+		t.Errorf("NotHasPrefix should return false: %v starts with %v", complexList, complexListPrefix)
+	}
+	if !NotHasPrefix(mockT, complexList, complexListSuffix) {
+		t.Errorf("NotHasPrefix should return true: %v does not start with %v", complexList, complexListSuffix)
+	}
+}
+
+func TestHasSuffix(t *testing.T) {
+	mockT := new(testing.T)
+
+	list := []string{"Foo", "Bar", "Baz"}
+	listPrefix := []string{list[0], list[1]}
+	listSuffix := []string{list[1], list[2]}
+
+	complexList := []*A{
+		{"b", "c"},
+		{"d", "e"},
+		{"g", "h"},
+		{"j", "k"},
+	}
+	complexListPrefix := []*A{complexList[0], complexList[1]}
+	complexListSuffix := []*A{complexList[2], complexList[3]}
+
+	if !HasSuffix(mockT, "", "") {
+		t.Error("HasSuffix should return true: the empty string is a suffix of the empty string")
+	}
+
+	if !HasSuffix(mockT, "Hello World", "World") {
+		t.Error("HasSuffix should return true: \"Hello World\" ends with \"World\"")
+	}
+	if HasSuffix(mockT, "Hello World", "Hello") {
+		t.Error("HasSuffix should return false: \"Hello World\" does not end with \"Hello\"")
+	}
+
+	if !HasSuffix(mockT, []string{}, []string{}) {
+		t.Error("HasSuffix should return true: the empty list is a suffix of the empty list")
+	}
+
+	if !HasSuffix(mockT, list, listSuffix) {
+		t.Errorf("HasSuffix should return true: %v ends with %v", list, listSuffix)
+	}
+	if HasSuffix(mockT, list, listPrefix) {
+		t.Errorf("HasSuffix should return false: %v does not end with %v", list, listPrefix)
+	}
+
+	if !HasSuffix(mockT, complexList, complexListSuffix) {
+		t.Errorf("HasSuffix should return true: %v ends with %v", complexList, complexListSuffix)
+	}
+	if HasSuffix(mockT, complexList, complexListPrefix) {
+		t.Errorf("HasSuffix should return false: %v does not end with %v", complexList, complexListPrefix)
+	}
+}
+
+func TestNotHasSuffix(t *testing.T) {
+	mockT := new(testing.T)
+
+	list := []string{"Foo", "Bar", "Baz"}
+	listPrefix := []string{list[0], list[1]}
+	listSuffix := []string{list[1], list[2]}
+
+	complexList := []*A{
+		{"b", "c"},
+		{"d", "e"},
+		{"g", "h"},
+		{"j", "k"},
+	}
+	complexListPrefix := []*A{complexList[0], complexList[1]}
+	complexListSuffix := []*A{complexList[2], complexList[3]}
+
+	if NotHasSuffix(mockT, "", "") {
+		t.Error("NotHasSuffix should return false: the empty string is a suffix of the empty string")
+	}
+
+	if NotHasSuffix(mockT, "Hello World", "World") {
+		t.Error("NotHasSuffix should return false: \"Hello World\" ends with \"World\"")
+	}
+	if !NotHasSuffix(mockT, "Hello World", "Hello") {
+		t.Error("NotHasSuffix should return true: \"Hello World\" does not end with \"Hello\"")
+	}
+
+	if NotHasSuffix(mockT, []string{}, []string{}) {
+		t.Error("NotHasSuffix should return false: the empty list is a suffix of the empty list")
+	}
+
+	if NotHasSuffix(mockT, list, listSuffix) {
+		t.Errorf("NotHasSuffix should return false: %v ends with %v", list, listSuffix)
+	}
+	if !NotHasSuffix(mockT, list, listPrefix) {
+		t.Errorf("NotHasSuffix should return true: %v does not end with %v", list, listPrefix)
+	}
+
+	if NotHasSuffix(mockT, complexList, complexListSuffix) {
+		t.Errorf("NotHasSuffix should return false: %v ends with %v", complexList, complexListSuffix)
+	}
+	if !NotHasSuffix(mockT, complexList, complexListPrefix) {
+		t.Errorf("NotHasSuffix should return true: %v does not end with %v", complexList, complexListPrefix)
+	}
+}
+
+func TestContains(t *testing.T) {
 	mockT := new(testing.T)
 	list := []string{"Foo", "Bar"}
 	complexList := []*A{
@@ -1676,6 +1859,11 @@ func TestComparisonAssertionFunc(t *testing.T) {
 		{"equalValues", t, t, EqualValues},
 		{"exactly", t, t, Exactly},
 		{"notEqual", t, nil, NotEqual},
+		{"hasPrefix", "abcd", "ab", HasPrefix},
+		{"notHasPrefix", "abcd", "bc", NotHasPrefix},
+		{"hasSuffix", "abcd", "cd", HasSuffix},
+		{"notHasSuffix", "abcd", "bc", NotHasSuffix},
+		{"contains", []int{1, 2, 3}, 2, Contains},
 		{"notContains", []int{1, 2, 3}, 4, NotContains},
 		{"subset", []int{1, 2, 3, 4}, []int{2, 3}, Subset},
 		{"notSubset", []int{1, 2, 3, 4}, []int{0, 3}, NotSubset},

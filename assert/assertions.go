@@ -20,7 +20,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 )
 
-//go:generate go run ../_codegen/main.go -output-package=assert -template=assertion_format.go.tmpl
+//go:generate ../codegen -output-package=assert -template=assertion_format.go.tmpl
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -170,8 +170,8 @@ func isTest(name, prefix string) bool {
 	if len(name) == len(prefix) { // "Test" is ok
 		return true
 	}
-	rune, _ := utf8.DecodeRuneInString(name[len(prefix):])
-	return !unicode.IsLower(rune)
+	nextRune, _ := utf8.DecodeRuneInString(name[len(prefix):])
+	return !unicode.IsLower(nextRune)
 }
 
 func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
@@ -653,12 +653,123 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 
 }
 
+func hasEndings(list, element interface{}) (ok, hasPrefix, hasSuffix bool) {
+	elementValue := reflect.ValueOf(element)
+	listValue := reflect.ValueOf(list)
+
+	defer func() {
+		if e := recover(); e != nil {
+			ok = false
+			hasPrefix = false
+			hasSuffix = false
+		}
+	}()
+
+	if reflect.TypeOf(list).Kind() == reflect.String {
+		ok = true
+		hasPrefix = strings.HasPrefix(listValue.String(), elementValue.String())
+		hasSuffix = strings.HasSuffix(listValue.String(), elementValue.String())
+		return
+	}
+
+	hasPrefix = true
+	hasSuffix = true
+	listLen := listValue.Len()
+	elementLen := elementValue.Len()
+	for i := 0; i < listLen; i++ {
+		if i < elementLen {
+			hasPrefix = hasPrefix && ObjectsAreEqual(listValue.Index(i).Interface(), elementValue.Index(i).Interface())
+		}
+		suffixIndex := elementLen - (listLen - i)
+		if suffixIndex >= 0 {
+			hasSuffix = hasSuffix && ObjectsAreEqual(listValue.Index(i).Interface(), elementValue.Index(suffixIndex).Interface())
+		}
+	}
+	ok = true
+	return
+}
+
+// HasPrefix asserts that the specified string or list(array, slice...) begins with the
+// specified substring or sequence of elements.
+//
+//    assert.HasPrefix(t, "Hello World", "Hello")
+//    assert.HasPrefix(t, ["Hello", "there", "World"], ["Hello", "there"])
+func HasPrefix(t TestingT, s, prefix interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	ok, hasPrefix, _ := hasEndings(s, prefix)
+	if !ok {
+		return Fail(t, fmt.Sprintf("%v could not be applied builtin len()", s), msgAndArgs...)
+	}
+	if !hasPrefix {
+		return Fail(t, fmt.Sprintf("%v does not have prefix %v", s, prefix), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotHasPrefix asserts the negation of HasPrefix.
+func NotHasPrefix(t TestingT, s, prefix interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	ok, hasPrefix, _ := hasEndings(s, prefix)
+	if !ok {
+		return Fail(t, fmt.Sprintf("%v could not be applied builtin len()", s), msgAndArgs...)
+	}
+	if hasPrefix {
+		return Fail(t, fmt.Sprintf("%v has prefix %v", s, prefix), msgAndArgs...)
+	}
+
+	return true
+}
+
+// HasSuffix asserts that the specified string or list(array, slice...) ends with the
+// specified substring or sequence of elements.
+//
+//    assert.HasSuffix(t, "Hello World", "World")
+//    assert.HasSuffix(t, ["Hello", "there", "World"], ["there", "World"])
+func HasSuffix(t TestingT, s, suffix interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	ok, _, hasSuffix := hasEndings(s, suffix)
+	if !ok {
+		return Fail(t, fmt.Sprintf("%v could not be applied builtin len()", s), msgAndArgs...)
+	}
+	if !hasSuffix {
+		return Fail(t, fmt.Sprintf("%v does not have suffix %v", s, suffix), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotHasSuffix asserts the negation of HasSuffix.
+func NotHasSuffix(t TestingT, s, suffix interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	ok, _, hasSuffix := hasEndings(s, suffix)
+	if !ok {
+		return Fail(t, fmt.Sprintf("%v could not be applied builtin len()", s), msgAndArgs...)
+	}
+	if hasSuffix {
+		return Fail(t, fmt.Sprintf("%v has suffix %v", s, suffix), msgAndArgs...)
+	}
+
+	return true
+}
+
 // containsElement try loop over the list check if the list includes the element.
 // return (false, false) if impossible.
 // return (true, false) if element was not found.
 // return (true, true) if element was found.
 func includeElement(list interface{}, element interface{}) (ok, found bool) {
-
 	listValue := reflect.ValueOf(list)
 	listKind := reflect.TypeOf(list).Kind()
 	defer func() {
@@ -689,7 +800,6 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}
 	return true, false
-
 }
 
 // Contains asserts that the specified string, list(array, slice...) or map contains the
@@ -712,7 +822,6 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 	}
 
 	return true
-
 }
 
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
@@ -735,7 +844,6 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 	}
 
 	return true
-
 }
 
 // Subset asserts that the specified list(array, slice...) contains all

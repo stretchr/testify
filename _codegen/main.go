@@ -193,8 +193,15 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 		fileList[i] = f
 	}
 
+	var imp types.Importer
+	if SOURCE_IMPORTER {
+		imp = importer.For("source", nil)
+	} else {
+		imp = importer.Default()
+	}
+
 	cfg := types.Config{
-		Importer: importer.Default(),
+		Importer: imp,
 	}
 	info := types.Info{
 		Defs: make(map[*ast.Ident]types.Object),
