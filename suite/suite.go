@@ -60,6 +60,7 @@ func (suite *Suite) Assert() *assert.Assertions {
 func Run(t *testing.T, suite TestingSuite) {
 	suite.SetT(t)
 
+<<<<<<< HEAD
 	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 		setupAllSuite.SetupSuite()
 	}
@@ -68,6 +69,9 @@ func Run(t *testing.T, suite TestingSuite) {
 			tearDownAllSuite.TearDownSuite()
 		}
 	}()
+=======
+	suiteSetupDone := false
+>>>>>>> cb27f83... Clean up code gen and CI
 
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}

@@ -222,6 +222,36 @@ func TestRunSuite(t *testing.T) {
 
 }
 
+<<<<<<< HEAD
+=======
+// This suite has no Test... methods. It's setup and teardown must be skipped.
+type SuiteSetupSkipTester struct {
+	Suite
+
+	setUp    bool
+	toreDown bool
+}
+
+func (s *SuiteSetupSkipTester) SetupSuite() {
+	s.setUp = true
+}
+
+func (s *SuiteSetupSkipTester) NonTestMethod() {
+
+}
+
+func (s *SuiteSetupSkipTester) TearDownSuite() {
+	s.toreDown = true
+}
+
+func TestSkippingSuiteSetup(t *testing.T) {
+	suiteTester := new(SuiteSetupSkipTester)
+	Run(t, suiteTester)
+	assert.False(t, suiteTester.setUp)
+	assert.False(t, suiteTester.toreDown)
+}
+
+>>>>>>> cb27f83... Clean up code gen and CI
 func TestSuiteGetters(t *testing.T) {
 	suite := new(SuiteTester)
 	suite.SetT(t)
