@@ -21,6 +21,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"runtime/debug"
 	"strings"
 	"text/template"
 
@@ -28,7 +29,7 @@ import (
 )
 
 var (
-	pkg       = flag.String("assert-path", "github.com/stretchr/testify/assert", "Path to the assert package")
+	pkg       = flag.String("assert-path", ".", "Path to the assert package")
 	includeF  = flag.Bool("include-format-funcs", false, "include format functions such as Errorf and Equalf")
 	outputPkg = flag.String("output-package", "", "package for the resulting code")
 	tmplFile  = flag.String("template", "", "What file to load the function template from")
@@ -43,12 +44,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	importer, funcs, err := analyzeCode(scope, docs)
+	imp, funcs, err := analyzeCode(scope, docs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := generateCode(importer, funcs); err != nil {
+	if err := generateCode(imp, funcs); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -195,7 +196,7 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 
 	var imp types.Importer
 	if SOURCE_IMPORTER {
-		imp = importer.For("source", nil)
+		imp = importer.ForCompiler(fset, "source", nil)
 	} else {
 		imp = importer.Default()
 	}
@@ -208,6 +209,7 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	}
 	tp, err := cfg.Check(pkg, fset, fileList, &info)
 	if err != nil {
+		log.Print(string(debug.Stack()))
 		return nil, nil, err
 	}
 
