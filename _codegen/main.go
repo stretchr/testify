@@ -196,7 +196,7 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 
 	var imp types.Importer
 	if SOURCE_IMPORTER {
-		imp = importer.ForCompiler(fset, "source", nil)
+		imp = importer.For("source", nil)
 	} else {
 		imp = importer.Default()
 	}
