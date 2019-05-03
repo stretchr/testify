@@ -3,6 +3,9 @@
 *.a
 *.so
 
+# Binaries
+codegen
+
 # Folders
 _obj
 _test
