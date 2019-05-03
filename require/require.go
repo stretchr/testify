@@ -610,11 +610,11 @@ func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url strin
 //    assert.HasPrefix(t, "Hello World", "Hello")
 //    assert.HasPrefix(t, ["Hello", "there", "World"], ["Hello", "there"])
 func HasPrefix(t TestingT, s interface{}, prefix interface{}, msgAndArgs ...interface{}) {
-	if assert.HasPrefix(t, s, prefix, msgAndArgs...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.HasPrefix(t, s, prefix, msgAndArgs...) {
+		return
 	}
 	t.FailNow()
 }
@@ -625,11 +625,11 @@ func HasPrefix(t TestingT, s interface{}, prefix interface{}, msgAndArgs ...inte
 //    assert.HasPrefixf(t, "Hello World", "Hello", "error message %s", "formatted")
 //    assert.HasPrefixf(t, ["Hello", "there", "World"], ["Hello", "there"], "error message %s", "formatted")
 func HasPrefixf(t TestingT, s interface{}, prefix interface{}, msg string, args ...interface{}) {
-	if assert.HasPrefixf(t, s, prefix, msg, args...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.HasPrefixf(t, s, prefix, msg, args...) {
+		return
 	}
 	t.FailNow()
 }
@@ -640,11 +640,11 @@ func HasPrefixf(t TestingT, s interface{}, prefix interface{}, msg string, args 
 //    assert.HasSuffix(t, "Hello World", "World")
 //    assert.HasSuffix(t, ["Hello", "there", "World"], ["there", "World"])
 func HasSuffix(t TestingT, s interface{}, suffix interface{}, msgAndArgs ...interface{}) {
-	if assert.HasSuffix(t, s, suffix, msgAndArgs...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.HasSuffix(t, s, suffix, msgAndArgs...) {
+		return
 	}
 	t.FailNow()
 }
@@ -655,11 +655,11 @@ func HasSuffix(t TestingT, s interface{}, suffix interface{}, msgAndArgs ...inte
 //    assert.HasSuffixf(t, "Hello World", "World", "error message %s", "formatted")
 //    assert.HasSuffixf(t, ["Hello", "there", "World"], ["there", "World"], "error message %s", "formatted")
 func HasSuffixf(t TestingT, s interface{}, suffix interface{}, msg string, args ...interface{}) {
-	if assert.HasSuffixf(t, s, suffix, msg, args...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.HasSuffixf(t, s, suffix, msg, args...) {
+		return
 	}
 	t.FailNow()
 }
@@ -1098,44 +1098,44 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 
 // NotHasPrefix asserts the negation of HasPrefix.
 func NotHasPrefix(t TestingT, s interface{}, prefix interface{}, msgAndArgs ...interface{}) {
-	if assert.NotHasPrefix(t, s, prefix, msgAndArgs...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.NotHasPrefix(t, s, prefix, msgAndArgs...) {
+		return
 	}
 	t.FailNow()
 }
 
 // NotHasPrefixf asserts the negation of HasPrefix.
 func NotHasPrefixf(t TestingT, s interface{}, prefix interface{}, msg string, args ...interface{}) {
-	if assert.NotHasPrefixf(t, s, prefix, msg, args...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.NotHasPrefixf(t, s, prefix, msg, args...) {
+		return
 	}
 	t.FailNow()
 }
 
 // NotHasSuffix asserts the negation of HasSuffix.
 func NotHasSuffix(t TestingT, s interface{}, suffix interface{}, msgAndArgs ...interface{}) {
-	if assert.NotHasSuffix(t, s, suffix, msgAndArgs...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.NotHasSuffix(t, s, suffix, msgAndArgs...) {
+		return
 	}
 	t.FailNow()
 }
 
 // NotHasSuffixf asserts the negation of HasSuffix.
 func NotHasSuffixf(t TestingT, s interface{}, suffix interface{}, msg string, args ...interface{}) {
-	if assert.NotHasSuffixf(t, s, suffix, msg, args...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.NotHasSuffixf(t, s, suffix, msg, args...) {
+		return
 	}
 	t.FailNow()
 }
