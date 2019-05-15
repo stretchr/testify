@@ -42,6 +42,9 @@ type Call struct {
 	// this method is called.
 	ReturnArguments Arguments
 
+	// Holds to run to dynamically retrieve the arguments to return
+	ReturnFn func() Arguments
+
 	// Holds the caller info for the On() call
 	callerInfo []string
 
@@ -96,6 +99,17 @@ func (c *Call) Return(returnArguments ...interface{}) *Call {
 	defer c.unlock()
 
 	c.ReturnArguments = returnArguments
+
+	return c
+}
+
+// Dynamic specifies a function which will be used to
+// compute returned arguments for the expectation
+func (c *Call) DynamicReturn(f func() Arguments) *Call {
+	c.lock()
+	defer c.unlock()
+
+	c.ReturnFn = f
 
 	return c
 }
@@ -393,7 +407,12 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	}
 
 	m.mutex.Lock()
-	returnArgs := call.ReturnArguments
+	var returnArgs Arguments
+	if call.ReturnFn != nil {
+		returnArgs = call.ReturnFn()
+	} else {
+		returnArgs = call.ReturnArguments
+	}
 	m.mutex.Unlock()
 
 	return returnArgs
@@ -550,6 +569,10 @@ func (m *Mock) calls() []Call {
 
 // Arguments holds an array of method arguments or return values.
 type Arguments []interface{}
+
+func ToArgs(i ...interface{}) Arguments {
+	return Arguments(i)
+}
 
 const (
 	// Anything is used in Diff and Assert when the argument being tested

@@ -93,6 +93,11 @@ func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType)
 	return args.Error(0)
 }
 
+func (i *TestExampleImplementation) TheExampleDynamicReturn(a int) error {
+	args := i.Called(a)
+	return args.Error(0)
+}
+
 // MockTestingT mocks a test struct
 type MockTestingT struct {
 	logfCount, errorfCount, failNowCount int
@@ -769,6 +774,27 @@ func Test_Mock_Called(t *testing.T) {
 		assert.Equal(t, true, returnArguments[2])
 	}
 
+}
+
+func Test_Mock_DynamicReturn(t *testing.T) {
+	mockedService := &TestExampleImplementation{}
+
+	i := 0
+	mockedService.On("TheExampleDynamicReturn", 1).DynamicReturn(func() Arguments {
+		defer func() {
+			i++
+		}()
+		if i == 0 {
+			return ToArgs(error(nil))
+		} else {
+			return ToArgs(errors.New("an error"))
+		}
+	})
+
+	args := mockedService.MethodCalled("TheExampleDynamicReturn", 1)
+	assert.NoError(t, args.Error(0))
+	args = mockedService.MethodCalled("TheExampleDynamicReturn", 1)
+	assert.Error(t, args.Error(0))
 }
 
 func asyncCall(m *Mock, ch chan Arguments) {
