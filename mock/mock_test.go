@@ -740,6 +740,16 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 		}
 	}
 
+	c = m.On("Once", 1).Return("one").Once()
+	c.Repeatability = -1
+	f, c = m.findExpectedCall("Once", 1)
+	if assert.Equal(t, -1, f) {
+		if assert.NotNil(t, c) {
+			assert.Equal(t, "Once", c.Method)
+			assert.Equal(t, 1, c.Arguments[0])
+			assert.Equal(t, "one", c.ReturnArguments[0])
+		}
+	}
 }
 
 func Test_callString(t *testing.T) {
