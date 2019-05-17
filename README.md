@@ -287,8 +287,10 @@ To install Testify, use `go get`:
 This will then make the following packages available to you:
 
     github.com/stretchr/testify/assert
+    github.com/stretchr/testify/require
     github.com/stretchr/testify/mock
-    github.com/stretchr/testify/http
+    github.com/stretchr/testify/suite
+    github.com/stretchr/testify/http (deprecated)
 
 Import the `testify/assert` package into your code using this template:
 
@@ -329,3 +331,10 @@ Contributing
 Please feel free to submit issues, fork the repository and send pull requests!
 
 When submitting an issue, we ask that you please include a complete test function that demonstrates the issue.  Extra credit for those using Testify to write the test code that demonstrates it.
+
+------
+
+License
+=======
+
+This project is licensed under the terms of the MIT license.

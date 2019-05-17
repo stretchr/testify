@@ -32,6 +32,7 @@ func (i *TestExampleImplementation) TheExampleMethod(a, b, c int) (int, error) {
 	return args.Int(0), errors.New("Whoops")
 }
 
+//go:noinline
 func (i *TestExampleImplementation) TheExampleMethod2(yesorno bool) {
 	i.Called(yesorno)
 }
@@ -1492,6 +1493,7 @@ func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
 		rMethod, calledArg, rMethod, expectedArg, diff)
 }
 
+//go:noinline
 func ConcurrencyTestMethod(m *Mock) {
 	m.Called()
 }

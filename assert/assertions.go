@@ -179,7 +179,11 @@ func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
 		return ""
 	}
 	if len(msgAndArgs) == 1 {
-		return msgAndArgs[0].(string)
+		msg := msgAndArgs[0]
+		if msgAsStr, ok := msg.(string); ok {
+			return msgAsStr
+		}
+		return fmt.Sprintf("%+v", msg)
 	}
 	if len(msgAndArgs) > 1 {
 		return fmt.Sprintf(msgAndArgs[0].(string), msgAndArgs[1:]...)
@@ -346,6 +350,37 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 
 }
 
+// Same asserts that two pointers reference the same object.
+//
+//    assert.Same(t, ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	expectedPtr, actualPtr := reflect.ValueOf(expected), reflect.ValueOf(actual)
+	if expectedPtr.Kind() != reflect.Ptr || actualPtr.Kind() != reflect.Ptr {
+		return Fail(t, "Invalid operation: both arguments must be pointers", msgAndArgs...)
+	}
+
+	expectedType, actualType := reflect.TypeOf(expected), reflect.TypeOf(actual)
+	if expectedType != actualType {
+		return Fail(t, fmt.Sprintf("Pointer expected to be of type %v, but was %v",
+			expectedType, actualType), msgAndArgs...)
+	}
+
+	if expected != actual {
+		return Fail(t, fmt.Sprintf("Not same: \n"+
+			"expected: %p %#v\n"+
+			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
+	}
+
+	return true
+}
+
 // formatUnequalValues takes two values of arbitrary types and returns string
 // representations appropriate to be presented to the user.
 //
@@ -415,6 +450,17 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
 }
 
+// containsKind checks if a specified kind in the slice of kinds.
+func containsKind(kinds []reflect.Kind, kind reflect.Kind) bool {
+	for i := 0; i < len(kinds); i++ {
+		if kind == kinds[i] {
+			return true
+		}
+	}
+
+	return false
+}
+
 // isNil checks if a specified object is nil or not, without Failing.
 func isNil(object interface{}) bool {
 	if object == nil {
@@ -423,7 +469,14 @@ func isNil(object interface{}) bool {
 
 	value := reflect.ValueOf(object)
 	kind := value.Kind()
-	if kind >= reflect.Chan && kind <= reflect.Slice && value.IsNil() {
+	isNilableKind := containsKind(
+		[]reflect.Kind{
+			reflect.Chan, reflect.Func,
+			reflect.Interface, reflect.Map,
+			reflect.Ptr, reflect.Slice},
+		kind)
+
+	if isNilableKind && value.IsNil() {
 		return true
 	}
 
@@ -607,7 +660,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 func includeElement(list interface{}, element interface{}) (ok, found bool) {
 
 	listValue := reflect.ValueOf(list)
-	elementValue := reflect.ValueOf(element)
+	listKind := reflect.TypeOf(list).Kind()
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
@@ -615,11 +668,12 @@ func includeElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}()
 
-	if reflect.TypeOf(list).Kind() == reflect.String {
+	if listKind == reflect.String {
+		elementValue := reflect.ValueOf(element)
 		return true, strings.Contains(listValue.String(), elementValue.String())
 	}
 
-	if reflect.TypeOf(list).Kind() == reflect.Map {
+	if listKind == reflect.Map {
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
 			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
