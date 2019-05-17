@@ -350,6 +350,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	if found < 0 {
 		// expected call found but it has already been called with repeatable times
 		if call != nil {
+			m.mutex.Unlock()
 			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
 		}
 		// we have to fail here - because we don't know what to do
