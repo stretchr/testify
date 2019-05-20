@@ -315,7 +315,7 @@ func (a *Assertions) Greater(e1 interface{}, e2 interface{}, msgAndArgs ...inter
 	return Greater(a.t, e1, e2, msgAndArgs...)
 }
 
-// GreaterOrEqual asserts that the first element in greater or equal than the second
+// GreaterOrEqual asserts that the first element is greater than or equal to the second
 //
 //    a.GreaterOrEqual(2, 1)
 //    a.GreaterOrEqual(2, 2)
@@ -328,7 +328,7 @@ func (a *Assertions) GreaterOrEqual(e1 interface{}, e2 interface{}, msgAndArgs .
 	return GreaterOrEqual(a.t, e1, e2, msgAndArgs...)
 }
 
-// GreaterOrEqualf asserts that the first element in greater or equal than the second
+// GreaterOrEqualf asserts that the first element is greater than or equal to the second
 //
 //    a.GreaterOrEqualf(2, 1, "error message %s", "formatted")
 //    a.GreaterOrEqualf(2, 2, "error message %s", "formatted")
@@ -639,7 +639,7 @@ func (a *Assertions) Lenf(object interface{}, length int, msg string, args ...in
 	return Lenf(a.t, object, length, msg, args...)
 }
 
-// Less asserts that the first element in less than the second
+// Less asserts that the first element is less than the second
 //
 //    a.Less(1, 2)
 //    a.Less(float64(1), float64(2))
@@ -651,7 +651,7 @@ func (a *Assertions) Less(e1 interface{}, e2 interface{}, msgAndArgs ...interfac
 	return Less(a.t, e1, e2, msgAndArgs...)
 }
 
-// LessOrEqual asserts that the first element in greater or equal than the second
+// LessOrEqual asserts that the first element is less than or equal to the second
 //
 //    a.LessOrEqual(1, 2)
 //    a.LessOrEqual(2, 2)
@@ -664,7 +664,7 @@ func (a *Assertions) LessOrEqual(e1 interface{}, e2 interface{}, msgAndArgs ...i
 	return LessOrEqual(a.t, e1, e2, msgAndArgs...)
 }
 
-// LessOrEqualf asserts that the first element in greater or equal than the second
+// LessOrEqualf asserts that the first element is less than or equal to the second
 //
 //    a.LessOrEqualf(1, 2, "error message %s", "formatted")
 //    a.LessOrEqualf(2, 2, "error message %s", "formatted")
@@ -677,7 +677,7 @@ func (a *Assertions) LessOrEqualf(e1 interface{}, e2 interface{}, msg string, ar
 	return LessOrEqualf(a.t, e1, e2, msg, args...)
 }
 
-// Lessf asserts that the first element in less than the second
+// Lessf asserts that the first element is less than the second
 //
 //    a.Lessf(1, 2, "error message %s", "formatted")
 //    a.Lessf(float64(1, "error message %s", "formatted"), float64(2))
