@@ -176,6 +176,7 @@ func (c *Call) Maybe() *Call {
 //    Mock.
 //       On("MyMethod", 1).Return(nil).
 //       On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
+//go:noinline
 func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
