@@ -1403,8 +1403,15 @@ func diff(expected interface{}, actual interface{}) string {
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
 	} else {
-		e = expected.(string)
-		a = actual.(string)
+		var ok bool
+		e, ok = expected.(string)
+		if !ok {
+			e = spewConfig.Sdump(expected)
+		}
+		a, ok = actual.(string)
+		if !ok {
+			a = spewConfig.Sdump(actual)
+		}
 	}
 
 	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
