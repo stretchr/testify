@@ -640,6 +640,22 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 	JSONEqf(a.t, expected, actual, msg, args...)
 }
 
+// YAMLEq asserts that two YAML strings are equivalent.
+func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	YAMLEq(a.t, expected, actual, msgAndArgs...)
+}
+
+// YAMLEqf asserts that two YAML strings are equivalent.
+func (a *Assertions) YAMLEqf(expected string, actual string, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	YAMLEqf(a.t, expected, actual, msg, args...)
+}
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
