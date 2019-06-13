@@ -369,6 +369,111 @@ func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 	}
 }
 
+func TestYAMLEq_EqualYAMLString(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEq_HashOfArraysAndHashes(t *testing.T) {
+	mockT := new(MockT)
+	expected := `
+numeric: 1.5
+array:
+  - foo: bar
+  - 1
+  - "string"
+  - ["nested", "array", 5.5]
+hash:
+  nested: hash
+  nested_slice: [this, is, nested]
+string: "foo"
+`
+
+	actual := `
+numeric: 1.5
+hash:
+  nested: hash
+  nested_slice: [this, is, nested]
+string: "foo"
+array:
+  - foo: bar
+  - 1
+  - "string"
+  - ["nested", "array", 5.5]
+`
+	YAMLEq(mockT, expected, actual)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEq_Array(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, `{"foo": "bar"}`, "Simple String")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, "Simple String", "Simple String")
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
+	mockT := new(MockT)
+	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func ExampleComparisonAssertionFunc() {
 	t := &testing.T{} // provided by test
 
