@@ -270,6 +270,34 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// Eventually asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
+func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+	if assert.Eventually(t, condition, waitFor, tick, msgAndArgs...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
+// Eventuallyf asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+	if assert.Eventuallyf(t, condition, waitFor, tick, msg, args...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
 // Exactly asserts that two objects are equal in value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123))
@@ -403,7 +431,7 @@ func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface
 	t.FailNow()
 }
 
-// GreaterOrEqual asserts that the first element in greater or equal than the second
+// GreaterOrEqual asserts that the first element is greater than or equal to the second
 //
 //    assert.GreaterOrEqual(t, 2, 1)
 //    assert.GreaterOrEqual(t, 2, 2)
@@ -419,7 +447,7 @@ func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...in
 	t.FailNow()
 }
 
-// GreaterOrEqualf asserts that the first element in greater or equal than the second
+// GreaterOrEqualf asserts that the first element is greater than or equal to the second
 //
 //    assert.GreaterOrEqualf(t, 2, 1, "error message %s", "formatted")
 //    assert.GreaterOrEqualf(t, 2, 2, "error message %s", "formatted")
@@ -820,7 +848,7 @@ func Lenf(t TestingT, object interface{}, length int, msg string, args ...interf
 	t.FailNow()
 }
 
-// Less asserts that the first element in less than the second
+// Less asserts that the first element is less than the second
 //
 //    assert.Less(t, 1, 2)
 //    assert.Less(t, float64(1), float64(2))
@@ -835,7 +863,7 @@ func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{})
 	t.FailNow()
 }
 
-// LessOrEqual asserts that the first element in greater or equal than the second
+// LessOrEqual asserts that the first element is less than or equal to the second
 //
 //    assert.LessOrEqual(t, 1, 2)
 //    assert.LessOrEqual(t, 2, 2)
@@ -851,7 +879,7 @@ func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...inter
 	t.FailNow()
 }
 
-// LessOrEqualf asserts that the first element in greater or equal than the second
+// LessOrEqualf asserts that the first element is less than or equal to the second
 //
 //    assert.LessOrEqualf(t, 1, 2, "error message %s", "formatted")
 //    assert.LessOrEqualf(t, 2, 2, "error message %s", "formatted")
@@ -867,7 +895,7 @@ func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args .
 	t.FailNow()
 }
 
-// Lessf asserts that the first element in less than the second
+// Lessf asserts that the first element is less than the second
 //
 //    assert.Lessf(t, 1, 2, "error message %s", "formatted")
 //    assert.Lessf(t, float64(1, "error message %s", "formatted"), float64(2))

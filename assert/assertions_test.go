@@ -1824,3 +1824,25 @@ func TestErrorAssertionFunc(t *testing.T) {
 		})
 	}
 }
+
+func TestEventuallyFalse(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func() bool {
+		return false
+	}
+
+	False(t, Eventually(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
+func TestEventuallyTrue(t *testing.T) {
+	state := 0
+	condition := func() bool {
+		defer func() {
+			state = state + 1
+		}()
+		return state == 2
+	}
+
+	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
