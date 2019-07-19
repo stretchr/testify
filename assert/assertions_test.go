@@ -816,9 +816,6 @@ func TestNoError(t *testing.T) {
 	// returning an empty error interface
 	err = func() error {
 		var err *customError
-		if err != nil {
-			t.Fatal("err should be nil here")
-		}
 		return err
 	}()
 
@@ -853,9 +850,6 @@ func TestError(t *testing.T) {
 	// returning an empty error interface
 	err = func() error {
 		var err *customError
-		if err != nil {
-			t.Fatal("err should be nil here")
-		}
 		return err
 	}()
 
