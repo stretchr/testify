@@ -1325,6 +1325,7 @@ func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 	assert.Contains(t, diff, `(bool=false) not matched by func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, false})
+	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `(int=123) matched by func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, true})

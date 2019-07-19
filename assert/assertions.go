@@ -104,11 +104,11 @@ the problem actually occurred in calling code.*/
 // failed.
 func CallerInfo() []string {
 
-	pc := uintptr(0)
-	file := ""
-	line := 0
-	ok := false
-	name := ""
+	var pc uintptr
+	var ok bool
+	var file string
+	var line int
+	var name string
 
 	callers := []string{}
 	for i := 0; ; i++ {
