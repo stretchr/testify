@@ -1026,7 +1026,6 @@ func TestEmpty(t *testing.T) {
 	type TString string
 	type TStruct struct {
 		x int
-		s []int
 	}
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
