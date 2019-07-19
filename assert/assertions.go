@@ -661,7 +661,7 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 		h.Helper()
 	}
 
-	if value != true {
+	if !value {
 		return Fail(t, "Should be true", msgAndArgs...)
 	}
 
@@ -677,7 +677,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 		h.Helper()
 	}
 
-	if value != false {
+	if value {
 		return Fail(t, "Should be false", msgAndArgs...)
 	}
 

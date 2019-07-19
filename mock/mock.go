@@ -830,7 +830,7 @@ func (args Arguments) String(indexOrNil ...int) string {
 		// normal String() method - return a string representation of the args
 		var argsStr []string
 		for _, arg := range args {
-			argsStr = append(argsStr, fmt.Sprintf("%s", reflect.TypeOf(arg)))
+			argsStr = append(argsStr, reflect.TypeOf(arg).String())
 		}
 		return strings.Join(argsStr, ",")
 	} else if len(indexOrNil) == 1 {
