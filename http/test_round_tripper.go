@@ -1,8 +1,9 @@
 package http
 
 import (
-	"github.com/stretchr/testify/mock"
 	"net/http"
+
+	"github.com/stretchr/testify/mock"
 )
 
 // TestRoundTripper DEPRECATED USE net/http/httptest
