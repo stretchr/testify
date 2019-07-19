@@ -2205,7 +2205,7 @@ func TestEventuallyTrue(t *testing.T) {
 	state := 0
 	condition := func() bool {
 		defer func() {
-			state = state + 1
+			state += 1
 		}()
 		return state == 2
 	}
