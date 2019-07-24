@@ -259,7 +259,7 @@ func TestNotSame(t *testing.T) {
 		t.Error("NotSame should return false; non-pointer input")
 	}
 	if NotSame(mockT, p, p) {
-		t.Error("Same should return false")
+		t.Error("NotSame should return false")
 	}
 }
 
