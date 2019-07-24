@@ -1347,7 +1347,7 @@ func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 	t.FailNow()
 }
 
-// NotSamef asserts that two pointers reference the same object.
+// NotSamef asserts that two pointers do not reference the same object.
 //
 //    assert.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
 //
