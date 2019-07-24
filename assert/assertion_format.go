@@ -526,19 +526,6 @@ func Samef(t TestingT, expected interface{}, actual interface{}, msg string, arg
 	return Same(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// NotSamef asserts that two pointers do not reference the same object.
-//
-//    assert.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
-//
-// Both arguments must be pointer variables. Pointer variable sameness is
-// determined based on the equality of both type and value.
-func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	return NotSame(t, expected, actual, append([]interface{}{msg}, args...)...)
-}
-
 // Subsetf asserts that the specified list(array, slice...) contains all
 // elements given in the specified subset(array, slice...).
 //
