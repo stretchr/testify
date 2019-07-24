@@ -6,10 +6,11 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -1325,6 +1326,38 @@ func Samef(t TestingT, expected interface{}, actual interface{}, msg string, arg
 		h.Helper()
 	}
 	if assert.Samef(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotSame asserts that two pointers do not reference the same object.
+//
+//    assert.NotSame(t, ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotSame(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotSamef asserts that two pointers reference the same object.
+//
+//    assert.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotSamef(t, expected, actual, msg, args...) {
 		return
 	}
 	t.FailNow()
