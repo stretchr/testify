@@ -1004,27 +1004,21 @@ func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 type PanicTestFunc func()
 
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
-func didPanic(f PanicTestFunc) (bool, interface{}, string) {
+func didPanic(f PanicTestFunc) (didPanic bool, message interface{}, stack string) {
+	didPanic = true
 
-	didPanic := false
-	var message interface{}
-	var stack string
-	func() {
-
-		defer func() {
-			if message = recover(); message != nil {
-				didPanic = true
-				stack = string(debug.Stack())
-			}
-		}()
-
-		// call the target function
-		f()
-
+	defer func() {
+		message = recover()
+		if didPanic {
+			stack = string(debug.Stack())
+		}
 	}()
 
-	return didPanic, message, stack
+	// call the target function
+	f()
+	didPanic = false
 
+	return
 }
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
