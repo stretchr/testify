@@ -730,10 +730,18 @@ func TestCondition(t *testing.T) {
 
 func TestDidPanic(t *testing.T) {
 
-	if funcDidPanic, _ := didPanic(func() {
-		panic("Panic!")
-	}); !funcDidPanic {
-		t.Error("didPanic should return true")
+	const panicMsg = "Panic!"
+
+	if funcDidPanic, msg := didPanic(func() {
+		panic(panicMsg)
+	}); !funcDidPanic || msg != panicMsg {
+		t.Error("didPanic should return true, panicMsg")
+	}
+
+	if funcDidPanic, msg := didPanic(func() {
+		panic(nil)
+	}); !funcDidPanic || msg != nil {
+		t.Error("didPanic should return true, nil")
 	}
 
 	if funcDidPanic, _ := didPanic(func() {
@@ -766,6 +774,12 @@ func TestPanicsWithValue(t *testing.T) {
 
 	if !PanicsWithValue(mockT, "Panic!", func() {
 		panic("Panic!")
+	}) {
+		t.Error("PanicsWithValue should return true")
+	}
+
+	if !PanicsWithValue(mockT, nil, func() {
+		panic(nil)
 	}) {
 		t.Error("PanicsWithValue should return true")
 	}
