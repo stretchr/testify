@@ -65,6 +65,11 @@ type Call struct {
 	// reference. It's useful when mocking methods such as unmarshalers or
 	// decoders.
 	RunFn func(Arguments)
+
+	// PanicMsg holds msg to be used to mock panic on the function call
+	//  if the PanicMsg is set to a non nil string the function call will panic
+	// irrespective of other settings
+	PanicMsg *string
 }
 
 func newCall(parent *Mock, methodName string, callerInfo []string, methodArguments ...interface{}) *Call {
@@ -77,6 +82,7 @@ func newCall(parent *Mock, methodName string, callerInfo []string, methodArgumen
 		Repeatability:   0,
 		WaitFor:         nil,
 		RunFn:           nil,
+		PanicMsg:        nil,
 	}
 }
 
@@ -96,6 +102,18 @@ func (c *Call) Return(returnArguments ...interface{}) *Call {
 	defer c.unlock()
 
 	c.ReturnArguments = returnArguments
+
+	return c
+}
+
+// Panic specifies if the functon call should fail and the panic message
+//
+//    Mock.On("DoSomething").Panic("test panic")
+func (c *Call) Panic(msg string) *Call {
+	c.lock()
+	defer c.unlock()
+
+	c.PanicMsg = &msg
 
 	return c
 }
@@ -390,6 +408,13 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		<-call.WaitFor
 	} else {
 		time.Sleep(call.waitTime)
+	}
+
+	m.mutex.Lock()
+	panicMsg := call.PanicMsg
+	m.mutex.Unlock()
+	if panicMsg != nil {
+		panic(*panicMsg)
 	}
 
 	m.mutex.Lock()
