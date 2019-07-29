@@ -486,6 +486,29 @@ func Test_Mock_Return(t *testing.T) {
 	assert.Nil(t, call.WaitFor)
 }
 
+func Test_Mock_Panic(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethod", "A", "B", true).
+		Panic("panic message for example method")
+
+	require.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+
+	call := mockedService.ExpectedCalls[0]
+
+	assert.Equal(t, "TheExampleMethod", call.Method)
+	assert.Equal(t, "A", call.Arguments[0])
+	assert.Equal(t, "B", call.Arguments[1])
+	assert.Equal(t, true, call.Arguments[2])
+	assert.Equal(t, 0, call.Repeatability)
+	assert.Equal(t, 0, call.Repeatability)
+	assert.Equal(t, "panic message for example method", *call.PanicMsg)
+	assert.Nil(t, call.WaitFor)
+}
+
 func Test_Mock_Return_WaitUntil(t *testing.T) {
 
 	// make a test impl object
@@ -1363,6 +1386,14 @@ func Test_MockMethodCalled(t *testing.T) {
 	retArgs := m.MethodCalled("foo", "hello")
 	require.True(t, len(retArgs) == 1)
 	require.Equal(t, "world", retArgs[0])
+	m.AssertExpectations(t)
+}
+
+func Test_MockMethodCalled_Panic(t *testing.T) {
+	m := new(Mock)
+	m.On("foo", "hello").Panic("world panics")
+
+	require.PanicsWithValue(t, "world panics", func() { m.MethodCalled("foo", "hello") })
 	m.AssertExpectations(t)
 }
 
