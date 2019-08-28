@@ -299,6 +299,7 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 
 func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
 	var diffCount int
+	var repeatability int
 	var closestCall *Call
 	var err string
 
@@ -306,8 +307,9 @@ func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, 
 		if call.Method == method {
 
 			errInfo, tempDiffCount := call.Arguments.Diff(arguments)
-			if tempDiffCount < diffCount || diffCount == 0 {
+			if tempDiffCount < diffCount || diffCount == 0 || (tempDiffCount == diffCount && call.Repeatability > repeatability) {
 				diffCount = tempDiffCount
+				repeatability = call.Repeatability
 				closestCall = call
 				err = errInfo
 			}
