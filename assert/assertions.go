@@ -1475,24 +1475,26 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
+	ch := make(chan bool, 1)
+
 	timer := time.NewTimer(waitFor)
-	ticker := time.NewTicker(tick)
-	checkPassed := make(chan bool)
 	defer timer.Stop()
+
+	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
-	defer close(checkPassed)
-	for {
+
+	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			return Fail(t, "Condition never satisfied", msgAndArgs...)
-		case result := <-checkPassed:
-			if result {
+			return false
+		case <-tick:
+			tick = nil
+			go func() { ch <- condition() }()
+		case v := <-ch:
+			if v {
 				return true
 			}
-		case <-ticker.C:
-			go func() {
-				checkPassed <- condition()
-			}()
+			tick = ticker.C
 		}
 	}
 }

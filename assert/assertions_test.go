@@ -1921,3 +1921,12 @@ func TestEventuallyTrue(t *testing.T) {
 
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
+
+func TestEventuallyIssue805(t *testing.T) {
+	mockT := new(testing.T)
+
+	NotPanics(t, func() {
+		condition := func() bool { <-time.After(time.Millisecond); return true }
+		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
+	})
+}
