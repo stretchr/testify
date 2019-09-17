@@ -368,13 +368,7 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 		return Fail(t, "Invalid operation: both arguments must be pointers", msgAndArgs...)
 	}
 
-	expectedType, actualType := reflect.TypeOf(expected), reflect.TypeOf(actual)
-	if expectedType != actualType {
-		return Fail(t, fmt.Sprintf("Pointer expected to be of type %v, but was %v",
-			expectedType, actualType), msgAndArgs...)
-	}
-
-	if expected != actual {
+	if !sameComparator(expected, actual) {
 		return Fail(t, fmt.Sprintf("Not same: \n"+
 			"expected: %p %#v\n"+
 			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
@@ -399,15 +393,24 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 		return Fail(t, "Invalid operation: both arguments must be pointers", msgAndArgs...)
 	}
 
-	expectedType, actualType := reflect.TypeOf(expected), reflect.TypeOf(actual)
-	if expectedType != actualType {
-		return true
-	}
-
-	if expected == actual {
+	if sameComparator(expected, actual) {
 		return Fail(t, fmt.Sprintf(
 			"Expected and actual point to the same object: %p %#v",
 			expected, expected), msgAndArgs...)
+	}
+	return true
+}
+
+// sameComparator compares two generic interface objects and returns whether
+// they are of the same type and value
+func sameComparator(first, second interface{}) bool {
+	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
+	if firstType != secondType {
+		return false
+	}
+
+	if first != second {
+		return false
 	}
 
 	return true
