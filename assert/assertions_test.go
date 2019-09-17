@@ -263,6 +263,59 @@ func TestNotSame(t *testing.T) {
 	}
 }
 
+func Test_sameComparator(t *testing.T) {
+	type args struct {
+		first  interface{}
+		second interface{}
+	}
+	tests := []struct {
+		name      string
+		args      args
+		assertion BoolAssertionFunc
+	}{
+		{
+			name:      "1 != 2",
+			args:      args{first: 1, second: 2},
+			assertion: False,
+		},
+		{
+			name:      "1 == 1",
+			args:      args{first: 1, second: 1},
+			assertion: True,
+		},
+		{
+			name:      "int(1) != float32(1)",
+			args:      args{first: int(1), second: float32(1)},
+			assertion: False,
+		},
+		{
+			name:      "true == true",
+			args:      args{first: true, second: true},
+			assertion: True,
+		},
+		{
+			name:      "false != true",
+			args:      args{first: false, second: true},
+			assertion: False,
+		},
+		{
+			name:      "array != slice",
+			args:      args{first: [2]int{1, 2}, second: []int{1, 2}},
+			assertion: False,
+		},
+		{
+			name:      "array == array",
+			args:      args{first: [2]int{1, 2}, second: [2]int{1, 2}},
+			assertion: True,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.assertion(t, sameComparator(tt.args.first, tt.args.second))
+		})
+	}
+}
+
 // bufferT implements TestingT. Its implementation of Errorf writes the output that would be produced by
 // testing.T.Errorf to an internal bytes.Buffer.
 type bufferT struct {
