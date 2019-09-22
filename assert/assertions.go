@@ -363,12 +363,7 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 		h.Helper()
 	}
 
-	expectedPtr, actualPtr := reflect.ValueOf(expected), reflect.ValueOf(actual)
-	if expectedPtr.Kind() != reflect.Ptr || actualPtr.Kind() != reflect.Ptr {
-		return Fail(t, "Invalid operation: both arguments must be pointers", msgAndArgs...)
-	}
-
-	if !sameComparator(expected, actual) {
+	if !samePointers(expected, actual) {
 		return Fail(t, fmt.Sprintf("Not same: \n"+
 			"expected: %p %#v\n"+
 			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
@@ -388,12 +383,7 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 		h.Helper()
 	}
 
-	expectedPtr, actualPtr := reflect.ValueOf(expected), reflect.ValueOf(actual)
-	if expectedPtr.Kind() != reflect.Ptr || actualPtr.Kind() != reflect.Ptr {
-		return Fail(t, "Invalid operation: both arguments must be pointers", msgAndArgs...)
-	}
-
-	if sameComparator(expected, actual) {
+	if samePointers(expected, actual) {
 		return Fail(t, fmt.Sprintf(
 			"Expected and actual point to the same object: %p %#v",
 			expected, expected), msgAndArgs...)
@@ -401,19 +391,21 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	return true
 }
 
-// sameComparator compares two generic interface objects and returns whether
-// they are of the same type and value
-func sameComparator(first, second interface{}) bool {
+// samePointers compares two generic interface objects and returns whether
+// they point to the same object
+func samePointers(first, second interface{}) bool {
+	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
+	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
+		return false
+	}
+
 	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
 	if firstType != secondType {
 		return false
 	}
 
-	if first != second {
-		return false
-	}
-
-	return true
+	// compare pointer addresses
+	return first == second
 }
 
 // formatUnequalValues takes two values of arbitrary types and returns string

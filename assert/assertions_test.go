@@ -217,13 +217,13 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+func ptr(i int) *int {
+	return &i
+}
+
 func TestSame(t *testing.T) {
 
 	mockT := new(testing.T)
-
-	ptr := func(i int) *int {
-		return &i
-	}
 
 	if Same(mockT, ptr(1), ptr(1)) {
 		t.Error("Same should return false")
@@ -244,26 +244,24 @@ func TestNotSame(t *testing.T) {
 
 	mockT := new(testing.T)
 
-	ptr := func(i int) *int {
-		return &i
-	}
-
 	if !NotSame(mockT, ptr(1), ptr(1)) {
-		t.Error("NotSame should return true")
+		t.Error("NotSame should return true; different pointers")
 	}
-	if NotSame(mockT, 1, 1) {
-		t.Error("NotSame should return false; non-pointer inputs")
+	if !NotSame(mockT, 1, 1) {
+		t.Error("NotSame should return true; constant inputs")
 	}
 	p := ptr(2)
-	if NotSame(mockT, p, *p) {
-		t.Error("NotSame should return false; non-pointer input")
+	if !NotSame(mockT, p, *p) {
+		t.Error("NotSame should return true; mixed-type inputs")
 	}
 	if NotSame(mockT, p, p) {
 		t.Error("NotSame should return false")
 	}
 }
 
-func Test_sameComparator(t *testing.T) {
+func Test_samePointers(t *testing.T) {
+	p := ptr(2)
+
 	type args struct {
 		first  interface{}
 		second interface{}
@@ -279,8 +277,13 @@ func Test_sameComparator(t *testing.T) {
 			assertion: False,
 		},
 		{
-			name:      "1 == 1",
+			name:      "1 != 1 (not same ptr)",
 			args:      args{first: 1, second: 1},
+			assertion: False,
+		},
+		{
+			name:      "ptr(1) == ptr(1)",
+			args:      args{first: p, second: p},
 			assertion: True,
 		},
 		{
@@ -289,29 +292,14 @@ func Test_sameComparator(t *testing.T) {
 			assertion: False,
 		},
 		{
-			name:      "true == true",
-			args:      args{first: true, second: true},
-			assertion: True,
-		},
-		{
-			name:      "false != true",
-			args:      args{first: false, second: true},
-			assertion: False,
-		},
-		{
 			name:      "array != slice",
 			args:      args{first: [2]int{1, 2}, second: []int{1, 2}},
 			assertion: False,
 		},
-		{
-			name:      "array == array",
-			args:      args{first: [2]int{1, 2}, second: [2]int{1, 2}},
-			assertion: True,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, sameComparator(tt.args.first, tt.args.second))
+			tt.assertion(t, samePointers(tt.args.first, tt.args.second))
 		})
 	}
 }
