@@ -826,7 +826,7 @@ func TestNoError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	False(t, NoError(mockT, err), "NoError should fail with empty error interface")
+	True(t, NoError(mockT, err), "NoError should fail with empty error interface")
 }
 
 type customError struct{}
@@ -863,7 +863,7 @@ func TestError(t *testing.T) {
 		t.Errorf("Error should be nil due to empty interface: %s", err)
 	}
 
-	True(t, Error(mockT, err), "Error should pass with empty error interface")
+	False(t, Error(mockT, err), "Error should pass with empty error interface")
 }
 
 func TestEqualError(t *testing.T) {

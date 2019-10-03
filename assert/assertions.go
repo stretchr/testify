@@ -1197,7 +1197,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if err != nil {
+	if !isNil(err) {
 		return Fail(t, fmt.Sprintf("Received unexpected error:\n%+v", err), msgAndArgs...)
 	}
 
@@ -1215,7 +1215,7 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 		h.Helper()
 	}
 
-	if err == nil {
+	if isNil(err)  {
 		return Fail(t, "An error is expected but got nil.", msgAndArgs...)
 	}
 
