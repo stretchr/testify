@@ -1317,40 +1317,95 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExists checks whether a file exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
 func FileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+
 	info, err := os.Lstat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
-		}
+	switch {
+	case os.IsNotExist(err):
+		return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
+	case err != nil:
 		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
 	}
+
 	if info.IsDir() {
 		return Fail(t, fmt.Sprintf("%q is a directory", path), msgAndArgs...)
 	}
+
 	return true
 }
 
-// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// FileNotExists checks whether a file not exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileNotExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+
+	if os.IsNotExist(err) {
+		return true
+	}
+
+	if info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a directory", path), msgAndArgs...)
+	}
+
+	return Fail(t, fmt.Sprintf("file %q should not exist", path), msgAndArgs...)
+
+}
+
+// DirExists checks whether a directory exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+
 	info, err := os.Lstat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return Fail(t, fmt.Sprintf("unable to find file %q", path), msgAndArgs...)
-		}
+	switch {
+	case os.IsNotExist(err):
+		return Fail(t, fmt.Sprintf("unable to find directory %q", path), msgAndArgs...)
+	case err != nil:
 		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
 	}
+
 	if !info.IsDir() {
 		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
 	}
+
 	return true
+}
+
+// DirNotExists checks whether a directory exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirNotExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	info, err := os.Lstat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+
+	if os.IsNotExist(err) {
+		return true
+	}
+
+	if info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
+	}
+
+	return Fail(t, fmt.Sprintf("directory %q should not exist", path), msgAndArgs...)
 }
 
 // JSONEq asserts that two JSON strings are equivalent.

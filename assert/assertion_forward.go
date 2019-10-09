@@ -53,7 +53,8 @@ func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, 
 	return Containsf(a.t, s, contains, msg, args...)
 }
 
-// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExists checks whether a directory exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func (a *Assertions) DirExists(path string, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -61,12 +62,31 @@ func (a *Assertions) DirExists(path string, msgAndArgs ...interface{}) bool {
 	return DirExists(a.t, path, msgAndArgs...)
 }
 
-// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExists checks whether a directory not exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func (a *Assertions) DirNotExists(path string, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return DirNotExists(a.t, path, msgAndArgs...)
+}
+
+// DirExistsf checks whether a directory exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func (a *Assertions) DirExistsf(path string, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
 	return DirExistsf(a.t, path, msg, args...)
+}
+
+// DirExistsf checks whether a directory not exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func (a *Assertions) DirNotExistsf(path string, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return DirNotExistsf(a.t, path, msg, args...)
 }
 
 // ElementsMatch asserts that the specified listA(array, slice...) is equal to specified

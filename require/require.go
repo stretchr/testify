@@ -66,7 +66,8 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 	t.FailNow()
 }
 
-// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExists checks whether a directory exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -77,12 +78,37 @@ func DirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExistsf checks whether a directory exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 	if assert.DirExistsf(t, path, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// DirNotExists checks whether a directory not exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirNotExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.DirNotExists(t, path, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// DirNotExistsf checks whether a directory not exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirNotExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.DirNotExistsf(t, path, msg, args...) {
 		return
 	}
 	t.FailNow()
@@ -394,7 +420,8 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
-// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExists checks whether a file exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
 func FileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -405,12 +432,37 @@ func FileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExistsf checks whether a file not exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
 func FileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 	if assert.FileExistsf(t, path, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// FileExists checks whether a file not exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileNotExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.FileNotExists(t, path, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// FileExistsf checks whether a file exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileNotExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.FileNotExistsf(t, path, msg, args...) {
 		return
 	}
 	t.FailNow()

@@ -32,12 +32,22 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 	return Contains(t, s, contains, append([]interface{}{msg}, args...)...)
 }
 
-// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExistsf checks whether a directory exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExistsf(t TestingT, path string, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 	return DirExists(t, path, append([]interface{}{msg}, args...)...)
+}
+
+// DirNotExistsf checks whether a directory not exists in the given path.
+// It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+func DirNotExistsf(t TestingT, path string, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return DirNotExists(t, path, append([]interface{}{msg}, args...)...)
 }
 
 // ElementsMatchf asserts that the specified listA(array, slice...) is equal to specified
@@ -160,12 +170,22 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) bool {
 	return False(t, value, append([]interface{}{msg}, args...)...)
 }
 
-// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExistsf checks whether a file exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
 func FileExistsf(t TestingT, path string, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 	return FileExists(t, path, append([]interface{}{msg}, args...)...)
+}
+
+// FileNotExistsf checks whether a file not exists in the given path.
+// It also fails if the path points to a directory or there is an error when trying to check the file.
+func FileNotExistsf(t TestingT, path string, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return FileNotExists(t, path, append([]interface{}{msg}, args...)...)
 }
 
 // Greaterf asserts that the first element is greater than the second

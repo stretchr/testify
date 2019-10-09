@@ -1381,6 +1381,17 @@ func TestFileExists(t *testing.T) {
 	False(t, FileExists(mockT, "../_codegen"))
 }
 
+func TestFileNotExists(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, FileNotExists(mockT, "assertions.go"))
+
+	mockT = new(testing.T)
+	True(t, FileNotExists(mockT, "random_file"))
+
+	mockT = new(testing.T)
+	False(t, FileNotExists(mockT, "../_codegen"))
+}
+
 func TestDirExists(t *testing.T) {
 	mockT := new(testing.T)
 	False(t, DirExists(mockT, "assertions.go"))
@@ -1390,6 +1401,17 @@ func TestDirExists(t *testing.T) {
 
 	mockT = new(testing.T)
 	True(t, DirExists(mockT, "../_codegen"))
+}
+
+func TestDirNotExists(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, DirNotExists(mockT, "assertions.go"))
+
+	mockT = new(testing.T)
+	True(t, DirNotExists(mockT, "random_dir"))
+
+	mockT = new(testing.T)
+	False(t, DirNotExists(mockT, "../_codegen"))
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
