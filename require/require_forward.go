@@ -501,6 +501,54 @@ func (a *Assertions) HTTPSuccessf(handler http.HandlerFunc, method string, url s
 	HTTPSuccessf(a.t, handler, method, url, values, msg, args...)
 }
 
+// HasPrefix asserts that the specified string or list(array, slice...) begins with the
+// specified substring or sequence of elements.
+//
+//    a.HasPrefix("Hello World", "Hello")
+//    a.HasPrefix(["Hello", "there", "World"], ["Hello", "there"])
+func (a *Assertions) HasPrefix(s interface{}, prefix interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	HasPrefix(a.t, s, prefix, msgAndArgs...)
+}
+
+// HasPrefixf asserts that the specified string or list(array, slice...) begins with the
+// specified substring or sequence of elements.
+//
+//    a.HasPrefixf("Hello World", "Hello", "error message %s", "formatted")
+//    a.HasPrefixf(["Hello", "there", "World"], ["Hello", "there"], "error message %s", "formatted")
+func (a *Assertions) HasPrefixf(s interface{}, prefix interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	HasPrefixf(a.t, s, prefix, msg, args...)
+}
+
+// HasSuffix asserts that the specified string or list(array, slice...) ends with the
+// specified substring or sequence of elements.
+//
+//    a.HasSuffix("Hello World", "World")
+//    a.HasSuffix(["Hello", "there", "World"], ["there", "World"])
+func (a *Assertions) HasSuffix(s interface{}, suffix interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	HasSuffix(a.t, s, suffix, msgAndArgs...)
+}
+
+// HasSuffixf asserts that the specified string or list(array, slice...) ends with the
+// specified substring or sequence of elements.
+//
+//    a.HasSuffixf("Hello World", "World", "error message %s", "formatted")
+//    a.HasSuffixf(["Hello", "there", "World"], ["there", "World"], "error message %s", "formatted")
+func (a *Assertions) HasSuffixf(s interface{}, suffix interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	HasSuffixf(a.t, s, suffix, msg, args...)
+}
+
 // Implements asserts that an object is implemented by the specified interface.
 //
 //    a.Implements((*MyInterface)(nil), new(MyObject))
@@ -851,6 +899,38 @@ func (a *Assertions) NotEqualf(expected interface{}, actual interface{}, msg str
 		h.Helper()
 	}
 	NotEqualf(a.t, expected, actual, msg, args...)
+}
+
+// NotHasPrefix asserts the negation of HasPrefix.
+func (a *Assertions) NotHasPrefix(s interface{}, prefix interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotHasPrefix(a.t, s, prefix, msgAndArgs...)
+}
+
+// NotHasPrefixf asserts the negation of HasPrefix.
+func (a *Assertions) NotHasPrefixf(s interface{}, prefix interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotHasPrefixf(a.t, s, prefix, msg, args...)
+}
+
+// NotHasSuffix asserts the negation of HasSuffix.
+func (a *Assertions) NotHasSuffix(s interface{}, suffix interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotHasSuffix(a.t, s, suffix, msgAndArgs...)
+}
+
+// NotHasSuffixf asserts the negation of HasSuffix.
+func (a *Assertions) NotHasSuffixf(s interface{}, suffix interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotHasSuffixf(a.t, s, suffix, msg, args...)
 }
 
 // NotNil asserts that the specified object is not nil.
