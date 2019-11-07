@@ -153,6 +153,22 @@ func (a *Assertions) EqualErrorf(theError error, errString string, msg string, a
 	return EqualErrorf(a.t, theError, errString, msg, args...)
 }
 
+// EqualFileContent checks whether a file has the expected content.
+func (a *Assertions) EqualFileContent(path string, content string, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return EqualFileContent(a.t, path, content, msgAndArgs...)
+}
+
+// EqualFileContentf checks whether a file has the expected content.
+func (a *Assertions) EqualFileContentf(path string, content string, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return EqualFileContentf(a.t, path, content, msg, args...)
+}
+
 // EqualValues asserts that two objects are equal or convertable to the same types
 // and equal.
 //

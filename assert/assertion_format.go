@@ -89,6 +89,14 @@ func EqualErrorf(t TestingT, theError error, errString string, msg string, args 
 	return EqualError(t, theError, errString, append([]interface{}{msg}, args...)...)
 }
 
+// EqualFileContentf checks whether a file has the expected content.
+func EqualFileContentf(t TestingT, path string, content string, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return EqualFileContent(t, path, content, append([]interface{}{msg}, args...)...)
+}
+
 // EqualValuesf asserts that two objects are equal or convertable to the same types
 // and equal.
 //
