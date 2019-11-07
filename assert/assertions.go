@@ -22,7 +22,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-//go:generate go run ../_codegen/main.go -output-package=assert -template=assertion_format.go.tmpl
+//go:generate ../codegen -output-package=assert -template=assertion_format.go.tmpl
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -1360,6 +1360,24 @@ func FileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	return true
 }
 
+// NotFileExists checks to see whether a file does not exist, if it does, it returns false, else true
+func NotFileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return true
+		}
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+	if info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a directory", path), msgAndArgs...)
+	}
+	return false
+}
+
 // DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
@@ -1376,6 +1394,24 @@ func DirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
 	}
 	return true
+}
+
+// NotDirExists checks to see whether a directory does not exist in the given path. It will fail if the path contains a file or if there is an error checking it exists
+func NotDirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return true
+		}
+		return Fail(t, fmt.Sprintf("error when running os.Lstat(%q): %s", path, err), msgAndArgs...)
+	}
+	if !info.IsDir() {
+		return Fail(t, fmt.Sprintf("%q is a file", path), msgAndArgs...)
+	}
+	return false
 }
 
 // JSONEq asserts that two JSON strings are equivalent.

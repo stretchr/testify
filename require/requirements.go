@@ -26,4 +26,4 @@ type BoolAssertionFunc func(TestingT, bool, ...interface{})
 // for table driven tests.
 type ErrorAssertionFunc func(TestingT, error, ...interface{})
 
-//go:generate go run ../_codegen/main.go -output-package=require -template=require.go.tmpl -include-format-funcs
+//go:generate ../codegen -output-package=require -template=require.go.tmpl -include-format-funcs
