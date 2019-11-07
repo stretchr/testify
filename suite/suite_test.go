@@ -350,7 +350,7 @@ func TestRunSuite(t *testing.T) {
 type SuiteSetupSkipTester struct {
 	Suite
 
-	setUp bool
+	setUp    bool
 	toreDown bool
 }
 
