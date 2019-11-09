@@ -1579,7 +1579,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			return false
+			return Fail(t, "Condition never satisfied", msgAndArgs...)
 		case <-tick:
 			tick = nil
 			go func() { ch <- condition() }()
