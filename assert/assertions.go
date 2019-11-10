@@ -1000,7 +1000,7 @@ func PanicsWithError(t TestingT, errString string, f PanicTestFunc, msgAndArgs .
 		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
 	panicErr, ok := panicValue.(error)
-	if !ok || !Error(t, panicErr) || !EqualError(t, panicErr, errString) {
+	if !ok || panicErr.Error() != errString {
 		return Fail(t, fmt.Sprintf("func %#v should panic with error message:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, errString, panicValue, panickedStack), msgAndArgs...)
 	}
 
