@@ -745,14 +745,18 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 //
 //    assert.Contains(t, map[string]string{"Hello":"World"}, "World")
 func ContainsValue(t TestingT, list interface{}, elem interface{}, msgAndArgs ...interface{}) bool {
-	listValue := reflect.ValueOf(list)
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
 	listKind := reflect.TypeOf(list).Kind()
 	if listKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("\"%s\" must be a map", list), msgAndArgs...)
 	}
-	iter := listValue.MapRange()
-	for iter.Next() {
-		if ObjectsAreEqual(iter.Value().Interface(), elem) {
+	listValue := reflect.ValueOf(list)
+	mapKeys := listValue.MapKeys()
+	for i := 0; i < len(mapKeys); i++ {
+		if ObjectsAreEqual(listValue.MapIndex(mapKeys[i]).Interface(), elem) {
 			return true
 		}
 	}
