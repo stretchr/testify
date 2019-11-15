@@ -739,7 +739,25 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 	}
 
 	return true
+}
 
+// ContainsValue asserts that the specified map contains the specified element as a value.
+//
+//    assert.Contains(t, map[string]string{"Hello":"World"}, "World")
+func ContainsValue(t TestingT, list interface{}, elem interface{}, msgAndArgs ...interface{}) bool {
+	listValue := reflect.ValueOf(list)
+	listKind := reflect.TypeOf(list).Kind()
+	if listKind != reflect.Map {
+		return Fail(t, fmt.Sprintf("\"%s\" must be a map", list), msgAndArgs...)
+	}
+	iter := listValue.MapRange()
+	for iter.Next() {
+		if ObjectsAreEqual(iter.Value().Interface(), elem) {
+			return true
+		}
+	}
+
+	return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, elem), msgAndArgs...)
 }
 
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
@@ -762,7 +780,6 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 	}
 
 	return true
-
 }
 
 // Subset asserts that the specified list(array, slice...) contains all

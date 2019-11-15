@@ -582,6 +582,19 @@ func TestContains(t *testing.T) {
 	}
 }
 
+func TestContainsValue(t *testing.T) {
+
+	mockT := new(testing.T)
+	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
+
+	if ContainsValue(mockT, simpleMap, "Foo") {
+		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Foo\" value")
+	}
+	if !ContainsValue(mockT, simpleMap, "Bar") {
+		t.Error("Contains should return true: \"{\"Foo\": \"Bar\"}\" contains \"Bar\" value")
+	}
+}
+
 func TestNotContains(t *testing.T) {
 
 	mockT := new(testing.T)
