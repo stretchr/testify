@@ -743,7 +743,7 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 
 // ContainsValue asserts that the specified map contains the specified element as a value.
 //
-//    assert.Contains(t, map[string]string{"Hello":"World"}, "World")
+//    assert.ContainsValue(t, map[string]string{"Hello":"World"}, "World")
 func ContainsValue(t TestingT, list interface{}, elem interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
