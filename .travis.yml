@@ -12,6 +12,8 @@ matrix:
     - go: "1.11.x"
       env: GO111MODULE=on
     - go: tip
+  allow_failures:
+    - go: tip
   script:
     - ./.travis.gogenerate.sh
     - ./.travis.gofmt.sh
