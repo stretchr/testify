@@ -325,14 +325,6 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	return JSONEq(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// YAMLEqf asserts that two YAML strings are equivalent.
-func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	return YAMLEq(t, expected, actual, append([]interface{}{msg}, args...)...)
-}
-
 // Lenf asserts that the specified object has specific length.
 // Lenf also fails if the object has a type that len() not accept.
 //
@@ -462,6 +454,19 @@ func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ..
 	return NotRegexp(t, rx, str, append([]interface{}{msg}, args...)...)
 }
 
+// NotSamef asserts that two pointers do not reference the same object.
+//
+//    assert.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotSame(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
 // NotSubsetf asserts that the specified list(array, slice...) contains not all
 // elements given in the specified subset(array, slice...).
 //
@@ -555,6 +560,14 @@ func WithinDurationf(t TestingT, expected time.Time, actual time.Time, delta tim
 		h.Helper()
 	}
 	return WithinDuration(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
+}
+
+// YAMLEqf asserts that two YAML strings are equivalent.
+func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return YAMLEq(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
 // Zerof asserts that i is the zero value for its type.

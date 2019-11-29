@@ -639,22 +639,6 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 	return JSONEqf(a.t, expected, actual, msg, args...)
 }
 
-// YAMLEq asserts that two YAML strings are equivalent.
-func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interface{}) bool {
-	if h, ok := a.t.(tHelper); ok {
-		h.Helper()
-	}
-	return YAMLEq(a.t, expected, actual, msgAndArgs...)
-}
-
-// YAMLEqf asserts that two YAML strings are equivalent.
-func (a *Assertions) YAMLEqf(expected string, actual string, msg string, args ...interface{}) bool {
-	if h, ok := a.t.(tHelper); ok {
-		h.Helper()
-	}
-	return YAMLEqf(a.t, expected, actual, msg, args...)
-}
-
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -913,6 +897,32 @@ func (a *Assertions) NotRegexpf(rx interface{}, str interface{}, msg string, arg
 	return NotRegexpf(a.t, rx, str, msg, args...)
 }
 
+// NotSame asserts that two pointers do not reference the same object.
+//
+//    a.NotSame(ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func (a *Assertions) NotSame(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotSame(a.t, expected, actual, msgAndArgs...)
+}
+
+// NotSamef asserts that two pointers do not reference the same object.
+//
+//    a.NotSamef(ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func (a *Assertions) NotSamef(expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotSamef(a.t, expected, actual, msg, args...)
+}
+
 // NotSubset asserts that the specified list(array, slice...) contains not all
 // elements given in the specified subset(array, slice...).
 //
@@ -1101,6 +1111,22 @@ func (a *Assertions) WithinDurationf(expected time.Time, actual time.Time, delta
 		h.Helper()
 	}
 	return WithinDurationf(a.t, expected, actual, delta, msg, args...)
+}
+
+// YAMLEq asserts that two YAML strings are equivalent.
+func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return YAMLEq(a.t, expected, actual, msgAndArgs...)
+}
+
+// YAMLEqf asserts that two YAML strings are equivalent.
+func (a *Assertions) YAMLEqf(expected string, actual string, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return YAMLEqf(a.t, expected, actual, msg, args...)
 }
 
 // Zero asserts that i is the zero value for its type.
