@@ -6,11 +6,10 @@
 package require
 
 import (
+	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
-
-	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -641,22 +640,6 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 	JSONEqf(a.t, expected, actual, msg, args...)
 }
 
-// YAMLEq asserts that two YAML strings are equivalent.
-func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interface{}) {
-	if h, ok := a.t.(tHelper); ok {
-		h.Helper()
-	}
-	YAMLEq(a.t, expected, actual, msgAndArgs...)
-}
-
-// YAMLEqf asserts that two YAML strings are equivalent.
-func (a *Assertions) YAMLEqf(expected string, actual string, msg string, args ...interface{}) {
-	if h, ok := a.t.(tHelper); ok {
-		h.Helper()
-	}
-	YAMLEqf(a.t, expected, actual, msg, args...)
-}
-
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -915,6 +898,32 @@ func (a *Assertions) NotRegexpf(rx interface{}, str interface{}, msg string, arg
 	NotRegexpf(a.t, rx, str, msg, args...)
 }
 
+// NotSame asserts that two pointers do not reference the same object.
+//
+//    a.NotSame(ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func (a *Assertions) NotSame(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotSame(a.t, expected, actual, msgAndArgs...)
+}
+
+// NotSamef asserts that two pointers do not reference the same object.
+//
+//    a.NotSamef(ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func (a *Assertions) NotSamef(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotSamef(a.t, expected, actual, msg, args...)
+}
+
 // NotSubset asserts that the specified list(array, slice...) contains not all
 // elements given in the specified subset(array, slice...).
 //
@@ -1103,6 +1112,22 @@ func (a *Assertions) WithinDurationf(expected time.Time, actual time.Time, delta
 		h.Helper()
 	}
 	WithinDurationf(a.t, expected, actual, delta, msg, args...)
+}
+
+// YAMLEq asserts that two YAML strings are equivalent.
+func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	YAMLEq(a.t, expected, actual, msgAndArgs...)
+}
+
+// YAMLEqf asserts that two YAML strings are equivalent.
+func (a *Assertions) YAMLEqf(expected string, actual string, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	YAMLEqf(a.t, expected, actual, msg, args...)
 }
 
 // Zero asserts that i is the zero value for its type.
