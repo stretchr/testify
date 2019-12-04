@@ -98,14 +98,14 @@ func Run(t *testing.T, suite TestingSuite) {
 			continue
 		}
 		if !suiteSetupDone {
-			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-				setupAllSuite.SetupSuite()
-			}
 			defer func() {
 				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
 					tearDownAllSuite.TearDownSuite()
 				}
 			}()
+			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+				setupAllSuite.SetupSuite()
+			}
 			suiteSetupDone = true
 		}
 		test := testing.InternalTest{
@@ -114,13 +114,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				parentT := suite.T()
 				suite.SetT(t)
 				defer failOnPanic(t)
-
-				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-					setupTestSuite.SetupTest()
-				}
-				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-				}
+				
 				defer func() {
 					if afterTestSuite, ok := suite.(AfterTest); ok {
 						afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
@@ -130,6 +124,13 @@ func Run(t *testing.T, suite TestingSuite) {
 					}
 					suite.SetT(parentT)
 				}()
+				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+					setupTestSuite.SetupTest()
+				}
+				if beforeTestSuite, ok := suite.(BeforeTest); ok {
+					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+				}
+
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
 		}
