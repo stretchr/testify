@@ -111,14 +111,6 @@ func Run(t *testing.T, suite TestingSuite) {
 		suiteName := methodFinder.Elem().Name()
 
 		if !suiteSetupDone {
-			if stats != nil {
-				stats.Start = time.Now()
-			}
-
-			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-				setupAllSuite.SetupSuite()
-			}
-
 			defer func() {
 				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
 					testsSync.Wait()
@@ -130,6 +122,9 @@ func Run(t *testing.T, suite TestingSuite) {
 					suiteWithStats.HandleStats(suiteName, stats)
 				}
 			}()
+			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+				setupAllSuite.SetupSuite()
+			}
 			suiteSetupDone = true
 		}
 
@@ -140,19 +135,6 @@ func Run(t *testing.T, suite TestingSuite) {
 				parentT := suite.T()
 				suite.SetT(t)
 				defer failOnPanic(t)
-
-				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-					setupTestSuite.SetupTest()
-				}
-
-				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-				}
-
-				if stats != nil {
-					stats.start(method.Name)
-				}
-
 				defer func() {
 					if stats != nil {
 						passed := !t.Failed()
@@ -169,6 +151,13 @@ func Run(t *testing.T, suite TestingSuite) {
 
 					suite.SetT(parentT)
 				}()
+				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+					setupTestSuite.SetupTest()
+				}
+				if beforeTestSuite, ok := suite.(BeforeTest); ok {
+					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+				}
+
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
 		}
