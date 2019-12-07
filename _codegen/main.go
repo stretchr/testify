@@ -194,7 +194,7 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	}
 
 	cfg := types.Config{
-		Importer: importer.ForCompiler(fset, "source", nil),
+		Importer: importer.For("source", nil),
 	}
 	info := types.Info{
 		Defs: make(map[*ast.Ident]types.Object),
