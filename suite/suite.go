@@ -84,7 +84,7 @@ func Run(t *testing.T, suite TestingSuite) {
 	defer failOnPanic(t)
 
 	suiteSetupDone := false
-	
+
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
