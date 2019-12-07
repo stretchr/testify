@@ -1,6 +1,10 @@
 #!/bin/bash
 
-if [[ "$TRAVIS_GO_VERSION" =~ ^1\.[45](\..*)?$ ]]; then
+# If GOMOD is defined we are running with Go Modules enabled, either
+# automatically or via the GO111MODULE=on environment variable. If modules is
+# enabled we skip generation because at the moment the codegen only works
+# without modules.
+if [[ -z "$(go env GOMOD)" ]]; then
   exit 0
 fi
 
