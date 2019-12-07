@@ -1,6 +1,6 @@
 #!/bin/bash
 
-go generate ./...
+GO111MODULE=on go generate ./...
 if [ -n "$(git diff)" ]; then
   echo "Go generate had not been run"
   git diff
