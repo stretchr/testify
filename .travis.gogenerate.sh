@@ -5,6 +5,7 @@
 # enabled we skip generation because at the moment the codegen only works
 # without modules.
 if [[ -z "$(go env GOMOD)" ]]; then
+  echo "Skipping go generate because modules are in use"
   exit 0
 fi
 
