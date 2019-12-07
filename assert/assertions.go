@@ -22,7 +22,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-//go:generate go run ../_codegen/main.go -output-package=assert -template=assertion_format.go.tmpl
+//go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_format.go.tmpl"
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
