@@ -496,6 +496,18 @@ func Panicsf(t TestingT, f PanicTestFunc, msg string, args ...interface{}) bool 
 	return Panics(t, f, append([]interface{}{msg}, args...)...)
 }
 
+// PanicsWithErrorf asserts that the code inside the specified PanicTestFunc
+// panics, and that the recovered panic value is an error that satisfies the
+// EqualError comparison.
+//
+//   assert.PanicsWithErrorf(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
+func PanicsWithErrorf(t TestingT, errString string, f PanicTestFunc, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return PanicsWithError(t, errString, f, append([]interface{}{msg}, args...)...)
+}
+
 // PanicsWithValuef asserts that the code inside the specified PanicTestFunc panics, and that
 // the recovered panic value equals the expected panic value.
 //
