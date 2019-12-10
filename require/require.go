@@ -6,11 +6,10 @@
 package require
 
 import (
+	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
-
-	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -276,11 +275,11 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 //
 //    assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
-	if assert.Eventually(t, condition, waitFor, tick, msgAndArgs...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.Eventually(t, condition, waitFor, tick, msgAndArgs...) {
+		return
 	}
 	t.FailNow()
 }
@@ -290,11 +289,11 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 //
 //    assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
-	if assert.Eventuallyf(t, condition, waitFor, tick, msg, args...) {
-		return
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if assert.Eventuallyf(t, condition, waitFor, tick, msg, args...) {
+		return
 	}
 	t.FailNow()
 }
@@ -821,28 +820,6 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	t.FailNow()
 }
 
-// YAMLEq asserts that two YAML strings are equivalent.
-func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.YAMLEq(t, expected, actual, msgAndArgs...) {
-		return
-	}
-	t.FailNow()
-}
-
-// YAMLEqf asserts that two YAML strings are equivalent.
-func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.YAMLEqf(t, expected, actual, msg, args...) {
-		return
-	}
-	t.FailNow()
-}
-
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -1167,6 +1144,38 @@ func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ..
 	t.FailNow()
 }
 
+// NotSame asserts that two pointers do not reference the same object.
+//
+//    assert.NotSame(t, ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotSame(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotSamef asserts that two pointers do not reference the same object.
+//
+//    assert.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotSamef(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NotSubset asserts that the specified list(array, slice...) contains not all
 // elements given in the specified subset(array, slice...).
 //
@@ -1436,6 +1445,28 @@ func WithinDurationf(t TestingT, expected time.Time, actual time.Time, delta tim
 		h.Helper()
 	}
 	if assert.WithinDurationf(t, expected, actual, delta, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// YAMLEq asserts that two YAML strings are equivalent.
+func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.YAMLEq(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// YAMLEqf asserts that two YAML strings are equivalent.
+func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.YAMLEqf(t, expected, actual, msg, args...) {
 		return
 	}
 	t.FailNow()
