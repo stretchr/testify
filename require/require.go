@@ -66,7 +66,8 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 	t.FailNow()
 }
 
-// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExists checks whether a directory exists in the given path. It also fails
+// if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -77,7 +78,8 @@ func DirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExistsf checks whether a directory exists in the given path. It also fails
+// if the path is a file rather a directory or there is an error checking whether it exists.
 func DirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -394,7 +396,8 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
-// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExists checks whether a file exists in the given path. It also fails if
+// the path points to a directory or there is an error when trying to check the file.
 func FileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -405,7 +408,8 @@ func FileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExistsf checks whether a file exists in the given path. It also fails if
+// the path points to a directory or there is an error when trying to check the file.
 func FileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1000,6 +1004,30 @@ func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, a
 	t.FailNow()
 }
 
+// NotDirExists checks whether a directory does not exist in the given path.
+// It fails if the path points to an existing _directory_ only.
+func NotDirExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotDirExists(t, path, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotDirExistsf checks whether a directory does not exist in the given path.
+// It fails if the path points to an existing _directory_ only.
+func NotDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotDirExistsf(t, path, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
@@ -1059,6 +1087,30 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 		h.Helper()
 	}
 	if assert.NotEqualf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotFileExists checks whether a file does not exist in a given path. It fails
+// if the path points to an existing _file_ only.
+func NotFileExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotFileExists(t, path, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotFileExistsf checks whether a file does not exist in a given path. It fails
+// if the path points to an existing _file_ only.
+func NotFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotFileExistsf(t, path, msg, args...) {
 		return
 	}
 	t.FailNow()
