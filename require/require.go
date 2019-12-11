@@ -940,6 +940,30 @@ func Nilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// NoDirExists checks whether a directory does not exist in the given path.
+// It fails if the path points to an existing _directory_ only.
+func NoDirExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NoDirExists(t, path, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NoDirExistsf checks whether a directory does not exist in the given path.
+// It fails if the path points to an existing _directory_ only.
+func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NoDirExistsf(t, path, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NoError asserts that a function returned no error (i.e. `nil`).
 //
 //   actualObj, err := SomeFunction()
@@ -972,6 +996,30 @@ func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// NoFileExists checks whether a file does not exist in a given path. It fails
+// if the path points to an existing _file_ only.
+func NoFileExists(t TestingT, path string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NoFileExists(t, path, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NoFileExistsf checks whether a file does not exist in a given path. It fails
+// if the path points to an existing _file_ only.
+func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NoFileExistsf(t, path, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
 //
@@ -999,30 +1047,6 @@ func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, a
 		h.Helper()
 	}
 	if assert.NotContainsf(t, s, contains, msg, args...) {
-		return
-	}
-	t.FailNow()
-}
-
-// NotDirExists checks whether a directory does not exist in the given path.
-// It fails if the path points to an existing _directory_ only.
-func NotDirExists(t TestingT, path string, msgAndArgs ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.NotDirExists(t, path, msgAndArgs...) {
-		return
-	}
-	t.FailNow()
-}
-
-// NotDirExistsf checks whether a directory does not exist in the given path.
-// It fails if the path points to an existing _directory_ only.
-func NotDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.NotDirExistsf(t, path, msg, args...) {
 		return
 	}
 	t.FailNow()
@@ -1087,30 +1111,6 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 		h.Helper()
 	}
 	if assert.NotEqualf(t, expected, actual, msg, args...) {
-		return
-	}
-	t.FailNow()
-}
-
-// NotFileExists checks whether a file does not exist in a given path. It fails
-// if the path points to an existing _file_ only.
-func NotFileExists(t TestingT, path string, msgAndArgs ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.NotFileExists(t, path, msgAndArgs...) {
-		return
-	}
-	t.FailNow()
-}
-
-// NotFileExistsf checks whether a file does not exist in a given path. It fails
-// if the path points to an existing _file_ only.
-func NotFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.NotFileExistsf(t, path, msg, args...) {
 		return
 	}
 	t.FailNow()
