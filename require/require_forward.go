@@ -54,7 +54,8 @@ func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, 
 	Containsf(a.t, s, contains, msg, args...)
 }
 
-// DirExists checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExists checks whether a directory exists in the given path. It also fails
+// if the path is a file rather a directory or there is an error checking whether it exists.
 func (a *Assertions) DirExists(path string, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -62,7 +63,8 @@ func (a *Assertions) DirExists(path string, msgAndArgs ...interface{}) {
 	DirExists(a.t, path, msgAndArgs...)
 }
 
-// DirExistsf checks whether a directory exists in the given path. It also fails if the path is a file rather a directory or there is an error checking whether it exists.
+// DirExistsf checks whether a directory exists in the given path. It also fails
+// if the path is a file rather a directory or there is an error checking whether it exists.
 func (a *Assertions) DirExistsf(path string, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -310,7 +312,8 @@ func (a *Assertions) Falsef(value bool, msg string, args ...interface{}) {
 	Falsef(a.t, value, msg, args...)
 }
 
-// FileExists checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExists checks whether a file exists in the given path. It also fails if
+// the path points to a directory or there is an error when trying to check the file.
 func (a *Assertions) FileExists(path string, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -318,7 +321,8 @@ func (a *Assertions) FileExists(path string, msgAndArgs ...interface{}) {
 	FileExists(a.t, path, msgAndArgs...)
 }
 
-// FileExistsf checks whether a file exists in the given path. It also fails if the path points to a directory or there is an error when trying to check the file.
+// FileExistsf checks whether a file exists in the given path. It also fails if
+// the path points to a directory or there is an error when trying to check the file.
 func (a *Assertions) FileExistsf(path string, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -784,6 +788,24 @@ func (a *Assertions) NotContainsf(s interface{}, contains interface{}, msg strin
 	NotContainsf(a.t, s, contains, msg, args...)
 }
 
+// NotDirExists checks whether a directory does not exist in the given path.
+// It fails if the path points to an existing _directory_ only.
+func (a *Assertions) NotDirExists(path string, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotDirExists(a.t, path, msgAndArgs...)
+}
+
+// NotDirExistsf checks whether a directory does not exist in the given path.
+// It fails if the path points to an existing _directory_ only.
+func (a *Assertions) NotDirExistsf(path string, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotDirExistsf(a.t, path, msg, args...)
+}
+
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
@@ -834,6 +856,24 @@ func (a *Assertions) NotEqualf(expected interface{}, actual interface{}, msg str
 		h.Helper()
 	}
 	NotEqualf(a.t, expected, actual, msg, args...)
+}
+
+// NotFileExists checks whether a file does not exist in a given path. It fails
+// if the path points to an existing _file_ only.
+func (a *Assertions) NotFileExists(path string, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotFileExists(a.t, path, msgAndArgs...)
+}
+
+// NotFileExistsf checks whether a file does not exist in a given path. It fails
+// if the path points to an existing _file_ only.
+func (a *Assertions) NotFileExistsf(path string, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotFileExistsf(a.t, path, msg, args...)
 }
 
 // NotNil asserts that the specified object is not nil.
