@@ -1383,9 +1383,9 @@ func FileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// NotFileExists checks whether a file does not exist in a given path. It fails
+// NoFileExists checks whether a file does not exist in a given path. It fails
 // if the path points to an existing _file_ only.
-func NotFileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+func NoFileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -1421,9 +1421,9 @@ func DirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// NotDirExists checks whether a directory does not exist in the given path.
+// NoDirExists checks whether a directory does not exist in the given path.
 // It fails if the path points to an existing _directory_ only.
-func NotDirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
+func NoDirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
