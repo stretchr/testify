@@ -334,6 +334,8 @@ When submitting an issue, we ask that you please include a complete test functio
 
 Code generation is used. Look for `CODE GENERATED AUTOMATICALLY` at the top of some files. Run `go generate ./...` to update generated files.
 
+We also chat on the [Gophers Slack](https://gophers.slack.com) group in the `#testify` and `#testify-dev` channels.
+
 ------
 
 License
