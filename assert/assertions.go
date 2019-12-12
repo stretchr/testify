@@ -1391,9 +1391,6 @@ func NoFileExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	}
 	info, err := os.Lstat(path)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return true
-		}
 		return true
 	}
 	if info.IsDir() {
