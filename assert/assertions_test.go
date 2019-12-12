@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 	"reflect"
@@ -1482,6 +1483,63 @@ func TestNoFileExists(t *testing.T) {
 
 	mockT = new(testing.T)
 	True(t, NoFileExists(mockT, "../_codegen"))
+
+	var tempFiles []string
+
+	file, err := getTempFilePath()
+	if err != nil {
+		t.Fatal("could not create temp file, err:", err)
+	}
+	tempFiles = append(tempFiles, file)
+	mockT = new(testing.T)
+	False(t, NoFileExists(mockT, file))
+
+	link, err := getTempSymlinkPath(file)
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	False(t, NoFileExists(mockT, link))
+
+	// symlink with non-existent target
+	link, err = getTempSymlinkPath("random_file_which_does_not_exist")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	True(t, NoFileExists(mockT, link))
+
+	errs := cleanUpTempFiles(tempFiles)
+	if len(errs) > 0 {
+		t.Fail()
+	}
+}
+
+func getTempFilePath() (string, error) {
+	file, err := ioutil.TempFile("", "stretchr_file_test_")
+	if err != nil {
+		return "", err
+	}
+	return file.Name(), nil
+}
+
+func getTempSymlinkPath(file string) (string, error) {
+	link := file + "_symlink"
+	err := os.Symlink(file, link)
+	return link, err
+}
+
+func cleanUpTempFiles(paths []string) []error {
+	var res []error
+	for _, path := range paths {
+		err := os.Remove(path)
+		if err != nil {
+			res = append(res, err)
+		}
+	}
+	return res
 }
 
 func TestDirExists(t *testing.T) {
