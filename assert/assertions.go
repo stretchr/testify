@@ -352,6 +352,19 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 
 }
 
+// validateEqualArgs checks whether provided arguments can be safely used in the
+// Equal/NotEqual functions.
+func validateEqualArgs(expected, actual interface{}) error {
+	if expected == nil && actual == nil {
+		return nil
+	}
+
+	if isFunction(expected) || isFunction(actual) {
+		return errors.New("cannot take func type as argument")
+	}
+	return nil
+}
+
 // Same asserts that two pointers reference the same object.
 //
 //    assert.Same(t, ptr1, ptr2)
@@ -1524,15 +1537,6 @@ func diff(expected interface{}, actual interface{}) string {
 	})
 
 	return "\n\nDiff:\n" + diff
-}
-
-// validateEqualArgs checks whether provided arguments can be safely used in the
-// Equal/NotEqual functions.
-func validateEqualArgs(expected, actual interface{}) error {
-	if isFunction(expected) || isFunction(actual) {
-		return errors.New("cannot take func type as argument")
-	}
-	return nil
 }
 
 func isFunction(arg interface{}) bool {
