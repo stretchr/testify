@@ -269,7 +269,7 @@ func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, ms
 
 // InDeltaf asserts that the two numerals are within delta of each other.
 //
-// 	 assert.InDeltaf(t, math.Pi, (22 / 7.0, "error message %s", "formatted"), 0.01)
+// 	 assert.InDeltaf(t, math.Pi, 22/7.0, 0.01, "error message %s", "formatted")
 func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
