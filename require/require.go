@@ -664,7 +664,7 @@ func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, ms
 
 // InDelta asserts that the two numerals are within delta of each other.
 //
-// 	 assert.InDelta(t, math.Pi, (22 / 7.0), 0.01)
+// 	 assert.InDelta(t, math.Pi, 22/7.0, 0.01)
 func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -721,7 +721,7 @@ func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta f
 
 // InDeltaf asserts that the two numerals are within delta of each other.
 //
-// 	 assert.InDeltaf(t, math.Pi, (22 / 7.0, "error message %s", "formatted"), 0.01)
+// 	 assert.InDeltaf(t, math.Pi, 22/7.0, 0.01, "error message %s", "formatted")
 func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
