@@ -1,3 +1,5 @@
+// +build go1.13
+
 package require
 
 // ErrorIs asserts that a function returned an error chain
