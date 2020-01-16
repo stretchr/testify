@@ -114,9 +114,7 @@ func Run(t *testing.T, suite TestingSuite) {
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
-				defer func() {
-					testsSync.Done()
-				}()
+				defer testsSync.Done()
 				parentT := suite.T()
 				suite.SetT(t)
 				defer failOnPanic(t)
