@@ -363,6 +363,17 @@ func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args .
 	return LessOrEqual(t, e1, e2, append([]interface{}{msg}, args...)...)
 }
 
+// Neverf asserts that the given condition doesn't satisfy in waitFor time,
+// periodically checking the target function each tick.
+//
+//    assert.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Never(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
+}
+
 // Nilf asserts that the specified object is nil.
 //
 //    assert.Nilf(t, err, "error message %s", "formatted")

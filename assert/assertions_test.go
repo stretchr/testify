@@ -2167,6 +2167,27 @@ func TestEventuallyTrue(t *testing.T) {
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+func TestNeverFalse(t *testing.T) {
+	condition := func() bool {
+		return false
+	}
+
+	True(t, Never(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
+func TestNeverTrue(t *testing.T) {
+	mockT := new(testing.T)
+	state := 0
+	condition := func() bool {
+		defer func() {
+			state = state + 1
+		}()
+		return state == 2
+	}
+
+	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
 func TestEventuallyIssue805(t *testing.T) {
 	mockT := new(testing.T)
 

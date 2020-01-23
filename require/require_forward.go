@@ -716,6 +716,28 @@ func (a *Assertions) Lessf(e1 interface{}, e2 interface{}, msg string, args ...i
 	Lessf(a.t, e1, e2, msg, args...)
 }
 
+// Never asserts that the given condition doesn't satisfy in waitFor time,
+// periodically checking the target function each tick.
+//
+//    a.Never(func() bool { return false; }, time.Second, 10*time.Millisecond)
+func (a *Assertions) Never(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Never(a.t, condition, waitFor, tick, msgAndArgs...)
+}
+
+// Neverf asserts that the given condition doesn't satisfy in waitFor time,
+// periodically checking the target function each tick.
+//
+//    a.Neverf(func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func (a *Assertions) Neverf(condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Neverf(a.t, condition, waitFor, tick, msg, args...)
+}
+
 // Nil asserts that the specified object is nil.
 //
 //    a.Nil(err)

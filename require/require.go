@@ -914,6 +914,34 @@ func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...inter
 	t.FailNow()
 }
 
+// Never asserts that the given condition doesn't satisfy in waitFor time,
+// periodically checking the target function each tick.
+//
+//    assert.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
+func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Never(t, condition, waitFor, tick, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Neverf asserts that the given condition doesn't satisfy in waitFor time,
+// periodically checking the target function each tick.
+//
+//    assert.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Neverf(t, condition, waitFor, tick, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Nil asserts that the specified object is nil.
 //
 //    assert.Nil(t, err)

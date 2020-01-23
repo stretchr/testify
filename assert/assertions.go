@@ -1591,3 +1591,36 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		}
 	}
 }
+
+// Never asserts that the given condition doesn't satisfy in waitFor time,
+// periodically checking the target function each tick.
+//
+//    assert.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
+func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	ch := make(chan bool, 1)
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
+
+	ticker := time.NewTicker(tick)
+	defer ticker.Stop()
+
+	for tick := ticker.C; ; {
+		select {
+		case <-timer.C:
+			return true
+		case <-tick:
+			tick = nil
+			go func() { ch <- condition() }()
+		case v := <-ch:
+			if v {
+				return Fail(t, "Condition satisfied", msgAndArgs...)
+			}
+			tick = ticker.C
+		}
+	}
+}
