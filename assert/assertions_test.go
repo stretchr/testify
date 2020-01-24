@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 var (
@@ -424,7 +425,9 @@ func TestNotNil(t *testing.T) {
 	if NotNil(mockT, (*struct{})(nil)) {
 		t.Error("NotNil should return false: object is (*struct{})(nil)")
 	}
-
+	if NotNil(mockT, (unsafe.Pointer)(nil)) {
+		t.Error("NotNil should return false for empty unsafe.Pointer")
+	}
 }
 
 func TestNil(t *testing.T) {
@@ -440,7 +443,9 @@ func TestNil(t *testing.T) {
 	if Nil(mockT, new(AssertionTesterConformingObject)) {
 		t.Error("Nil should return false: object is not nil")
 	}
-
+	if !Nil(mockT, (unsafe.Pointer)(nil)) {
+		t.Error("Nil should return true for empty unsafe.Pointer")
+	}
 }
 
 func TestTrue(t *testing.T) {
