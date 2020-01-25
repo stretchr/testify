@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -2187,5 +2188,20 @@ func Test_validateEqualArgs(t *testing.T) {
 
 	if validateEqualArgs(nil, nil) != nil {
 		t.Error("nil functions are equal")
+	}
+}
+
+func Test_truncatingFormat(t *testing.T) {
+
+	original := strings.Repeat("a", bufio.MaxScanTokenSize-102)
+	result := truncatingFormat(original)
+	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")
+
+	original = original + "x"
+	result = truncatingFormat(original)
+	NotEqual(t, fmt.Sprintf("%#v", original), result, "string should have been truncated.")
+
+	if !strings.HasSuffix(result, "<... truncated>") {
+		t.Error("truncated string should have <... truncated> suffix")
 	}
 }
