@@ -19,7 +19,7 @@ matrix:
       env: GO111MODULE=off
     - go: "1.13.x"
       env: GO111MODULE=on
-    - go: tip
+    - go: master
 script:
   - ./.travis.gogenerate.sh
   - ./.travis.gofmt.sh
