@@ -20,6 +20,8 @@ type TestingT interface {
 	Run(name string, f func(t *testing.T)) bool
 	Errorf(format string, args ...interface{})
 	FailNow()
+	Log(args ...interface{})
+	Skip(args ...interface{})
 }
 
 // Suite is a basic testing suite with methods for storing and
