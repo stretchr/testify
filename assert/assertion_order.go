@@ -268,7 +268,7 @@ func containsValue(values []int, value int) bool{
         if (v == value) {
             return true
         }
-	}
+    }
 
     return false
 }
