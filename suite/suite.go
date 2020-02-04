@@ -22,6 +22,7 @@ type TestingT interface {
 	Errorf(format string, args ...interface{})
 	FailNow()
 	Log(args ...interface{})
+	Logf(format string, args ...interface{})
 	Skip(args ...interface{})
 }
 
