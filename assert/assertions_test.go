@@ -847,6 +847,8 @@ func TestEqualError(t *testing.T) {
 		"EqualError should return false for different error string")
 	True(t, EqualError(mockT, err, "some error"),
 		"EqualError should return true")
+	True(t, EqualError(mockT, err, err))
+	True(t, EqualError(mockT, err, errors.New("some error")))
 }
 
 func Test_isEmpty(t *testing.T) {
