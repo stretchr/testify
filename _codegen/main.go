@@ -181,7 +181,7 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	files := make(map[string]*ast.File)
 	fileList := make([]*ast.File, len(pd.GoFiles))
 	for i, fname := range pd.GoFiles {
-		src, err := ioutil.ReadFile(path.Join(pd.SrcRoot, pd.ImportPath, fname))
+		src, err := ioutil.ReadFile(path.Join(pd.Dir, fname))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -194,7 +194,7 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	}
 
 	cfg := types.Config{
-		Importer: importer.Default(),
+		Importer: importer.For("source", nil),
 	}
 	info := types.Info{
 		Defs: make(map[*ast.Ident]types.Object),
