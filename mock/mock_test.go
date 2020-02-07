@@ -32,6 +32,7 @@ func (i *TestExampleImplementation) TheExampleMethod(a, b, c int) (int, error) {
 	return args.Int(0), errors.New("Whoops")
 }
 
+//go:noinline
 func (i *TestExampleImplementation) TheExampleMethod2(yesorno bool) {
 	i.Called(yesorno)
 }
@@ -739,6 +740,16 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 		}
 	}
 
+	c = m.On("Once", 1).Return("one").Once()
+	c.Repeatability = -1
+	f, c = m.findExpectedCall("Once", 1)
+	if assert.Equal(t, -1, f) {
+		if assert.NotNil(t, c) {
+			assert.Equal(t, "Once", c.Method)
+			assert.Equal(t, 1, c.Arguments[0])
+			assert.Equal(t, "one", c.ReturnArguments[0])
+		}
+	}
 }
 
 func Test_callString(t *testing.T) {
@@ -1246,6 +1257,24 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 
 }
 
+func Test_Arguments_Diff_WithIsTypeArgument(t *testing.T) {
+	var args = Arguments([]interface{}{"string", IsType(0), true})
+	var count int
+	_, count = args.Diff([]interface{}{"string", 123, true})
+
+	assert.Equal(t, 0, count)
+}
+
+func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
+	var args = Arguments([]interface{}{"string", IsType(""), true})
+	var count int
+	var diff string
+	diff, count = args.Diff([]interface{}{"string", 123, true})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `string != type int - (int=123)`)
+}
+
 func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 	matchFn := func(a int) bool {
 		return a == 123
@@ -1492,6 +1521,7 @@ func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
 		rMethod, calledArg, rMethod, expectedArg, diff)
 }
 
+//go:noinline
 func ConcurrencyTestMethod(m *Mock) {
 	m.Called()
 }
