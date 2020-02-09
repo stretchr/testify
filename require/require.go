@@ -256,6 +256,36 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
+// ErrorIs asserts that a specified error is an another error wrapper as defined by go1.13 errors package.
+//
+//   actualObj, err := SomeFunction()
+//   assert.ErrorIs(t, err, ErrNotFound)
+//   assert.Nil(t, actualObj)
+func ErrorIs(t TestingT, theError error, theTarget error, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ErrorIs(t, theError, theTarget, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// ErrorIsf asserts that a specified error is an another error wrapper as defined in go1.13+ errors package.
+//
+//   actualObj, err := SomeFunction()
+//   assert.ErrorIsf(t, err, ErrNotFound, "error message %s", "formatted")
+//   assert.Nil(t, actualObj)
+func ErrorIsf(t TestingT, theError error, theTarget error, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ErrorIsf(t, theError, theTarget, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Errorf asserts that a function returned an error (i.e. not `nil`).
 //
 //   actualObj, err := SomeFunction()
