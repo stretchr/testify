@@ -271,7 +271,7 @@ func ErrorIs(t TestingT, theError error, theTarget error, msgAndArgs ...interfac
 	t.FailNow()
 }
 
-// ErrorIsf asserts that a specified error is an another error wrapper as defined in go1.13+ errors package.
+// ErrorIsf asserts that a specified error is an another error wrapper as defined by go1.13 errors package.
 //
 //   actualObj, err := SomeFunction()
 //   assert.ErrorIsf(t, err, ErrNotFound, "error message %s", "formatted")

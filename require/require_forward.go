@@ -217,7 +217,7 @@ func (a *Assertions) ErrorIs(theError error, theTarget error, msgAndArgs ...inte
 	ErrorIs(a.t, theError, theTarget, msgAndArgs...)
 }
 
-// ErrorIsf asserts that a specified error is an another error wrapper as defined in go1.13+ errors package.
+// ErrorIsf asserts that a specified error is an another error wrapper as defined by go1.13 errors package.
 //
 //   actualObj, err := SomeFunction()
 //   a.ErrorIsf(err, ErrNotFound, "error message %s", "formatted")
