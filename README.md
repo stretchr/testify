@@ -332,11 +332,9 @@ Please feel free to submit issues, fork the repository and send pull requests!
 
 When submitting an issue, we ask that you please include a complete test function that demonstrates the issue. Extra credit for those using Testify to write the test code that demonstrates it.
 
-Code generation is used. Look for `CODE GENERATED AUTOMATICALLY` at the top of some files. Run `go generate ./...` to update generated files.
-Assertions are added to `assert/assertions.go` file and then code generated to all other forms including `require.*` as
-```bash
-go generate ./assert/ ./require/
-```
+Code generation is used. Look for `CODE GENERATED AUTOMATICALLY` at the top of some files.
+Assertions are added to `assert/assertions.go` file and then code generated for all other forms including `require.*`.
+Run `go generate ./...` to update generated files.
 
 We also chat on the [Gophers Slack](https://gophers.slack.com) group in the `#testify` and `#testify-dev` channels.
 
