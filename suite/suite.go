@@ -20,6 +20,7 @@ var matchMethod = flag.String("testify.m", "", "regular expression to select tes
 type TestingT interface {
 	Run(name string, f func(t *testing.T)) bool
 	Errorf(format string, args ...interface{})
+	Fatalf(format string, args ...interface{})
 	FailNow()
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
