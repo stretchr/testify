@@ -556,14 +556,12 @@ func isArgsEqual(expected Arguments, args []interface{}) bool {
 	if len(args) != len(args) {
 		return false
 	}
-	var argsEqual = true
 	for i, v := range args {
 		if !reflect.DeepEqual(expected[i], v) {
-			argsEqual = false
-			continue
+			return false
 		}
 	}
-	return argsEqual
+	return true
 }
 
 func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
