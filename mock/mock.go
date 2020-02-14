@@ -527,6 +527,38 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	return true
 }
 
+// IsMethodCallable checking that the method can be called.
+// Is returned bool val
+func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for _, v := range m.ExpectedCalls {
+		if v.Method != methodName {
+			continue
+		}
+		if len(arguments) != len(v.Arguments) {
+			continue
+		}
+		if v.Repeatability < v.totalCalls {
+			continue
+		}
+		var argsEqual = true
+		for i, arg := range v.Arguments {
+			if !reflect.DeepEqual(arguments[i], arg) {
+				argsEqual = false
+				continue
+			}
+		}
+		if argsEqual {
+			return true
+		}
+	}
+	return false
+}
+
 func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 	for _, call := range m.calls() {
 		if call.Method == methodName {
