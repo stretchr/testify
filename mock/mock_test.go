@@ -1171,6 +1171,22 @@ func Test_Mock_IsMethodCallable(t *testing.T) {
 	assert.False(t, mockedService.IsMethodCallable(t, "Function", arr))
 }
 
+func TestIsArgsEqual(t *testing.T) {
+	var expected = Arguments{5, 3, 4, 6, 7, 2}
+	var args = make([]interface{}, 6)
+	for i := 0; i < len(expected); i++ {
+		args[i] = expected[i]
+	}
+	args[2] = expected[1]
+	assert.False(t, isArgsEqual(expected, args))
+
+	var arr = make([]interface{}, 6)
+	for i := 0; i < len(expected); i++ {
+		arr[i] = expected[i]
+	}
+	assert.True(t, isArgsEqual(expected, arr))
+}
+
 func Test_Mock_AssertOptional(t *testing.T) {
 	// Optional called
 	var ms1 = new(TestExampleImplementation)
