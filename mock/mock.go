@@ -545,18 +545,25 @@ func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...inte
 		if v.Repeatability < v.totalCalls {
 			continue
 		}
-		var argsEqual = true
-		for i, arg := range v.Arguments {
-			if !reflect.DeepEqual(arguments[i], arg) {
-				argsEqual = false
-				continue
-			}
-		}
-		if argsEqual {
+		if isArgsEqual(v.Arguments, arguments) {
 			return true
 		}
 	}
 	return false
+}
+
+func isArgsEqual(expected Arguments, args []interface{}) bool {
+	if len(args) != len(args) {
+		return false
+	}
+	var argsEqual = true
+	for i, v := range args {
+		if !reflect.DeepEqual(expected[i], v) {
+			argsEqual = false
+			continue
+		}
+	}
+	return argsEqual
 }
 
 func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
