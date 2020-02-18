@@ -801,6 +801,90 @@ func TestElementsMatch(t *testing.T) {
 	}
 }
 
+func TestDiffLists(t *testing.T) {
+	tests := []struct {
+		name   string
+		listA  interface{}
+		listB  interface{}
+		extraA []interface{}
+		extraB []interface{}
+	}{
+		{
+			name:   "equal empty",
+			listA:  []string{},
+			listB:  []string{},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "equal same order",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"hello", "world"},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "equal different order",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"world", "hello"},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "extra A",
+			listA:  []string{"hello", "hello", "world"},
+			listB:  []string{"hello", "world"},
+			extraA: []interface{}{"hello"},
+			extraB: nil,
+		},
+		{
+			name:   "extra A twice",
+			listA:  []string{"hello", "hello", "hello", "world"},
+			listB:  []string{"hello", "world"},
+			extraA: []interface{}{"hello", "hello"},
+			extraB: nil,
+		},
+		{
+			name:   "extra B",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"hello", "hello", "world"},
+			extraA: nil,
+			extraB: []interface{}{"hello"},
+		},
+		{
+			name:   "extra B twice",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"hello", "hello", "world", "hello"},
+			extraA: nil,
+			extraB: []interface{}{"hello", "hello"},
+		},
+		{
+			name:   "integers 1",
+			listA:  []int{1, 2, 3, 4, 5},
+			listB:  []int{5, 4, 3, 2, 1},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "integers 2",
+			listA:  []int{1, 2, 1, 2, 1},
+			listB:  []int{2, 1, 2, 1, 2},
+			extraA: []interface{}{1},
+			extraB: []interface{}{2},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			actualExtraA, actualExtraB := diffLists(test.listA, test.listB)
+			Equal(t, test.extraA, actualExtraA, "extra A does not match for listA=%v listB=%v",
+				test.listA, test.listB)
+			Equal(t, test.extraB, actualExtraB, "extra B does not match for listA=%v listB=%v",
+				test.listA, test.listB)
+		})
+	}
+}
+
 func TestCondition(t *testing.T) {
 	mockT := new(testing.T)
 

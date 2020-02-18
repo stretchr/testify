@@ -894,26 +894,38 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 		return true
 	}
 
-	aKind := reflect.TypeOf(listA).Kind()
-	bKind := reflect.TypeOf(listB).Kind()
-
-	if aKind != reflect.Array && aKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listA, aKind), msgAndArgs...)
+	if !isList(t, listA, msgAndArgs...) || !isList(t, listB, msgAndArgs...) {
+		return false
 	}
 
-	if bKind != reflect.Array && bKind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", listB, bKind), msgAndArgs...)
+	extraA, extraB := diffLists(listA, listB)
+
+	if len(extraA) == 0 && len(extraB) == 0 {
+		return true
 	}
 
+	return Fail(t, formatListDiff(listA, listB, extraA, extraB), msgAndArgs...)
+}
+
+// isList checks that the provided value is array or slice.
+func isList(t TestingT, list interface{}, msgAndArgs ...interface{}) (ok bool) {
+	kind := reflect.TypeOf(list).Kind()
+	if kind != reflect.Array && kind != reflect.Slice {
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s, expecting array or slice", list, kind),
+			msgAndArgs...)
+	}
+	return true
+}
+
+// diffLists diffs two arrays/slices and returns slices of elements that are only in A and only in B.
+// If some element is present multiple times, each instance is counted separately (e.g. if something is 2x in A and
+// 5x in B, it will be 0x in extraA and 3x in extraB). The order of items in both lists is ignored.
+func diffLists(listA, listB interface{}) (extraA, extraB []interface{}) {
 	aValue := reflect.ValueOf(listA)
 	bValue := reflect.ValueOf(listB)
 
 	aLen := aValue.Len()
 	bLen := bValue.Len()
-
-	if aLen != bLen {
-		return Fail(t, fmt.Sprintf("lengths don't match: %d != %d", aLen, bLen), msgAndArgs...)
-	}
 
 	// Mark indexes in bValue that we already used
 	visited := make([]bool, bLen)
@@ -931,11 +943,38 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 			}
 		}
 		if !found {
-			return Fail(t, fmt.Sprintf("element %s appears more times in %s than in %s", element, aValue, bValue), msgAndArgs...)
+			extraA = append(extraA, element)
 		}
 	}
 
-	return true
+	for j := 0; j < bLen; j++ {
+		if visited[j] {
+			continue
+		}
+		extraB = append(extraB, bValue.Index(j).Interface())
+	}
+
+	return
+}
+
+func formatListDiff(listA, listB interface{}, extraA, extraB []interface{}) string {
+	var msg bytes.Buffer
+
+	msg.WriteString("elements differ")
+	if len(extraA) > 0 {
+		msg.WriteString("\n\nextra elements in list A:\n")
+		msg.WriteString(spewConfig.Sdump(extraA))
+	}
+	if len(extraB) > 0 {
+		msg.WriteString("\n\nextra elements in list B:\n")
+		msg.WriteString(spewConfig.Sdump(extraB))
+	}
+	msg.WriteString("\n\nlistA:\n")
+	msg.WriteString(spewConfig.Sdump(listA))
+	msg.WriteString("\n\nlistB:\n")
+	msg.WriteString(spewConfig.Sdump(listB))
+
+	return msg.String()
 }
 
 // Condition uses a Comparison to assert a complex condition.
