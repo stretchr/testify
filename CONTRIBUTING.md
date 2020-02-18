@@ -42,7 +42,7 @@ See `MAINTAINERS.md` for a list of users who can approve / merge your changes.
 ## Issues
 
 If you find a bug or think of a useful feature you'd like to see added to Testify, the best thing
-you can do is make the necessary changes and open a pull requests (see above). If that isn't an
+you can do is make the necessary changes and open a pull request (see above). If that isn't an
 option, or if you'd like to discuss your change before you write the code, open an issue!
 
 Please provide enough context in the issue description that other members of the community can
