@@ -147,7 +147,7 @@ func (c *Call) After(d time.Duration) *Call {
 }
 
 // Run sets a handler to be called before returning. It can be used when
-// mocking a method such as unmarshalers that takes a pointer to a struct and
+// mocking a method (such as an unmarshaler) that takes a pointer to a struct and
 // sets properties in such struct
 //
 //    Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}").Return().Run(func(args Arguments) {
