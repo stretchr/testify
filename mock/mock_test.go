@@ -1146,27 +1146,27 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 func Test_Mock_IsMethodCallable(t *testing.T) {
 	var mockedService = new(TestExampleImplementation)
 
-	arg := []Call{{Repeatability: 1}, {Repeatability: 1}}
-	arg2 := []Call{{Repeatability: 1}, {Repeatability: 2}}
+	arg := []Call{{Repeatability: 1}, {Repeatability: 2}}
+	arg2 := []Call{{Repeatability: 1}, {Repeatability: 1}}
 	arg3 := []Call{{Repeatability: 1}, {Repeatability: 1}}
 
-	mockedService.On("Test_Mock_IsMethodCallable", arg).Return(true).Twice()
-
-	assert.False(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg2))
-	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg))
-	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg3))
-
-	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg)
-	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg)
+	mockedService.On("Test_Mock_IsMethodCallable", arg2).Return(true).Twice()
 
 	assert.False(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg))
+	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg2))
+	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg3))
+
+	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg2)
+	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg2)
+
+	assert.False(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg2))
 }
 
 func TestIsArgsEqual(t *testing.T) {
 	var expected = Arguments{5, 3, 4, 6, 7, 2}
-	var args = make([]interface{}, 6)
-	for i := 0; i < len(expected); i++ {
-		args[i] = expected[i]
+	var args = make([]interface{}, 5)
+	for i := 1; i < len(expected); i++ {
+		args[i-1] = expected[i]
 	}
 	args[2] = expected[1]
 	assert.False(t, isArgsEqual(expected, args))
