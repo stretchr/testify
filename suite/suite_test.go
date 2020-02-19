@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -482,28 +481,4 @@ func (s *CallOrderSuite) Test_A() {
 
 func (s *CallOrderSuite) Test_B() {
 	s.call("Test B")
-}
-
-func TestMockTCompatibility(t *testing.T) {
-	suiteTester := new(SuiteTester)
-	suiteTester.SetT(t)
-
-	// compatible with mock.T
-	_, ok := suiteTester.T().(mock.TestingT)
-	assert.True(t, ok)
-
-	// compatible with testing.T
-	_, ok = suiteTester.T().(*testing.T)
-	assert.True(t, ok)
-
-	// compatible with testing.TB
-	_, ok = suiteTester.T().(testing.TB)
-	assert.True(t, ok)
-
-	// control check
-	type wrongInterface interface {
-		NotInSuiteT() string
-	}
-	_, ok = suiteTester.T().(wrongInterface)
-	assert.False(t, ok)
 }
