@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -498,6 +500,10 @@ func TestMockTCompatibility(t *testing.T) {
 
 	// compatible with testing.TB
 	_, ok = suiteTester.T().(testing.TB)
+	assert.True(t, ok)
+
+	// compatible with gomock.TestReporter
+	_, ok = suiteTester.T().(gomock.TestReporter)
 	assert.True(t, ok)
 
 	// control check
