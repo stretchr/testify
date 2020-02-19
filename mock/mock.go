@@ -536,7 +536,6 @@ func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...inte
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	var isCallable = false
 	for _, v := range m.ExpectedCalls {
 		if v.Method != methodName {
 			continue
@@ -548,16 +547,15 @@ func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...inte
 			continue
 		}
 		if isArgsEqual(v.Arguments, arguments) {
-			isCallable = true
-			break
+			return true
 		}
 	}
-	return isCallable
+	return false
 }
 
-// Compares arguments
+// isArgsEqual compares arguments
 func isArgsEqual(expected Arguments, args []interface{}) bool {
-	if len(args) != len(args) {
+	if len(expected) != len(args) {
 		return false
 	}
 	for i, v := range args {
