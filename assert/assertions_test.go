@@ -1750,6 +1750,15 @@ func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
 	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
+type diffTestingStruct struct {
+	A string
+	B int
+}
+
+func (d *diffTestingStruct) String() string {
+	return d.A
+}
+
 func TestDiff(t *testing.T) {
 	expected := `
 
@@ -1827,6 +1836,42 @@ Diff:
 	actual = diff(
 		map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
 		map[string]int{"one": 1, "three": 3, "five": 5, "seven": 7},
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,3 +1,3 @@
+ (*errors.errorString)({
+- s: (string) (len=19) "some expected error"
++ s: (string) (len=12) "actual error"
+ })
+`
+
+	actual = diff(
+		errors.New("some expected error"),
+		errors.New("actual error"),
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -2,3 +2,3 @@
+  A: (string) (len=11) "some string",
+- B: (int) 10
++ B: (int) 15
+ }
+`
+
+	actual = diff(
+		diffTestingStruct{A: "some string", B: 10},
+		diffTestingStruct{A: "some string", B: 15},
 	)
 	Equal(t, expected, actual)
 }
