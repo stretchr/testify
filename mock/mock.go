@@ -318,7 +318,7 @@ func (c matchCandidate) isBetterMatchThan(other matchCandidate) bool {
 		return true
 	}
 
-	if c.call.Repeatability > other.call.Repeatability {
+	if c.call.Repeatability > 0 && other.call.Repeatability <= 0 {
 		return true
 	}
 	return false
