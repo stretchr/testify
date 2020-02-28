@@ -42,5 +42,5 @@ type BeforeTest interface {
 // AfterTest has a function to be executed right after the test
 // finishes and receives the suite and test names as input
 type AfterTest interface {
-	AfterTest(suiteName, testName string)
+	AfterTest(suiteName, testName string, success bool)
 }

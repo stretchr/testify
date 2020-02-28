@@ -79,7 +79,7 @@ func (s *panickingSuite) Test() {
 	}
 }
 
-func (s *panickingSuite) AfterTest(_, _ string) {
+func (s *panickingSuite) AfterTest(_, _ string, _ bool) {
 	if s.panicInAfterTest {
 		panic("oops in after test")
 	}
@@ -165,6 +165,8 @@ type SuiteTester struct {
 
 	TimeBefore []time.Time
 	TimeAfter  []time.Time
+
+	TestSuccess []bool
 }
 
 // The SetupSuite method will be run by testify once, at the very
@@ -179,10 +181,11 @@ func (suite *SuiteTester) BeforeTest(suiteName, testName string) {
 	suite.TimeBefore = append(suite.TimeBefore, time.Now())
 }
 
-func (suite *SuiteTester) AfterTest(suiteName, testName string) {
+func (suite *SuiteTester) AfterTest(suiteName, testName string, success bool) {
 	suite.SuiteNameAfter = append(suite.SuiteNameAfter, suiteName)
 	suite.TestNameAfter = append(suite.TestNameAfter, testName)
 	suite.TimeAfter = append(suite.TimeAfter, time.Now())
+	suite.TestSuccess = append(suite.TestSuccess, success)
 }
 
 // The TearDownSuite method will be run by testify once, at the very
@@ -295,6 +298,7 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, len(suiteTester.SuiteNameBefore), 4)
 	assert.Equal(t, len(suiteTester.TestNameAfter), 4)
 	assert.Equal(t, len(suiteTester.TestNameBefore), 4)
+	assert.Equal(t, len(suiteTester.TestSuccess), 4)
 
 	assert.Contains(t, suiteTester.TestNameAfter, "TestOne")
 	assert.Contains(t, suiteTester.TestNameAfter, "TestTwo")

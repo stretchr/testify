@@ -127,8 +127,10 @@ func Run(t *testing.T, suite TestingSuite) {
 				}
 				defer func() {
 					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
+						success := !t.Failed()
+						afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name, success)
 					}
+
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 						tearDownTestSuite.TearDownTest()
 					}
