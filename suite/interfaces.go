@@ -40,7 +40,8 @@ type BeforeTest interface {
 }
 
 // AfterTest has a function to be executed right after the test
-// finishes and receives the suite and test names as input
+// finishes and receives the suite and test names, and also a
+// flag to tell whether the test has passed or not.
 type AfterTest interface {
 	AfterTest(suiteName, testName string, success bool)
 }
