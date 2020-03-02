@@ -17,31 +17,21 @@ import (
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
 
-type TestingT interface {
-	Run(name string, f func(t *testing.T)) bool
-	Errorf(format string, args ...interface{})
-	Fatalf(format string, args ...interface{})
-	FailNow()
-	Log(args ...interface{})
-	Logf(format string, args ...interface{})
-	Skip(args ...interface{})
-}
-
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
 type Suite struct {
 	*assert.Assertions
 	require *require.Assertions
-	t       TestingT
+	t       *testing.T
 }
 
 // T retrieves the current *testing.T context.
-func (suite *Suite) T() TestingT {
+func (suite *Suite) T() *testing.T {
 	return suite.t
 }
 
 // SetT sets the current *testing.T context.
-func (suite *Suite) SetT(t TestingT) {
+func (suite *Suite) SetT(t *testing.T) {
 	suite.t = t
 	suite.Assertions = assert.New(t)
 	suite.require = require.New(t)
