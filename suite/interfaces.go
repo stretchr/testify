@@ -49,5 +49,5 @@ type AfterTest interface {
 
 // WithStats is a suite which measures some stats for its tests.
 type WithStats interface {
-	HandleStats(suiteName string, stats *SuiteStats)
+	HandleStats(suiteName string, stats *SuiteInformation)
 }

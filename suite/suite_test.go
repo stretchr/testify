@@ -486,10 +486,10 @@ func (s *CallOrderSuite) Test_B() {
 type suiteWithStats struct {
 	Suite
 	wasCalled bool
-	stats     *SuiteStats
+	stats     *SuiteInformation
 }
 
-func (s *suiteWithStats) HandleStats(suiteName string, stats *SuiteStats) {
+func (s *suiteWithStats) HandleStats(suiteName string, stats *SuiteInformation) {
 	s.wasCalled = true
 	s.stats = stats
 }
@@ -503,12 +503,12 @@ func TestSuiteWithStats(t *testing.T) {
 	Run(t, suiteWithStats)
 
 	assert.True(t, suiteWithStats.wasCalled)
-	assert.NotZero(t, suiteWithStats.stats.StartTime)
-	assert.NotZero(t, suiteWithStats.stats.EndTime)
+	assert.NotZero(t, suiteWithStats.stats.Start)
+	assert.NotZero(t, suiteWithStats.stats.End)
 	assert.True(t, suiteWithStats.stats.Passed)
 
 	testStats := suiteWithStats.stats.TestStats["TestSomething"]
-	assert.NotZero(t, testStats.StartTime)
-	assert.NotZero(t, testStats.EndTime)
+	assert.NotZero(t, testStats.Start)
+	assert.NotZero(t, testStats.End)
 	assert.True(t, testStats.Passed)
 }

@@ -89,11 +89,11 @@ func Run(t *testing.T, suite TestingSuite) {
 	suiteSetupDone := false
 
 	var (
-		stats *SuiteStats
+		stats *SuiteInformation
 	)
 
 	if _, measureStats := suite.(WithStats); measureStats {
-		stats = newSuiteStats()
+		stats = newSuiteInformation()
 	}
 
 	methodFinder := reflect.TypeOf(suite)
@@ -114,7 +114,7 @@ func Run(t *testing.T, suite TestingSuite) {
 
 		if !suiteSetupDone {
 			if stats != nil {
-				stats.StartTime = time.Now()
+				stats.Start = time.Now()
 			}
 
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
@@ -128,7 +128,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				}
 
 				if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-					stats.EndTime = time.Now()
+					stats.End = time.Now()
 					suiteWithStats.HandleStats(suiteName, stats)
 				}
 			}()
