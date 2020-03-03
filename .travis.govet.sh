@@ -2,6 +2,10 @@
 
 set -e
 
-go vet ./...
+go_vet_in_dir() {
+    cd $1
+    go vet ./...
+}
 
-// [BOB]: Fix this to run in /v2/ as well
+go_vet_in_dir .
+go_vet_in_dir ./v2

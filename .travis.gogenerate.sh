@@ -8,11 +8,16 @@ if [[ -z "$(go env GOMOD)" ]]; then
   exit 0
 fi
 
-go generate ./...
-if [ -n "$(git diff)" ]; then
-  echo "Go generate had not been run"
-  git diff
-  exit 1
-fi
+go_generate_in_dir() {
+  cd $1
+  go generate ./...
+  if [ -n "$(git status -s -uno)" ]; then
+    echo "Go generate output does not match commit."
+    echo "Did you forget to run go generate ./... ?"
+    exit 1
+  fi
+}
 
-// [BOB]: Fix this to run in /v2/ as well
+go_generate_in_dir .
+go_generate_in_dir ./v2
+
