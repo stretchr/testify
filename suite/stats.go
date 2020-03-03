@@ -2,11 +2,14 @@ package suite
 
 import "time"
 
+// Suite stats stores stats for the whole suite execution.
 type SuiteStats struct {
-	testStats map[string]*TestStats
+	testStats          map[string]*TestStats
+	StartTime, EndTime time.Time
+	Passed             bool
 }
 
-// Stats stores information about the execution of some test.
+// TestStats stores information about the execution of each test.
 type TestStats struct {
 	TestName           string
 	StartTime, EndTime time.Time
@@ -18,6 +21,7 @@ func newSuiteStats() *SuiteStats {
 
 	return &SuiteStats{
 		testStats: testStats,
+		Passed:    true,
 	}
 }
 

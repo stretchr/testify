@@ -9,6 +9,7 @@ import (
 	"runtime/debug"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -87,7 +88,9 @@ func Run(t *testing.T, suite TestingSuite) {
 
 	suiteSetupDone := false
 
-	var stats *SuiteStats
+	var (
+		stats *SuiteStats
+	)
 
 	if _, measureStats := suite.(WithStats); measureStats {
 		stats = newSuiteStats()
@@ -110,17 +113,23 @@ func Run(t *testing.T, suite TestingSuite) {
 		suiteName := methodFinder.Elem().Name()
 
 		if !suiteSetupDone {
+			if stats != nil {
+				stats.StartTime = time.Now()
+			}
+
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 				setupAllSuite.SetupSuite()
 			}
-			defer func() {
-				if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-					suiteWithStats.HandleStats(suiteName, stats)
-				}
 
+			defer func() {
 				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
 					testsSync.Wait()
 					tearDownAllSuite.TearDownSuite()
+				}
+
+				if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+					stats.EndTime = time.Now()
+					suiteWithStats.HandleStats(suiteName, stats)
 				}
 			}()
 			suiteSetupDone = true
@@ -149,7 +158,12 @@ func Run(t *testing.T, suite TestingSuite) {
 				defer func() {
 					if stats != nil {
 						passed := !t.Failed()
+
 						stats.end(method.Name, passed)
+
+						if !passed {
+							stats.Passed = false
+						}
 					}
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {

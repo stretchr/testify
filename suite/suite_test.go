@@ -503,9 +503,12 @@ func TestSuiteWithStats(t *testing.T) {
 	Run(t, suiteWithStats)
 
 	assert.True(t, suiteWithStats.wasCalled)
+	assert.NotZero(t, suiteWithStats.stats.StartTime)
+	assert.NotZero(t, suiteWithStats.stats.EndTime)
+	assert.True(t, suiteWithStats.stats.Passed)
 
-	stats := suiteWithStats.stats.get("TestSomething")
-	assert.NotZero(t, stats.StartTime)
-	assert.NotZero(t, stats.EndTime)
-	assert.True(t, stats.Passed)
+	testStats := suiteWithStats.stats.get("TestSomething")
+	assert.NotZero(t, testStats.StartTime)
+	assert.NotZero(t, testStats.EndTime)
+	assert.True(t, testStats.Passed)
 }
