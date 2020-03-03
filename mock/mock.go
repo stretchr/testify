@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -264,7 +265,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
 	var expectedCall *Call
 
-	for i, call := range m.ExpectedCalls {
+	for i, call := range m.expectedCalls() {
 		if call.Method == method {
 			_, diffCount := call.Arguments.Diff(arguments)
 			if diffCount == 0 {
@@ -584,7 +585,12 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 }
 
 func (m *Mock) expectedCalls() []*Call {
-	return append([]*Call{}, m.ExpectedCalls...)
+	expectedCalls := append([]*Call{}, m.ExpectedCalls...)
+	sort.Slice(expectedCalls, func(i, j int) bool {
+		return !expectedCalls[i].optional && expectedCalls[j].optional
+	})
+
+	return expectedCalls
 }
 
 func (m *Mock) calls() []Call {
