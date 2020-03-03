@@ -15,7 +15,7 @@ Get started:
 
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
   * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
-  * Check out the API Documentation http://godoc.org/github.com/stretchr/testify
+  * Check out the API Documentation http://godoc.org/github.com/stretchr/testify/v2
   * To make your testing life easier, check out our other project, [gorc](http://github.com/stretchr/gorc)
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
 
@@ -313,7 +313,7 @@ func TestSomething(t *testing.T) {
 Staying up to date
 ==================
 
-To update Testify to the latest version, use `go get -u github.com/stretchr/testify`.
+To update Testify to the latest version, use `go get -u github.com/stretchr/testify/v2`.
 
 ------
 
