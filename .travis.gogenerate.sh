@@ -14,3 +14,5 @@ if [ -n "$(git diff)" ]; then
   git diff
   exit 1
 fi
+
+// [BOB]: Fix this to run in /v2/ as well
