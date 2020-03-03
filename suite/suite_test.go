@@ -482,3 +482,30 @@ func (s *CallOrderSuite) Test_A() {
 func (s *CallOrderSuite) Test_B() {
 	s.call("Test B")
 }
+
+type suiteWithStats struct {
+	Suite
+	wasCalled bool
+	stats     *SuiteStats
+}
+
+func (s *suiteWithStats) HandleStats(suiteName string, stats *SuiteStats) {
+	s.wasCalled = true
+	s.stats = stats
+}
+
+func (s *suiteWithStats) TestSomething() {
+	s.Equal(1, 1)
+}
+
+func TestSuiteWithStats(t *testing.T) {
+	suiteWithStats := new(suiteWithStats)
+	Run(t, suiteWithStats)
+
+	assert.True(t, suiteWithStats.wasCalled)
+
+	stats := suiteWithStats.stats.get("TestSomething")
+	assert.NotZero(t, stats.StartTime)
+	assert.NotZero(t, stats.EndTime)
+	assert.True(t, stats.Passed)
+}

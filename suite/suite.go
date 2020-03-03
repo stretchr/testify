@@ -87,6 +87,12 @@ func Run(t *testing.T, suite TestingSuite) {
 
 	suiteSetupDone := false
 
+	var stats *SuiteStats
+
+	if _, measureStats := suite.(WithStats); measureStats {
+		stats = newSuiteStats()
+	}
+
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
@@ -96,14 +102,22 @@ func Run(t *testing.T, suite TestingSuite) {
 			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
 			os.Exit(1)
 		}
+
 		if !ok {
 			continue
 		}
+
+		suiteName := methodFinder.Elem().Name()
+
 		if !suiteSetupDone {
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 				setupAllSuite.SetupSuite()
 			}
 			defer func() {
+				if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+					suiteWithStats.HandleStats(suiteName, stats)
+				}
+
 				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
 					testsSync.Wait()
 					tearDownAllSuite.TearDownSuite()
@@ -111,6 +125,7 @@ func Run(t *testing.T, suite TestingSuite) {
 			}()
 			suiteSetupDone = true
 		}
+
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
@@ -122,16 +137,29 @@ func Run(t *testing.T, suite TestingSuite) {
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
 				}
+
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 				}
+
+				if stats != nil {
+					stats.start(method.Name)
+				}
+
 				defer func() {
-					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
+					if stats != nil {
+						passed := !t.Failed()
+						stats.end(method.Name, passed)
 					}
+
+					if afterTestSuite, ok := suite.(AfterTest); ok {
+						afterTestSuite.AfterTest(suiteName, method.Name)
+					}
+
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 						tearDownTestSuite.TearDownTest()
 					}
+
 					suite.SetT(parentT)
 				}()
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
