@@ -507,7 +507,7 @@ func TestSuiteWithStats(t *testing.T) {
 	assert.NotZero(t, suiteWithStats.stats.EndTime)
 	assert.True(t, suiteWithStats.stats.Passed)
 
-	testStats := suiteWithStats.stats.get("TestSomething")
+	testStats := suiteWithStats.stats.TestStats["TestSomething"]
 	assert.NotZero(t, testStats.StartTime)
 	assert.NotZero(t, testStats.EndTime)
 	assert.True(t, testStats.Passed)
