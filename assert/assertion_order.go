@@ -218,7 +218,7 @@ func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface
 //    assert.GreaterOrEqual(t, "b", "a")
 //    assert.GreaterOrEqual(t, "b", "b")
 func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) bool {
-	return compareTwoValues(t, e1, e2, []CompareType{compareGreater, compareEqual}, "\"%s\" is not greater or equal than \"%s\"", msgAndArgs)
+	return compareTwoValues(t, e1, e2, []CompareType{compareGreater, compareEqual}, "\"%s\" is not greater than or equal to \"%s\"", msgAndArgs)
 }
 
 // Less asserts that the first element is less than the second
@@ -237,7 +237,7 @@ func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{})
 //    assert.LessOrEqual(t, "a", "b")
 //    assert.LessOrEqual(t, "b", "b")
 func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) bool {
-	return compareTwoValues(t, e1, e2, []CompareType{compareLess, compareEqual}, "\"%s\" is not less or equal than \"%s\"", msgAndArgs)
+	return compareTwoValues(t, e1, e2, []CompareType{compareLess, compareEqual}, "\"%s\" is not less than or equal to \"%s\"", msgAndArgs)
 }
 
 func compareTwoValues(t TestingT, e1 interface{}, e2 interface{}, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
