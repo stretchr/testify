@@ -131,9 +131,7 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 		{v1: "float(12)", v2: float64(1)},
 	} {
 		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
-		if compareResult {
-			t.Errorf("Values %s and %s should be different kinds", currCase.v1, currCase.v2)
-		}
+		False(t, compareResult)
 	}
 }
 
@@ -152,13 +150,11 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 		{v1: make([]int, 5, 5), v2: make([]int, 5, 5)},
 	} {
 		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
-		if compareResult {
-			t.Errorf("Values %s and %s should be not comparable", currCase.v1, currCase.v2)
-		}
+		False(t, compareResult)
 	}
 }
 
-func Test_compareTwoValuesCrrectCompareResult(t *testing.T) {
+func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 	mockT := new(testing.T)
 
 	for _, currCase := range []struct {
@@ -174,9 +170,7 @@ func Test_compareTwoValuesCrrectCompareResult(t *testing.T) {
 		{v1: 2, v2: 1, compareTypes: []CompareType{compareGreater}},
 	} {
 		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage")
-		if !compareResult {
-			t.Errorf("Values %d and %d is not compared correctly", currCase.v1, currCase.v2)
-		}
+		True(t, compareResult)
 	}
 }
 
@@ -192,8 +186,6 @@ func Test_containsValue(t *testing.T) {
 		{values: []CompareType{compareGreater, compareLess}, value: compareEqual, result: false},
 	} {
 		compareResult := containsValue(currCase.values, currCase.value)
-		if compareResult != currCase.result {
-			t.Error("Value not in list")
-		}
+		Equal(t, currCase.result, compareResult)
 	}
 }
