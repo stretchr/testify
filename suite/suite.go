@@ -88,9 +88,7 @@ func Run(t *testing.T, suite TestingSuite) {
 
 	suiteSetupDone := false
 
-	var (
-		stats *SuiteInformation
-	)
+	var stats *SuiteInformation
 
 	if _, measureStats := suite.(WithStats); measureStats {
 		stats = newSuiteInformation()
