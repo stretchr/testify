@@ -156,12 +156,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				defer func() {
 					if stats != nil {
 						passed := !t.Failed()
-
 						stats.end(method.Name, passed)
-
-						if !passed {
-							stats.Passed = false
-						}
 					}
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
