@@ -592,6 +592,18 @@ func TestContains(t *testing.T) {
 	}
 }
 
+func TestContainsFailMessage(t *testing.T) {
+
+	mockT := new(mockTestingT)
+
+	Contains(mockT, "Hello World", errors.New("Hello"))
+	expectedFail := "\"Hello World\" does not contain &errors.errorString{s:\"Hello\"}"
+	actualFail := mockT.errorString()
+	if !strings.Contains(actualFail, expectedFail) {
+		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
+	}
+}
+
 func TestNotContains(t *testing.T) {
 
 	mockT := new(testing.T)
