@@ -1128,12 +1128,18 @@ func calcRelativeError(expected, actual interface{}) (float64, error) {
 	if !aok {
 		return 0, fmt.Errorf("expected value %q cannot be converted to float", expected)
 	}
+	if math.IsNaN(af) {
+		return 0, errors.New("expected value must not be NaN")
+	}
 	if af == 0 {
 		return 0, fmt.Errorf("expected value must have a value other than zero to calculate the relative error")
 	}
 	bf, bok := toFloat(actual)
 	if !bok {
 		return 0, fmt.Errorf("actual value %q cannot be converted to float", actual)
+	}
+	if math.IsNaN(bf) {
+		return 0, errors.New("actual value must not be NaN")
 	}
 
 	return math.Abs(af-bf) / math.Abs(af), nil
@@ -1143,6 +1149,9 @@ func calcRelativeError(expected, actual interface{}) (float64, error) {
 func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if math.IsNaN(epsilon) {
+		return Fail(t, "epsilon must not be NaN")
 	}
 	actualEpsilon, err := calcRelativeError(expected, actual)
 	if err != nil {

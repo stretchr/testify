@@ -1267,6 +1267,9 @@ func TestInEpsilon(t *testing.T) {
 		{0.1, -0.1, 1.99},
 		{0, 0.1, 2}, // expected must be different to zero
 		{time.Second, time.Second + 10*time.Millisecond, 0.002},
+		{math.NaN(), 0, 1},
+		{0, math.NaN(), 1},
+		{0, 0, math.NaN()},
 	}
 
 	for _, tc := range cases {
