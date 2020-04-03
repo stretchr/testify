@@ -90,6 +90,29 @@ func HTTPError(t TestingT, handler http.HandlerFunc, method, url string, values 
 	return isErrorCode
 }
 
+// HTTPStatusCode asserts that a specified handler returns a specified status code.
+//
+//  assert.HTTPStatusCode(t, myHandler, "GET", "/notImplemented", nil, 501)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method, url string, values url.Values, statuscode int, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	code, err := httpCode(handler, method, url, values)
+	if err != nil {
+		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
+		return false
+	}
+
+	successful := code == statuscode
+	if !successful {
+		Fail(t, fmt.Sprintf("Expected HTTP status code %d for %q but received %d", statuscode, url+"?"+values.Encode(), code))
+	}
+
+	return successful
+}
+
 // HTTPBody is a helper that returns HTTP body of the response. It returns
 // empty string if building a new request fails.
 func HTTPBody(handler http.HandlerFunc, method, url string, values url.Values) string {
