@@ -480,6 +480,30 @@ func (a *Assertions) HTTPRedirectf(handler http.HandlerFunc, method string, url 
 	HTTPRedirectf(a.t, handler, method, url, values, msg, args...)
 }
 
+// HTTPStatusCode asserts that a specified handler returns a specified status code.
+//
+//  a.HTTPStatusCode(myHandler, "GET", "/notImplemented", nil, 501)
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) HTTPStatusCode(handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	HTTPStatusCode(a.t, handler, method, url, values, statuscode, msgAndArgs...)
+}
+
+// HTTPStatusCodef asserts that a specified handler returns a specified status code.
+//
+//  a.HTTPStatusCodef(myHandler, "GET", "/notImplemented", nil, 501, "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) HTTPStatusCodef(handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	HTTPStatusCodef(a.t, handler, method, url, values, statuscode, msg, args...)
+}
+
 // HTTPSuccess asserts that a specified handler returns a success status code.
 //
 //  a.HTTPSuccess(myHandler, "POST", "http://www.google.com", nil)
