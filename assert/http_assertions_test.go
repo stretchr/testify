@@ -37,7 +37,7 @@ func TestHTTPSuccess(t *testing.T) {
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPSuccess(mockT3, httpError, "GET", "/", nil), false)
 	assert.True(mockT3.Failed())
-	
+
 	mockT4 := new(testing.T)
 	assert.Equal(HTTPSuccess(mockT4, httpStatusCode, "GET", "/", nil), false)
 	assert.True(mockT4.Failed())
@@ -57,7 +57,7 @@ func TestHTTPRedirect(t *testing.T) {
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPRedirect(mockT3, httpError, "GET", "/", nil), false)
 	assert.True(mockT3.Failed())
-	
+
 	mockT4 := new(testing.T)
 	assert.Equal(HTTPRedirect(mockT4, httpStatusCode, "GET", "/", nil), false)
 	assert.True(mockT4.Failed())
@@ -77,7 +77,7 @@ func TestHTTPError(t *testing.T) {
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPError(mockT3, httpError, "GET", "/", nil), true)
 	assert.False(mockT3.Failed())
-	
+
 	mockT4 := new(testing.T)
 	assert.Equal(HTTPError(mockT4, httpStatusCode, "GET", "/", nil), false)
 	assert.True(mockT4.Failed())
@@ -97,10 +97,10 @@ func TestHTTPStatusCode(t *testing.T) {
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPStatusCode(mockT3, httpError, "GET", "/", nil, http.StatusSwitchingProtocols), false)
 	assert.True(mockT3.Failed())
-	
+
 	mockT4 := new(testing.T)
 	assert.Equal(HTTPStatusCode(mockT4, httpStatusCode, "GET", "/", nil, http.StatusSwitchingProtocols), true)
-	assert.False(mockT4.Failed())	
+	assert.False(mockT4.Failed())
 }
 
 func TestHTTPStatusesWrapper(t *testing.T) {
