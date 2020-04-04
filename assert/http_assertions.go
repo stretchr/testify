@@ -33,7 +33,6 @@ func HTTPSuccess(t TestingT, handler http.HandlerFunc, method, url string, value
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
 		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
-		return false
 	}
 
 	isSuccessCode := code >= http.StatusOK && code <= http.StatusPartialContent
@@ -56,7 +55,6 @@ func HTTPRedirect(t TestingT, handler http.HandlerFunc, method, url string, valu
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
 		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
-		return false
 	}
 
 	isRedirectCode := code >= http.StatusMultipleChoices && code <= http.StatusTemporaryRedirect
@@ -79,7 +77,6 @@ func HTTPError(t TestingT, handler http.HandlerFunc, method, url string, values 
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
 		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
-		return false
 	}
 
 	isErrorCode := code >= http.StatusBadRequest
@@ -102,7 +99,6 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method, url string, va
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
 		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
-		return false
 	}
 
 	successful := code == statuscode
