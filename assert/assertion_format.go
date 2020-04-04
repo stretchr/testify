@@ -245,6 +245,18 @@ func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url stri
 	return HTTPRedirect(t, handler, method, url, values, append([]interface{}{msg}, args...)...)
 }
 
+// HTTPStatusCodef asserts that a specified handler returns a specified status code.
+//
+//  assert.HTTPStatusCodef(t, myHandler, "GET", "/notImplemented", nil, 501, "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func HTTPStatusCodef(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return HTTPStatusCode(t, handler, method, url, values, statuscode, append([]interface{}{msg}, args...)...)
+}
+
 // HTTPSuccessf asserts that a specified handler returns a success status code.
 //
 //  assert.HTTPSuccessf(t, myHandler, "POST", "http://www.google.com", nil, "error message %s", "formatted")
