@@ -1143,6 +1143,41 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 }
 
+func Test_Mock_IsMethodCallable(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	arg := []Call{{Repeatability: 1}, {Repeatability: 2}}
+	arg2 := []Call{{Repeatability: 1}, {Repeatability: 1}}
+	arg3 := []Call{{Repeatability: 1}, {Repeatability: 1}}
+
+	mockedService.On("Test_Mock_IsMethodCallable", arg2).Return(true).Twice()
+
+	assert.False(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg))
+	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg2))
+	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg3))
+
+	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg2)
+	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg2)
+
+	assert.False(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg2))
+}
+
+func TestIsArgsEqual(t *testing.T) {
+	var expected = Arguments{5, 3, 4, 6, 7, 2}
+	var args = make([]interface{}, 5)
+	for i := 1; i < len(expected); i++ {
+		args[i-1] = expected[i]
+	}
+	args[2] = expected[1]
+	assert.False(t, isArgsEqual(expected, args))
+
+	var arr = make([]interface{}, 6)
+	for i := 0; i < len(expected); i++ {
+		arr[i] = expected[i]
+	}
+	assert.True(t, isArgsEqual(expected, arr))
+}
+
 func Test_Mock_AssertOptional(t *testing.T) {
 	// Optional called
 	var ms1 = new(TestExampleImplementation)
@@ -1257,6 +1292,24 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 
 }
 
+func Test_Arguments_Diff_WithIsTypeArgument(t *testing.T) {
+	var args = Arguments([]interface{}{"string", IsType(0), true})
+	var count int
+	_, count = args.Diff([]interface{}{"string", 123, true})
+
+	assert.Equal(t, 0, count)
+}
+
+func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
+	var args = Arguments([]interface{}{"string", IsType(""), true})
+	var count int
+	var diff string
+	diff, count = args.Diff([]interface{}{"string", 123, true})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `string != type int - (int=123)`)
+}
+
 func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 	matchFn := func(a int) bool {
 		return a == 123
@@ -1272,6 +1325,7 @@ func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 	assert.Contains(t, diff, `(bool=false) not matched by func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, false})
+	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `(int=123) matched by func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, true})

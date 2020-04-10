@@ -36,7 +36,7 @@ func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
 	}
 
 	// add these bytes to the output string
-	rw.Output = rw.Output + string(bytes)
+	rw.Output += string(bytes)
 
 	// return normal values
 	return 0, nil

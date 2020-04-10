@@ -7,7 +7,9 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -80,11 +82,18 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
+	testsSync := &sync.WaitGroup{}
 	suite.SetT(t)
 	defer failOnPanic(t)
 
 	suiteSetupDone := false
-	
+
+	var stats *SuiteInformation
+
+	if _, ok := suite.(WithStats); ok {
+		stats = newSuiteInformation()
+	}
+
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
@@ -94,47 +103,79 @@ func Run(t *testing.T, suite TestingSuite) {
 			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
 			os.Exit(1)
 		}
+
 		if !ok {
 			continue
 		}
+
+		suiteName := methodFinder.Elem().Name()
+
 		if !suiteSetupDone {
+			if stats != nil {
+				stats.Start = time.Now()
+			}
+
 			defer func() {
 				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+					testsSync.Wait()
 					tearDownAllSuite.TearDownSuite()
 				}
+
+				if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+					stats.End = time.Now()
+					suiteWithStats.HandleStats(suiteName, stats)
+				}
 			}()
+
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 				setupAllSuite.SetupSuite()
 			}
+
 			suiteSetupDone = true
 		}
+
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
+				defer testsSync.Done()
 				parentT := suite.T()
 				suite.SetT(t)
 				defer failOnPanic(t)
-				
+
 				defer func() {
-					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(methodFinder.Elem().Name(), method.Name)
+					if stats != nil {
+						passed := !t.Failed()
+						stats.end(method.Name, passed)
 					}
+
+					if afterTestSuite, ok := suite.(AfterTest); ok {
+						afterTestSuite.AfterTest(suiteName, method.Name)
+					}
+
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 						tearDownTestSuite.TearDownTest()
 					}
+
 					suite.SetT(parentT)
 				}()
+
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
 				}
+
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+				}
+
+				if stats != nil {
+					stats.start(method.Name)
 				}
 
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
 		}
 		tests = append(tests, test)
+		testsSync.Add(1)
 	}
 	runTests(t, tests)
 }

@@ -29,7 +29,7 @@ func TestCompare(t *testing.T) {
 			t.Error("object should be comparable for type " + currCase.cType)
 		}
 
-		if resLess != 1 {
+		if resLess != compareLess {
 			t.Errorf("object less should be less than greater for type " + currCase.cType)
 		}
 
@@ -38,7 +38,7 @@ func TestCompare(t *testing.T) {
 			t.Error("object are comparable for type " + currCase.cType)
 		}
 
-		if resGreater != -1 {
+		if resGreater != compareGreater {
 			t.Errorf("object greater should be greater than less for type " + currCase.cType)
 		}
 
@@ -114,5 +114,78 @@ func TestLessOrEqual(t *testing.T) {
 
 	if LessOrEqual(mockT, 2, 1) {
 		t.Error("Greater should return false")
+	}
+}
+
+func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, currCase := range []struct {
+		v1            interface{}
+		v2            interface{}
+		compareResult bool
+	}{
+		{v1: 123, v2: "abc"},
+		{v1: "abc", v2: 123456},
+		{v1: float64(12), v2: "123"},
+		{v1: "float(12)", v2: float64(1)},
+	} {
+		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
+		False(t, compareResult)
+	}
+}
+
+func Test_compareTwoValuesNotComparableValues(t *testing.T) {
+	mockT := new(testing.T)
+
+	type CompareStruct struct {
+	}
+
+	for _, currCase := range []struct {
+		v1 interface{}
+		v2 interface{}
+	}{
+		{v1: CompareStruct{}, v2: CompareStruct{}},
+		{v1: map[string]int{}, v2: map[string]int{}},
+		{v1: make([]int, 5, 5), v2: make([]int, 5, 5)},
+	} {
+		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
+		False(t, compareResult)
+	}
+}
+
+func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, currCase := range []struct {
+		v1           interface{}
+		v2           interface{}
+		compareTypes []CompareType
+	}{
+		{v1: 1, v2: 2, compareTypes: []CompareType{compareLess}},
+		{v1: 1, v2: 2, compareTypes: []CompareType{compareLess, compareEqual}},
+		{v1: 2, v2: 2, compareTypes: []CompareType{compareGreater, compareEqual}},
+		{v1: 2, v2: 2, compareTypes: []CompareType{compareEqual}},
+		{v1: 2, v2: 1, compareTypes: []CompareType{compareEqual, compareGreater}},
+		{v1: 2, v2: 1, compareTypes: []CompareType{compareGreater}},
+	} {
+		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage")
+		True(t, compareResult)
+	}
+}
+
+func Test_containsValue(t *testing.T) {
+	for _, currCase := range []struct {
+		values []CompareType
+		value  CompareType
+		result bool
+	}{
+		{values: []CompareType{compareGreater}, value: compareGreater, result: true},
+		{values: []CompareType{compareGreater, compareLess}, value: compareGreater, result: true},
+		{values: []CompareType{compareGreater, compareLess}, value: compareLess, result: true},
+		{values: []CompareType{compareGreater, compareLess}, value: compareEqual, result: false},
+	} {
+		compareResult := containsValue(currCase.values, currCase.value)
+		Equal(t, currCase.result, compareResult)
 	}
 }

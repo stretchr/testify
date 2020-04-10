@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -73,11 +74,11 @@ var (
 		[1]interface{}{1},
 		[]interface{}{},
 		struct{ x int }{1},
-		(*interface{})(&i),
-		(func())(func() {}),
+		(&i),
+		(func() {}),
 		interface{}(1),
 		map[interface{}]interface{}{},
-		(chan interface{})(make(chan interface{})),
+		(make(chan interface{})),
 		(<-chan interface{})(make(chan interface{})),
 		(chan<- interface{})(make(chan interface{})),
 	}
@@ -129,6 +130,12 @@ func TestObjectsAreEqual(t *testing.T) {
 		t.Error("objectsAreEqual should return false")
 	}
 	if ObjectsAreEqual(0.1, 0) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual(time.Now, time.Now) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual(func() {}, func() {}) {
 		t.Error("objectsAreEqual should return false")
 	}
 	if ObjectsAreEqual(uint32(10), int32(10)) {
@@ -515,6 +522,9 @@ func TestNotEqual(t *testing.T) {
 	if NotEqual(mockT, funcA, funcB) {
 		t.Error("NotEqual should return false")
 	}
+	if NotEqual(mockT, nil, nil) {
+		t.Error("NotEqual should return false")
+	}
 
 	if NotEqual(mockT, "Hello World", "Hello World") {
 		t.Error("NotEqual should return false")
@@ -579,6 +589,18 @@ func TestContains(t *testing.T) {
 	}
 	if Contains(mockT, simpleMap, "Bar") {
 		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Bar\"")
+	}
+}
+
+func TestContainsFailMessage(t *testing.T) {
+
+	mockT := new(mockTestingT)
+
+	Contains(mockT, "Hello World", errors.New("Hello"))
+	expectedFail := "\"Hello World\" does not contain &errors.errorString{s:\"Hello\"}"
+	actualFail := mockT.errorString()
+	if !strings.Contains(actualFail, expectedFail) {
+		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
 	}
 }
 
@@ -779,6 +801,90 @@ func TestElementsMatch(t *testing.T) {
 	}
 }
 
+func TestDiffLists(t *testing.T) {
+	tests := []struct {
+		name   string
+		listA  interface{}
+		listB  interface{}
+		extraA []interface{}
+		extraB []interface{}
+	}{
+		{
+			name:   "equal empty",
+			listA:  []string{},
+			listB:  []string{},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "equal same order",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"hello", "world"},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "equal different order",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"world", "hello"},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "extra A",
+			listA:  []string{"hello", "hello", "world"},
+			listB:  []string{"hello", "world"},
+			extraA: []interface{}{"hello"},
+			extraB: nil,
+		},
+		{
+			name:   "extra A twice",
+			listA:  []string{"hello", "hello", "hello", "world"},
+			listB:  []string{"hello", "world"},
+			extraA: []interface{}{"hello", "hello"},
+			extraB: nil,
+		},
+		{
+			name:   "extra B",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"hello", "hello", "world"},
+			extraA: nil,
+			extraB: []interface{}{"hello"},
+		},
+		{
+			name:   "extra B twice",
+			listA:  []string{"hello", "world"},
+			listB:  []string{"hello", "hello", "world", "hello"},
+			extraA: nil,
+			extraB: []interface{}{"hello", "hello"},
+		},
+		{
+			name:   "integers 1",
+			listA:  []int{1, 2, 3, 4, 5},
+			listB:  []int{5, 4, 3, 2, 1},
+			extraA: nil,
+			extraB: nil,
+		},
+		{
+			name:   "integers 2",
+			listA:  []int{1, 2, 1, 2, 1},
+			listB:  []int{2, 1, 2, 1, 2},
+			extraA: []interface{}{1},
+			extraB: []interface{}{2},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			actualExtraA, actualExtraB := diffLists(test.listA, test.listB)
+			Equal(t, test.extraA, actualExtraA, "extra A does not match for listA=%v listB=%v",
+				test.listA, test.listB)
+			Equal(t, test.extraB, actualExtraB, "extra B does not match for listA=%v listB=%v",
+				test.listA, test.listB)
+		})
+	}
+}
+
 func TestCondition(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -846,6 +952,34 @@ func TestPanicsWithValue(t *testing.T) {
 	}
 }
 
+func TestPanicsWithError(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !PanicsWithError(mockT, "panic", func() {
+		panic(errors.New("panic"))
+	}) {
+		t.Error("PanicsWithError should return true")
+	}
+
+	if PanicsWithError(mockT, "Panic!", func() {
+	}) {
+		t.Error("PanicsWithError should return false")
+	}
+
+	if PanicsWithError(mockT, "at the disco", func() {
+		panic(errors.New("panic"))
+	}) {
+		t.Error("PanicsWithError should return false")
+	}
+
+	if PanicsWithError(mockT, "Panic!", func() {
+		panic("panic")
+	}) {
+		t.Error("PanicsWithError should return false")
+	}
+}
+
 func TestNotPanics(t *testing.T) {
 
 	mockT := new(testing.T)
@@ -880,9 +1014,6 @@ func TestNoError(t *testing.T) {
 	// returning an empty error interface
 	err = func() error {
 		var err *customError
-		if err != nil {
-			t.Fatal("err should be nil here")
-		}
 		return err
 	}()
 
@@ -917,9 +1048,6 @@ func TestError(t *testing.T) {
 	// returning an empty error interface
 	err = func() error {
 		var err *customError
-		if err != nil {
-			t.Fatal("err should be nil here")
-		}
 		return err
 	}()
 
@@ -988,7 +1116,6 @@ func TestEmpty(t *testing.T) {
 	type TString string
 	type TStruct struct {
 		x int
-		s []int
 	}
 
 	True(t, Empty(mockT, ""), "Empty string is empty")
@@ -1331,6 +1458,9 @@ func TestInEpsilon(t *testing.T) {
 		{0.1, -0.1, 1.99},
 		{0, 0.1, 2}, // expected must be different to zero
 		{time.Second, time.Second + 10*time.Millisecond, 0.002},
+		{math.NaN(), 0, 1},
+		{0, math.NaN(), 1},
+		{0, 0, math.NaN()},
 	}
 
 	for _, tc := range cases {
@@ -1443,6 +1573,80 @@ func TestFileExists(t *testing.T) {
 
 	mockT = new(testing.T)
 	False(t, FileExists(mockT, "../_codegen"))
+
+	var tempFiles []string
+
+	link, err := getTempSymlinkPath("assertions.go")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	True(t, FileExists(mockT, link))
+
+	link, err = getTempSymlinkPath("non_existent_file")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	True(t, FileExists(mockT, link))
+
+	errs := cleanUpTempFiles(tempFiles)
+	if len(errs) > 0 {
+		t.Fatal("could not clean up temporary files")
+	}
+}
+
+func TestNoFileExists(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, NoFileExists(mockT, "assertions.go"))
+
+	mockT = new(testing.T)
+	True(t, NoFileExists(mockT, "non_existent_file"))
+
+	mockT = new(testing.T)
+	True(t, NoFileExists(mockT, "../_codegen"))
+
+	var tempFiles []string
+
+	link, err := getTempSymlinkPath("assertions.go")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	False(t, NoFileExists(mockT, link))
+
+	link, err = getTempSymlinkPath("non_existent_file")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	False(t, NoFileExists(mockT, link))
+
+	errs := cleanUpTempFiles(tempFiles)
+	if len(errs) > 0 {
+		t.Fatal("could not clean up temporary files")
+	}
+}
+
+func getTempSymlinkPath(file string) (string, error) {
+	link := file + "_symlink"
+	err := os.Symlink(file, link)
+	return link, err
+}
+
+func cleanUpTempFiles(paths []string) []error {
+	var res []error
+	for _, path := range paths {
+		err := os.Remove(path)
+		if err != nil {
+			res = append(res, err)
+		}
+	}
+	return res
 }
 
 func TestDirExists(t *testing.T) {
@@ -1450,10 +1654,67 @@ func TestDirExists(t *testing.T) {
 	False(t, DirExists(mockT, "assertions.go"))
 
 	mockT = new(testing.T)
-	False(t, DirExists(mockT, "random_dir"))
+	False(t, DirExists(mockT, "non_existent_dir"))
 
 	mockT = new(testing.T)
 	True(t, DirExists(mockT, "../_codegen"))
+
+	var tempFiles []string
+
+	link, err := getTempSymlinkPath("assertions.go")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	False(t, DirExists(mockT, link))
+
+	link, err = getTempSymlinkPath("non_existent_dir")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	False(t, DirExists(mockT, link))
+
+	errs := cleanUpTempFiles(tempFiles)
+	if len(errs) > 0 {
+		t.Fatal("could not clean up temporary files")
+	}
+}
+
+func TestNoDirExists(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, NoDirExists(mockT, "assertions.go"))
+
+	mockT = new(testing.T)
+	True(t, NoDirExists(mockT, "non_existent_dir"))
+
+	mockT = new(testing.T)
+	False(t, NoDirExists(mockT, "../_codegen"))
+
+	var tempFiles []string
+
+	link, err := getTempSymlinkPath("assertions.go")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	True(t, NoDirExists(mockT, link))
+
+	link, err = getTempSymlinkPath("non_existent_dir")
+	if err != nil {
+		t.Fatal("could not create temp symlink, err:", err)
+	}
+	tempFiles = append(tempFiles, link)
+	mockT = new(testing.T)
+	True(t, NoDirExists(mockT, link))
+
+	errs := cleanUpTempFiles(tempFiles)
+	if len(errs) > 0 {
+		t.Fatal("could not clean up temporary files")
+	}
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
@@ -1582,6 +1843,15 @@ func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
 	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
+type diffTestingStruct struct {
+	A string
+	B int
+}
+
+func (d *diffTestingStruct) String() string {
+	return d.A
+}
+
 func TestDiff(t *testing.T) {
 	expected := `
 
@@ -1661,6 +1931,51 @@ Diff:
 		map[string]int{"one": 1, "three": 3, "five": 5, "seven": 7},
 	)
 	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,3 +1,3 @@
+ (*errors.errorString)({
+- s: (string) (len=19) "some expected error"
++ s: (string) (len=12) "actual error"
+ })
+`
+
+	actual = diff(
+		errors.New("some expected error"),
+		errors.New("actual error"),
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -2,3 +2,3 @@
+  A: (string) (len=11) "some string",
+- B: (int) 10
++ B: (int) 15
+ }
+`
+
+	actual = diff(
+		diffTestingStruct{A: "some string", B: 10},
+		diffTestingStruct{A: "some string", B: 15},
+	)
+	Equal(t, expected, actual)
+}
+
+func TestTimeEqualityErrorFormatting(t *testing.T) {
+	mockT := new(mockTestingT)
+
+	Equal(mockT, time.Second*2, time.Millisecond)
+
+	expectedErr := "\\s+Error Trace:\\s+Error:\\s+Not equal:\\s+\n\\s+expected: 2s\n\\s+actual\\s+: 1ms\n"
+	Regexp(t, regexp.MustCompile(expectedErr), mockT.errorString())
 }
 
 func TestDiffEmptyCases(t *testing.T) {
@@ -1707,9 +2022,18 @@ func TestDiffRace(t *testing.T) {
 }
 
 type mockTestingT struct {
+	errorFmt string
+	args     []interface{}
 }
 
-func (m *mockTestingT) Errorf(format string, args ...interface{}) {}
+func (m *mockTestingT) errorString() string {
+	return fmt.Sprintf(m.errorFmt, m.args...)
+}
+
+func (m *mockTestingT) Errorf(format string, args ...interface{}) {
+	m.errorFmt = format
+	m.args = args
+}
 
 func TestFailNowWithPlainTestingT(t *testing.T) {
 	mockT := &mockTestingT{}
@@ -1761,11 +2085,6 @@ func BenchmarkBytesEqual(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Equal(mockT, s, s2)
 	}
-}
-
-func TestEqualArgsValidation(t *testing.T) {
-	err := validateEqualArgs(time.Now, time.Now)
-	EqualError(t, err, "cannot take func type as argument")
 }
 
 func ExampleComparisonAssertionFunc() {
@@ -1978,12 +2297,33 @@ func TestEventuallyTrue(t *testing.T) {
 	state := 0
 	condition := func() bool {
 		defer func() {
-			state = state + 1
+			state += 1
 		}()
 		return state == 2
 	}
 
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
+func TestNeverFalse(t *testing.T) {
+	condition := func() bool {
+		return false
+	}
+
+	True(t, Never(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
+func TestNeverTrue(t *testing.T) {
+	mockT := new(testing.T)
+	state := 0
+	condition := func() bool {
+		defer func() {
+			state = state + 1
+		}()
+		return state == 2
+	}
+
+	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
 func TestEventuallyIssue805(t *testing.T) {
@@ -1993,4 +2333,33 @@ func TestEventuallyIssue805(t *testing.T) {
 		condition := func() bool { <-time.After(time.Millisecond); return true }
 		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
 	})
+}
+
+func Test_validateEqualArgs(t *testing.T) {
+	if validateEqualArgs(func() {}, func() {}) == nil {
+		t.Error("non-nil functions should error")
+	}
+
+	if validateEqualArgs(func() {}, func() {}) == nil {
+		t.Error("non-nil functions should error")
+	}
+
+	if validateEqualArgs(nil, nil) != nil {
+		t.Error("nil functions are equal")
+	}
+}
+
+func Test_truncatingFormat(t *testing.T) {
+
+	original := strings.Repeat("a", bufio.MaxScanTokenSize-102)
+	result := truncatingFormat(original)
+	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")
+
+	original = original + "x"
+	result = truncatingFormat(original)
+	NotEqual(t, fmt.Sprintf("%#v", original), result, "string should have been truncated.")
+
+	if !strings.HasSuffix(result, "<... truncated>") {
+		t.Error("truncated string should have <... truncated> suffix")
+	}
 }

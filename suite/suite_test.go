@@ -3,7 +3,9 @@ package suite
 import (
 	"errors"
 	"io/ioutil"
+	"math/rand"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -350,7 +352,7 @@ func TestRunSuite(t *testing.T) {
 type SuiteSetupSkipTester struct {
 	Suite
 
-	setUp bool
+	setUp    bool
 	toreDown bool
 }
 
@@ -442,4 +444,71 @@ func TestSuiteLogging(t *testing.T) {
 	} else {
 		assert.NotContains(t, output, "TESTLOGPASS")
 	}
+}
+
+type CallOrderSuite struct {
+	Suite
+	callOrder []string
+}
+
+func (s *CallOrderSuite) call(method string) {
+	time.Sleep(time.Duration(rand.Intn(300)) * time.Millisecond)
+	s.callOrder = append(s.callOrder, method)
+}
+
+func TestSuiteCallOrder(t *testing.T) {
+	Run(t, new(CallOrderSuite))
+}
+func (s *CallOrderSuite) SetupSuite() {
+	s.call("SetupSuite")
+}
+
+func (s *CallOrderSuite) TearDownSuite() {
+	s.call("TearDownSuite")
+	assert.Equal(s.T(), "SetupSuite;SetupTest;Test A;TearDownTest;SetupTest;Test B;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+}
+func (s *CallOrderSuite) SetupTest() {
+	s.call("SetupTest")
+}
+
+func (s *CallOrderSuite) TearDownTest() {
+	s.call("TearDownTest")
+}
+
+func (s *CallOrderSuite) Test_A() {
+	s.call("Test A")
+}
+
+func (s *CallOrderSuite) Test_B() {
+	s.call("Test B")
+}
+
+type suiteWithStats struct {
+	Suite
+	wasCalled bool
+	stats     *SuiteInformation
+}
+
+func (s *suiteWithStats) HandleStats(suiteName string, stats *SuiteInformation) {
+	s.wasCalled = true
+	s.stats = stats
+}
+
+func (s *suiteWithStats) TestSomething() {
+	s.Equal(1, 1)
+}
+
+func TestSuiteWithStats(t *testing.T) {
+	suiteWithStats := new(suiteWithStats)
+	Run(t, suiteWithStats)
+
+	assert.True(t, suiteWithStats.wasCalled)
+	assert.NotZero(t, suiteWithStats.stats.Start)
+	assert.NotZero(t, suiteWithStats.stats.End)
+	assert.True(t, suiteWithStats.stats.Passed())
+
+	testStats := suiteWithStats.stats.TestStats["TestSomething"]
+	assert.NotZero(t, testStats.Start)
+	assert.NotZero(t, testStats.End)
+	assert.True(t, testStats.Passed)
 }
