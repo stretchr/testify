@@ -300,15 +300,19 @@ func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, 
 	return closestCall, err
 }
 
+func formatArguments(arguments Arguments) string {
+	var argVals []string
+	for argIndex, arg := range arguments {
+		argVals = append(argVals, fmt.Sprintf("%d: %#v", argIndex, arg))
+	}
+	return fmt.Sprintf("\n\t\t%s", strings.Join(argVals, "\n\t\t"))
+}
+
 func callString(method string, arguments Arguments, includeArgumentValues bool) string {
 
 	var argValsString string
 	if includeArgumentValues {
-		var argVals []string
-		for argIndex, arg := range arguments {
-			argVals = append(argVals, fmt.Sprintf("%d: %#v", argIndex, arg))
-		}
-		argValsString = fmt.Sprintf("\n\t\t%s", strings.Join(argVals, "\n\t\t"))
+		argValsString = formatArguments(arguments)
 	}
 
 	return fmt.Sprintf("%s(%s)%s", method, arguments.String(), argValsString)
@@ -498,16 +502,18 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	if !m.methodWasCalled(methodName, arguments) {
+		expectedArgValsString := formatArguments(arguments)
 		var calledWithArgs []string
 		for _, call := range m.calls() {
-			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
+			calledArgValsString := formatArguments(call.Arguments)
+			calledWithArgs = append(calledWithArgs, fmt.Sprintf("\t\t%s(%s)%s", call.Method, call.Arguments.String(), calledArgValsString))
 		}
 		if len(calledWithArgs) == 0 {
 			return assert.Fail(t, "Should have called with given arguments",
-				fmt.Sprintf("Expected %q to have been called with:\n%v\nbut no actual calls happened", methodName, arguments))
+				fmt.Sprintf("Expected %q to have been called with:%v\nbut no actual calls happened", methodName, expectedArgValsString))
 		}
 		return assert.Fail(t, "Should have called with given arguments",
-			fmt.Sprintf("Expected %q to have been called with:\n%v\nbut actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n")))
+			fmt.Sprintf("Expected %q to have been called with:%v\nbut actual calls were:\n%v", methodName, expectedArgValsString, strings.Join(calledWithArgs, "\n")))
 	}
 	return true
 }
@@ -522,7 +528,7 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	defer m.mutex.Unlock()
 	if m.methodWasCalled(methodName, arguments) {
 		return assert.Fail(t, "Should not have called with given arguments",
-			fmt.Sprintf("Expected %q to not have been called with:\n%v\nbut actually it was.", methodName, arguments))
+			fmt.Sprintf("Expected %q to not have been called with:%v\nbut actually it was.", methodName, formatArguments(arguments)))
 	}
 	return true
 }
