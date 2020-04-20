@@ -91,7 +91,7 @@ func Run(t *testing.T, suite TestingSuite) {
 	if _, ok := suite.(WithStats); ok {
 		stats = newSuiteInformation()
 	}
-	
+
 	tests := []testing.InternalTest{}
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
@@ -160,7 +160,6 @@ func Run(t *testing.T, suite TestingSuite) {
 		}
 		tests = append(tests, test)
 	}
-
 	if suiteSetupDone {
 		defer func() {
 			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
