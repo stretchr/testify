@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
-	"sync"
 	"testing"
 	"time"
 
@@ -84,7 +83,6 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 func Run(t *testing.T, suite TestingSuite) {
 	defer failOnPanic(t)
 
-	testsSync := &sync.WaitGroup{}
 	suite.SetT(t)
 
 	var suiteSetupDone bool
@@ -93,9 +91,10 @@ func Run(t *testing.T, suite TestingSuite) {
 	if _, ok := suite.(WithStats); ok {
 		stats = newSuiteInformation()
 	}
-
+	
 	tests := []testing.InternalTest{}
 	methodFinder := reflect.TypeOf(suite)
+	suiteName := methodFinder.Elem().Name()
 
 	for i := 0; i < methodFinder.NumMethod(); i++ {
 		method := methodFinder.Method(i)
@@ -110,35 +109,21 @@ func Run(t *testing.T, suite TestingSuite) {
 			continue
 		}
 
-		suiteName := methodFinder.Elem().Name()
-
 		if !suiteSetupDone {
 			if stats != nil {
 				stats.Start = time.Now()
 			}
 
-			defer func() {
-				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-					testsSync.Wait()
-					tearDownAllSuite.TearDownSuite()
-				}
-
-				if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-					stats.End = time.Now()
-					suiteWithStats.HandleStats(suiteName, stats)
-				}
-			}()
-
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 				setupAllSuite.SetupSuite()
 			}
+
 			suiteSetupDone = true
 		}
 
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
-				defer testsSync.Done()
 				parentT := suite.T()
 				suite.SetT(t)
 				defer failOnPanic(t)
@@ -174,8 +159,21 @@ func Run(t *testing.T, suite TestingSuite) {
 			},
 		}
 		tests = append(tests, test)
-		testsSync.Add(1)
 	}
+
+	if suiteSetupDone {
+		defer func() {
+			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+				tearDownAllSuite.TearDownSuite()
+			}
+
+			if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+				stats.End = time.Now()
+				suiteWithStats.HandleStats(suiteName, stats)
+			}
+		}()
+	}
+
 	runTests(t, tests)
 }
 
