@@ -82,22 +82,24 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
-	testsSync := &sync.WaitGroup{}
-	suite.SetT(t)
 	defer failOnPanic(t)
 
-	suiteSetupDone := false
+	testsSync := &sync.WaitGroup{}
+	suite.SetT(t)
+
+	var suiteSetupDone bool
 
 	var stats *SuiteInformation
-
 	if _, ok := suite.(WithStats); ok {
 		stats = newSuiteInformation()
 	}
 
-	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
-	for index := 0; index < methodFinder.NumMethod(); index++ {
-		method := methodFinder.Method(index)
+	methodFinder := reflect.TypeOf(suite)
+
+	for i := 0; i < methodFinder.NumMethod(); i++ {
+		method := methodFinder.Method(i)
+
 		ok, err := methodFilter(method.Name)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
@@ -111,6 +113,10 @@ func Run(t *testing.T, suite TestingSuite) {
 		suiteName := methodFinder.Elem().Name()
 
 		if !suiteSetupDone {
+			if stats != nil {
+				stats.Start = time.Now()
+			}
+
 			defer func() {
 				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
 					testsSync.Wait()
@@ -122,6 +128,7 @@ func Run(t *testing.T, suite TestingSuite) {
 					suiteWithStats.HandleStats(suiteName, stats)
 				}
 			}()
+
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 				setupAllSuite.SetupSuite()
 			}
@@ -151,11 +158,16 @@ func Run(t *testing.T, suite TestingSuite) {
 
 					suite.SetT(parentT)
 				}()
+
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
 				}
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+				}
+
+				if stats != nil {
+					stats.start(method.Name)
 				}
 
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
@@ -165,6 +177,15 @@ func Run(t *testing.T, suite TestingSuite) {
 		testsSync.Add(1)
 	}
 	runTests(t, tests)
+}
+
+// Filtering method according to set regular expression
+// specified command-line argument -m
+func methodFilter(name string) (bool, error) {
+	if ok, _ := regexp.MatchString("^Test", name); !ok {
+		return false, nil
+	}
+	return regexp.MatchString(*matchMethod, name)
 }
 
 func runTests(t testing.TB, tests []testing.InternalTest) {
@@ -179,15 +200,6 @@ func runTests(t testing.TB, tests []testing.InternalTest) {
 	for _, test := range tests {
 		r.Run(test.Name, test.F)
 	}
-}
-
-// Filtering method according to set regular expression
-// specified command-line argument -m
-func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Test", name); !ok {
-		return false, nil
-	}
-	return regexp.MatchString(*matchMethod, name)
 }
 
 type runner interface {
