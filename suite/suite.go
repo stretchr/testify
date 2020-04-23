@@ -181,18 +181,19 @@ func Run(t *testing.T, suite TestingSuite) {
 func runTests(t testing.TB, tests []testing.InternalTest) {
 	if len(tests) == 0 {
 		t.Log("warning: no tests to run")
-	} else {
-		r, ok := t.(runner)
-		if !ok { // backwards compatibility with Go 1.6 and below
-			if !testing.RunTests(allTestsFilter, tests) {
-				t.Fail()
-			}
-			return
-		}
+		return
+	}
 
-		for _, test := range tests {
-			r.Run(test.Name, test.F)
+	r, ok := t.(runner)
+	if !ok { // backwards compatibility with Go 1.6 and below
+		if !testing.RunTests(allTestsFilter, tests) {
+			t.Fail()
 		}
+		return
+	}
+
+	for _, test := range tests {
+		r.Run(test.Name, test.F)
 	}
 }
 
