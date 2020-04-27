@@ -2087,6 +2087,12 @@ func BenchmarkBytesEqual(b *testing.B) {
 	}
 }
 
+func BenchmarkNotNil(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NotNil(b, b)
+	}
+}
+
 func ExampleComparisonAssertionFunc() {
 	t := &testing.T{} // provided by test
 
