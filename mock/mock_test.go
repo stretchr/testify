@@ -778,6 +778,7 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 func Test_callString(t *testing.T) {
 
 	assert.Equal(t, `Method(int,bool,string)`, callString("Method", []interface{}{1, true, "something"}, false))
+	assert.Equal(t, `Method(<nil>)`, callString("Method", []interface{}{nil}, false))
 
 }
 

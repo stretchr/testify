@@ -855,7 +855,7 @@ func (args Arguments) String(indexOrNil ...int) string {
 		// normal String() method - return a string representation of the args
 		var argsStr []string
 		for _, arg := range args {
-			argsStr = append(argsStr, reflect.TypeOf(arg).String())
+			argsStr = append(argsStr, fmt.Sprintf("%T", arg)) // handles nil nicely
 		}
 		return strings.Join(argsStr, ",")
 	} else if len(indexOrNil) == 1 {
