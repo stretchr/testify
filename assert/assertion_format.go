@@ -6,7 +6,7 @@
 package assert
 
 import (
-	"io"
+	io "io"
 	http "net/http"
 	url "net/url"
 	time "time"
