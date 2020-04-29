@@ -2,8 +2,10 @@ package assert
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -120,11 +122,6 @@ func TestHTTPStatusesWrapper(t *testing.T) {
 	assert.Equal(mockAssert.HTTPError(httpError, "GET", "/", nil), true)
 }
 
-func httpHelloName(w http.ResponseWriter, r *http.Request) {
-	name := r.FormValue("name")
-	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
-}
-
 func TestHTTPRequestWithNoParams(t *testing.T) {
 	var got *http.Request
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -158,25 +155,44 @@ func TestHttpBody(t *testing.T) {
 	assert := New(t)
 	mockT := new(testing.T)
 
-	assert.True(HTTPBodyContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
-	assert.True(HTTPBodyContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
-	assert.False(HTTPBodyContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+	assert.True(HTTPBodyContains(mockT, httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "Hello, World!"))
+	assert.True(HTTPBodyContains(mockT, httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "World"))
+	assert.False(HTTPBodyContains(mockT, httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "world"))
 
-	assert.False(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
-	assert.False(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
-	assert.True(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+	assert.False(HTTPBodyNotContains(mockT, httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "Hello, World!"))
+	assert.False(HTTPBodyNotContains(mockT, httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "World"))
+	assert.True(HTTPBodyNotContains(mockT, httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "world"))
+
+	assert.True(HTTPBodyContains(mockT, httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "Hello, World!"))
+
+	body := strings.NewReader("I will get this request body back as response!!")
+	assert.True(HTTPBodyContains(mockT, httpPostHandler, "POST", "/", nil, body, "I will get this request body back as response!!"))
 }
 
 func TestHttpBodyWrappers(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
-	assert.True(mockAssert.HTTPBodyContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
-	assert.True(mockAssert.HTTPBodyContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
-	assert.False(mockAssert.HTTPBodyContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+	assert.True(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"Hello, World!"))
+	assert.True(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"World"))
+	assert.False(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"world"))
 
-	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
-	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
-	assert.True(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+	assert.False(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "Hello, World!"))
+	assert.False(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"World"))
+	assert.True(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"world"))
+}
 
+func httpGetHelloNameHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
+}
+
+func httpPostHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "can't read body", http.StatusBadRequest)
+		return
+	}
+
+	w.Write(body)
 }
