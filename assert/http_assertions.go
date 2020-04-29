@@ -115,8 +115,8 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method, url string, va
 func HTTPBody(handler http.HandlerFunc, method, url string, values url.Values, body io.Reader) string {
 	w := httptest.NewRecorder()
 
-	if values !=nil {
-		url = url+"?"+values.Encode()
+	if values != nil {
+		url = url + "?" + values.Encode()
 	}
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
@@ -136,7 +136,7 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method, url string, 
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	httpBody :=  HTTPBody(handler, method, url, values, body)
+	httpBody := HTTPBody(handler, method, url, values, body)
 
 	contains := strings.Contains(httpBody, fmt.Sprint(str))
 	if !contains {

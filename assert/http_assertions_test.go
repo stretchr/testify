@@ -173,13 +173,13 @@ func TestHttpBodyWrappers(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
-	assert.True(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"Hello, World!"))
-	assert.True(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"World"))
-	assert.False(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"world"))
+	assert.True(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "Hello, World!"))
+	assert.True(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "World"))
+	assert.False(mockAssert.HTTPBodyContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "world"))
 
 	assert.False(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "Hello, World!"))
-	assert.False(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"World"))
-	assert.True(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil,"world"))
+	assert.False(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "World"))
+	assert.True(mockAssert.HTTPBodyNotContains(httpGetHelloNameHandler, "GET", "/", url.Values{"name": []string{"World"}}, nil, "world"))
 }
 
 func httpGetHelloNameHandler(w http.ResponseWriter, r *http.Request) {
