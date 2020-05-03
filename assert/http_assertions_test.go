@@ -167,7 +167,7 @@ func TestHttpBody(t *testing.T) {
 
 	body := strings.NewReader("I will get this request body back as response!!")
 	assert.True(HTTPBodyContains(mockT, httpPostHandler, "POST", "/", nil, body, "I will get this request body back as response!!"))
-	assert.True(HTTPBodyNotContains(mockT, httpPostHandler, "POST", "/", nil, nil, "world"))
+	assert.True(HTTPBodyNotContains(mockT, httpPostHandler, "POST", "/", nil, body, "world"))
 }
 
 func TestHttpBodyWrappers(t *testing.T) {
@@ -184,7 +184,7 @@ func TestHttpBodyWrappers(t *testing.T) {
 
 	body := strings.NewReader("I will get this request body back as response!!")
 	assert.True(mockAssert.HTTPBodyContains(httpPostHandler, "POST", "/", nil, body, "I will get this request body back as response!!"))
-	assert.True(mockAssert.HTTPBodyNotContains(httpPostHandler, "POST", "/", nil, nil, "world"))
+	assert.True(mockAssert.HTTPBodyNotContains(httpPostHandler, "POST", "/", nil, body, "world"))
 }
 
 func httpGetHelloNameHandler(w http.ResponseWriter, r *http.Request) {
