@@ -516,7 +516,7 @@ func TestSuiteWithStats(t *testing.T) {
 	assert.True(t, testStats.Passed)
 }
 
-// Suite to test behavior when running with the failfast flag
+// FailfastSuite will test the behavior when running with the failfast flag
 // It logs calls in the callOrder slice which we then use to assert the correct calls were made
 type FailfastSuite struct {
 	Suite
