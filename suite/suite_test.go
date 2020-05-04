@@ -512,3 +512,77 @@ func TestSuiteWithStats(t *testing.T) {
 	assert.NotZero(t, testStats.End)
 	assert.True(t, testStats.Passed)
 }
+
+func Test_isUnitTest(t *testing.T) {
+	type args struct {
+		funcName      string
+		customMatcher string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:    "Standard matcher, golden path",
+			args:    args{funcName: "Test_unittest", customMatcher: ""},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "Standard matcher, case-sensitive",
+			args:    args{funcName: "test_unittest", customMatcher: ""},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "Standard matcher, uncapitalised without underscore",
+			args:    args{funcName: "testunittest", customMatcher: ""},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "Standard matcher, no underscore after 'Test'",
+			args:    args{funcName: "Testunittest", customMatcher: ""},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "Custom matcher, golden path",
+			args:    args{funcName: "CustomTest_cool", customMatcher: "^CustomTest"},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "Custom matcher, case-sensitive",
+			args:    args{funcName: "Customtest_unittest", customMatcher: "^CustomTest"},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "Custom matcher, uncapitalised without underscore",
+			args:    args{funcName: "customTestunittest", customMatcher: "^CustomTest"},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "Custom matcher, no underscore after 'Test'",
+			args:    args{funcName: "CustomTestunittest", customMatcher: "^CustomTest"},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			matchMethod = &tt.args.customMatcher
+			got, err := isUnitTest(tt.args.funcName)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}

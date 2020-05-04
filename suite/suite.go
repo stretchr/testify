@@ -2,8 +2,7 @@ package suite
 
 import (
 	"flag"
-	"fmt"
-	"os"
+	"log"
 	"reflect"
 	"regexp"
 	"runtime/debug"
@@ -17,6 +16,7 @@ import (
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
+var unitTestMatcher = regexp.MustCompile("^Test")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -58,14 +58,6 @@ func (suite *Suite) Assert() *assert.Assertions {
 	return suite.Assertions
 }
 
-func failOnPanic(t *testing.T) {
-	r := recover()
-	if r != nil {
-		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
-		t.FailNow()
-	}
-}
-
 // Run provides suite functionality around golang subtests.  It should be
 // called in place of t.Run(name, func(t *testing.T)) in test suite code.
 // The passed-in func will be executed as a subtest with a fresh instance of t.
@@ -95,22 +87,21 @@ func Run(t *testing.T, suite TestingSuite) {
 	}
 
 	tests := []testing.InternalTest{}
-	methodFinder := reflect.TypeOf(suite)
+	suiteInstance := reflect.TypeOf(suite)
 
-	for i := 0; i < methodFinder.NumMethod(); i++ {
-		method := methodFinder.Method(i)
+	for i := 0; i < suiteInstance.NumMethod(); i++ {
+		method := suiteInstance.Method(i)
 
-		ok, err := methodFilter(method.Name)
+		ok, err := isUnitTest(method.Name)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
-			os.Exit(1)
+			log.Fatalf("testify: invalid regexp for -m: %s\n", err)
 		}
 
 		if !ok {
 			continue
 		}
 
-		suiteName := methodFinder.Elem().Name()
+		suiteName := suiteInstance.Elem().Name()
 
 		if !suiteSetupDone {
 			if stats != nil {
@@ -144,8 +135,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				defer failOnPanic(t)
 				defer func() {
 					if stats != nil {
-						passed := !t.Failed()
-						stats.end(method.Name, passed)
+						stats.end(method.Name, !t.Failed())
 					}
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
@@ -163,7 +153,7 @@ func Run(t *testing.T, suite TestingSuite) {
 					setupTestSuite.SetupTest()
 				}
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+					beforeTestSuite.BeforeTest(suiteInstance.Elem().Name(), method.Name)
 				}
 
 				if stats != nil {
@@ -179,13 +169,24 @@ func Run(t *testing.T, suite TestingSuite) {
 	runTests(t, tests)
 }
 
-// Filtering method according to set regular expression
-// specified command-line argument -m
-func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Test", name); !ok {
+func failOnPanic(t *testing.T) {
+	r := recover()
+	if r != nil {
+		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
+		t.FailNow()
+	}
+}
+
+// isUnitTest indicates whether a function conforms to the Go standard naming
+// for unit tests or the custom matcher specified by testify.m
+func isUnitTest(funcName string) (bool, error) {
+	if ok := unitTestMatcher.MatchString(funcName); ok {
+		return true, nil
+	}
+	if len(*matchMethod) == 0 {
 		return false, nil
 	}
-	return regexp.MatchString(*matchMethod, name)
+	return regexp.MatchString(*matchMethod, funcName)
 }
 
 func runTests(t testing.TB, tests []testing.InternalTest) {
