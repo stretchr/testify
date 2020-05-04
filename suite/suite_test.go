@@ -1,11 +1,13 @@
 package suite
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -525,14 +527,15 @@ func (s *FailfastSuite) call(method string) {
 	s.callOrder = append(s.callOrder, method)
 }
 
-func TestSuiteWithFailfast(t *testing.T) {
-	// This test suite is run twice by travis. Once normally and once with the -failfast flag
+func TestFailfastSuite(t *testing.T) {
+	// This test suite is run twice. Once normally and once with the -failfast flag by TestFailfastSuiteFailFastOn
+	// If you need to debug it run this test directly with the failfast flag set on/off as you need
 	failFast := flag.Lookup("test.failfast").Value.(flag.Getter).Get().(bool)
 	s := new(FailfastSuite)
 	ok := testing.RunTests(
 		allTestsFilter,
 		[]testing.InternalTest{{
-			Name: "TestSuiteWithFailfast",
+			Name: "TestFailfastSuite",
 			F: func(t *testing.T) {
 				Run(t, s)
 			},
@@ -540,11 +543,24 @@ func TestSuiteWithFailfast(t *testing.T) {
 	)
 	assert.Equal(t, false, ok)
 	if failFast {
-		// Test A Fails and because we are running with failfast Test B never runs and we proceed staright to TearDownSuite
+		// Test A Fails and because we are running with failfast Test B never runs and we proceed straight to TearDownSuite
 		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
 	} else {
 		// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
 		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+	}
+}
+func TestFailfastSuiteFailFastOn(t *testing.T) {
+	// To test this with failfast on (and isolated from other intended test failures in our test suite) we launch it in its own process
+	cmd := exec.Command("go", "test", "-v", "-race", "-run", "TestFailfastSuite", "-failfast")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	t.Log("Running go test -v -race -run TestFailfastSuite -failfast")
+	err := cmd.Run()
+	t.Log(out.String())
+	if err != nil {
+		t.Log(err)
+		t.Fail()
 	}
 }
 func (s *FailfastSuite) SetupSuite() {
