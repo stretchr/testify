@@ -580,7 +580,7 @@ func (s *FailfastSuite) TearDownTest() {
 
 func (s *FailfastSuite) Test_A_Fails() {
 	s.call("Test A Fails")
-	s.Require().True(false)
+	s.T().Error("Test A meant to fail")
 }
 
 func (s *FailfastSuite) Test_B_Passes() {
