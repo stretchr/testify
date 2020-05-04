@@ -2,6 +2,7 @@ package suite
 
 import (
 	"errors"
+	"flag"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -511,4 +512,62 @@ func TestSuiteWithStats(t *testing.T) {
 	assert.NotZero(t, testStats.Start)
 	assert.NotZero(t, testStats.End)
 	assert.True(t, testStats.Passed)
+}
+
+// Suite to test behavior when running with the failfast flag
+// It logs calls in the callOrder slice which we then use to assert the correct calls were made
+type FailfastSuite struct {
+	Suite
+	callOrder []string
+}
+
+func (s *FailfastSuite) call(method string) {
+	s.callOrder = append(s.callOrder, method)
+}
+
+func TestSuiteWithFailfast(t *testing.T) {
+	// This test suite is run twice by travis. Once normally and once with the -failfast flag
+	failFast := flag.Lookup("test.failfast").Value.(flag.Getter).Get().(bool)
+	s := new(FailfastSuite)
+	ok := testing.RunTests(
+		allTestsFilter,
+		[]testing.InternalTest{{
+			Name: "TestSuiteWithFailfast",
+			F: func(t *testing.T) {
+				Run(t, s)
+			},
+		}},
+	)
+	assert.Equal(t, false, ok)
+	if failFast {
+		// Test A Fails and because we are running with failfast Test B never runs and we proceed staright to TearDownSuite
+		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+	} else {
+		// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
+		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+	}
+}
+func (s *FailfastSuite) SetupSuite() {
+	s.call("SetupSuite")
+}
+
+func (s *FailfastSuite) TearDownSuite() {
+	s.call("TearDownSuite")
+}
+func (s *FailfastSuite) SetupTest() {
+	s.call("SetupTest")
+}
+
+func (s *FailfastSuite) TearDownTest() {
+	s.call("TearDownTest")
+}
+
+func (s *FailfastSuite) Test_A_Fails() {
+	s.call("Test A Fails")
+	s.Require().True(false)
+}
+
+func (s *FailfastSuite) Test_B_Passes() {
+	s.call("Test B Passes")
+	s.Require().True(true)
 }
