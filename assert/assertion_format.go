@@ -93,7 +93,7 @@ func EqualErrorf(t TestingT, theError error, errString string, msg string, args 
 // EqualValuesf asserts that two objects are equal or convertable to the same types
 // and equal.
 //
-//    assert.EqualValuesf(t, uint32(123, "error message %s", "formatted"), int32(123))
+// 		assert.EqualValuesf(t, uint32(123), int32(123), "error message %s", "formatted")
 func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -127,7 +127,7 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 
 // Exactlyf asserts that two objects are equal in value and type.
 //
-//    assert.Exactlyf(t, int32(123, "error message %s", "formatted"), int64(123))
+//    assert.Exactlyf(t, int32(123), int64(123), "error message %s", "formatted")
 func Exactlyf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
