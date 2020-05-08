@@ -7,20 +7,6 @@ import (
 	"testing"
 )
 
-type outputT struct {
-	buf *bytes.Buffer
-}
-
-// Implements TestingT
-func (t *outputT) Errorf(format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
-	t.buf.WriteString(s)
-}
-
-func (t *outputT) get() string {
-	return string(t.buf.Bytes())
-}
-
 func TestCompare(t *testing.T) {
 	for _, currCase := range []struct {
 		less    interface{}
@@ -37,8 +23,8 @@ func TestCompare(t *testing.T) {
 		{less: uint16(1), greater: uint16(2), cType: "uint16"},
 		{less: uint32(1), greater: uint32(2), cType: "uint32"},
 		{less: uint64(1), greater: uint64(2), cType: "uint64"},
-		{less: float32(1), greater: float32(2), cType: "float32"},
-		{less: float64(1), greater: float64(2), cType: "float64"},
+		{less: float32(1.23), greater: float32(2.34), cType: "float32"},
+		{less: float64(1.23), greater: float64(2.34), cType: "float64"},
 	} {
 		resLess, isComparable := compare(currCase.less, currCase.greater, reflect.ValueOf(currCase.less).Kind())
 		if !isComparable {
@@ -69,6 +55,16 @@ func TestCompare(t *testing.T) {
 	}
 }
 
+type outputT struct {
+	buf *bytes.Buffer
+}
+
+// Implements TestingT
+func (t *outputT) Errorf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	t.buf.WriteString(s)
+}
+
 func TestGreater(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -91,11 +87,21 @@ func TestGreater(t *testing.T) {
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"a" is not greater than "b"`},
-		{less: 1, greater: 2, msg: `"1" is not greater than "2"`},
+		{less: int(1), greater: int(2), msg: `"1" is not greater than "2"`},
+		{less: int8(1), greater: int8(2), msg: `"1" is not greater than "2"`},
+		{less: int16(1), greater: int16(2), msg: `"1" is not greater than "2"`},
+		{less: int32(1), greater: int32(2), msg: `"1" is not greater than "2"`},
+		{less: int64(1), greater: int64(2), msg: `"1" is not greater than "2"`},
+		{less: uint8(1), greater: uint8(2), msg: `"1" is not greater than "2"`},
+		{less: uint16(1), greater: uint16(2), msg: `"1" is not greater than "2"`},
+		{less: uint32(1), greater: uint32(2), msg: `"1" is not greater than "2"`},
+		{less: uint64(1), greater: uint64(2), msg: `"1" is not greater than "2"`},
+		{less: float32(1.23), greater: float32(2.34), msg: `"1.23" is not greater than "2.34"`},
+		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Greater(out, currCase.less, currCase.greater))
-		Contains(t, out.get(), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
 	}
 }
 
@@ -121,11 +127,21 @@ func TestGreaterOrEqual(t *testing.T) {
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"a" is not greater than or equal to "b"`},
-		{less: 1, greater: 2, msg: `"1" is not greater than or equal to "2"`},
+		{less: int(1), greater: int(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: int8(1), greater: int8(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: int16(1), greater: int16(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: int32(1), greater: int32(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: int64(1), greater: int64(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: uint8(1), greater: uint8(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: uint16(1), greater: uint16(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: uint32(1), greater: uint32(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: uint64(1), greater: uint64(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: float32(1.23), greater: float32(2.34), msg: `"1.23" is not greater than or equal to "2.34"`},
+		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than or equal to "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
-		Contains(t, out.get(), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
 	}
 }
 
@@ -151,11 +167,21 @@ func TestLess(t *testing.T) {
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"b" is not less than "a"`},
-		{less: 1, greater: 2, msg: `"2" is not less than "1"`},
+		{less: int(1), greater: int(2), msg: `"2" is not less than "1"`},
+		{less: int8(1), greater: int8(2), msg: `"2" is not less than "1"`},
+		{less: int16(1), greater: int16(2), msg: `"2" is not less than "1"`},
+		{less: int32(1), greater: int32(2), msg: `"2" is not less than "1"`},
+		{less: int64(1), greater: int64(2), msg: `"2" is not less than "1"`},
+		{less: uint8(1), greater: uint8(2), msg: `"2" is not less than "1"`},
+		{less: uint16(1), greater: uint16(2), msg: `"2" is not less than "1"`},
+		{less: uint32(1), greater: uint32(2), msg: `"2" is not less than "1"`},
+		{less: uint64(1), greater: uint64(2), msg: `"2" is not less than "1"`},
+		{less: float32(1.23), greater: float32(2.34), msg: `"2.34" is not less than "1.23"`},
+		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Less(out, currCase.greater, currCase.less))
-		Contains(t, out.get(), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
 	}
 }
 
@@ -181,11 +207,21 @@ func TestLessOrEqual(t *testing.T) {
 		msg     string
 	}{
 		{less: "a", greater: "b", msg: `"b" is not less than or equal to "a"`},
-		{less: 1, greater: 2, msg: `"2" is not less than or equal to "1"`},
+		{less: int(1), greater: int(2), msg: `"2" is not less than or equal to "1"`},
+		{less: int8(1), greater: int8(2), msg: `"2" is not less than or equal to "1"`},
+		{less: int16(1), greater: int16(2), msg: `"2" is not less than or equal to "1"`},
+		{less: int32(1), greater: int32(2), msg: `"2" is not less than or equal to "1"`},
+		{less: int64(1), greater: int64(2), msg: `"2" is not less than or equal to "1"`},
+		{less: uint8(1), greater: uint8(2), msg: `"2" is not less than or equal to "1"`},
+		{less: uint16(1), greater: uint16(2), msg: `"2" is not less than or equal to "1"`},
+		{less: uint32(1), greater: uint32(2), msg: `"2" is not less than or equal to "1"`},
+		{less: uint64(1), greater: uint64(2), msg: `"2" is not less than or equal to "1"`},
+		{less: float32(1.23), greater: float32(2.34), msg: `"2.34" is not less than or equal to "1.23"`},
+		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than or equal to "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, LessOrEqual(out, currCase.greater, currCase.less))
-		Contains(t, out.get(), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
 	}
 }
 
