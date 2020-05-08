@@ -1,9 +1,25 @@
 package assert
 
 import (
+	"bytes"
+	"fmt"
 	"reflect"
 	"testing"
 )
+
+type outputT struct {
+	buf *bytes.Buffer
+}
+
+// Implements TestingT
+func (t *outputT) Errorf(format string, args ...interface{}) {
+	s := fmt.Sprintf(format, args...)
+	t.buf.WriteString(s)
+}
+
+func (t *outputT) get() string {
+	return string(t.buf.Bytes())
+}
 
 func TestCompare(t *testing.T) {
 	for _, currCase := range []struct {
@@ -67,21 +83,49 @@ func TestGreater(t *testing.T) {
 	if Greater(mockT, 1, 2) {
 		t.Error("Greater should return false")
 	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		less    interface{}
+		greater interface{}
+		msg     string
+	}{
+		{less: "a", greater: "b", msg: `"a" is not greater than "b"`},
+		{less: 1, greater: 2, msg: `"1" is not greater than "2"`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, Greater(out, currCase.less, currCase.greater))
+		Contains(t, out.get(), currCase.msg)
+	}
 }
 
 func TestGreaterOrEqual(t *testing.T) {
 	mockT := new(testing.T)
 
 	if !GreaterOrEqual(mockT, 2, 1) {
-		t.Error("Greater should return true")
+		t.Error("GreaterOrEqual should return true")
 	}
 
 	if !GreaterOrEqual(mockT, 1, 1) {
-		t.Error("Greater should return true")
+		t.Error("GreaterOrEqual should return true")
 	}
 
 	if GreaterOrEqual(mockT, 1, 2) {
-		t.Error("Greater should return false")
+		t.Error("GreaterOrEqual should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		less    interface{}
+		greater interface{}
+		msg     string
+	}{
+		{less: "a", greater: "b", msg: `"a" is not greater than or equal to "b"`},
+		{less: 1, greater: 2, msg: `"1" is not greater than or equal to "2"`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
+		Contains(t, out.get(), currCase.msg)
 	}
 }
 
@@ -99,21 +143,49 @@ func TestLess(t *testing.T) {
 	if Less(mockT, 2, 1) {
 		t.Error("Less should return false")
 	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		less    interface{}
+		greater interface{}
+		msg     string
+	}{
+		{less: "a", greater: "b", msg: `"b" is not less than "a"`},
+		{less: 1, greater: 2, msg: `"2" is not less than "1"`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, Less(out, currCase.greater, currCase.less))
+		Contains(t, out.get(), currCase.msg)
+	}
 }
 
 func TestLessOrEqual(t *testing.T) {
 	mockT := new(testing.T)
 
 	if !LessOrEqual(mockT, 1, 2) {
-		t.Error("Greater should return true")
+		t.Error("LessOrEqual should return true")
 	}
 
 	if !LessOrEqual(mockT, 1, 1) {
-		t.Error("Greater should return true")
+		t.Error("LessOrEqual should return true")
 	}
 
 	if LessOrEqual(mockT, 2, 1) {
-		t.Error("Greater should return false")
+		t.Error("LessOrEqual should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		less    interface{}
+		greater interface{}
+		msg     string
+	}{
+		{less: "a", greater: "b", msg: `"b" is not less than or equal to "a"`},
+		{less: 1, greater: 2, msg: `"2" is not less than or equal to "1"`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, LessOrEqual(out, currCase.greater, currCase.less))
+		Contains(t, out.get(), currCase.msg)
 	}
 }
 
