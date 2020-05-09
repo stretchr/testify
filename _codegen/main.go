@@ -287,7 +287,7 @@ func (f *testFunc) CommentFormat() string {
 	search := fmt.Sprintf("%s", f.DocInfo.Name)
 	replace := fmt.Sprintf("%sf", f.DocInfo.Name)
 	comment := strings.Replace(f.Comment(), search, replace, -1)
-	exp := regexp.MustCompile(replace + `\(((\(\)|[^)])+)\)`)
+	exp := regexp.MustCompile(replace + `\(((\(\)|[^\n])+)\)`)
 	return exp.ReplaceAllString(comment, replace+`($1, "error message %s", "formatted")`)
 }
 
