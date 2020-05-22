@@ -699,6 +699,21 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 
 }
 
+// NotEqualValues asserts that two objects are not equal even when converted to the same type
+//
+//    assert.NotEqualValues(t, obj1, obj2)
+func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if ObjectsAreEqualValues(expected, actual) {
+		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
+	}
+
+	return true
+}
+
 // containsElement try loop over the list check if the list includes the element.
 // return (false, false) if impossible.
 // return (true, false) if element was not found.
