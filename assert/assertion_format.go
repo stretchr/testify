@@ -467,6 +467,16 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 	return NotEqual(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
+// NotEqualValuesf asserts that two objects are not equal even when converted to the same type
+//
+//    assert.NotEqualValuesf(t, obj1, obj2, "error message %s", "formatted")
+func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotEqualValues(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
 // NotNilf asserts that the specified object is not nil.
 //
 //    assert.NotNilf(t, err, "error message %s", "formatted")
