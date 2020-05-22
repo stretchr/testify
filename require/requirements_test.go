@@ -521,6 +521,7 @@ func TestComparisonAssertionFunc(t *testing.T) {
 		{"equalValues", t, t, EqualValues},
 		{"exactly", t, t, Exactly},
 		{"notEqual", t, nil, NotEqual},
+		{"NotEqualValues", t, nil, NotEqualValues},
 		{"notContains", []int{1, 2, 3}, 4, NotContains},
 		{"subset", []int{1, 2, 3, 4}, []int{2, 3}, Subset},
 		{"notSubset", []int{1, 2, 3, 4}, []int{0, 3}, NotSubset},
