@@ -60,7 +60,9 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
-	if tExp, ok := expected.(time.Time); ok {
+	tExp, ok := expected.(time.Time)
+	if ok {
+
 		tAct, ok := actual.(time.Time)
 		if ok {
 			return tExp.Equal(tAct)
