@@ -1159,6 +1159,32 @@ func NotEqual(t TestingT, expected interface{}, actual interface{}, msgAndArgs .
 	t.FailNow()
 }
 
+// NotEqualValues asserts that two objects are not equal even when converted to the same type
+//
+//    assert.NotEqualValues(t, obj1, obj2)
+func NotEqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotEqualValues(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotEqualValuesf asserts that two objects are not equal even when converted to the same type
+//
+//    assert.NotEqualValuesf(t, obj1, obj2, "error message %s", "formatted")
+func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotEqualValuesf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NotEqualf asserts that the specified values are NOT equal.
 //
 //    assert.NotEqualf(t, obj1, obj2, "error message %s", "formatted")

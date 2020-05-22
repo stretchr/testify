@@ -909,6 +909,26 @@ func (a *Assertions) NotEqual(expected interface{}, actual interface{}, msgAndAr
 	return NotEqual(a.t, expected, actual, msgAndArgs...)
 }
 
+// NotEqualValues asserts that two objects are not equal even when converted to the same type
+//
+//    a.NotEqualValues(obj1, obj2)
+func (a *Assertions) NotEqualValues(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotEqualValues(a.t, expected, actual, msgAndArgs...)
+}
+
+// NotEqualValuesf asserts that two objects are not equal even when converted to the same type
+//
+//    a.NotEqualValuesf(obj1, obj2, "error message %s", "formatted")
+func (a *Assertions) NotEqualValuesf(expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotEqualValuesf(a.t, expected, actual, msg, args...)
+}
+
 // NotEqualf asserts that the specified values are NOT equal.
 //
 //    a.NotEqualf(obj1, obj2, "error message %s", "formatted")
