@@ -556,8 +556,41 @@ func TestNotEqual(t *testing.T) {
 }
 
 func TestNotEqualValues(t *testing.T) {
-
 	mockT := new(testing.T)
+
+	type TestThingy struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}
+
+	tests := []TestThingy{
+		{"Hello World", "Hello World!", true},
+		{123, 1234, true},
+		{123.5, 123.55, true},
+		{[]byte("Hello World"), []byte("Hello World!"), true},
+		{nil, new(AssertionTesterConformingObject), true},
+		{nil, nil, false},
+		{"Hello World", "Hello World", false},
+		{123, 123, false},
+		{123.5, 123.5, false},
+		{[]byte("Hello World"), []byte("Hello World"), false},
+		{new(AssertionTesterConformingObject), new(AssertionTesterConformingObject), false},
+		{&struct{}{}, &struct{}{}, false},
+		{func() int { return 23 }, func() int { return 24 }, true},
+		{int(10), int(11), true},
+		{int(10), int(10), false},
+
+		{struct{}{}, struct{}{}, false},
+	}
+
+	for _, ts := range tests {
+		res := NotEqualValues(mockT, ts.expected, ts.actual)
+
+		if res != ts.result {
+			t.Errorf("NotEqualValues(%v, %v) should return %v", ts.expected, ts.actual, ts.result)
+		}
+	}
 
 	// Same tests as NotEqual since they behave the same when types are irrelevant
 	if !NotEqualValues(mockT, "Hello World", "Hello World!") {
@@ -612,6 +645,7 @@ func TestNotEqualValues(t *testing.T) {
 	if NotEqualValues(mockT, struct{}{}, struct{}{}) {
 		t.Error("NotEqualValues should return false")
 	}
+
 }
 
 type A struct {
