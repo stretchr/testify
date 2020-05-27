@@ -558,13 +558,13 @@ func TestNotEqual(t *testing.T) {
 func TestNotEqualValues(t *testing.T) {
 	mockT := new(testing.T)
 
-	type TestThingy struct {
+	type TestCase struct {
 		expected interface{}
 		actual   interface{}
 		result   bool
 	}
 
-	tests := []TestThingy{
+	cases := []TestCase{
 		{"Hello World", "Hello World!", true},
 		{123, 1234, true},
 		{123.5, 123.55, true},
@@ -584,11 +584,11 @@ func TestNotEqualValues(t *testing.T) {
 		{struct{}{}, struct{}{}, false},
 	}
 
-	for _, ts := range tests {
-		res := NotEqualValues(mockT, ts.expected, ts.actual)
+	for _, c := range cases {
+		res := NotEqualValues(mockT, c.expected, c.actual)
 
-		if res != ts.result {
-			t.Errorf("NotEqualValues(%v, %v) should return %v", ts.expected, ts.actual, ts.result)
+		if res != c.result {
+			t.Errorf("NotEqualValues(%v, %v) should return %v", c.expected, c.actual, c.result)
 		}
 	}
 
