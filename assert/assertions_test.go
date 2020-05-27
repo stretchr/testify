@@ -131,7 +131,7 @@ func TestObjectsAreEqual(t *testing.T) {
 		res := ObjectsAreEqual(c.expected, c.actual)
 
 		if res != c.result {
-			t.Errorf("Equal(%v, %v) should return %v", c.expected, c.actual, c.result)
+			t.Errorf("Equal(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 		}
 	}
 
@@ -206,7 +206,7 @@ func TestEqual(t *testing.T) {
 		res := Equal(mockT, c.expected, c.actual)
 
 		if res != c.result {
-			t.Errorf("Equal(%v, %v) should return %v", c.expected, c.actual, c.result)
+			t.Errorf("Equal(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 		}
 	}
 }
@@ -477,7 +477,7 @@ func TestExactly(t *testing.T) {
 		res := Exactly(mockT, c.expected, c.actual)
 
 		if res != c.result {
-			t.Errorf("Exactly(%v, %v) should return %v", c.expected, c.actual, c.result)
+			t.Errorf("Exactly(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 		}
 	}
 }
@@ -511,7 +511,7 @@ func TestNotEqual(t *testing.T) {
 		res := NotEqual(mockT, c.expected, c.actual)
 
 		if res != c.result {
-			t.Errorf("NotEqual(%v, %v) should return %v", c.expected, c.actual, c.result)
+			t.Errorf("NotEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 		}
 	}
 }
@@ -548,19 +548,18 @@ func TestNotEqualValues(t *testing.T) {
 		res := NotEqualValues(mockT, c.expected, c.actual)
 
 		if res != c.result {
-			t.Errorf("NotEqualValues(%v, %v) should return %v", c.expected, c.actual, c.result)
+			t.Errorf("NotEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 		}
 	}
 }
 
-type A struct {
-	Name, Value string
-}
+func TestContainsNotContains(t *testing.T) {
 
-func TestContains(t *testing.T) {
-
-	mockT := new(testing.T)
+	type A struct {
+		Name, Value string
+	}
 	list := []string{"Foo", "Bar"}
+
 	complexList := []*A{
 		{"b", "c"},
 		{"d", "e"},
@@ -569,34 +568,48 @@ func TestContains(t *testing.T) {
 	}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
-	if !Contains(mockT, "Hello World", "Hello") {
-		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
-	}
-	if Contains(mockT, "Hello World", "Salut") {
-		t.Error("Contains should return false: \"Hello World\" does not contain \"Salut\"")
+	cases := []TestCase{
+		{"Hello World", "Hello", true},
+		{"Hello World", "Salut", false},
+		{list, "Bar", true},
+		{list, "Salut", false},
+		{complexList, &A{"g", "h"}, true},
+		{complexList, &A{"g", "e"}, false},
+		{simpleMap, "Foo", true},
+		{simpleMap, "Bar", false},
 	}
 
-	if !Contains(mockT, list, "Bar") {
-		t.Error("Contains should return true: \"[\"Foo\", \"Bar\"]\" contains \"Bar\"")
-	}
-	if Contains(mockT, list, "Salut") {
-		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
-	}
-	if !Contains(mockT, complexList, &A{"g", "h"}) {
-		t.Error("Contains should return true: complexList contains {\"g\", \"h\"}")
-	}
-	if Contains(mockT, complexList, &A{"g", "e"}) {
-		t.Error("Contains should return false: complexList contains {\"g\", \"e\"}")
-	}
-	if Contains(mockT, complexList, &A{"g", "e"}) {
-		t.Error("Contains should return false: complexList contains {\"g\", \"e\"}")
-	}
-	if !Contains(mockT, simpleMap, "Foo") {
-		t.Error("Contains should return true: \"{\"Foo\": \"Bar\"}\" contains \"Foo\"")
-	}
-	if Contains(mockT, simpleMap, "Bar") {
-		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Bar\"")
-	}
+	t.Run("TestContains", func(t *testing.T) {
+		mockT := new(testing.T)
+
+		for _, c := range cases {
+			res := Contains(mockT, c.expected, c.actual)
+
+			if res != c.result {
+				if res {
+					t.Errorf("Contains(%#v, %#v) should return true:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
+				} else {
+					t.Errorf("Contains(%#v, %#v) should return false:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
+				}
+			}
+		}
+	})
+	t.Run("TestNotContains", func(t *testing.T) {
+		mockT := new(testing.T)
+
+		for _, c := range cases {
+			res := NotContains(mockT, c.expected, c.actual)
+
+			// Not that we negate the result, since we expect the opposite
+			if res != !c.result {
+				if res {
+					t.Errorf("NotContains(%#v, %#v) should return true:\n\t%#v does not contains %#v", c.expected, c.actual, c.expected, c.actual)
+				} else {
+					t.Errorf("NotContains(%#v, %#v) should return false:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
+				}
+			}
+		}
+	})
 }
 
 func TestContainsFailMessage(t *testing.T) {
@@ -608,33 +621,6 @@ func TestContainsFailMessage(t *testing.T) {
 	actualFail := mockT.errorString()
 	if !strings.Contains(actualFail, expectedFail) {
 		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
-	}
-}
-
-func TestNotContains(t *testing.T) {
-
-	mockT := new(testing.T)
-	list := []string{"Foo", "Bar"}
-	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
-
-	if !NotContains(mockT, "Hello World", "Hello!") {
-		t.Error("NotContains should return true: \"Hello World\" does not contain \"Hello!\"")
-	}
-	if NotContains(mockT, "Hello World", "Hello") {
-		t.Error("NotContains should return false: \"Hello World\" contains \"Hello\"")
-	}
-
-	if !NotContains(mockT, list, "Foo!") {
-		t.Error("NotContains should return true: \"[\"Foo\", \"Bar\"]\" does not contain \"Foo!\"")
-	}
-	if NotContains(mockT, list, "Foo") {
-		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
-	}
-	if NotContains(mockT, simpleMap, "Foo") {
-		t.Error("Contains should return true: \"{\"Foo\": \"Bar\"}\" contains \"Foo\"")
-	}
-	if !NotContains(mockT, simpleMap, "Bar") {
-		t.Error("Contains should return false: \"{\"Foo\": \"Bar\"}\" does not contains \"Bar\"")
 	}
 }
 
