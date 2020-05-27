@@ -594,6 +594,7 @@ func TestContainsNotContains(t *testing.T) {
 			}
 		}
 	})
+
 	t.Run("TestNotContains", func(t *testing.T) {
 		mockT := new(testing.T)
 
@@ -624,64 +625,55 @@ func TestContainsFailMessage(t *testing.T) {
 	}
 }
 
-func TestSubset(t *testing.T) {
-	mockT := new(testing.T)
-
-	if !Subset(mockT, []int{1, 2, 3}, nil) {
-		t.Error("Subset should return true: given subset is nil")
-	}
-	if !Subset(mockT, []int{1, 2, 3}, []int{}) {
-		t.Error("Subset should return true: any set contains the nil set")
-	}
-	if !Subset(mockT, []int{1, 2, 3}, []int{1, 2}) {
-		t.Error("Subset should return true: [1, 2, 3] contains [1, 2]")
-	}
-	if !Subset(mockT, []int{1, 2, 3}, []int{1, 2, 3}) {
-		t.Error("Subset should return true: [1, 2, 3] contains [1, 2, 3]")
-	}
-	if !Subset(mockT, []string{"hello", "world"}, []string{"hello"}) {
-		t.Error("Subset should return true: [\"hello\", \"world\"] contains [\"hello\"]")
+func TestSubsetNotSubset(t *testing.T) {
+	type MTestCase struct {
+		TestCase
+		message string
 	}
 
-	if Subset(mockT, []string{"hello", "world"}, []string{"hello", "testify"}) {
-		t.Error("Subset should return false: [\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]")
-	}
-	if Subset(mockT, []int{1, 2, 3}, []int{4, 5}) {
-		t.Error("Subset should return false: [1, 2, 3] does not contain [4, 5]")
-	}
-	if Subset(mockT, []int{1, 2, 3}, []int{1, 5}) {
-		t.Error("Subset should return false: [1, 2, 3] does not contain [1, 5]")
-	}
-}
+	cases := []MTestCase{
+		// cases that are expected to contain
+		{TestCase{[]int{1, 2, 3}, nil, true}, "given subset is nil"},
+		{TestCase{[]int{1, 2, 3}, []int{}, true}, "any set contains the nil set"},
+		{TestCase{[]int{1, 2, 3}, []int{1, 2}, true}, "[1, 2, 3] contains [1, 2]"},
+		{TestCase{[]int{1, 2, 3}, []int{1, 2, 3}, true}, "[1, 2, 3] contains [1, 2, 3"},
+		{TestCase{[]string{"hello", "world"}, []string{"hello"}, true}, "[\"hello\", \"world\"] contains [\"hello\"]"},
 
-func TestNotSubset(t *testing.T) {
-	mockT := new(testing.T)
-
-	if NotSubset(mockT, []int{1, 2, 3}, nil) {
-		t.Error("NotSubset should return false: given subset is nil")
-	}
-	if NotSubset(mockT, []int{1, 2, 3}, []int{}) {
-		t.Error("NotSubset should return false: any set contains the nil set")
-	}
-	if NotSubset(mockT, []int{1, 2, 3}, []int{1, 2}) {
-		t.Error("NotSubset should return false: [1, 2, 3] contains [1, 2]")
-	}
-	if NotSubset(mockT, []int{1, 2, 3}, []int{1, 2, 3}) {
-		t.Error("NotSubset should return false: [1, 2, 3] contains [1, 2, 3]")
-	}
-	if NotSubset(mockT, []string{"hello", "world"}, []string{"hello"}) {
-		t.Error("NotSubset should return false: [\"hello\", \"world\"] contains [\"hello\"]")
+		// cases that are expected not to contain
+		{TestCase{[]string{"hello", "world"}, []string{"hello", "testify"}, false}, "[\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]"},
+		{TestCase{[]int{1, 2, 3}, []int{4, 5}, false}, "[1, 2, 3] does not contain [4, 5"},
+		{TestCase{[]int{1, 2, 3}, []int{1, 5}, false}, "[1, 2, 3] does not contain [1, 5]"},
 	}
 
-	if !NotSubset(mockT, []string{"hello", "world"}, []string{"hello", "testify"}) {
-		t.Error("NotSubset should return true: [\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]")
-	}
-	if !NotSubset(mockT, []int{1, 2, 3}, []int{4, 5}) {
-		t.Error("NotSubset should return true: [1, 2, 3] does not contain [4, 5]")
-	}
-	if !NotSubset(mockT, []int{1, 2, 3}, []int{1, 5}) {
-		t.Error("NotSubset should return true: [1, 2, 3] does not contain [1, 5]")
-	}
+	t.Run("TestSubset", func(t *testing.T) {
+		mockT := new(testing.T)
+		for _, c := range cases {
+			res := Subset(mockT, c.expected, c.actual)
+
+			if res != c.result {
+				if res {
+					t.Errorf("Subset should return true: %s", c.message)
+				} else {
+					t.Errorf("Subset should return false: %s", c.message)
+				}
+			}
+		}
+	})
+	t.Run("TestNotSubset", func(t *testing.T) {
+		mockT := new(testing.T)
+		for _, c := range cases {
+			res := NotSubset(mockT, c.expected, c.actual)
+
+			// Not that we negate the result, since we expect the opposite
+			if res != !c.result {
+				if res {
+					t.Errorf("NotSubset should return true: %s", c.message)
+				} else {
+					t.Errorf("NotSubset should return false: %s", c.message)
+				}
+			}
+		}
+	})
 }
 
 func TestNotSubsetNil(t *testing.T) {
