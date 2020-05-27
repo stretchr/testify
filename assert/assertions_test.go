@@ -474,6 +474,12 @@ func TestFalse(t *testing.T) {
 
 }
 
+type TestCase struct {
+	expected interface{}
+	actual   interface{}
+	result   bool
+}
+
 func TestExactly(t *testing.T) {
 
 	mockT := new(testing.T)
@@ -482,30 +488,21 @@ func TestExactly(t *testing.T) {
 	b := float64(1)
 	c := float32(1)
 	d := float32(2)
-
-	if Exactly(mockT, a, b) {
-		t.Error("Exactly should return false")
-	}
-	if Exactly(mockT, a, d) {
-		t.Error("Exactly should return false")
-	}
-	if !Exactly(mockT, a, c) {
-		t.Error("Exactly should return true")
+	cases := []TestCase{
+		{a, b, false},
+		{a, d, false},
+		{a, c, true},
+		{nil, a, false},
+		{a, nil, false},
 	}
 
-	if Exactly(mockT, nil, a) {
-		t.Error("Exactly should return false")
-	}
-	if Exactly(mockT, a, nil) {
-		t.Error("Exactly should return false")
-	}
+	for _, c := range cases {
+		res := Exactly(mockT, c.expected, c.actual)
 
-}
-
-type TestCase struct {
-	expected interface{}
-	actual   interface{}
-	result   bool
+		if res != c.result {
+			t.Errorf("Exactly(%v, %v) should return %v", c.expected, c.actual, c.result)
+		}
+	}
 }
 
 func TestNotEqual(t *testing.T) {
