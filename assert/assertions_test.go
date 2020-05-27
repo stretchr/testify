@@ -502,67 +502,15 @@ func TestExactly(t *testing.T) {
 
 }
 
+type TestCase struct {
+	expected interface{}
+	actual   interface{}
+	result   bool
+}
+
 func TestNotEqual(t *testing.T) {
 
 	mockT := new(testing.T)
-
-	if !NotEqual(mockT, "Hello World", "Hello World!") {
-		t.Error("NotEqual should return true")
-	}
-	if !NotEqual(mockT, 123, 1234) {
-		t.Error("NotEqual should return true")
-	}
-	if !NotEqual(mockT, 123.5, 123.55) {
-		t.Error("NotEqual should return true")
-	}
-	if !NotEqual(mockT, []byte("Hello World"), []byte("Hello World!")) {
-		t.Error("NotEqual should return true")
-	}
-	if !NotEqual(mockT, nil, new(AssertionTesterConformingObject)) {
-		t.Error("NotEqual should return true")
-	}
-	funcA := func() int { return 23 }
-	funcB := func() int { return 42 }
-	if NotEqual(mockT, funcA, funcB) {
-		t.Error("NotEqual should return false")
-	}
-	if NotEqual(mockT, nil, nil) {
-		t.Error("NotEqual should return false")
-	}
-
-	if NotEqual(mockT, "Hello World", "Hello World") {
-		t.Error("NotEqual should return false")
-	}
-	if NotEqual(mockT, 123, 123) {
-		t.Error("NotEqual should return false")
-	}
-	if NotEqual(mockT, 123.5, 123.5) {
-		t.Error("NotEqual should return false")
-	}
-	if NotEqual(mockT, []byte("Hello World"), []byte("Hello World")) {
-		t.Error("NotEqual should return false")
-	}
-	if NotEqual(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
-		t.Error("NotEqual should return false")
-	}
-	if NotEqual(mockT, &struct{}{}, &struct{}{}) {
-		t.Error("NotEqual should return false")
-	}
-
-	// A case that might be confusing, especially with numeric literals
-	if !NotEqual(mockT, 10, uint(10)) {
-		t.Error("NotEqual should return false")
-	}
-}
-
-func TestNotEqualValues(t *testing.T) {
-	mockT := new(testing.T)
-
-	type TestCase struct {
-		expected interface{}
-		actual   interface{}
-		result   bool
-	}
 
 	cases := []TestCase{
 		{"Hello World", "Hello World!", true},
@@ -577,9 +525,41 @@ func TestNotEqualValues(t *testing.T) {
 		{[]byte("Hello World"), []byte("Hello World"), false},
 		{new(AssertionTesterConformingObject), new(AssertionTesterConformingObject), false},
 		{&struct{}{}, &struct{}{}, false},
+		{func() int { return 23 }, func() int { return 24 }, false},
+		// A case that might be confusing, especially with numeric literals
+		{int(10), uint(10), true},
+	}
+
+	for _, c := range cases {
+		res := NotEqual(mockT, c.expected, c.actual)
+
+		if res != c.result {
+			t.Errorf("NotEqual(%v, %v) should return %v", c.expected, c.actual, c.result)
+		}
+	}
+}
+
+func TestNotEqualValues(t *testing.T) {
+	mockT := new(testing.T)
+
+	cases := []TestCase{
+		{"Hello World", "Hello World!", true},
+		{123, 1234, true},
+		{123.5, 123.55, true},
+		{[]byte("Hello World"), []byte("Hello World!"), true},
+		{nil, new(AssertionTesterConformingObject), true},
+		{nil, nil, false},
+		{"Hello World", "Hello World", false},
+		{123, 123, false},
+		{123.5, 123.5, false},
+		{[]byte("Hello World"), []byte("Hello World"), false},
+		{new(AssertionTesterConformingObject), new(AssertionTesterConformingObject), false},
+		{&struct{}{}, &struct{}{}, false},
+
+		// Different behaviour from NotEqual()
 		{func() int { return 23 }, func() int { return 24 }, true},
 		{int(10), int(11), true},
-		{int(10), int(10), false},
+		{int(10), uint(10), false},
 
 		{struct{}{}, struct{}{}, false},
 	}
@@ -591,61 +571,6 @@ func TestNotEqualValues(t *testing.T) {
 			t.Errorf("NotEqualValues(%v, %v) should return %v", c.expected, c.actual, c.result)
 		}
 	}
-
-	// Same tests as NotEqual since they behave the same when types are irrelevant
-	if !NotEqualValues(mockT, "Hello World", "Hello World!") {
-		t.Error("NotEqualValues should return true")
-	}
-	if !NotEqualValues(mockT, 123, 1234) {
-		t.Error("NotEqualValues should return true")
-	}
-	if !NotEqualValues(mockT, 123.5, 123.55) {
-		t.Error("NotEqualValues should return true")
-	}
-	if !NotEqualValues(mockT, []byte("Hello World"), []byte("Hello World!")) {
-		t.Error("NotEqualValues should return true")
-	}
-	if !NotEqualValues(mockT, nil, new(AssertionTesterConformingObject)) {
-		t.Error("NotEqualValues should return true")
-	}
-	if NotEqualValues(mockT, nil, nil) {
-		t.Error("NotEqualValues should return false")
-	}
-	if NotEqualValues(mockT, "Hello World", "Hello World") {
-		t.Error("NotEqualValues should return false")
-	}
-	if NotEqualValues(mockT, 123, 123) {
-		t.Error("NotEqualValues should return false")
-	}
-	if NotEqualValues(mockT, 123.5, 123.5) {
-		t.Error("NotEqualValues should return false")
-	}
-	if NotEqualValues(mockT, []byte("Hello World"), []byte("Hello World")) {
-		t.Error("NotEqualValues should return false")
-	}
-	if NotEqualValues(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
-		t.Error("NotEqualValues should return false")
-	}
-	if NotEqualValues(mockT, &struct{}{}, &struct{}{}) {
-		t.Error("NotEqualValues should return false")
-	}
-
-	// Special cases where NotEqualValues behaves differently
-	funcA := func() int { return 23 }
-	funcB := func() int { return 42 }
-	if !NotEqualValues(mockT, funcA, funcB) {
-		t.Error("NotEqualValues should return true")
-	}
-	if !NotEqualValues(mockT, int(10), int(11)) {
-		t.Error("NotEqualValues should return true")
-	}
-	if NotEqualValues(mockT, int(10), uint(10)) {
-		t.Error("NotEqualValues should return false")
-	}
-	if NotEqualValues(mockT, struct{}{}, struct{}{}) {
-		t.Error("NotEqualValues should return false")
-	}
-
 }
 
 type A struct {
