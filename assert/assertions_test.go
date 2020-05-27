@@ -513,11 +513,14 @@ func TestNotEqual(t *testing.T) {
 	mockT := new(testing.T)
 
 	cases := []TestCase{
+		// cases that are expected not to match
 		{"Hello World", "Hello World!", true},
 		{123, 1234, true},
 		{123.5, 123.55, true},
 		{[]byte("Hello World"), []byte("Hello World!"), true},
 		{nil, new(AssertionTesterConformingObject), true},
+
+		// cases that are expected to match
 		{nil, nil, false},
 		{"Hello World", "Hello World", false},
 		{123, 123, false},
@@ -543,11 +546,14 @@ func TestNotEqualValues(t *testing.T) {
 	mockT := new(testing.T)
 
 	cases := []TestCase{
+		// cases that are expected not to match
 		{"Hello World", "Hello World!", true},
 		{123, 1234, true},
 		{123.5, 123.55, true},
 		{[]byte("Hello World"), []byte("Hello World!"), true},
 		{nil, new(AssertionTesterConformingObject), true},
+
+		// cases that are expected to match
 		{nil, nil, false},
 		{"Hello World", "Hello World", false},
 		{123, 123, false},
