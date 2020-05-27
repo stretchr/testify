@@ -182,9 +182,8 @@ func TestIsType(t *testing.T) {
 
 }
 
-type myType string
-
 func TestEqual(t *testing.T) {
+	type myType string
 
 	mockT := new(testing.T)
 
