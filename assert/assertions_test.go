@@ -631,6 +631,7 @@ func TestSubsetNotSubset(t *testing.T) {
 		message string
 	}
 
+	// MTestCase adds a custom message to the case
 	cases := []MTestCase{
 		// cases that are expected to contain
 		{TestCase{[]int{1, 2, 3}, nil, true}, "given subset is nil"},
@@ -738,51 +739,35 @@ func Test_includeElement(t *testing.T) {
 func TestElementsMatch(t *testing.T) {
 	mockT := new(testing.T)
 
-	if !ElementsMatch(mockT, nil, nil) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []int{}, []int{}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []int{1}, []int{1}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []int{1, 1}, []int{1, 1}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []int{1, 2}, []int{1, 2}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []int{1, 2}, []int{2, 1}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, [2]int{1, 2}, [2]int{2, 1}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []string{"hello", "world"}, []string{"world", "hello"}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []string{"hello", "hello"}, []string{"hello", "hello"}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, [3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}) {
-		t.Error("ElementsMatch should return true")
-	}
-	if !ElementsMatch(mockT, []int{}, nil) {
-		t.Error("ElementsMatch should return true")
+	cases := []TestCase{
+		// matching
+		{nil, nil, true},
+
+		{nil, nil, true},
+		{[]int{}, []int{}, true},
+		{[]int{1}, []int{1}, true},
+		{[]int{1, 1}, []int{1, 1}, true},
+		{[]int{1, 2}, []int{1, 2}, true},
+		{[]int{1, 2}, []int{2, 1}, true},
+		{[2]int{1, 2}, [2]int{2, 1}, true},
+		{[]string{"hello", "world"}, []string{"world", "hello"}, true},
+		{[]string{"hello", "hello"}, []string{"hello", "hello"}, true},
+		{[]string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}, true},
+		{[3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}, true},
+		{[]int{}, nil, true},
+
+		// not matching
+		{[]int{1}, []int{1, 1}, false},
+		{[]int{1, 2}, []int{2, 2}, false},
+		{[]string{"hello", "hello"}, []string{"hello"}, false},
 	}
 
-	if ElementsMatch(mockT, []int{1}, []int{1, 1}) {
-		t.Error("ElementsMatch should return false")
-	}
-	if ElementsMatch(mockT, []int{1, 2}, []int{2, 2}) {
-		t.Error("ElementsMatch should return false")
-	}
-	if ElementsMatch(mockT, []string{"hello", "hello"}, []string{"hello"}) {
-		t.Error("ElementsMatch should return false")
+	for _, c := range cases {
+		res := ElementsMatch(mockT, c.actual, c.expected)
+
+		if res != c.result {
+			t.Errorf("ElementsMatch(%#v, %#v) should return %v", c.actual, c.expected, c.result)
+		}
 	}
 }
 
