@@ -182,48 +182,43 @@ func TestIsType(t *testing.T) {
 
 }
 
+type TestCase struct {
+	expected interface{}
+	actual   interface{}
+	result   bool
+}
+
 func TestEqual(t *testing.T) {
 	type myType string
 
 	mockT := new(testing.T)
-
-	if !Equal(mockT, "Hello World", "Hello World") {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, 123, 123) {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, 123.5, 123.5) {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, []byte("Hello World"), []byte("Hello World")) {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, nil, nil) {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, int32(123), int32(123)) {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, uint64(123), uint64(123)) {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, myType("1"), myType("1")) {
-		t.Error("Equal should return true")
-	}
-	if !Equal(mockT, &struct{}{}, &struct{}{}) {
-		t.Error("Equal should return true (pointer equality is based on equality of underlying value)")
-	}
 	var m map[string]interface{}
-	if Equal(mockT, m["bar"], "something") {
-		t.Error("Equal should return false")
+
+	cases := []TestCase{
+		{"Hello World", "Hello World", true},
+		{123, 123, true},
+		{123.5, 123.5, true},
+		{[]byte("Hello World"), []byte("Hello World"), true},
+		{nil, nil, true},
+		{int32(123), int32(123), true},
+		{uint64(123), uint64(123), true},
+		{myType("1"), myType("1"), true},
+		{&struct{}{}, &struct{}{}, true}, // pointer equality is based on equality of underlying value
+
+		// Not expected to be equal
+		{m["bar"], "something", false},
+		{myType("1"), myType("2"), false},
+
+		// A case that might be confusing, especially with numeric literals
+		{10, uint(10), false},
 	}
-	if Equal(mockT, myType("1"), myType("2")) {
-		t.Error("Equal should return false")
-	}
-	// A case that might be confusing, especially with numeric literals
-	if Equal(mockT, 10, uint(10)) {
-		t.Error("Equal should return false")
+
+	for _, c := range cases {
+		res := Equal(mockT, c.expected, c.actual)
+
+		if res != c.result {
+			t.Errorf("Equal(%v, %v) should return %v", c.expected, c.actual, c.result)
+		}
 	}
 }
 
@@ -471,12 +466,6 @@ func TestFalse(t *testing.T) {
 		t.Error("False should return false")
 	}
 
-}
-
-type TestCase struct {
-	expected interface{}
-	actual   interface{}
-	result   bool
 }
 
 func TestExactly(t *testing.T) {
