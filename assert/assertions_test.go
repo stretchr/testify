@@ -100,47 +100,42 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct {
 }
 
-func TestObjectsAreEqual(t *testing.T) {
+// TestCase holds the expected/actual values to be passed to most checks and their expected result (true/false)
+type TestCase struct {
+	expected interface{}
+	actual   interface{}
+	result   bool
+}
 
-	if !ObjectsAreEqual("Hello World", "Hello World") {
-		t.Error("objectsAreEqual should return true")
+func TestObjectsAreEqual(t *testing.T) {
+	cases := []TestCase{
+		// cases that are expected to be equal
+		{"Hello World", "Hello World", true},
+		{123, 123, true},
+		{123.5, 123.5, true},
+		{[]byte("Hello World"), []byte("Hello World"), true},
+		{nil, nil, true},
+
+		// cases that are expected not to be equal
+		{map[int]int{5: 10}, map[int]int{10: 20}, false},
+		{'x', "x", false},
+		{"x", 'x', false},
+		{0, 0.1, false},
+		{0.1, 0, false},
+		{time.Now, time.Now, false},
+		{func() {}, func() {}, false},
+		{uint32(10), int32(10), false},
 	}
-	if !ObjectsAreEqual(123, 123) {
-		t.Error("objectsAreEqual should return true")
+
+	for _, c := range cases {
+		res := ObjectsAreEqual(c.expected, c.actual)
+
+		if res != c.result {
+			t.Errorf("Equal(%v, %v) should return %v", c.expected, c.actual, c.result)
+		}
 	}
-	if !ObjectsAreEqual(123.5, 123.5) {
-		t.Error("objectsAreEqual should return true")
-	}
-	if !ObjectsAreEqual([]byte("Hello World"), []byte("Hello World")) {
-		t.Error("objectsAreEqual should return true")
-	}
-	if !ObjectsAreEqual(nil, nil) {
-		t.Error("objectsAreEqual should return true")
-	}
-	if ObjectsAreEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
-		t.Error("objectsAreEqual should return false")
-	}
-	if ObjectsAreEqual('x', "x") {
-		t.Error("objectsAreEqual should return false")
-	}
-	if ObjectsAreEqual("x", 'x') {
-		t.Error("objectsAreEqual should return false")
-	}
-	if ObjectsAreEqual(0, 0.1) {
-		t.Error("objectsAreEqual should return false")
-	}
-	if ObjectsAreEqual(0.1, 0) {
-		t.Error("objectsAreEqual should return false")
-	}
-	if ObjectsAreEqual(time.Now, time.Now) {
-		t.Error("objectsAreEqual should return false")
-	}
-	if ObjectsAreEqual(func() {}, func() {}) {
-		t.Error("objectsAreEqual should return false")
-	}
-	if ObjectsAreEqual(uint32(10), int32(10)) {
-		t.Error("objectsAreEqual should return false")
-	}
+
+	// Cases where type differ but values are equal
 	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
 		t.Error("ObjectsAreEqualValues should return true")
 	}
@@ -180,12 +175,6 @@ func TestIsType(t *testing.T) {
 		t.Error("IsType should return false: AssertionTesterConformingObject is not the same type as AssertionTesterNonConformingObject")
 	}
 
-}
-
-type TestCase struct {
-	expected interface{}
-	actual   interface{}
-	result   bool
 }
 
 func TestEqual(t *testing.T) {
