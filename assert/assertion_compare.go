@@ -15,10 +15,10 @@ const (
 
 func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 	switch kind {
-	case reflect.Int:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		{
-			intobj1 := obj1.(int)
-			intobj2 := obj2.(int)
+			intobj1 := reflect.ValueOf(obj1).Int()
+			intobj2 := reflect.ValueOf(obj2).Int()
 			if intobj1 > intobj2 {
 				return compareGreater, true
 			}
@@ -29,66 +29,10 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 				return compareLess, true
 			}
 		}
-	case reflect.Int8:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		{
-			int8obj1 := obj1.(int8)
-			int8obj2 := obj2.(int8)
-			if int8obj1 > int8obj2 {
-				return compareGreater, true
-			}
-			if int8obj1 == int8obj2 {
-				return compareEqual, true
-			}
-			if int8obj1 < int8obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Int16:
-		{
-			int16obj1 := obj1.(int16)
-			int16obj2 := obj2.(int16)
-			if int16obj1 > int16obj2 {
-				return compareGreater, true
-			}
-			if int16obj1 == int16obj2 {
-				return compareEqual, true
-			}
-			if int16obj1 < int16obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Int32:
-		{
-			int32obj1 := obj1.(int32)
-			int32obj2 := obj2.(int32)
-			if int32obj1 > int32obj2 {
-				return compareGreater, true
-			}
-			if int32obj1 == int32obj2 {
-				return compareEqual, true
-			}
-			if int32obj1 < int32obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Int64:
-		{
-			int64obj1 := obj1.(int64)
-			int64obj2 := obj2.(int64)
-			if int64obj1 > int64obj2 {
-				return compareGreater, true
-			}
-			if int64obj1 == int64obj2 {
-				return compareEqual, true
-			}
-			if int64obj1 < int64obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Uint:
-		{
-			uintobj1 := obj1.(uint)
-			uintobj2 := obj2.(uint)
+			uintobj1 := reflect.ValueOf(obj1).Uint()
+			uintobj2 := reflect.ValueOf(obj2).Uint()
 			if uintobj1 > uintobj2 {
 				return compareGreater, true
 			}
@@ -99,94 +43,24 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 				return compareLess, true
 			}
 		}
-	case reflect.Uint8:
+	case reflect.Float32, reflect.Float64:
 		{
-			uint8obj1 := obj1.(uint8)
-			uint8obj2 := obj2.(uint8)
-			if uint8obj1 > uint8obj2 {
+			floatobj1 := reflect.ValueOf(obj1).Float()
+			float32 := reflect.ValueOf(obj2).Float()
+			if floatobj1 > float32 {
 				return compareGreater, true
 			}
-			if uint8obj1 == uint8obj2 {
+			if floatobj1 == float32 {
 				return compareEqual, true
 			}
-			if uint8obj1 < uint8obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Uint16:
-		{
-			uint16obj1 := obj1.(uint16)
-			uint16obj2 := obj2.(uint16)
-			if uint16obj1 > uint16obj2 {
-				return compareGreater, true
-			}
-			if uint16obj1 == uint16obj2 {
-				return compareEqual, true
-			}
-			if uint16obj1 < uint16obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Uint32:
-		{
-			uint32obj1 := obj1.(uint32)
-			uint32obj2 := obj2.(uint32)
-			if uint32obj1 > uint32obj2 {
-				return compareGreater, true
-			}
-			if uint32obj1 == uint32obj2 {
-				return compareEqual, true
-			}
-			if uint32obj1 < uint32obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Uint64:
-		{
-			uint64obj1 := obj1.(uint64)
-			uint64obj2 := obj2.(uint64)
-			if uint64obj1 > uint64obj2 {
-				return compareGreater, true
-			}
-			if uint64obj1 == uint64obj2 {
-				return compareEqual, true
-			}
-			if uint64obj1 < uint64obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Float32:
-		{
-			float32obj1 := obj1.(float32)
-			float32obj2 := obj2.(float32)
-			if float32obj1 > float32obj2 {
-				return compareGreater, true
-			}
-			if float32obj1 == float32obj2 {
-				return compareEqual, true
-			}
-			if float32obj1 < float32obj2 {
-				return compareLess, true
-			}
-		}
-	case reflect.Float64:
-		{
-			float64obj1 := obj1.(float64)
-			float64obj2 := obj2.(float64)
-			if float64obj1 > float64obj2 {
-				return compareGreater, true
-			}
-			if float64obj1 == float64obj2 {
-				return compareEqual, true
-			}
-			if float64obj1 < float64obj2 {
+			if floatobj1 < float32 {
 				return compareLess, true
 			}
 		}
 	case reflect.String:
 		{
-			stringobj1 := obj1.(string)
-			stringobj2 := obj2.(string)
+			stringobj1 := reflect.ValueOf(obj1).String()
+			stringobj2 := reflect.ValueOf(obj2).String()
 			if stringobj1 > stringobj2 {
 				return compareGreater, true
 			}
