@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestCompare(t *testing.T) {
@@ -19,6 +20,7 @@ func TestCompare(t *testing.T) {
 		{less: int16(1), greater: int16(2), cType: "int16"},
 		{less: int32(1), greater: int32(2), cType: "int32"},
 		{less: int64(1), greater: int64(2), cType: "int64"},
+		{less: time.Microsecond, greater: time.Millisecond, cType: "int64"},
 		{less: uint8(1), greater: uint8(2), cType: "uint8"},
 		{less: uint16(1), greater: uint16(2), cType: "uint16"},
 		{less: uint32(1), greater: uint32(2), cType: "uint32"},
@@ -92,6 +94,7 @@ func TestGreater(t *testing.T) {
 		{less: int16(1), greater: int16(2), msg: `"1" is not greater than "2"`},
 		{less: int32(1), greater: int32(2), msg: `"1" is not greater than "2"`},
 		{less: int64(1), greater: int64(2), msg: `"1" is not greater than "2"`},
+		{less: time.Microsecond, greater: time.Millisecond, msg: `"1µs" is not greater than "1ms"`},
 		{less: uint8(1), greater: uint8(2), msg: `"1" is not greater than "2"`},
 		{less: uint16(1), greater: uint16(2), msg: `"1" is not greater than "2"`},
 		{less: uint32(1), greater: uint32(2), msg: `"1" is not greater than "2"`},
@@ -132,6 +135,7 @@ func TestGreaterOrEqual(t *testing.T) {
 		{less: int16(1), greater: int16(2), msg: `"1" is not greater than or equal to "2"`},
 		{less: int32(1), greater: int32(2), msg: `"1" is not greater than or equal to "2"`},
 		{less: int64(1), greater: int64(2), msg: `"1" is not greater than or equal to "2"`},
+		{less: time.Microsecond, greater: time.Millisecond, msg: `"1µs" is not greater than or equal to "1ms"`},
 		{less: uint8(1), greater: uint8(2), msg: `"1" is not greater than or equal to "2"`},
 		{less: uint16(1), greater: uint16(2), msg: `"1" is not greater than or equal to "2"`},
 		{less: uint32(1), greater: uint32(2), msg: `"1" is not greater than or equal to "2"`},
@@ -172,6 +176,7 @@ func TestLess(t *testing.T) {
 		{less: int16(1), greater: int16(2), msg: `"2" is not less than "1"`},
 		{less: int32(1), greater: int32(2), msg: `"2" is not less than "1"`},
 		{less: int64(1), greater: int64(2), msg: `"2" is not less than "1"`},
+		{less: time.Microsecond, greater: time.Millisecond, msg: `"1ms" is not less than "1µs"`},
 		{less: uint8(1), greater: uint8(2), msg: `"2" is not less than "1"`},
 		{less: uint16(1), greater: uint16(2), msg: `"2" is not less than "1"`},
 		{less: uint32(1), greater: uint32(2), msg: `"2" is not less than "1"`},
@@ -212,6 +217,7 @@ func TestLessOrEqual(t *testing.T) {
 		{less: int16(1), greater: int16(2), msg: `"2" is not less than or equal to "1"`},
 		{less: int32(1), greater: int32(2), msg: `"2" is not less than or equal to "1"`},
 		{less: int64(1), greater: int64(2), msg: `"2" is not less than or equal to "1"`},
+		{less: time.Microsecond, greater: time.Millisecond, msg: `"1ms" is not less than or equal to "1µs"`},
 		{less: uint8(1), greater: uint8(2), msg: `"2" is not less than or equal to "1"`},
 		{less: uint16(1), greater: uint16(2), msg: `"2" is not less than or equal to "1"`},
 		{less: uint32(1), greater: uint32(2), msg: `"2" is not less than or equal to "1"`},
