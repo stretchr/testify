@@ -100,15 +100,12 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct {
 }
 
-// TestCase holds the expected/actual values to be passed to most checks and their expected result (true/false)
-type TestCase struct {
-	expected interface{}
-	actual   interface{}
-	result   bool
-}
-
 func TestObjectsAreEqual(t *testing.T) {
-	cases := []TestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
 		// cases that are expected to be equal
 		{"Hello World", "Hello World", true},
 		{123, 123, true},
@@ -183,7 +180,11 @@ func TestEqual(t *testing.T) {
 	mockT := new(testing.T)
 	var m map[string]interface{}
 
-	cases := []TestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
 		{"Hello World", "Hello World", true},
 		{123, 123, true},
 		{123.5, 123.5, true},
@@ -465,7 +466,11 @@ func TestExactly(t *testing.T) {
 	b := float64(1)
 	c := float32(1)
 	d := float32(2)
-	cases := []TestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
 		{a, b, false},
 		{a, d, false},
 		{a, c, true},
@@ -486,7 +491,11 @@ func TestNotEqual(t *testing.T) {
 
 	mockT := new(testing.T)
 
-	cases := []TestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
 		// cases that are expected not to match
 		{"Hello World", "Hello World!", true},
 		{123, 1234, true},
@@ -519,7 +528,11 @@ func TestNotEqual(t *testing.T) {
 func TestNotEqualValues(t *testing.T) {
 	mockT := new(testing.T)
 
-	cases := []TestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
 		// cases that are expected not to match
 		{"Hello World", "Hello World!", true},
 		{123, 1234, true},
@@ -568,7 +581,11 @@ func TestContainsNotContains(t *testing.T) {
 	}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
-	cases := []TestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
 		{"Hello World", "Hello", true},
 		{"Hello World", "Salut", false},
 		{list, "Bar", true},
@@ -626,24 +643,25 @@ func TestContainsFailMessage(t *testing.T) {
 }
 
 func TestSubsetNotSubset(t *testing.T) {
-	type MTestCase struct {
-		TestCase
-		message string
-	}
 
 	// MTestCase adds a custom message to the case
-	cases := []MTestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+		message  string
+	}{
 		// cases that are expected to contain
-		{TestCase{[]int{1, 2, 3}, nil, true}, "given subset is nil"},
-		{TestCase{[]int{1, 2, 3}, []int{}, true}, "any set contains the nil set"},
-		{TestCase{[]int{1, 2, 3}, []int{1, 2}, true}, "[1, 2, 3] contains [1, 2]"},
-		{TestCase{[]int{1, 2, 3}, []int{1, 2, 3}, true}, "[1, 2, 3] contains [1, 2, 3"},
-		{TestCase{[]string{"hello", "world"}, []string{"hello"}, true}, "[\"hello\", \"world\"] contains [\"hello\"]"},
+		{[]int{1, 2, 3}, nil, true, "given subset is nil"},
+		{[]int{1, 2, 3}, []int{}, true, "any set contains the nil set"},
+		{[]int{1, 2, 3}, []int{1, 2}, true, "[1, 2, 3] contains [1, 2]"},
+		{[]int{1, 2, 3}, []int{1, 2, 3}, true, "[1, 2, 3] contains [1, 2, 3"},
+		{[]string{"hello", "world"}, []string{"hello"}, true, "[\"hello\", \"world\"] contains [\"hello\"]"},
 
 		// cases that are expected not to contain
-		{TestCase{[]string{"hello", "world"}, []string{"hello", "testify"}, false}, "[\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]"},
-		{TestCase{[]int{1, 2, 3}, []int{4, 5}, false}, "[1, 2, 3] does not contain [4, 5"},
-		{TestCase{[]int{1, 2, 3}, []int{1, 5}, false}, "[1, 2, 3] does not contain [1, 5]"},
+		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, "[\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]"},
+		{[]int{1, 2, 3}, []int{4, 5}, false, "[1, 2, 3] does not contain [4, 5"},
+		{[]int{1, 2, 3}, []int{1, 5}, false, "[1, 2, 3] does not contain [1, 5]"},
 	}
 
 	t.Run("TestSubset", func(t *testing.T) {
@@ -739,7 +757,11 @@ func Test_includeElement(t *testing.T) {
 func TestElementsMatch(t *testing.T) {
 	mockT := new(testing.T)
 
-	cases := []TestCase{
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
 		// matching
 		{nil, nil, true},
 
