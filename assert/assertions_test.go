@@ -125,11 +125,14 @@ func TestObjectsAreEqual(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		res := ObjectsAreEqual(c.expected, c.actual)
+		t.Run(fmt.Sprintf("ObjectsAreEqual(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := ObjectsAreEqual(c.expected, c.actual)
 
-		if res != c.result {
-			t.Errorf("Equal(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
-		}
+			if res != c.result {
+				t.Errorf("ObjectsAreEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+
+		})
 	}
 
 	// Cases where type differ but values are equal
@@ -184,31 +187,34 @@ func TestEqual(t *testing.T) {
 		expected interface{}
 		actual   interface{}
 		result   bool
+		remark   string
 	}{
-		{"Hello World", "Hello World", true},
-		{123, 123, true},
-		{123.5, 123.5, true},
-		{[]byte("Hello World"), []byte("Hello World"), true},
-		{nil, nil, true},
-		{int32(123), int32(123), true},
-		{uint64(123), uint64(123), true},
-		{myType("1"), myType("1"), true},
-		{&struct{}{}, &struct{}{}, true}, // pointer equality is based on equality of underlying value
+		{"Hello World", "Hello World", true, ""},
+		{123, 123, true, ""},
+		{123.5, 123.5, true, ""},
+		{[]byte("Hello World"), []byte("Hello World"), true, ""},
+		{nil, nil, true, ""},
+		{int32(123), int32(123), true, ""},
+		{uint64(123), uint64(123), true, ""},
+		{myType("1"), myType("1"), true, ""},
+		{&struct{}{}, &struct{}{}, true, "pointer equality is based on equality of underlying value"},
 
 		// Not expected to be equal
-		{m["bar"], "something", false},
-		{myType("1"), myType("2"), false},
+		{m["bar"], "something", false, ""},
+		{myType("1"), myType("2"), false, ""},
 
 		// A case that might be confusing, especially with numeric literals
-		{10, uint(10), false},
+		{10, uint(10), false, ""},
 	}
 
 	for _, c := range cases {
-		res := Equal(mockT, c.expected, c.actual)
+		t.Run(fmt.Sprintf("Equal(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := Equal(mockT, c.expected, c.actual)
 
-		if res != c.result {
-			t.Errorf("Equal(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
-		}
+			if res != c.result {
+				t.Errorf("Equal(%#v, %#v) should return %#v: %s", c.expected, c.actual, c.result, c.remark)
+			}
+		})
 	}
 }
 
@@ -479,11 +485,13 @@ func TestExactly(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		res := Exactly(mockT, c.expected, c.actual)
+		t.Run(fmt.Sprintf("Exactly(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := Exactly(mockT, c.expected, c.actual)
 
-		if res != c.result {
-			t.Errorf("Exactly(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
-		}
+			if res != c.result {
+				t.Errorf("Exactly(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+		})
 	}
 }
 
@@ -517,11 +525,13 @@ func TestNotEqual(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		res := NotEqual(mockT, c.expected, c.actual)
+		t.Run(fmt.Sprintf("NotEqual(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := NotEqual(mockT, c.expected, c.actual)
 
-		if res != c.result {
-			t.Errorf("NotEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
-		}
+			if res != c.result {
+				t.Errorf("NotEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+		})
 	}
 }
 
@@ -558,11 +568,13 @@ func TestNotEqualValues(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		res := NotEqualValues(mockT, c.expected, c.actual)
+		t.Run(fmt.Sprintf("NotEqualValues(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := NotEqualValues(mockT, c.expected, c.actual)
 
-		if res != c.result {
-			t.Errorf("NotEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
-		}
+			if res != c.result {
+				t.Errorf("NotEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+		})
 	}
 }
 
@@ -596,10 +608,9 @@ func TestContainsNotContains(t *testing.T) {
 		{simpleMap, "Bar", false},
 	}
 
-	t.Run("TestContains", func(t *testing.T) {
-		mockT := new(testing.T)
-
-		for _, c := range cases {
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("Contains(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := Contains(mockT, c.expected, c.actual)
 
 			if res != c.result {
@@ -609,25 +620,24 @@ func TestContainsNotContains(t *testing.T) {
 					t.Errorf("Contains(%#v, %#v) should return false:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
 				}
 			}
-		}
-	})
+		})
+	}
 
-	t.Run("TestNotContains", func(t *testing.T) {
-		mockT := new(testing.T)
-
-		for _, c := range cases {
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("NotContains(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := NotContains(mockT, c.expected, c.actual)
 
-			// Not that we negate the result, since we expect the opposite
-			if res != !c.result {
+			// NotContains should be inverse of Contains. If it's not, something is wrong
+			if res == Contains(mockT, c.expected, c.actual) {
 				if res {
 					t.Errorf("NotContains(%#v, %#v) should return true:\n\t%#v does not contains %#v", c.expected, c.actual, c.expected, c.actual)
 				} else {
 					t.Errorf("NotContains(%#v, %#v) should return false:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
 				}
 			}
-		}
-	})
+		})
+	}
 }
 
 func TestContainsFailMessage(t *testing.T) {
@@ -664,9 +674,10 @@ func TestSubsetNotSubset(t *testing.T) {
 		{[]int{1, 2, 3}, []int{1, 5}, false, "[1, 2, 3] does not contain [1, 5]"},
 	}
 
-	t.Run("TestSubset", func(t *testing.T) {
-		mockT := new(testing.T)
-		for _, c := range cases {
+	for _, c := range cases {
+		t.Run("SubSet: "+c.message, func(t *testing.T) {
+
+			mockT := new(testing.T)
 			res := Subset(mockT, c.expected, c.actual)
 
 			if res != c.result {
@@ -676,23 +687,23 @@ func TestSubsetNotSubset(t *testing.T) {
 					t.Errorf("Subset should return false: %s", c.message)
 				}
 			}
-		}
-	})
-	t.Run("TestNotSubset", func(t *testing.T) {
-		mockT := new(testing.T)
-		for _, c := range cases {
+		})
+	}
+	for _, c := range cases {
+		t.Run("NotSubSet: "+c.message, func(t *testing.T) {
+			mockT := new(testing.T)
 			res := NotSubset(mockT, c.expected, c.actual)
 
-			// Not that we negate the result, since we expect the opposite
-			if res != !c.result {
+			// NotSubset should match the inverse of Subset. If it doesn't, something is wrong
+			if res == Subset(mockT, c.expected, c.actual) {
 				if res {
 					t.Errorf("NotSubset should return true: %s", c.message)
 				} else {
 					t.Errorf("NotSubset should return false: %s", c.message)
 				}
 			}
-		}
-	})
+		})
+	}
 }
 
 func TestNotSubsetNil(t *testing.T) {
@@ -785,11 +796,13 @@ func TestElementsMatch(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		res := ElementsMatch(mockT, c.actual, c.expected)
+		t.Run(fmt.Sprintf("ElementsMatch(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := ElementsMatch(mockT, c.actual, c.expected)
 
-		if res != c.result {
-			t.Errorf("ElementsMatch(%#v, %#v) should return %v", c.actual, c.expected, c.result)
-		}
+			if res != c.result {
+				t.Errorf("ElementsMatch(%#v, %#v) should return %v", c.actual, c.expected, c.result)
+			}
+		})
 	}
 }
 
