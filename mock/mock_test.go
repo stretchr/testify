@@ -1476,6 +1476,17 @@ func Test_MockReturnAndCalledConcurrent(t *testing.T) {
 	wg.Wait()
 }
 
+func Test_Mock_NumberOfCalls(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("Test_Mock_NumberOfCalls", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+	assert.Equal(t, mockedService.NumberOfCalls("Test_Mock_NumberOfCalls"), 1)
+	mockedService.Called(1, 2, 3)
+
+	assert.Equal(t, mockedService.NumberOfCalls("Test_Mock_NumberOfCalls"), 2)
+}
+
 type timer struct{ Mock }
 
 func (s *timer) GetTime(i int) string {
