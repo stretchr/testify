@@ -578,7 +578,6 @@ func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...inte
 	return false
 }
 
-
 // NumberOfCalls returns the number of times a method was called
 func (m *Mock) NumberOfCalls(methodName string) int {
 	m.mutex.Lock()
