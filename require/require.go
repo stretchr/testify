@@ -6,8 +6,6 @@
 package require
 
 import (
-	"errors"
-	"fmt"
 	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
