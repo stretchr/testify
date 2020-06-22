@@ -321,6 +321,18 @@ func InEpsilonSlicef(t TestingT, expected interface{}, actual interface{}, epsil
 	return InEpsilonSlice(t, expected, actual, epsilon, append([]interface{}{msg}, args...)...)
 }
 
+// IsErrorTypef asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error as evaluated by `errors.Is()`.
+//
+//   actualObj, err := SomeFunction()
+//   assert.IsErrorTypef(t, expectedErr, err, "error message %s", "formatted")
+func IsErrorTypef(t TestingT, expected error, actual error, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsErrorType(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
 // IsTypef asserts that the specified objects are of the same type.
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {

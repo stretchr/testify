@@ -632,6 +632,30 @@ func (a *Assertions) InEpsilonf(expected interface{}, actual interface{}, epsilo
 	InEpsilonf(a.t, expected, actual, epsilon, msg, args...)
 }
 
+// IsErrorType asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error as evaluated by `errors.Is()`.
+//
+//   actualObj, err := SomeFunction()
+//   a.IsErrorType(expectedErr, err)
+func (a *Assertions) IsErrorType(expected error, actual error, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	IsErrorType(a.t, expected, actual, msgAndArgs...)
+}
+
+// IsErrorTypef asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error as evaluated by `errors.Is()`.
+//
+//   actualObj, err := SomeFunction()
+//   a.IsErrorTypef(expectedErr, err, "error message %s", "formatted")
+func (a *Assertions) IsErrorTypef(expected error, actual error, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	IsErrorTypef(a.t, expected, actual, msg, args...)
+}
+
 // IsType asserts that the specified objects are of the same type.
 func (a *Assertions) IsType(expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
