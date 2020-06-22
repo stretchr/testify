@@ -1,10 +1,9 @@
-package assert
+	package assert
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -16,7 +15,7 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
-
+	"github.com/pkg/errors"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
 	yaml "gopkg.in/yaml.v3"
