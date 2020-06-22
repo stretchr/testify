@@ -1375,6 +1375,27 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	return true
 }
 
+// IsErrorType asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error as evaluated by `errors.Is()`.
+//
+//   actualObj, err := SomeFunction()
+//   assert.IsErrorType(t, expectedErr, err)
+func IsErrorType(t TestingT, expected error, actual error, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if !Error(t, actual, msgAndArgs...) {
+		return false
+	}
+
+	if !errors.Is(actual, expected) {
+		return Fail(t, fmt.Sprintf("Error type not equal:\n"+
+			"expected: %q\n"+
+			"actual  : %q", expected, actual), msgAndArgs...)
+	}
+	return true
+}
+
 // matchRegexp return true if a specified regexp matches a string.
 func matchRegexp(rx interface{}, str interface{}) bool {
 

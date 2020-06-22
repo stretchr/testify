@@ -1079,6 +1079,24 @@ func TestEqualError(t *testing.T) {
 		"EqualError should return true")
 }
 
+func TestIsError(t *testing.T) {
+	mockT := new(testing.T)
+
+	errExpected := errors.New("base error")
+
+	// start with a nil error
+	var err error
+	False(t, IsErrorType(mockT, errExpected, err),
+		"IsErrorType should return false for nil arg")
+
+	// now set an error
+	err = fmt.Errorf("%w: %s", errExpected, "some error")
+	False(t, IsErrorType(mockT, errors.New("different base error"), err),
+		"IsErrorType should return false for different error")
+	True(t, IsErrorType(mockT, errExpected, err),
+		"IsErrorType should return true")
+}
+
 func Test_isEmpty(t *testing.T) {
 
 	chWithValue := make(chan struct{}, 1)

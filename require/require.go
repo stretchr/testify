@@ -6,6 +6,8 @@
 package require
 
 import (
+	"errors"
+	"fmt"
 	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
@@ -801,6 +803,21 @@ func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon fl
 		h.Helper()
 	}
 	if assert.InEpsilonf(t, expected, actual, epsilon, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsErrorType asserts that a function returned an error (i.e. not `nil`)
+// and that it is equal to the provided error as evaluated by `errors.Is()`.
+//
+//   actualObj, err := SomeFunction()
+//   assert.IsErrorType(t, expectedErr, err)
+func IsError(t TestingT, expected error, actual error, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsErrorType(t, expected, actual, msgAndArgs...) {
 		return
 	}
 	t.FailNow()
