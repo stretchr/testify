@@ -462,6 +462,19 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	})
 }
 
+func Test_Mock_On_WithAnythingOfType_Byte(t *testing.T) {
+
+	mockedService := new(TestExampleImplementation)
+
+	mockedService.
+		On("Test_Mock_On_WithAnythingOfType_Byte", Anything).
+		Return()
+
+	mockedService.Called([]byte("byte"))
+
+	assert.True(t, mockedService.AssertCalled(t, "Test_Mock_On_WithAnythingOfType_Byte", AnythingOfType("[]byte")))
+}
+
 func Test_Mock_Return(t *testing.T) {
 
 	// make a test impl object
