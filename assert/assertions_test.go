@@ -2376,3 +2376,75 @@ func Test_truncatingFormat(t *testing.T) {
 		t.Error("truncated string should have <... truncated> suffix")
 	}
 }
+
+func TestErrorIs(t *testing.T) {
+	mockT := new(testing.T)
+	tests := []struct {
+		err    error
+		target error
+		result bool
+	}{
+		{io.EOF, io.EOF, true},
+		{fmt.Errorf("wrap: %w", io.EOF), io.EOF, true},
+		{io.EOF, io.ErrClosedPipe, false},
+		{nil, io.EOF, false},
+		{io.EOF, nil, false},
+		{nil, nil, true},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("ErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			res := ErrorIs(mockT, tt.err, tt.target)
+			if res != tt.result {
+				t.Errorf("ErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
+			}
+		})
+	}
+}
+
+func TestNotErrorIs(t *testing.T) {
+	mockT := new(testing.T)
+	tests := []struct {
+		err    error
+		target error
+		result bool
+	}{
+		{io.EOF, io.EOF, false},
+		{fmt.Errorf("wrap: %w", io.EOF), io.EOF, false},
+		{io.EOF, io.ErrClosedPipe, true},
+		{nil, io.EOF, true},
+		{io.EOF, nil, true},
+		{nil, nil, false},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("NotErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			res := NotErrorIs(mockT, tt.err, tt.target)
+			if res != tt.result {
+				t.Errorf("NotErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
+			}
+		})
+	}
+}
+
+func TestErrorAs(t *testing.T) {
+	mockT := new(testing.T)
+	tests := []struct {
+		err    error
+		result bool
+	}{
+		{fmt.Errorf("wrap: %w", &customError{}), true},
+		{io.EOF, false},
+		{nil, false},
+	}
+	for _, tt := range tests {
+		tt := tt
+		var target *customError
+		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			res := ErrorAs(mockT, tt.err, &target)
+			if res != tt.result {
+				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
+			}
+		})
+	}
+}
