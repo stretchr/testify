@@ -667,6 +667,102 @@ func (a *Assertions) InEpsilonf(expected interface{}, actual interface{}, epsilo
 	return InEpsilonf(a.t, expected, actual, epsilon, msg, args...)
 }
 
+// IsDecreasing asserts that the collection is decreasing
+//
+//    a.IsDecreasing([]int{2, 1, 0})
+//    a.IsDecreasing([]float{2, 1})
+//    a.IsDecreasing([]string{"b", "a"})
+func (a *Assertions) IsDecreasing(object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsDecreasing(a.t, object, msgAndArgs...)
+}
+
+// IsDecreasingf asserts that the collection is decreasing
+//
+//    a.IsDecreasingf([]int{2, 1, 0}, "error message %s", "formatted")
+//    a.IsDecreasingf([]float{2, 1}, "error message %s", "formatted")
+//    a.IsDecreasingf([]string{"b", "a"}, "error message %s", "formatted")
+func (a *Assertions) IsDecreasingf(object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsDecreasingf(a.t, object, msg, args...)
+}
+
+// IsIncreasing asserts that the collection is increasing
+//
+//    a.IsIncreasing([]int{1, 2, 3})
+//    a.IsIncreasing([]float{1, 2})
+//    a.IsIncreasing([]string{"a", "b"})
+func (a *Assertions) IsIncreasing(object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsIncreasing(a.t, object, msgAndArgs...)
+}
+
+// IsIncreasingf asserts that the collection is increasing
+//
+//    a.IsIncreasingf([]int{1, 2, 3}, "error message %s", "formatted")
+//    a.IsIncreasingf([]float{1, 2}, "error message %s", "formatted")
+//    a.IsIncreasingf([]string{"a", "b"}, "error message %s", "formatted")
+func (a *Assertions) IsIncreasingf(object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsIncreasingf(a.t, object, msg, args...)
+}
+
+// IsNonDecreasing asserts that the collection is not decreasing
+//
+//    a.IsNonDecreasing([]int{1, 1, 2})
+//    a.IsNonDecreasing([]float{1, 2})
+//    a.IsNonDecreasing([]string{"a", "b"})
+func (a *Assertions) IsNonDecreasing(object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsNonDecreasing(a.t, object, msgAndArgs...)
+}
+
+// IsNonDecreasingf asserts that the collection is not decreasing
+//
+//    a.IsNonDecreasingf([]int{1, 1, 2}, "error message %s", "formatted")
+//    a.IsNonDecreasingf([]float{1, 2}, "error message %s", "formatted")
+//    a.IsNonDecreasingf([]string{"a", "b"}, "error message %s", "formatted")
+func (a *Assertions) IsNonDecreasingf(object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsNonDecreasingf(a.t, object, msg, args...)
+}
+
+// IsNonIncreasing asserts that the collection is not increasing
+//
+//    a.IsNonIncreasing([]int{2, 1, 1})
+//    a.IsNonIncreasing([]float{2, 1})
+//    a.IsNonIncreasing([]string{"b", "a"})
+func (a *Assertions) IsNonIncreasing(object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsNonIncreasing(a.t, object, msgAndArgs...)
+}
+
+// IsNonIncreasingf asserts that the collection is not increasing
+//
+//    a.IsNonIncreasingf([]int{2, 1, 1}, "error message %s", "formatted")
+//    a.IsNonIncreasingf([]float{2, 1}, "error message %s", "formatted")
+//    a.IsNonIncreasingf([]string{"b", "a"}, "error message %s", "formatted")
+func (a *Assertions) IsNonIncreasingf(object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsNonIncreasingf(a.t, object, msg, args...)
+}
+
 // IsType asserts that the specified objects are of the same type.
 func (a *Assertions) IsType(expectedType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {

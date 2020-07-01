@@ -854,6 +854,126 @@ func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon fl
 	t.FailNow()
 }
 
+// IsDecreasing asserts that the collection is decreasing
+//
+//    assert.IsDecreasing(t, []int{2, 1, 0})
+//    assert.IsDecreasing(t, []float{2, 1})
+//    assert.IsDecreasing(t, []string{"b", "a"})
+func IsDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsDecreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsDecreasingf asserts that the collection is decreasing
+//
+//    assert.IsDecreasingf(t, []int{2, 1, 0}, "error message %s", "formatted")
+//    assert.IsDecreasingf(t, []float{2, 1}, "error message %s", "formatted")
+//    assert.IsDecreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
+func IsDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsDecreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsIncreasing asserts that the collection is increasing
+//
+//    assert.IsIncreasing(t, []int{1, 2, 3})
+//    assert.IsIncreasing(t, []float{1, 2})
+//    assert.IsIncreasing(t, []string{"a", "b"})
+func IsIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsIncreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsIncreasingf asserts that the collection is increasing
+//
+//    assert.IsIncreasingf(t, []int{1, 2, 3}, "error message %s", "formatted")
+//    assert.IsIncreasingf(t, []float{1, 2}, "error message %s", "formatted")
+//    assert.IsIncreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
+func IsIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsIncreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonDecreasing asserts that the collection is not decreasing
+//
+//    assert.IsNonDecreasing(t, []int{1, 1, 2})
+//    assert.IsNonDecreasing(t, []float{1, 2})
+//    assert.IsNonDecreasing(t, []string{"a", "b"})
+func IsNonDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonDecreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonDecreasingf asserts that the collection is not decreasing
+//
+//    assert.IsNonDecreasingf(t, []int{1, 1, 2}, "error message %s", "formatted")
+//    assert.IsNonDecreasingf(t, []float{1, 2}, "error message %s", "formatted")
+//    assert.IsNonDecreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
+func IsNonDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonDecreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonIncreasing asserts that the collection is not increasing
+//
+//    assert.IsNonIncreasing(t, []int{2, 1, 1})
+//    assert.IsNonIncreasing(t, []float{2, 1})
+//    assert.IsNonIncreasing(t, []string{"b", "a"})
+func IsNonIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonIncreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonIncreasingf asserts that the collection is not increasing
+//
+//    assert.IsNonIncreasingf(t, []int{2, 1, 1}, "error message %s", "formatted")
+//    assert.IsNonIncreasingf(t, []float{2, 1}, "error message %s", "formatted")
+//    assert.IsNonIncreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
+func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonIncreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // IsType asserts that the specified objects are of the same type.
 func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
