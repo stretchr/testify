@@ -33,7 +33,7 @@ func isOrdered(t TestingT, object interface{}, allowedComparesResults []CompareT
 		compareResult, isComparable := compare(prevValueInterface, valueInterface, firstValueKind)
 
 		if !isComparable {
-			return Fail(t, fmt.Sprintf("Can not compare type \"%s\"", reflect.TypeOf(value)), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("Can not compare type \"%s\" and \"%s\"", reflect.TypeOf(value), reflect.TypeOf(prevValue)), msgAndArgs...)
 		}
 
 		if !containsValue(allowedComparesResults, compareResult) {
