@@ -31,6 +31,8 @@ func TestIsIncreasing(t *testing.T) {
 	}{
 		{collection: []string{"b", "a"}, msg: `"b" is not less than "a"`},
 		{collection: []int{2, 1}, msg: `"2" is not less than "1"`},
+		{collection: []int{2, 1, 3, 4, 5, 6, 7}, msg: `"2" is not less than "1"`},
+		{collection: []int{-1, 0, 2, 1}, msg: `"2" is not less than "1"`},
 		{collection: []int8{2, 1}, msg: `"2" is not less than "1"`},
 		{collection: []int16{2, 1}, msg: `"2" is not less than "1"`},
 		{collection: []int32{2, 1}, msg: `"2" is not less than "1"`},
@@ -74,6 +76,8 @@ func TestIsNonIncreasing(t *testing.T) {
 	}{
 		{collection: []string{"a", "b"}, msg: `"a" is not greater than or equal to "b"`},
 		{collection: []int{1, 2}, msg: `"1" is not greater than or equal to "2"`},
+		{collection: []int{1, 2, 7, 6, 5, 4, 3}, msg: `"1" is not greater than or equal to "2"`},
+		{collection: []int{5, 4, 3, 1, 2}, msg: `"1" is not greater than or equal to "2"`},
 		{collection: []int8{1, 2}, msg: `"1" is not greater than or equal to "2"`},
 		{collection: []int16{1, 2}, msg: `"1" is not greater than or equal to "2"`},
 		{collection: []int32{1, 2}, msg: `"1" is not greater than or equal to "2"`},
@@ -117,6 +121,8 @@ func TestIsDecreasing(t *testing.T) {
 	}{
 		{collection: []string{"a", "b"}, msg: `"a" is not greater than "b"`},
 		{collection: []int{1, 2}, msg: `"1" is not greater than "2"`},
+		{collection: []int{1, 2, 7, 6, 5, 4, 3}, msg: `"1" is not greater than "2"`},
+		{collection: []int{5, 4, 3, 1, 2}, msg: `"1" is not greater than "2"`},
 		{collection: []int8{1, 2}, msg: `"1" is not greater than "2"`},
 		{collection: []int16{1, 2}, msg: `"1" is not greater than "2"`},
 		{collection: []int32{1, 2}, msg: `"1" is not greater than "2"`},
@@ -160,6 +166,8 @@ func TestIsNonDecreasing(t *testing.T) {
 	}{
 		{collection: []string{"b", "a"}, msg: `"b" is not less than or equal to "a"`},
 		{collection: []int{2, 1}, msg: `"2" is not less than or equal to "1"`},
+		{collection: []int{2, 1, 3, 4, 5, 6, 7}, msg: `"2" is not less than or equal to "1"`},
+		{collection: []int{-1, 0, 2, 1}, msg: `"2" is not less than or equal to "1"`},
 		{collection: []int8{2, 1}, msg: `"2" is not less than or equal to "1"`},
 		{collection: []int16{2, 1}, msg: `"2" is not less than or equal to "1"`},
 		{collection: []int32{2, 1}, msg: `"2" is not less than or equal to "1"`},
