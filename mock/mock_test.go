@@ -462,6 +462,61 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	})
 }
 
+func Test_Mock_Off(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	call := mockedService.
+		On("TheExampleMethodFuncType", "argA").
+		Return(nil)
+
+	found, foundCall := mockedService.findExpectedCall("TheExampleMethodFuncType", "argA")
+	require.NotEqual(t, -1, found)
+	require.Equal(t, foundCall, call)
+
+	mockedService.
+		Off("TheExampleMethodFuncType", "argA")
+
+	found, foundCall = mockedService.findExpectedCall("TheExampleMethodFuncType", "argA")
+	require.Equal(t, -1, found)
+
+	var expectedCall *Call
+	require.Equal(t, expectedCall, foundCall)
+
+	fn := func(string) error { return nil }
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodFuncType(fn)
+	})
+}
+
+func Test_Mock_Chained_Off(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, _, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod1", 1, 1).
+		Return(0).
+		On("TheExampleMethod2", 2, 2).
+		On("TheExampleMethod3", 3, 3, 3).
+		Return(nil)
+
+	mockedService.
+		Off("TheExampleMethod2", 2, 2).
+		Off("TheExampleMethod3", 3, 3, 3)
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{1, 1},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+2)},
+		},
+	}
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
 func Test_Mock_Return(t *testing.T) {
 
 	// make a test impl object

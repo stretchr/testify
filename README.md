@@ -190,6 +190,31 @@ func TestSomethingElse(t *testing.T) {
 
 
 }
+
+// TestSomethingElse2 is a third example that shows how you can use
+// the Off method to cleanup handlers and then add new ones.
+func TestSomethingElse2(t *testing.T) {
+
+  // create an instance of our test object
+  testObj := new(MyMockedObject)
+
+  // setup expectations with a placeholder in the argument list
+  testObj.On("DoSomething", mock.Anything).Return(true, nil)
+
+  // call the code we are testing
+  targetFuncThatDoesSomethingWithObj(testObj)
+
+  // assert that the expectations were met
+  testObj.AssertExpectations(t)
+
+  // remove the handler now so we can add another one that takes precedence
+  testObj.Off("DoSomething", mock.Anything)
+
+  // return false now instead of true
+  testObj.On("DoSomething", mock.Anything).Return(false, nil)
+
+  testObj.AssertExpectations(t)
+}
 ```
 
 For more information on how to write mock code, check out the [API documentation for the `mock` package](http://godoc.org/github.com/stretchr/testify/mock).

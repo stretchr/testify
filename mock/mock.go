@@ -275,6 +275,42 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
+// Off removes a mock handler from being called. You must pass the same exact
+// arguments that were called in the original .On call.
+//
+//     Mock.Off("MyMethod", arg1, arg2)
+func (m *Mock) Off(methodName string, arguments ...interface{}) *Mock {
+	for _, arg := range arguments {
+		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
+			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
+		}
+	}
+
+	m.mutex.Lock()
+
+	foundMatchingCall := false
+
+	for i, call := range m.ExpectedCalls {
+		if call.Method == methodName {
+			_, diffCount := call.Arguments.Diff(arguments)
+			if diffCount == 0 {
+				foundMatchingCall = true
+				// Remove from ExpectedCalls
+				m.ExpectedCalls = append(m.ExpectedCalls[:i], m.ExpectedCalls[i+1:]...)
+			}
+		}
+	}
+
+	m.mutex.Unlock()
+	if !foundMatchingCall {
+		m.fail("\n\nmock: Could not find expected call\n-----------------------------\n\n%s\n\n",
+			callString(methodName, arguments, true),
+		)
+	}
+
+	return m
+}
+
 // /*
 // 	Recording and responding to activity
 // */
