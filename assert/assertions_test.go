@@ -180,7 +180,7 @@ func TestObjectsAreEqual_StructContainingTime(t *testing.T) {
 		}
 	}{
 		struct{ time.Time }{
-			a.Inner.UTC(),
+			a.Inner.UTC().Round(0),
 		},
 	}
 	if !ObjectsAreEqual(a, b) {
