@@ -148,6 +148,46 @@ func TestObjectsAreEqual(t *testing.T) {
 
 }
 
+func TestObjectsAreEqual_SerializedTime(t *testing.T) {
+	t0 := time.Now().Round(0)
+	b, err := json.Marshal(t0)
+	if err != nil {
+		t.Fail()
+	}
+	var t1 time.Time
+	if err := json.Unmarshal(b, &t1); err != nil {
+		t.Fail()
+	}
+	if !ObjectsAreEqual(t0, t1) {
+		t.Errorf("time must be equals")
+	}
+}
+
+func TestObjectsAreEqual_StructContainingTime(t *testing.T) {
+	// struct containing struct containing time
+	a := struct {
+		Inner struct {
+			time.Time
+		}
+	}{
+		struct{ time.Time }{
+			time.Now(),
+		},
+	}
+	b := struct {
+		Inner struct {
+			time.Time
+		}
+	}{
+		struct{ time.Time }{
+			a.Inner.UTC(),
+		},
+	}
+	if !ObjectsAreEqual(a, b) {
+		t.Error("struct containing same time time should be equal.")
+	}
+}
+
 func TestImplements(t *testing.T) {
 
 	mockT := new(testing.T)
