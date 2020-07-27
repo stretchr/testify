@@ -60,16 +60,6 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
-	tExp, ok := expected.(time.Time)
-	if ok {
-
-		tAct, ok := actual.(time.Time)
-		if ok {
-			return tExp.Equal(tAct)
-		}
-		return false
-	}
-
 	exp, ok := expected.([]byte)
 	if !ok {
 		return reflect.DeepEqual(expected, actual)

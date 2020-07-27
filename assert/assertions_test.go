@@ -148,21 +148,6 @@ func TestObjectsAreEqual(t *testing.T) {
 
 }
 
-func TestObjectsAreEqual_SerializedTime(t *testing.T) {
-	t0 := time.Now().Round(0)
-	b, err := json.Marshal(t0)
-	if err != nil {
-		t.Fail()
-	}
-	var t1 time.Time
-	if err := json.Unmarshal(b, &t1); err != nil {
-		t.Fail()
-	}
-	if !ObjectsAreEqual(t0, t1) {
-		t.Errorf("time must be equals")
-	}
-}
-
 func TestImplements(t *testing.T) {
 
 	mockT := new(testing.T)
