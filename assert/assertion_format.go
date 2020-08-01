@@ -132,6 +132,20 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 	return ErrorIs(t, err, target, append([]interface{}{msg}, args...)...)
 }
 
+// ErrorsMatchf asserts that two errors are equal, unless the expected error
+// is AnError, in which case the actual error can be any non-nil error.
+// Errors are compared directly, without errors.Is
+//
+//    assert.ErrorsMatchf(t, io.ErrUnexpectedEOF, err, "error message %s", "formatted")
+//    assert.ErrorsMatchf(t, nil, error(nil), "error message %s", "formatted")
+//    assert.ErrorsMatchf(t, assert.AnError, errors.New("any error"), "error message %s", "formatted")
+func ErrorsMatchf(t TestingT, expected error, actual error, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return ErrorsMatch(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
 // Eventuallyf asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //

@@ -253,6 +253,34 @@ func (a *Assertions) Errorf(err error, msg string, args ...interface{}) bool {
 	return Errorf(a.t, err, msg, args...)
 }
 
+// ErrorsMatch asserts that two errors are equal, unless the expected error
+// is AnError, in which case the actual error can be any non-nil error.
+// Errors are compared directly, without errors.Is
+//
+//    a.ErrorsMatch(io.ErrUnexpectedEOF, err)
+//    a.ErrorsMatch(nil, error(nil))
+//    a.ErrorsMatch(assert.AnError, errors.New("any error"))
+func (a *Assertions) ErrorsMatch(expected error, actual error, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ErrorsMatch(a.t, expected, actual, msgAndArgs...)
+}
+
+// ErrorsMatchf asserts that two errors are equal, unless the expected error
+// is AnError, in which case the actual error can be any non-nil error.
+// Errors are compared directly, without errors.Is
+//
+//    a.ErrorsMatchf(io.ErrUnexpectedEOF, err, "error message %s", "formatted")
+//    a.ErrorsMatchf(nil, error(nil), "error message %s", "formatted")
+//    a.ErrorsMatchf(assert.AnError, errors.New("any error"), "error message %s", "formatted")
+func (a *Assertions) ErrorsMatchf(expected error, actual error, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ErrorsMatchf(a.t, expected, actual, msg, args...)
+}
+
 // Eventually asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //

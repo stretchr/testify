@@ -320,6 +320,40 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// ErrorsMatch asserts that two errors are equal, unless the expected error
+// is AnError, in which case the actual error can be any non-nil error.
+// Errors are compared directly, without errors.Is
+//
+//    assert.ErrorsMatch(t, io.ErrUnexpectedEOF, err)
+//    assert.ErrorsMatch(t, nil, error(nil))
+//    assert.ErrorsMatch(t, assert.AnError, errors.New("any error"))
+func ErrorsMatch(t TestingT, expected error, actual error, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ErrorsMatch(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// ErrorsMatchf asserts that two errors are equal, unless the expected error
+// is AnError, in which case the actual error can be any non-nil error.
+// Errors are compared directly, without errors.Is
+//
+//    assert.ErrorsMatchf(t, io.ErrUnexpectedEOF, err, "error message %s", "formatted")
+//    assert.ErrorsMatchf(t, nil, error(nil), "error message %s", "formatted")
+//    assert.ErrorsMatchf(t, assert.AnError, errors.New("any error"), "error message %s", "formatted")
+func ErrorsMatchf(t TestingT, expected error, actual error, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ErrorsMatchf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Eventually asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //
