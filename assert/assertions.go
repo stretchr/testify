@@ -1771,3 +1771,26 @@ func buildErrorChainString(err error) string {
 	}
 	return chain
 }
+
+// ErrorsMatch asserts that two errors are equal, unless the expected error
+// is AnError, in which case the actual error can be any non-nil error.
+// Errors are compared directly, errors.Is is not used.
+//
+//    assert.ErrorsMatch(t, io.ErrUnexpectedEOF, err)
+//    assert.ErrorsMatch(t, nil, error(nil))
+//    assert.ErrorsMatch(t, assert.AnError, errors.New("any error"))
+func ErrorsMatch(t TestingT, expected, actual error, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if expected == nil {
+		return NoError(t, actual, msgAndArgs...)
+	}
+
+	if expected == AnError {
+		return Error(t, actual, msgAndArgs...)
+	}
+
+	return Equal(t, expected, actual, msgAndArgs...)
+}

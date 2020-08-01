@@ -2448,3 +2448,31 @@ func TestErrorAs(t *testing.T) {
 		})
 	}
 }
+
+func TestErrorsMatch(t *testing.T) {
+	mockT := new(testing.T)
+	tests := []struct {
+		expected error
+		actual   error
+		result   bool
+	}{
+		{AnError, errors.New("error"), true},
+		{AnError, nil, false},
+		{errors.New("error"), errors.New("error"), true},
+		{errors.New("error1"), errors.New("error2"), false},
+		{nil, errors.New("error"), false},
+		{errors.New("error"), nil, false},
+		{nil, nil, true},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(fmt.Sprintf("ErrorsMatch(%#v,%#v)", tt.expected, tt.actual), func(t *testing.T) {
+			res := ErrorsMatch(mockT, tt.expected, tt.actual)
+			if res != tt.result {
+				t.Errorf("ErrorsMatch(%#v,%#v) should return %t)", tt.expected, tt.actual, tt.result)
+			}
+		})
+	}
+}
