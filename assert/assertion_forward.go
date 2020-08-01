@@ -255,7 +255,7 @@ func (a *Assertions) Errorf(err error, msg string, args ...interface{}) bool {
 
 // ErrorsMatch asserts that two errors are equal, unless the expected error
 // is AnError, in which case the actual error can be any non-nil error.
-// Errors are compared directly, without errors.Is
+// Errors are compared directly, without errors.Is().
 //
 //    a.ErrorsMatch(io.ErrUnexpectedEOF, err)
 //    a.ErrorsMatch(nil, error(nil))
@@ -269,7 +269,7 @@ func (a *Assertions) ErrorsMatch(expected error, actual error, msgAndArgs ...int
 
 // ErrorsMatchf asserts that two errors are equal, unless the expected error
 // is AnError, in which case the actual error can be any non-nil error.
-// Errors are compared directly, without errors.Is
+// Errors are compared directly, without errors.Is().
 //
 //    a.ErrorsMatchf(io.ErrUnexpectedEOF, err, "error message %s", "formatted")
 //    a.ErrorsMatchf(nil, error(nil), "error message %s", "formatted")

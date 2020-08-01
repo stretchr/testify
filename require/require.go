@@ -322,7 +322,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 
 // ErrorsMatch asserts that two errors are equal, unless the expected error
 // is AnError, in which case the actual error can be any non-nil error.
-// Errors are compared directly, without errors.Is
+// Errors are compared directly, without errors.Is().
 //
 //    assert.ErrorsMatch(t, io.ErrUnexpectedEOF, err)
 //    assert.ErrorsMatch(t, nil, error(nil))
@@ -339,7 +339,7 @@ func ErrorsMatch(t TestingT, expected error, actual error, msgAndArgs ...interfa
 
 // ErrorsMatchf asserts that two errors are equal, unless the expected error
 // is AnError, in which case the actual error can be any non-nil error.
-// Errors are compared directly, without errors.Is
+// Errors are compared directly, without errors.Is().
 //
 //    assert.ErrorsMatchf(t, io.ErrUnexpectedEOF, err, "error message %s", "formatted")
 //    assert.ErrorsMatchf(t, nil, error(nil), "error message %s", "formatted")

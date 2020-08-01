@@ -134,7 +134,7 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 
 // ErrorsMatchf asserts that two errors are equal, unless the expected error
 // is AnError, in which case the actual error can be any non-nil error.
-// Errors are compared directly, without errors.Is
+// Errors are compared directly, without errors.Is().
 //
 //    assert.ErrorsMatchf(t, io.ErrUnexpectedEOF, err, "error message %s", "formatted")
 //    assert.ErrorsMatchf(t, nil, error(nil), "error message %s", "formatted")
