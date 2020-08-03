@@ -1124,6 +1124,37 @@ func Test_Mock_AssertCalled_WithAnythingOfTypeArgument(t *testing.T) {
 
 }
 
+func Test_Mock_AssertNumberOfCallsIsThreadSafe(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethod", 1, 2, 3).Return(5, 6, 7)
+
+	done := make(chan struct{})
+	shutdown := func() {
+		time.Sleep(10 * time.Millisecond)
+		close(done)
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				_, _ = mockedService.TheExampleMethod(1, 2, 3)
+			}
+		}
+	}()
+
+	shutdown()
+	finalCallCount := mockedService.NumberOfCalls("TheExampleMethod")
+
+	assert.True(t, mockedService.AssertNumberOfCalls(t, "TheExampleMethod", finalCallCount))
+
+}
+
 func Test_Mock_AssertCalled_WithArguments(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
