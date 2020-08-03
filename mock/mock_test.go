@@ -1518,7 +1518,6 @@ func Test_Mock_NumberOfCallsIsThreadSafe(t *testing.T) {
 
 }
 
-
 type timer struct{ Mock }
 
 func (s *timer) GetTime(i int) string {
