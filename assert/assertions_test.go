@@ -2448,3 +2448,20 @@ func TestErrorAs(t *testing.T) {
 		})
 	}
 }
+
+func TestIndentMessageLinesDoesNotOverflow(t *testing.T) {
+	strings := [][]rune{
+		make([]rune, 1024),
+		make([]rune, 65536),
+	}
+
+	for _, str := range strings {
+		str[0] = 'a'
+
+		res := indentMessageLines(string(str), 50)
+
+		if res == "" {
+			t.Errorf("indentMessageLines() should return a nonempty string when input is nonempty")
+		}
+	}
+}
