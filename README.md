@@ -152,7 +152,7 @@ func (m *MyMockedObject) DoSomething(number int) (bool, error) {
 
 // TestSomething is an example of how to use our test object to
 // make assertions about some target code we are testing.
-func TestSomething(t *testing.T) {
+func TestDoSomething(t *testing.T) {
 
   // create an instance of our test object
   testObj := new(MyMockedObject)
@@ -174,7 +174,7 @@ func TestSomething(t *testing.T) {
 // This time using a placeholder. Placeholders might be used when the
 // data being passed in is normally dynamically generated and cannot be
 // predicted beforehand (eg. containing hashes that are time sensitive)
-func TestSomethingElse(t *testing.T) {
+func TestDoSomethingWithPlaceholder(t *testing.T) {
 
   // create an instance of our test object
   testObj := new(MyMockedObject)
