@@ -125,9 +125,20 @@ func (a *Assertions) Emptyf(object interface{}, msg string, args ...interface{})
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
 func (a *Assertions) Equal(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(a.t)
+
+	if t != nil {
+		a.t = t
+	}
+
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
+
+	if c != nil {
+		a.t = WrapColorize(t)
+	}
+
 	return Equal(a.t, expected, actual, msgAndArgs...)
 }
 
@@ -137,9 +148,20 @@ func (a *Assertions) Equal(expected interface{}, actual interface{}, msgAndArgs 
 //   actualObj, err := SomeFunction()
 //   a.EqualError(err,  expectedErrorString)
 func (a *Assertions) EqualError(theError error, errString string, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(a.t)
+
+	if t != nil {
+		a.t = t
+	}
+
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
+
+	if c != nil {
+		a.t = WrapColorize(t)
+	}
+
 	return EqualError(a.t, theError, errString, msgAndArgs...)
 }
 
@@ -160,9 +182,20 @@ func (a *Assertions) EqualErrorf(theError error, errString string, msg string, a
 //
 //    a.EqualValues(uint32(123), int32(123))
 func (a *Assertions) EqualValues(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(a.t)
+
+	if t != nil {
+		a.t = t
+	}
+
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
+
+	if c != nil {
+		a.t = WrapColorize(t)
+	}
+
 	return EqualValues(a.t, expected, actual, msgAndArgs...)
 }
 
@@ -1312,9 +1345,20 @@ func (a *Assertions) Regexpf(rx interface{}, str interface{}, msg string, args .
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func (a *Assertions) Same(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(a.t)
+
+	if t != nil {
+		a.t = t
+	}
+
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
+
+	if c != nil {
+		a.t = WrapColorize(t)
+	}
+
 	return Same(a.t, expected, actual, msgAndArgs...)
 }
 
