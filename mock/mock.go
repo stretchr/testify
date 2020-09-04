@@ -728,7 +728,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt(actual), matcher)
 			} else {
 				differences++
-				output = fmt.Sprintf("%s\t%d: PASS:  %s not matched by %s\n", output, i, actualFmt(actual), matcher)
+				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt(actual), matcher)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 
