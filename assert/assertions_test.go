@@ -1990,7 +1990,7 @@ func TestTimeEqualUsesBuiltinFunction(t *testing.T) {
 
 // sinkT is a helper TestingT to discard generated errors
 // Is intended to be used when assertion message is not relevant, but result it is
-type sinkT struct {}
+type sinkT struct{}
 
 func (s sinkT) Errorf(string, ...interface{}) {}
 
