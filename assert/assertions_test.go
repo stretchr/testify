@@ -1975,6 +1975,25 @@ Diff:
 	Equal(t, expected, actual)
 }
 
+func TestTimeEqualUsesBuiltinFunction(t *testing.T) {
+	t0, err := time.ParseInLocation("2006-01-02T15:04:05", "2020-03-01T12:23:14", &time.Location{})
+	NoError(t, err)
+
+	t1 := time.Date(2020, 3, 1, 12, 23, 14, 0, time.UTC)
+
+	sinkT := sinkT{}
+	testifyAssertion := Equal(sinkT, t0, t1)
+	builtinAssertion := t0.Equal(t1)
+
+	Equal(t, builtinAssertion, testifyAssertion)
+}
+
+// sinkT is a helper TestingT to discard generated errors
+// Is intended to be used when assertion message is not relevant, but result it is
+type sinkT struct {}
+
+func (s sinkT) Errorf(string, ...interface{}) {}
+
 func TestTimeEqualityErrorFormatting(t *testing.T) {
 	mockT := new(mockTestingT)
 

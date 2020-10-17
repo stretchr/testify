@@ -60,6 +60,12 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
+	if e, ok := objectToTime(expected); ok {
+		if a, ok := objectToTime(actual); ok {
+			return e.Equal(a)
+		}
+	}
+
 	exp, ok := expected.([]byte)
 	if !ok {
 		return reflect.DeepEqual(expected, actual)
@@ -73,6 +79,20 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return exp == nil && act == nil
 	}
 	return bytes.Equal(exp, act)
+}
+
+func objectToTime(o interface{}) (time.Time, bool) {
+	s, ok := o.(time.Time)
+	if ok {
+		return s, ok
+	}
+
+	p, ok := o.(*time.Time)
+	if ok {
+		return *p, true
+	}
+
+	return time.Time{}, false
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
