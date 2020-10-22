@@ -1622,6 +1622,7 @@ var spewConfig = spew.ConfigState{
 	DisableCapacities:       true,
 	SortKeys:                true,
 	DisableMethods:          true,
+	MaxDepth:                100,
 }
 
 type tHelper interface {
