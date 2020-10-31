@@ -342,6 +342,24 @@ func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...inter
 	return compareTwoValues(t, e1, e2, []CompareType{compareLess, compareEqual}, "\"%v\" is not less than or equal to \"%v\"", msgAndArgs)
 }
 
+// Positive asserts that the specified element is positive
+//
+//    assert.Positive(t, 1)
+//    assert.Positive(t, 1.23)
+func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
+	zero := reflect.Zero(reflect.TypeOf(e))
+	return compareTwoValues(t, e, zero.Interface(), []CompareType{compareGreater}, "\"%v\" is not positive", msgAndArgs)
+}
+
+// Negative asserts that the specified element is negative
+//
+//    assert.Negative(t, -1)
+//    assert.Negative(t, -1.23)
+func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
+	zero := reflect.Zero(reflect.TypeOf(e))
+	return compareTwoValues(t, e, zero.Interface(), []CompareType{compareLess}, "\"%v\" is not negative", msgAndArgs)
+}
+
 func compareTwoValues(t TestingT, e1 interface{}, e2 interface{}, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
