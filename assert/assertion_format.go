@@ -441,6 +441,17 @@ func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args .
 	return LessOrEqual(t, e1, e2, append([]interface{}{msg}, args...)...)
 }
 
+// Negativef asserts that the specified element is negative
+//
+//    assert.Negativef(t, -1, "error message %s", "formatted")
+//    assert.Negativef(t, -1.23, "error message %s", "formatted")
+func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Negative(t, e, append([]interface{}{msg}, args...)...)
+}
+
 // Neverf asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
@@ -645,6 +656,17 @@ func PanicsWithValuef(t TestingT, expected interface{}, f PanicTestFunc, msg str
 		h.Helper()
 	}
 	return PanicsWithValue(t, expected, f, append([]interface{}{msg}, args...)...)
+}
+
+// Positivef asserts that the specified element is positive
+//
+//    assert.Positivef(t, 1, "error message %s", "formatted")
+//    assert.Positivef(t, 1.23, "error message %s", "formatted")
+func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Positive(t, e, append([]interface{}{msg}, args...)...)
 }
 
 // Regexpf asserts that a specified regexp matches a string.
