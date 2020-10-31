@@ -251,6 +251,82 @@ func TestLessOrEqual(t *testing.T) {
 	}
 }
 
+func TestPositive(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !Positive(mockT, 1) {
+		t.Error("Positive should return true")
+	}
+
+	if !Positive(mockT, 1.23) {
+		t.Error("Positive should return true")
+	}
+
+	if Positive(mockT, -1) {
+		t.Error("Positive should return false")
+	}
+
+	if Positive(mockT, -1.23) {
+		t.Error("Positive should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		e   interface{}
+		msg string
+	}{
+		{e: int(-1), msg: `"-1" is not positive`},
+		{e: int8(-1), msg: `"-1" is not positive`},
+		{e: int16(-1), msg: `"-1" is not positive`},
+		{e: int32(-1), msg: `"-1" is not positive`},
+		{e: int64(-1), msg: `"-1" is not positive`},
+		{e: float32(-1.23), msg: `"-1.23" is not positive`},
+		{e: float64(-1.23), msg: `"-1.23" is not positive`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, Positive(out, currCase.e))
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
+	}
+}
+
+func TestNegative(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !Negative(mockT, -1) {
+		t.Error("Negative should return true")
+	}
+
+	if !Negative(mockT, -1.23) {
+		t.Error("Negative should return true")
+	}
+
+	if Negative(mockT, 1) {
+		t.Error("Negative should return false")
+	}
+
+	if Negative(mockT, 1.23) {
+		t.Error("Negative should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		e   interface{}
+		msg string
+	}{
+		{e: int(1), msg: `"1" is not negative`},
+		{e: int8(1), msg: `"1" is not negative`},
+		{e: int16(1), msg: `"1" is not negative`},
+		{e: int32(1), msg: `"1" is not negative`},
+		{e: int64(1), msg: `"1" is not negative`},
+		{e: float32(1.23), msg: `"1.23" is not negative`},
+		{e: float64(1.23), msg: `"1.23" is not negative`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, Negative(out, currCase.e))
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
+	}
+}
+
 func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 	mockT := new(testing.T)
 
