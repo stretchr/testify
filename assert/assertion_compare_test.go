@@ -251,6 +251,22 @@ func TestLessOrEqual(t *testing.T) {
 	}
 }
 
+func TestComparisonCustomMessages(t *testing.T) {
+	for _, currCase := range []struct {
+		assert func(t TestingT) bool
+		msg    string
+	}{
+		{func(t TestingT) bool { return Greater(t, 1, 2, "%v wasn't greater", 1) }, "1 wasn't greater"},
+		{func(t TestingT) bool { return GreaterOrEqual(t, 1, 2, "%v wasn't greater/equal", 1) }, "1 wasn't greater/equal"},
+		{func(t TestingT) bool { return Less(t, 1, 0, "%v wasn't less", 1) }, "1 wasn't less"},
+		{func(t TestingT) bool { return LessOrEqual(t, 1, 0, "%v wasn't less/equal", 1) }, "1 wasn't less/equal"},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, currCase.assert(out))
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
+	}
+}
+
 func TestPositive(t *testing.T) {
 	mockT := new(testing.T)
 
