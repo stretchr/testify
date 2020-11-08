@@ -280,21 +280,17 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 // */
 
 func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
-	var expectedCall *Call
-
 	for i, call := range m.ExpectedCalls {
-		if call.Method == method {
-			_, diffCount := call.Arguments.Diff(arguments)
-			if diffCount == 0 {
-				expectedCall = call
-				if call.Repeatability > -1 {
-					return i, call
-				}
-			}
+		if call.Repeatability < 0 || call.Method != method {
+			continue
+		}
+		_, diffCount := call.Arguments.Diff(arguments)
+		if diffCount == 0 {
+			return i, call
 		}
 	}
 
-	return -1, expectedCall
+	return -1, nil
 }
 
 func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
@@ -363,30 +359,35 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Arguments {
 	m.mutex.Lock()
 	//TODO: could combine expected and closes in single loop
-	found, call := m.findExpectedCall(methodName, arguments...)
+	_, call := m.findExpectedCall(methodName, arguments...)
 
-	if found < 0 {
-		// expected call found but it has already been called with repeatable times
-		if call != nil {
-			m.mutex.Unlock()
-			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
-		}
+	if call == nil {
 		// we have to fail here - because we don't know what to do
 		// as the return arguments.  This is because:
 		//
-		//   a) this is a totally unexpected call to this method,
-		//   b) the arguments are not what was expected, or
-		//   c) the developer has forgotten to add an accompanying On...Return pair.
+		//   a) this is an expected call that has already been called with repeatable times,
+		//   b) this is a totally unexpected call to this method,
+		//   c) the arguments are not what was expected, or
+		//   d) the developer has forgotten to add an accompanying On...Return pair.
 		closestCall, mismatch := m.findClosestCall(methodName, arguments...)
 		m.mutex.Unlock()
 
 		if closestCall != nil {
-			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s",
-				callString(methodName, arguments, true),
-				callString(methodName, closestCall.Arguments, true),
-				diffArguments(closestCall.Arguments, arguments),
-				strings.TrimSpace(mismatch),
-			)
+			if mismatch == msgNoDifferences {
+				m.fail("\n"+
+					"assert: mock: The method has been called over %d times.\n\t"+
+					"Either do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\t"+
+					"This call was unexpected:\n\t\t%s\n\tat: %s",
+					closestCall.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+			} else {
+				m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\n"+
+					"The closest call I have is: \n\n%s\n\n%s\nDiff: %s",
+					callString(methodName, arguments, true),
+					callString(methodName, closestCall.Arguments, true),
+					diffArguments(closestCall.Arguments, arguments),
+					strings.TrimSpace(mismatch),
+				)
+			}
 		} else {
 			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
 		}
@@ -627,6 +628,8 @@ const (
 	// Anything is used in Diff and Assert when the argument being tested
 	// shouldn't be taken into consideration.
 	Anything = "mock.Anything"
+
+	msgNoDifferences = "No differences."
 )
 
 // AnythingOfTypeArgument is a string that contains the type of an argument
@@ -749,7 +752,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 	//TODO: could return string as error and nil for No difference
 
 	var output = "\n"
-	var differences int
+	var differences_count int
 
 	var maxArgCount = len(args)
 	if len(objects) > maxArgCount {
@@ -780,7 +783,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			if matcher.Matches(actual) {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
-				differences++
+				differences_count++
 				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
@@ -788,14 +791,14 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			// type checking
 			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
 				// not match
-				differences++
+				differences_count++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 			}
 
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*IsTypeArgument)(nil)) {
 			t := expected.(*IsTypeArgument).t
 			if reflect.TypeOf(t) != reflect.TypeOf(actual) {
-				differences++
+				differences_count++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
 			}
 		} else {
@@ -807,18 +810,18 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 			} else {
 				// not match
-				differences++
+				differences_count++
 				output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
 			}
 		}
 
 	}
 
-	if differences == 0 {
-		return "No differences.", differences
+	if differences_count == 0 {
+		return msgNoDifferences, differences_count
 	}
 
-	return output, differences
+	return output, differences_count
 
 }
 
