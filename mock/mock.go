@@ -3,6 +3,7 @@ package mock
 import (
 	"errors"
 	"fmt"
+	"path"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -13,6 +14,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -324,6 +326,10 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 	if includeArgumentValues {
 		var argVals []string
 		for argIndex, arg := range arguments {
+			if _, ok := arg.(*FunctionalOptionsArgument); ok {
+				argVals = append(argVals, fmt.Sprintf("%d: %s", argIndex, arg))
+				continue
+			}
 			argVals = append(argVals, fmt.Sprintf("%d: %#v", argIndex, arg))
 		}
 		argValsString = fmt.Sprintf("\n\t\t%s", strings.Join(argVals, "\n\t\t"))
@@ -659,6 +665,22 @@ func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: t}
 }
 
+type FunctionalOptionsArgument struct {
+	name  string
+	value interface{}
+}
+
+func (f *FunctionalOptionsArgument) String() string {
+	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", f.name, 1)
+}
+
+func FunctionalOptions(name string, value ...interface{}) *FunctionalOptionsArgument {
+	return &FunctionalOptionsArgument{
+		name:  name,
+		value: value,
+	}
+}
+
 // argumentMatcher performs custom argument matching, returning whether or
 // not the argument is matched by the expectation fixture function.
 type argumentMatcher struct {
@@ -797,6 +819,23 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			if reflect.TypeOf(t) != reflect.TypeOf(actual) {
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
+			}
+		} else if reflect.TypeOf(expected) == reflect.TypeOf((*FunctionalOptionsArgument)(nil)) {
+			name := expected.(*FunctionalOptionsArgument).name
+			t := expected.(*FunctionalOptionsArgument).value
+			tName := reflect.TypeOf(t).Name()
+			if name != reflect.TypeOf(actual).String() {
+				differences++
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
+			} else {
+				if ef, af := assertOpts(t, actual); ef == "" && af == "" {
+					// match
+					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
+				} else {
+					// not match
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
+				}
 			}
 		} else {
 
@@ -978,4 +1017,66 @@ var spewConfig = spew.ConfigState{
 
 type tHelper interface {
 	Helper()
+}
+
+func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
+	expectedOpts := reflect.ValueOf(expected)
+	actualOpts := reflect.ValueOf(actual)
+	var expectedNames []string
+	for i := 0; i < expectedOpts.Len(); i++ {
+		expectedNames = append(expectedNames, funcName(expectedOpts.Index(i).Interface()))
+	}
+	var actualNames []string
+	for i := 0; i < actualOpts.Len(); i++ {
+		actualNames = append(actualNames, funcName(actualOpts.Index(i).Interface()))
+	}
+	if !assert.ObjectsAreEqual(expectedNames, actualNames) {
+		expectedFmt = fmt.Sprintf("%v", expectedNames)
+		actualFmt = fmt.Sprintf("%v", actualNames)
+		return
+	}
+
+	for i := 0; i < expectedOpts.Len(); i++ {
+		expectedOpt := expectedOpts.Index(i).Interface()
+		actualOpt := actualOpts.Index(i).Interface()
+
+		expectedFunc := expectedNames[i]
+		actualFunc := actualNames[i]
+		if expectedFunc != actualFunc {
+			expectedFmt = expectedFunc
+			actualFmt = actualFunc
+			return
+		}
+
+		ot := reflect.TypeOf(expectedOpt)
+		var expectedValues []reflect.Value
+		var actualValues []reflect.Value
+		if ot.NumIn() == 0 {
+			return
+		}
+
+		for i := 0; i < ot.NumIn(); i++ {
+			vt := ot.In(i).Elem()
+			expectedValues = append(expectedValues, reflect.New(vt))
+			actualValues = append(actualValues, reflect.New(vt))
+		}
+
+		reflect.ValueOf(expectedOpt).Call(expectedValues)
+		reflect.ValueOf(actualOpt).Call(actualValues)
+
+		for i := 0; i < ot.NumIn(); i++ {
+			if !assert.ObjectsAreEqual(expectedValues[i].Interface(), actualValues[i].Interface()) {
+				expectedFmt = fmt.Sprintf("%s %+v", expectedNames[i], expectedValues[i].Interface())
+				actualFmt = fmt.Sprintf("%s %+v", expectedNames[i], actualValues[i].Interface())
+				return
+			}
+		}
+	}
+
+	return "", ""
+}
+
+func funcName(opt interface{}) string {
+	n := runtime.FuncForPC(reflect.ValueOf(opt).Pointer()).Name()
+	return strings.TrimSuffix(path.Base(n), path.Ext(n))
 }
