@@ -665,15 +665,23 @@ func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: t}
 }
 
+// FunctionalOptionsArgument is a struct that contains the type and value of an functional option argument
+// for use when type checking.
 type FunctionalOptionsArgument struct {
 	name  string
 	value interface{}
 }
 
+// String returns the string representation of FunctionalOptionsArgument
 func (f *FunctionalOptionsArgument) String() string {
 	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", f.name, 1)
 }
 
+// FunctionalOptions returns an FunctionalOptionsArgument object containing the functional option type
+// and the values to check of
+//
+// For example:
+// Assert(t, FunctionalOptions("[]foo.FunctionalOption", foo.Opt1(), foo.Opt2()))
 func FunctionalOptions(name string, value ...interface{}) *FunctionalOptionsArgument {
 	return &FunctionalOptionsArgument{
 		name:  name,
