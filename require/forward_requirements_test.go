@@ -196,6 +196,18 @@ func TestErrorWrapper(t *testing.T) {
 	}
 }
 
+func TestErrorContainsWrapper(t *testing.T) {
+	require := New(t)
+	require.ErrorContains(errors.New("some error: another error"), "some error")
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.ErrorContains(errors.New("some error: another error"), "different error")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestEqualErrorWrapper(t *testing.T) {
 	require := New(t)
 	require.EqualError(errors.New("some error"), "some error")

@@ -1079,6 +1079,24 @@ func TestEqualError(t *testing.T) {
 		"EqualError should return true")
 }
 
+func TestErrorContains(t *testing.T) {
+	mockT := new(testing.T)
+
+	// start with a nil error
+	var err error
+	False(t, ErrorContains(mockT, err, ""),
+		"ErrorContains should return false for nil arg")
+
+	// now set an error
+	err = errors.New("some error: another error")
+	False(t, ErrorContains(mockT, err, "bad error"),
+		"ErrorContains should return false for different error string")
+	True(t, ErrorContains(mockT, err, "some error"),
+		"ErrorContains should return true")
+	True(t, ErrorContains(mockT, err, "another error"),
+		"ErrorContains should return true")
+}
+
 func Test_isEmpty(t *testing.T) {
 
 	chWithValue := make(chan struct{}, 1)

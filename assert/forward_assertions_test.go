@@ -315,6 +315,25 @@ func TestErrorWrapper(t *testing.T) {
 
 }
 
+func TestErrorContainsWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	// start with a nil error
+	var err error
+	assert.False(mockAssert.ErrorContains(err, ""),
+		"ErrorContains should return false for nil arg")
+
+	// now set an error
+	err = errors.New("some error: another error")
+	assert.False(mockAssert.ErrorContains(err, "different error"),
+		"ErrorContains should return false for different error string")
+	assert.True(mockAssert.ErrorContains(err, "some error"),
+		"ErrorContains should return true")
+	assert.True(mockAssert.ErrorContains(err, "another error"),
+		"ErrorContains should return true")
+}
+
 func TestEqualErrorWrapper(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
