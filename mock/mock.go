@@ -297,16 +297,14 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 	return -1, expectedCall
 }
 
-func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
-	var diffCount int
-	var closestCall *Call
-	var err string
+func (m *Mock) findClosestCall(method string, arguments ...interface{}) (closestCall *Call, err string, isPerfect bool) {
+	diffCount := -1
 
 	for _, call := range m.expectedCalls() {
 		if call.Method == method {
 
 			errInfo, tempDiffCount := call.Arguments.Diff(arguments)
-			if tempDiffCount < diffCount || diffCount == 0 {
+			if tempDiffCount < diffCount || diffCount == -1 {
 				diffCount = tempDiffCount
 				closestCall = call
 				err = errInfo
@@ -315,7 +313,7 @@ func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, 
 		}
 	}
 
-	return closestCall, err
+	return closestCall, err, diffCount == 0
 }
 
 func callString(method string, arguments Arguments, includeArgumentValues bool) string {
@@ -377,19 +375,30 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		//   a) this is a totally unexpected call to this method,
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
-		closestCall, mismatch := m.findClosestCall(methodName, arguments...)
+
+		closestCall, mismatch, isPerfect := m.findClosestCall(methodName, arguments...)
+
 		m.mutex.Unlock()
 
-		if closestCall != nil {
+		switch {
+		case closestCall != nil && isPerfect && closestCall.Repeatability == -1:
+			// We found a perfect match that was at it's limit of number of calls
+			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nI have the same call but its limit has been reached (total of %v call(s) received): \n\n%s",
+				callString(methodName, arguments, true),
+				closestCall.totalCalls,
+				callString(methodName, closestCall.Arguments, true),
+			)
+		case closestCall != nil:
 			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s",
 				callString(methodName, arguments, true),
 				callString(methodName, closestCall.Arguments, true),
 				diffArguments(closestCall.Arguments, arguments),
 				strings.TrimSpace(mismatch),
 			)
-		} else {
+		default:
 			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
 		}
+
 	}
 
 	if call.Repeatability == 1 {
