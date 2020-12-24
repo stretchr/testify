@@ -114,7 +114,6 @@ func IgnoreInternalProtoFieldsOption() cmp.Option {
 		path := p.Last().String()
 		// Remove the "." in the path (these look like ".state")
 		path = path[1:]
-		fmt.Println(path, p.String())
 		return InStringArray(GetInternalProtobufFields(), path)
 	}, cmp.Ignore())
 }
