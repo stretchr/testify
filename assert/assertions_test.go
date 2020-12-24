@@ -111,6 +111,11 @@ type TestProto2 struct {
 	Test *TestProto
 }
 
+type PrivateFields struct {
+	Field1 string
+	field2 string
+}
+
 func TestObjectsAreEqual(t *testing.T) {
 	testProtoA := &TestProto{Field1: "A", state: "A", sizeCache: "A", unknownFields: "A"}
 	testProtoB := &TestProto{Field1: "A", state: "B", sizeCache: "B", unknownFields: "B"}
@@ -118,6 +123,9 @@ func TestObjectsAreEqual(t *testing.T) {
 	testProto2A := &TestProto2{testProtoA}
 	testProto2B := &TestProto2{testProtoB}
 	testProto2C := &TestProto2{testProtoC}
+	testRandomA1 := &PrivateFields{"A", "A"}
+	testRandomA2 := &PrivateFields{"A", "A"}
+	testRandomB := &PrivateFields{"A", "B"}
 
 	cases := []struct {
 		expected interface{}
@@ -133,6 +141,7 @@ func TestObjectsAreEqual(t *testing.T) {
 		{testProtoA, testProtoB, true},
 		{[]*TestProto{testProtoA}, []*TestProto{testProtoB}, true},
 		{testProto2A, testProto2B, true},
+		{testRandomA1, testRandomA2, true},
 
 		// cases that are expected not to be equal
 		{map[int]int{5: 10}, map[int]int{10: 20}, false},
@@ -146,6 +155,7 @@ func TestObjectsAreEqual(t *testing.T) {
 		{testProtoA, testProtoC, false},
 		{[]*TestProto{testProtoA}, []*TestProto{testProtoC}, false},
 		{testProto2A, testProto2C, false},
+		{testRandomA1, testRandomB, false},
 	}
 
 	for _, c := range cases {

@@ -103,7 +103,15 @@ func GetInternalProtobufFields() []string {
 // proto bindings via backend/tools/generators/service/service.part.generated.go.tmpl
 // and it is not yet fully compatible with the new protobuf library. In particular, it does
 // not implement ProtoReflect.
-func ProtoEqual(a, b interface{}) bool {
+func ProtoEqual(a, b interface{}) (returnValue bool) {
+	defer func() {
+		if v := recover(); v != nil {
+			// If this panics, return reflect.DeepEqual. This will happen
+			// if the message contains private variables that are not the proto variables.
+			returnValue = reflect.DeepEqual(a, b)
+		}
+	}()
+
 	return cmp.Equal(a, b, IgnoreInternalProtoFieldsOption())
 }
 
