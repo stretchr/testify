@@ -100,7 +100,25 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct {
 }
 
+type TestProto struct {
+	Field1        string
+	state         string
+	sizeCache     string
+	unknownFields string
+}
+
+type TestProto2 struct {
+	Test *TestProto
+}
+
 func TestObjectsAreEqual(t *testing.T) {
+	testProtoA := &TestProto{Field1: "A", state: "A", sizeCache: "A", unknownFields: "A"}
+	testProtoB := &TestProto{Field1: "A", state: "B", sizeCache: "B", unknownFields: "B"}
+	testProtoC := &TestProto{Field1: "B", state: "B", sizeCache: "B", unknownFields: "B"}
+	testProto2A := &TestProto2{testProtoA}
+	testProto2B := &TestProto2{testProtoB}
+	testProto2C := &TestProto2{testProtoC}
+
 	cases := []struct {
 		expected interface{}
 		actual   interface{}
@@ -112,6 +130,9 @@ func TestObjectsAreEqual(t *testing.T) {
 		{123.5, 123.5, true},
 		{[]byte("Hello World"), []byte("Hello World"), true},
 		{nil, nil, true},
+		{testProtoA, testProtoB, true},
+		{[]*TestProto{testProtoA}, []*TestProto{testProtoB}, true},
+		{testProto2A, testProto2B, true},
 
 		// cases that are expected not to be equal
 		{map[int]int{5: 10}, map[int]int{10: 20}, false},
@@ -122,6 +143,9 @@ func TestObjectsAreEqual(t *testing.T) {
 		{time.Now, time.Now, false},
 		{func() {}, func() {}, false},
 		{uint32(10), int32(10), false},
+		{testProtoA, testProtoC, false},
+		{[]*TestProto{testProtoA}, []*TestProto{testProtoC}, false},
+		{testProto2A, testProto2C, false},
 	}
 
 	for _, c := range cases {

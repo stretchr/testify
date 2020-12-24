@@ -18,6 +18,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/google/go-cmp/cmp"
 	"github.com/pmezard/go-difflib/difflib"
 	yaml "gopkg.in/yaml.v3"
 )
@@ -60,9 +61,22 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
+	// DEVOTED PATCH: go-cmp dies on type comparisons
+	if _, ok := expected.(reflect.Type); ok {
+		return reflect.DeepEqual(expected, actual)
+	}
+
 	exp, ok := expected.([]byte)
 	if !ok {
-		return reflect.DeepEqual(expected, actual)
+		// DEVOTED PATCH: Try reflect.DeepEqual first.
+		// If that does not work, fall back to ProtoEqual.
+		try1 := reflect.DeepEqual(expected, actual)
+		if try1 {
+			return true
+		} else {
+			return ProtoEqual(expected, actual)
+		}
+		// END DEVOTED PATCH.
 	}
 
 	act, ok := actual.([]byte)
@@ -74,6 +88,47 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	}
 	return bytes.Equal(exp, act)
 }
+
+// DEVOTED PATCH
+// GetInternalProtobufFields returns the names of private fields that may be injected by proto-c-gen-go.
+func GetInternalProtobufFields() []string {
+	return []string{"state", "sizeCache", "unknownFields", "XXX_unrecognized", "XXX_sizecache", "XXX_NoUnkeyedLiteral"}
+}
+
+// ProtoEqual compares two proto structures for equality. There is proto.Equal in the proto library,
+// but it cannot deal with situations like reflection.
+// This uses the go-cmp library with a custom FilterPath function that basically says:
+// ignore comparing any of the internal protobuf fields.
+// The reason we don't yet use the proto.Equal library is because we are rolling our own
+// proto bindings via backend/tools/generators/service/service.part.generated.go.tmpl
+// and it is not yet fully compatible with the new protobuf library. In particular, it does
+// not implement ProtoReflect.
+func ProtoEqual(a, b interface{}) bool {
+	return cmp.Equal(a, b, IgnoreInternalProtoFieldsOption())
+}
+
+// ignoreInternalProtoFieldsOption is a helper function to go-cmp to tell it to ignore
+// internal protobuf fields.
+func IgnoreInternalProtoFieldsOption() cmp.Option {
+	return cmp.FilterPath(func(p cmp.Path) bool {
+		path := p.Last().String()
+		// Remove the "." in the path (these look like ".state")
+		path = path[1:]
+		fmt.Println(path, p.String())
+		return InStringArray(GetInternalProtobufFields(), path)
+	}, cmp.Ignore())
+}
+
+func InStringArray(list []string, a string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+// END DEVOTED PATCH
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
 // values are equal.
