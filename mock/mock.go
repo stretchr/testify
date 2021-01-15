@@ -304,24 +304,12 @@ type matchCandidate struct {
 }
 
 func (c matchCandidate) isBetterMatchThan(other matchCandidate) bool {
-	if c.call == nil {
-		return false
-	}
-	if other.call == nil {
-		return true
-	}
-
-	if c.diffCount > other.diffCount {
-		return false
-	}
-	if c.diffCount < other.diffCount {
-		return true
-	}
-
-	if c.call.Repeatability > 0 && other.call.Repeatability <= 0 {
-		return true
-	}
-	return false
+	return !(c.call == nil) &&
+		(other.call == nil ||
+			!(c.diffCount > other.diffCount) &&
+				c.diffCount < other.diffCount ||
+			c.call.Repeatability > 0 &&
+				other.call.Repeatability <= 0)
 }
 
 func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
