@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -82,13 +83,35 @@ func TestCompare(t *testing.T) {
 }
 
 type outputT struct {
-	buf *bytes.Buffer
+	buf     *bytes.Buffer
+	helpers map[string]struct{}
 }
 
 // Implements TestingT
 func (t *outputT) Errorf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	t.buf.WriteString(s)
+}
+
+func (t *outputT) Helper() {
+	if t.helpers == nil {
+		t.helpers = make(map[string]struct{})
+	}
+	t.helpers[callerName(1)] = struct{}{}
+}
+
+// callerName gives the function name (qualified with a package path)
+// for the caller after skip frames (where 0 means the current function).
+func callerName(skip int) string {
+	// Make room for the skip PC.
+	var pc [1]uintptr
+	n := runtime.Callers(skip+2, pc[:]) // skip + runtime.Callers + callerName
+	if n == 0 {
+		panic("testing: zero callers found")
+	}
+	frames := runtime.CallersFrames(pc[:n])
+	frame, _ := frames.Next()
+	return frame.Function
 }
 
 func TestGreater(t *testing.T) {
@@ -128,6 +151,7 @@ func TestGreater(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Greater(out, currCase.less, currCase.greater))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Greater")
 	}
 }
 
@@ -168,6 +192,7 @@ func TestGreaterOrEqual(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.GreaterOrEqual")
 	}
 }
 
@@ -208,6 +233,7 @@ func TestLess(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Less(out, currCase.greater, currCase.less))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Less")
 	}
 }
 
@@ -248,6 +274,7 @@ func TestLessOrEqual(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, LessOrEqual(out, currCase.greater, currCase.less))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.LessOrEqual")
 	}
 }
 
@@ -302,6 +329,7 @@ func TestPositive(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Positive(out, currCase.e))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Positive")
 	}
 }
 
@@ -340,6 +368,7 @@ func TestNegative(t *testing.T) {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Negative(out, currCase.e))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Negative")
 	}
 }
 
