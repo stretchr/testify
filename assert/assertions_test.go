@@ -1235,12 +1235,12 @@ func Test_getLen(t *testing.T) {
 func TestLen(t *testing.T) {
 	mockT := new(testing.T)
 
-	False(t, Len(mockT, nil, 0), "nil does not have length")
+	False(t, Len(mockT, 0, nil), "nil does not have length")
 	False(t, Len(mockT, 0, 0), "int does not have length")
-	False(t, Len(mockT, true, 0), "true does not have length")
-	False(t, Len(mockT, false, 0), "false does not have length")
+	False(t, Len(mockT, 0, true), "true does not have length")
+	False(t, Len(mockT, 0, false), "false does not have length")
 	False(t, Len(mockT, 'A', 0), "Rune does not have length")
-	False(t, Len(mockT, struct{}{}, 0), "Struct does not have length")
+	False(t, Len(mockT, 0, struct{}{}), "Struct does not have length")
 
 	ch := make(chan int, 5)
 	ch <- 1
@@ -1267,7 +1267,7 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		True(t, Len(mockT, c.l, c.v), "%#v have %d items", c.v, c.l)
 	}
 
 	cases = []struct {
@@ -1290,7 +1290,7 @@ func TestLen(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		False(t, Len(mockT, c.l, c.v), "%#v have %d items", c.v, c.l)
 	}
 }
 
