@@ -1335,6 +1335,17 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	return true
 }
 
+// NoErrors asserts that multiple functions return no errors
+func NoErrors(t TestingT, msg string, errors ...error) bool {
+	for index, err := range errors {
+		message := fmt.Sprintf("error found in index %d -> %s", index, msg)
+		if !NoError(t, err, message) {
+			return false
+		}
+	}
+	return true
+}
+
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
 //   actualObj, err := SomeFunction()

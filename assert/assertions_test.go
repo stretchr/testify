@@ -1029,6 +1029,14 @@ func TestNoError(t *testing.T) {
 	False(t, NoError(mockT, err), "NoError should fail with empty error interface")
 }
 
+func TestNoErrors(t *testing.T) {
+	mockT := new(testing.T)
+
+	True(t, NoErrors(mockT, "nils should cause absolutely no problem", nil, nil, nil))
+
+	False(t, NoErrors(mockT, "errors should cause a bunch of problems", errors.New("error1"), errors.New("error2"), errors.New("error3")))
+}
+
 type customError struct{}
 
 func (*customError) Error() string { return "fail" }
