@@ -60,12 +60,6 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
-	if e, ok := objectToTime(expected); ok {
-		if a, ok := objectToTime(actual); ok {
-			return e.Equal(a)
-		}
-	}
-
 	exp, ok := expected.([]byte)
 	if !ok {
 		return reflect.DeepEqual(expected, actual)
@@ -1800,15 +1794,14 @@ func buildErrorChainString(err error) string {
 	return chain
 }
 
-// objectToTime is used to convert an object to time.Time
-func objectToTime(o interface{}) (time.Time, bool) {
-	if s, ok := o.(time.Time); ok {
-		return s, true
+// Kind check if the given object is of the given type
+func Kind(t TestingT, expected reflect.Kind, object interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
 	}
-	if p, ok := o.(*time.Time); ok {
-		if p != nil {
-			return *p, true
-		}
+
+	if reflect.TypeOf(object).Kind() == expected {
+		return true
 	}
-	return time.Time{}, false
+	return false
 }
