@@ -587,3 +587,33 @@ func (s *FailfastSuite) Test_B_Passes() {
 	s.call("Test B Passes")
 	s.Require().True(true)
 }
+
+type childSuite struct {
+	Suite
+	done bool
+}
+
+func (s *childSuite) TestChild() {
+	s.done = true
+}
+
+type parentSuite struct {
+	Suite
+}
+
+func (p *parentSuite) Test1() {
+	var child = new(childSuite)
+	Run(p.T(), child, WithIgnoreMatch())
+	p.Require().True(child.done)
+}
+
+func (p *parentSuite) Test2() {
+	p.Require().FailNow("this test should be ingored due to passed -testify.m flag")
+}
+
+func TestSuiteRunsSuite(t *testing.T) {
+	matchMethod = new(string)
+	*matchMethod = "Test1"
+	var s parentSuite
+	Run(t, &s)
+}
