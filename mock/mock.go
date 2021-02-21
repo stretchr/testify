@@ -503,19 +503,18 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
 	for _, expectedCall := range expectedCalls {
-		if !expectedCall.optional && !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0 {
-			somethingMissing = true
-			failedExpectations++
-			t.Logf("FAIL:\t%s(%s)\n\t\tat: %s", expectedCall.Method, expectedCall.Arguments.String(), expectedCall.callerInfo)
-		} else {
-			if expectedCall.Repeatability > 0 {
+		if !expectedCall.optional {
+			methodNotCalled := !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0
+			if methodNotCalled || expectedCall.Repeatability > 0 {
 				somethingMissing = true
 				failedExpectations++
 				t.Logf("FAIL:\t%s(%s)\n\t\tat: %s", expectedCall.Method, expectedCall.Arguments.String(), expectedCall.callerInfo)
-			} else {
-				t.Logf("PASS:\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+
+				continue
 			}
 		}
+
+		t.Logf("PASS:\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 	}
 
 	if somethingMissing {
