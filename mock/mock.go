@@ -650,11 +650,13 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 }
 
 func (m *Mock) checkExpectation(call *Call) (bool, string) {
-	if !call.optional && !m.methodWasCalled(call.Method, call.Arguments) && call.totalCalls == 0 {
-		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
-	}
-	if call.Repeatability > 0 {
-		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+	if !call.optional {
+		if !m.methodWasCalled(call.Method, call.Arguments) && call.totalCalls == 0 {
+			return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+		}
+		if call.Repeatability > 0 {
+			return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+		}
 	}
 	return true, fmt.Sprintf("PASS:\t%s(%s)", call.Method, call.Arguments.String())
 }
