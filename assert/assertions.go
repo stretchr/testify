@@ -86,13 +86,91 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	if actualType == nil {
 		return false
 	}
+
 	expectedValue := reflect.ValueOf(expected)
 	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
 		// Attempt comparison after type conversion
-		return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
+		if reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual) {
+			return true
+		}
 	}
 
+	actualKind := reflect.ValueOf(actual).Kind()
+	expectedKind := expectedValue.Kind()
+	if actualKind != expectedKind {
+		return false
+	}
+
+	// Test when object type is array/slice/map
+	switch actualKind {
+	case reflect.Array, reflect.Slice:
+		return listsAreEqualValues(expected, actual)
+	case reflect.Map:
+		return mapsAreEqualValues(expected, actual)
+	}
 	return false
+}
+
+// listsAreEqualValues gets whether two lists(arrays, slices) are equal, or if their
+// values are equal.
+//
+// This function should only be used by ObjectsAreEqualValues.
+func listsAreEqualValues(expected, actual interface{}) bool {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+
+	// Assure two objects have the same length
+	expectedOK, expectedLen := getLen(expected)
+	actualOK, actualLen := getLen(actual)
+	if !expectedOK || !actualOK {
+		return false
+	}
+	if expectedLen != actualLen {
+		return false
+	}
+
+	// Iterate over elements and compare
+	for i := 0; i < expectedLen; i++ {
+		if !ObjectsAreEqualValues(expectedValue.Index(i).Interface(), actualValue.Index(i).Interface()) {
+			return false
+		}
+	}
+	return true
+}
+
+// mapsAreEqualValues gets whether two maps are equal, or if their
+// values are equal.
+//
+// This function should only be used by ObjectsAreEqualValues.
+func mapsAreEqualValues(expected, actual interface{}) bool {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+
+	expectedKeys := expectedValue.MapKeys()
+	actualKeys := actualValue.MapKeys()
+	if len(expectedKeys) != len(actualKeys) {
+		return false
+	}
+
+	// Key types should be convertible
+	expectedKeyType := expectedValue.Type().Key()
+	actualKeyType := actualValue.Type().Key()
+	if !expectedKeyType.ConvertibleTo(actualKeyType) {
+		return false
+	}
+
+	for _, expectedKey := range expectedKeys {
+		actualKey := expectedKey.Convert(actualKeyType)
+		expectedElem := expectedValue.MapIndex(expectedKey)
+		actualElem := actualValue.MapIndex(actualKey)
+		if !actualElem.IsValid() { // if key doesn't exist
+			return false
+		}
+		if !ObjectsAreEqualValues(expectedElem.Interface(), actualElem.Interface()) {
+			return false
+		}
+	}
+	return true
 }
 
 /* CallerInfo is necessary because the assert functions use the testing object
