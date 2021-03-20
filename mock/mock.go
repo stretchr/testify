@@ -650,10 +650,13 @@ func (m *Mock) calls() []Call {
 // Arguments holds an array of method arguments or return values.
 type Arguments []interface{}
 
+// Intentionally make mock.Anything a different type from string
+type anything string
+
 const (
 	// Anything is used in Diff and Assert when the argument being tested
 	// shouldn't be taken into consideration.
-	Anything = "mock.Anything"
+	Anything = anything("mock.Anything")
 )
 
 // AnythingOfTypeArgument is a string that contains the type of an argument
