@@ -651,12 +651,12 @@ func (m *Mock) calls() []Call {
 type Arguments []interface{}
 
 // Intentionally make mock.Anything a different type from string
-type anything string
+type anything struct{}
 
-const (
+var (
 	// Anything is used in Diff and Assert when the argument being tested
 	// shouldn't be taken into consideration.
-	Anything = anything("mock.Anything")
+	Anything = anything{}
 )
 
 // AnythingOfTypeArgument is a string that contains the type of an argument
