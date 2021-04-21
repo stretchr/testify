@@ -366,6 +366,18 @@ func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	return compareTwoValues(t, e, zero.Interface(), []CompareType{compareGreater}, "\"%v\" is not positive", msgAndArgs)
 }
 
+// NonPositive asserts that the specified element is positive
+//
+//    assert.Positive(t, 0)
+//    assert.Positive(t, -1.23)
+func NonPositive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	zero := reflect.Zero(reflect.TypeOf(e))
+	return compareTwoValues(t, e, zero.Interface(), []CompareType{compareLess, compareEqual}, "\"%v\" is positive", msgAndArgs)
+}
+
 // Negative asserts that the specified element is negative
 //
 //    assert.Negative(t, -1)
@@ -376,6 +388,18 @@ func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	}
 	zero := reflect.Zero(reflect.TypeOf(e))
 	return compareTwoValues(t, e, zero.Interface(), []CompareType{compareLess}, "\"%v\" is not negative", msgAndArgs)
+}
+
+// NonNegative asserts that the specified element is non negative
+//
+//    assert.Negative(t, 0)
+//    assert.Negative(t, 1.23)
+func NonNegative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	zero := reflect.Zero(reflect.TypeOf(e))
+	return compareTwoValues(t, e, zero.Interface(), []CompareType{compareGreater, compareEqual}, "\"%v\" is negative", msgAndArgs)
 }
 
 func compareTwoValues(t TestingT, e1 interface{}, e2 interface{}, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
