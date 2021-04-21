@@ -464,17 +464,6 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 	return Negative(t, e, append([]interface{}{msg}, args...)...)
 }
 
-// Negativef asserts that the specified element is non negative
-//
-//    assert.Negativef(t, -1, "error message %s", "formatted")
-//    assert.Negativef(t, -1.23, "error message %s", "formatted")
-func NonNegativef(t TestingT, e interface{}, msg string, args ...interface{}) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	return NonNegative(t, e, append([]interface{}{msg}, args...)...)
-}
-
 // Neverf asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
@@ -525,6 +514,28 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) boo
 		h.Helper()
 	}
 	return NoFileExists(t, path, append([]interface{}{msg}, args...)...)
+}
+
+// NonNegativef asserts that the specified element is non negative
+//
+//    assert.Negative(t, 0)
+//    assert.Negative(t, 1.23)
+func NonNegativef(t TestingT, e interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NonNegative(t, e, append([]interface{}{msg}, args...)...)
+}
+
+// NonPositivef asserts that the specified element is positive
+//
+//    assert.Positive(t, 0)
+//    assert.Positive(t, -1.23)
+func NonPositivef(t TestingT, e interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NonPositive(t, e, append([]interface{}{msg}, args...)...)
 }
 
 // NotContainsf asserts that the specified string, list(array, slice...) or map does NOT contain the
@@ -690,17 +701,6 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 		h.Helper()
 	}
 	return Positive(t, e, append([]interface{}{msg}, args...)...)
-}
-
-// NonPositivef asserts that the specified element is non positive
-//
-//    assert.NonPositivef(t, 1, "error message %s", "formatted")
-//    assert.NonPositivef(t, 1.23, "error message %s", "formatted")
-func NonPositivef(t TestingT, e interface{}, msg string, args ...interface{}) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	return NonPositive(t, e, append([]interface{}{msg}, args...)...)
 }
 
 // Regexpf asserts that a specified regexp matches a string.

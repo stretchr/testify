@@ -1304,6 +1304,62 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// NonNegative asserts that the specified element is non negative
+//
+//    assert.Negative(t, 0)
+//    assert.Negative(t, 1.23)
+func NonNegative(t TestingT, e interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NonNegative(t, e, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NonNegativef asserts that the specified element is non negative
+//
+//    assert.Negative(t, 0)
+//    assert.Negative(t, 1.23)
+func NonNegativef(t TestingT, e interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NonNegativef(t, e, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NonPositive asserts that the specified element is positive
+//
+//    assert.Positive(t, 0)
+//    assert.Positive(t, -1.23)
+func NonPositive(t TestingT, e interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NonPositive(t, e, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NonPositivef asserts that the specified element is positive
+//
+//    assert.Positive(t, 0)
+//    assert.Positive(t, -1.23)
+func NonPositivef(t TestingT, e interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NonPositivef(t, e, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
 //
