@@ -1609,12 +1609,17 @@ func diff(expected interface{}, actual interface{}) string {
 	}
 
 	var e, a string
-	if et != reflect.TypeOf("") {
-		e = spewConfig.Sdump(expected)
-		a = spewConfig.Sdump(actual)
-	} else {
+
+	switch et {
+	case reflect.TypeOf(""):
 		e = reflect.ValueOf(expected).String()
 		a = reflect.ValueOf(actual).String()
+	case reflect.TypeOf(time.Time{}):
+		e = spewConfigStringerEnabled.Sdump(expected)
+		a = spewConfigStringerEnabled.Sdump(actual)
+	default:
+		e = spewConfig.Sdump(expected)
+		a = spewConfig.Sdump(actual)
 	}
 
 	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
@@ -1643,6 +1648,14 @@ var spewConfig = spew.ConfigState{
 	DisableCapacities:       true,
 	SortKeys:                true,
 	DisableMethods:          true,
+	MaxDepth:                10,
+}
+
+var spewConfigStringerEnabled = spew.ConfigState{
+	Indent:                  " ",
+	DisablePointerAddresses: true,
+	DisableCapacities:       true,
+	SortKeys:                true,
 	MaxDepth:                10,
 }
 
