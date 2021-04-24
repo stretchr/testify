@@ -1991,6 +1991,23 @@ Diff:
 		diffTestingStruct{A: "some string", B: 15},
 	)
 	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,2 +1,2 @@
+-(time.Time) 2020-09-24 00:00:00 +0000 UTC
++(time.Time) 2020-09-25 00:00:00 +0000 UTC
+ 
+`
+
+	actual = diff(
+		time.Date(2020, 9, 24, 0, 0, 0, 0, time.UTC),
+		time.Date(2020, 9, 25, 0, 0, 0, 0, time.UTC),
+	)
+	Equal(t, expected, actual)
 }
 
 func TestTimeEqualityErrorFormatting(t *testing.T) {
