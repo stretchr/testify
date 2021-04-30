@@ -19,4 +19,4 @@ script:
   - ./.travis.gogenerate.sh
   - ./.travis.gofmt.sh
   - ./.travis.govet.sh
-  - go test -v -race ./...
+  - ./.travis.gotest.sh
