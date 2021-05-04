@@ -728,7 +728,7 @@ func (f argumentMatcher) Matches(argument interface{}) bool {
 }
 
 func (f argumentMatcher) String() string {
-	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
+	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).String())
 }
 
 // MatchedBy can be used to match a mock call based on only certain properties
