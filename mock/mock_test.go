@@ -1482,6 +1482,10 @@ func (s *timer) GetTime(i int) string {
 	return s.Called(i).Get(0).(string)
 }
 
+func (s *timer) GetTimes(times []int) string {
+	return s.Called(times).Get(0).(string)
+}
+
 type tCustomLogger struct {
 	*testing.T
 	logs []string
@@ -1550,6 +1554,23 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 	m.On("GetTime", MatchedBy(func(i int) bool { return false })).Return("SomeTime").Once()
 
 	res := m.GetTime(1)
+	require.Equal(t, "SomeTime", res)
+	m.AssertExpectations(t)
+}
+
+func TestArgumentMatcherToPrintMismatchWithReferenceType(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			matchingExp := regexp.MustCompile(
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTimes\(\[\]int\)\s+0: \[\]int\{1\}\s+The closest call I have is:\s+GetTimes\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(\[\]int=\[1\]\) not matched by func\(\[\]int\) bool`)
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(timer)
+	m.On("GetTimes", MatchedBy(func(_ []int) bool { return false })).Return("SomeTime").Once()
+
+	res := m.GetTimes([]int{1})
 	require.Equal(t, "SomeTime", res)
 	m.AssertExpectations(t)
 }
