@@ -800,7 +800,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			actualFmt = "(Missing)"
 		} else {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			actualFmt = fmt.Sprintf("(%[1]T=%#[1]v)", actual)
 		}
 
 		if len(args) <= i {
@@ -808,7 +808,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expectedFmt = "(Missing)"
 		} else {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			expectedFmt = fmt.Sprintf("(%[1]T=%#[1]v)", expected)
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
