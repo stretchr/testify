@@ -2062,6 +2062,54 @@ func TestDiffRace(t *testing.T) {
 	}
 }
 
+func TestDiffEnableStringer(t *testing.T) {
+	if err := os.Setenv(stringerEnabledEnvVarName, "TRUE"); err != nil {
+		t.Fatal(fmt.Sprintf("unable to set <%s> env var", stringerEnabledEnvVarName))
+	}
+	defer func() {
+		err := os.Unsetenv(stringerEnabledEnvVarName)
+		if err != nil {
+			t.Fatal(fmt.Sprintf("unable to unset <%s> env var", stringerEnabledEnvVarName))
+		}
+	}()
+	setupSpewConfig()
+
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Fatal("unable to load location")
+	}
+
+	type structWithTime struct {
+		someTime   time.Time
+		someString string
+	}
+
+	structE := structWithTime{
+		someTime:   time.Date(2021, 5, 22, 0, 0, 0, 0, loc),
+		someString: "some val",
+	}
+
+	structA := structWithTime{
+		someTime:   time.Date(2021, 5, 23, 0, 0, 0, 0, time.UTC),
+		someString: "some val",
+	}
+
+	expected := `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,3 +1,3 @@
+ (assert.structWithTime) {
+- someTime: (time.Time) 2021-05-22 00:00:00 -0400 EDT,
++ someTime: (time.Time) 2021-05-23 00:00:00 +0000 UTC,
+  someString: (string) (len=8) "some val"
+`
+
+	actual := diff(structE, structA)
+	Equal(t, expected, actual)
+}
+
 type mockTestingT struct {
 	errorFmt string
 	args     []interface{}
