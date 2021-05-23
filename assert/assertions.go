@@ -1164,6 +1164,10 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
 	}
 
+	if math.IsNaN(af) && math.IsNaN(bf) {
+		return true
+	}
+
 	if math.IsNaN(af) {
 		return Fail(t, fmt.Sprintf("Expected must not be NaN"), msgAndArgs...)
 	}
@@ -1250,18 +1254,18 @@ func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, m
 
 func calcRelativeError(expected, actual interface{}) (float64, error) {
 	af, aok := toFloat(expected)
-	if !aok {
-		return 0, fmt.Errorf("expected value %q cannot be converted to float", expected)
+	bf, bok := toFloat(actual)
+	if !aok || !bok {
+		return 0, fmt.Errorf("Parameters must be numerical")
+	}
+	if math.IsNaN(af) && math.IsNaN(bf) {
+		return 0, nil
 	}
 	if math.IsNaN(af) {
 		return 0, errors.New("expected value must not be NaN")
 	}
 	if af == 0 {
 		return 0, fmt.Errorf("expected value must have a value other than zero to calculate the relative error")
-	}
-	bf, bok := toFloat(actual)
-	if !bok {
-		return 0, fmt.Errorf("actual value %q cannot be converted to float", actual)
 	}
 	if math.IsNaN(bf) {
 		return 0, errors.New("actual value must not be NaN")
