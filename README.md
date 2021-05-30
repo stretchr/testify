@@ -166,6 +166,8 @@ func TestSomething(t *testing.T) {
   // assert that the expectations were met
   testObj.AssertExpectations(t)
 
+  // assert that the expectations were met in order
+  testObj.AssertExpectationsInOrder(t)
 
 }
 
@@ -187,6 +189,9 @@ func TestSomethingWithPlaceholder(t *testing.T) {
 
   // assert that the expectations were met
   testObj.AssertExpectations(t)
+
+  // assert that the expectations were met in order
+  testObj.AssertExpectationsInOrder(t)
 
 
 }

@@ -533,6 +533,137 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	return !somethingMissing
 }
 
+// AssertExpectationsInOrder asserts that everything specified with On and Return
+// was in fact called as expected in the order expected. Expectations set up for
+// a specific number of times must be called that number of times before the next
+// call to the mock is made. If optional, they do not need to be called the full
+// number of times. Expectation with no specific limit must be called at least
+// once unless optional.
+func (m *Mock) AssertExpectationsInOrder(t TestingT) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	var somethingMissing bool
+	var failedExpectations int
+
+	expectedCalls := m.expectedCalls()
+	actualCalls := m.calls()
+
+	actualCallPtr := 0
+
+	// iterate through each expectation
+	for _, expectedCall := range expectedCalls {
+		if expectedCall.Repeatability == 0 {
+			// if the number of calls is unbounded, ensure the call was made at least once as expected
+			wasCalled := false
+
+			for {
+				if actualCallPtr >= len(actualCalls) {
+					// end of actual call list, this is a problem only if call is required an not yet called
+					if expectedCall.totalCalls == 0 && !expectedCall.optional {
+						somethingMissing = true
+						failedExpectations++
+						t.Logf(
+							"FAIL:\texpected %s(%s) to be called\n\t\tat: %s",
+							expectedCall.Method,
+							expectedCall.Arguments.String(),
+							expectedCall.callerInfo,
+						)
+					}
+					break
+				}
+
+				if !m.callsMatch(expectedCall, &actualCalls[actualCallPtr]) {
+					break
+				}
+
+				wasCalled = true
+				actualCallPtr++
+			}
+
+			if !wasCalled && !expectedCall.optional {
+				somethingMissing = true
+				failedExpectations++
+				t.Logf(
+					"FAIL:\texpected %s(%s)\n\t\tat: %s",
+					expectedCall.Method,
+					expectedCall.Arguments.String(),
+					expectedCall.callerInfo,
+				)
+			}
+		} else {
+			// if there's a specific number of calls expected, check each one
+
+			if expectedCall.Repeatability != -1 {
+				if !expectedCall.optional {
+					somethingMissing = true
+					failedExpectations++
+					expectedCallsStr := "1 time"
+					if expectedCall.Repeatability+expectedCall.totalCalls != 1 {
+						expectedCallsStr = fmt.Sprintf("%d times", expectedCall.Repeatability+expectedCall.totalCalls)
+					}
+					actualCallsStr := "1 time"
+					if expectedCall.totalCalls != 1 {
+						actualCallsStr = fmt.Sprintf("%d times", expectedCall.totalCalls)
+					}
+					t.Logf(
+						"FAIL:\texpected %s(%s) to be called %s, actually called %s\n\t\tat: %s",
+						expectedCall.Method,
+						expectedCall.Arguments.String(),
+						expectedCallsStr,
+						actualCallsStr,
+						expectedCall.callerInfo,
+					)
+				}
+				break
+			}
+
+			for i := 0; i < expectedCall.totalCalls; i++ {
+				if actualCallPtr >= len(actualCalls) {
+					// this should never happen because `.Times` prevents additional calls
+					// before this point can be hit
+					somethingMissing = true
+					failedExpectations++
+					t.Logf(
+						"FAIL:\texpected %s(%s) to be called\n\t\tat: %s",
+						expectedCall.Method,
+						expectedCall.Arguments.String(),
+						expectedCall.callerInfo,
+					)
+					break
+				}
+
+				actualCall := actualCalls[actualCallPtr]
+
+				wasCalled := m.callsMatch(expectedCall, &actualCall)
+
+				if !wasCalled && !expectedCall.optional {
+					somethingMissing = true
+					failedExpectations++
+					t.Logf(
+						"FAIL:\texpected %s(%s)\nactual %s(%s)\n\t\tat: %s",
+						expectedCall.Method,
+						expectedCall.Arguments.String(),
+						actualCall.Method,
+						actualCall.Arguments.String(),
+						expectedCall.callerInfo,
+					)
+				}
+
+				actualCallPtr++
+			}
+		}
+	}
+
+	if somethingMissing {
+		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+	}
+
+	return !somethingMissing
+}
+
 // AssertNumberOfCalls asserts that the method was called expectedCalls times.
 func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls int) bool {
 	if h, ok := t.(tHelper); ok {
@@ -640,6 +771,16 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 		}
 	}
 	// we didn't find the expected call
+	return false
+}
+
+func (m *Mock) callsMatch(expected, actual *Call) bool {
+	if actual.Method == expected.Method {
+		_, differences := Arguments(expected.Arguments).Diff(actual.Arguments)
+		if differences == 0 {
+			return true
+		}
+	}
 	return false
 }
 
