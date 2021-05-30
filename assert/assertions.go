@@ -721,7 +721,11 @@ func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...inte
 func includeElement(list interface{}, element interface{}) (ok, found bool) {
 
 	listValue := reflect.ValueOf(list)
-	listKind := reflect.TypeOf(list).Kind()
+	listType := reflect.TypeOf(list)
+	if listType == nil {
+		return false, false
+	}
+	listKind := listType.Kind()
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
