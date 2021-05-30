@@ -592,6 +592,7 @@ func TestContainsNotContains(t *testing.T) {
 		{"j", "k"},
 	}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
+	var zeroMap map[interface{}]interface{}
 
 	cases := []struct {
 		expected interface{}
@@ -606,6 +607,7 @@ func TestContainsNotContains(t *testing.T) {
 		{complexList, &A{"g", "e"}, false},
 		{simpleMap, "Foo", true},
 		{simpleMap, "Bar", false},
+		{zeroMap, "Bar", false},
 	}
 
 	for _, c := range cases {
@@ -647,6 +649,22 @@ func TestContainsFailMessage(t *testing.T) {
 	Contains(mockT, "Hello World", errors.New("Hello"))
 	expectedFail := "\"Hello World\" does not contain &errors.errorString{s:\"Hello\"}"
 	actualFail := mockT.errorString()
+	if !strings.Contains(actualFail, expectedFail) {
+		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
+	}
+}
+
+func TestContainsNotContainsOnNilValue(t *testing.T) {
+	mockT := new(mockTestingT)
+
+	Contains(mockT, nil, "key")
+	expectedFail := "<nil> could not be applied builtin len()"
+	actualFail := mockT.errorString()
+	if !strings.Contains(actualFail, expectedFail) {
+		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
+	}
+
+	NotContains(mockT, nil, "key")
 	if !strings.Contains(actualFail, expectedFail) {
 		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
 	}
