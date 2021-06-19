@@ -116,6 +116,8 @@ func callerName(skip int) string {
 
 func TestGreater(t *testing.T) {
 	mockT := new(testing.T)
+	msgAndArgs := []interface{}{"error message %s", "formatted"}
+	expMsg := "error message formatted"
 
 	if !Greater(mockT, 2, 1) {
 		t.Error("Greater should return true")
@@ -149,14 +151,17 @@ func TestGreater(t *testing.T) {
 		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, Greater(out, currCase.less, currCase.greater))
+		False(t, Greater(out, currCase.less, currCase.greater, msgAndArgs...))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), expMsg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Greater")
 	}
 }
 
 func TestGreaterOrEqual(t *testing.T) {
 	mockT := new(testing.T)
+	msgAndArgs := []interface{}{"error message %s", "formatted"}
+	expMsg := "error message formatted"
 
 	if !GreaterOrEqual(mockT, 2, 1) {
 		t.Error("GreaterOrEqual should return true")
@@ -190,14 +195,17 @@ func TestGreaterOrEqual(t *testing.T) {
 		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than or equal to "2.34"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
+		False(t, GreaterOrEqual(out, currCase.less, currCase.greater, msgAndArgs...))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), expMsg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.GreaterOrEqual")
 	}
 }
 
 func TestLess(t *testing.T) {
 	mockT := new(testing.T)
+	msgAndArgs := []interface{}{"error message %s", "formatted"}
+	expMsg := "error message formatted"
 
 	if !Less(mockT, 1, 2) {
 		t.Error("Less should return true")
@@ -231,14 +239,17 @@ func TestLess(t *testing.T) {
 		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, Less(out, currCase.greater, currCase.less))
+		False(t, Less(out, currCase.greater, currCase.less, msgAndArgs...))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), expMsg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Less")
 	}
 }
 
 func TestLessOrEqual(t *testing.T) {
 	mockT := new(testing.T)
+	msgAndArgs := []interface{}{"error message %s", "formatted"}
+	expMsg := "error message formatted"
 
 	if !LessOrEqual(mockT, 1, 2) {
 		t.Error("LessOrEqual should return true")
@@ -272,14 +283,17 @@ func TestLessOrEqual(t *testing.T) {
 		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than or equal to "1.23"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, LessOrEqual(out, currCase.greater, currCase.less))
+		False(t, LessOrEqual(out, currCase.greater, currCase.less, msgAndArgs...))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), expMsg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.LessOrEqual")
 	}
 }
 
 func TestPositive(t *testing.T) {
 	mockT := new(testing.T)
+	msgAndArgs := []interface{}{"error message %s", "formatted"}
+	expMsg := "error message formatted"
 
 	if !Positive(mockT, 1) {
 		t.Error("Positive should return true")
@@ -311,14 +325,17 @@ func TestPositive(t *testing.T) {
 		{e: float64(-1.23), msg: `"-1.23" is not positive`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, Positive(out, currCase.e))
+		False(t, Positive(out, currCase.e, msgAndArgs...))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), expMsg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Positive")
 	}
 }
 
 func TestNegative(t *testing.T) {
 	mockT := new(testing.T)
+	msgAndArgs := []interface{}{"error message %s", "formatted"}
+	expMsg := "error message formatted"
 
 	if !Negative(mockT, -1) {
 		t.Error("Negative should return true")
@@ -350,8 +367,9 @@ func TestNegative(t *testing.T) {
 		{e: float64(1.23), msg: `"1.23" is not negative`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, Negative(out, currCase.e))
+		False(t, Negative(out, currCase.e, msgAndArgs...))
 		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, string(out.buf.Bytes()), expMsg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Negative")
 	}
 }
