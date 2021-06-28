@@ -179,6 +179,11 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	}
 
 	if !isNumericType(expectedType) || !isNumericType(actualType) {
+		if isEqualler(actualType) {
+			res := reflect.ValueOf(actual).MethodByName(equalMethod).Call([]reflect.Value{expectedValue})
+			return res[0].Bool()
+		}
+
 		// Attempt comparison after type conversion
 		return reflect.DeepEqual(
 			expectedValue.Convert(actualType).Interface(), actual,
