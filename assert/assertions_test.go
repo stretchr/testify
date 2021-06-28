@@ -145,7 +145,22 @@ func TestObjectsAreEqual(t *testing.T) {
 	if ObjectsAreEqualValues(nil, 0) {
 		t.Fail()
 	}
+}
 
+func TestObjectsAreEqualValuesByEqualMethod(t *testing.T) {
+	f1a := Foo{1, 1}
+	f1b := Foo{1, 2}
+	f2 := Foo{2, 3}
+
+	if !ObjectsAreEqualValues(f1a, f1a) {
+		t.Fail()
+	}
+	if !ObjectsAreEqualValues(f1a, f1b) {
+		t.Fail()
+	}
+	if ObjectsAreEqualValues(f1a, f2) {
+		t.Fail()
+	}
 }
 
 func TestImplements(t *testing.T) {
