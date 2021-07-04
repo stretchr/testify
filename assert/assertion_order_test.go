@@ -46,7 +46,7 @@ func TestIsIncreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsIncreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
@@ -91,7 +91,7 @@ func TestIsNonIncreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsNonIncreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
@@ -136,7 +136,7 @@ func TestIsDecreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsDecreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
@@ -181,6 +181,6 @@ func TestIsNonDecreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsNonDecreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 	}
 }

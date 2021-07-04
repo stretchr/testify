@@ -856,7 +856,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		h.Helper()
 	}
 	if subset == nil {
-		return Fail(t, fmt.Sprintf("nil is the empty set which is a subset of every set"), msgAndArgs...)
+		return Fail(t, "nil is the empty set which is a subset of every set", msgAndArgs...)
 	}
 
 	subsetValue := reflect.ValueOf(subset)
@@ -1165,7 +1165,7 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	bf, bok := toFloat(actual)
 
 	if !aok || !bok {
-		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
+		return Fail(t, "Parameters must be numerical", msgAndArgs...)
 	}
 
 	if math.IsNaN(af) && math.IsNaN(bf) {
@@ -1173,7 +1173,7 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	}
 
 	if math.IsNaN(af) {
-		return Fail(t, fmt.Sprintf("Expected must not be NaN"), msgAndArgs...)
+		return Fail(t, "Expected must not be NaN", msgAndArgs...)
 	}
 
 	if math.IsNaN(bf) {
@@ -1196,7 +1196,7 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, fmt.Sprintf("Parameters must be slice"), msgAndArgs...)
+		return Fail(t, "Parameters must be slice", msgAndArgs...)
 	}
 
 	actualSlice := reflect.ValueOf(actual)
@@ -1306,7 +1306,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, fmt.Sprintf("Parameters must be slice"), msgAndArgs...)
+		return Fail(t, "Parameters must be slice", msgAndArgs...)
 	}
 
 	actualSlice := reflect.ValueOf(actual)

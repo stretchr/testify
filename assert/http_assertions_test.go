@@ -122,7 +122,7 @@ func TestHTTPStatusesWrapper(t *testing.T) {
 
 func httpHelloName(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
-	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
+	_, _ = w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
 }
 
 func TestHTTPRequestWithNoParams(t *testing.T) {
