@@ -732,53 +732,53 @@ func TestNotSubsetNil(t *testing.T) {
 	}
 }
 
-func Test_includeElement(t *testing.T) {
+func Test_containsElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
-	ok, found := includeElement("Hello World", "World")
+	ok, found := containsElement("Hello World", "World")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list1, "Foo")
+	ok, found = containsElement(list1, "Foo")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list1, "Bar")
+	ok, found = containsElement(list1, "Bar")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list2, 1)
+	ok, found = containsElement(list2, 1)
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list2, 2)
+	ok, found = containsElement(list2, 2)
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list1, "Foo!")
+	ok, found = containsElement(list1, "Foo!")
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(list2, 3)
+	ok, found = containsElement(list2, 3)
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(list2, "1")
+	ok, found = containsElement(list2, "1")
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(simpleMap, "Foo")
+	ok, found = containsElement(simpleMap, "Foo")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(simpleMap, "Bar")
+	ok, found = containsElement(simpleMap, "Bar")
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(1433, "1")
+	ok, found = containsElement(1433, "1")
 	False(t, ok)
 	False(t, found)
 }
