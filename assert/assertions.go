@@ -718,7 +718,7 @@ func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...inte
 // return (false, false) if impossible.
 // return (true, false) if element was not found.
 // return (true, true) if element was found.
-func includeElement(list interface{}, element interface{}) (ok, found bool) {
+func containsElement(list interface{}, element interface{}) (ok, found bool) {
 
 	listValue := reflect.ValueOf(list)
 	listType := reflect.TypeOf(list)
@@ -768,7 +768,7 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 		h.Helper()
 	}
 
-	ok, found := includeElement(s, contains)
+	ok, found := containsElement(s, contains)
 	if !ok {
 		return Fail(t, fmt.Sprintf("%#v could not be applied builtin len()", s), msgAndArgs...)
 	}
@@ -791,7 +791,7 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 		h.Helper()
 	}
 
-	ok, found := includeElement(s, contains)
+	ok, found := containsElement(s, contains)
 	if !ok {
 		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
 	}
@@ -835,7 +835,7 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
-		ok, found := includeElement(list, element)
+		ok, found := containsElement(list, element)
 		if !ok {
 			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
 		}
@@ -879,7 +879,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
-		ok, found := includeElement(list, element)
+		ok, found := containsElement(list, element)
 		if !ok {
 			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
 		}
