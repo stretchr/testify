@@ -150,7 +150,7 @@ func TestGreater(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Greater(out, currCase.less, currCase.greater))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Greater")
 	}
 }
@@ -191,7 +191,7 @@ func TestGreaterOrEqual(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.GreaterOrEqual")
 	}
 }
@@ -232,7 +232,7 @@ func TestLess(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Less(out, currCase.greater, currCase.less))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Less")
 	}
 }
@@ -273,7 +273,7 @@ func TestLessOrEqual(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, LessOrEqual(out, currCase.greater, currCase.less))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.LessOrEqual")
 	}
 }
@@ -312,7 +312,7 @@ func TestPositive(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Positive(out, currCase.e))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Positive")
 	}
 }
@@ -351,7 +351,7 @@ func TestNegative(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Negative(out, currCase.e))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Negative")
 	}
 }
@@ -386,7 +386,7 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 	}{
 		{v1: CompareStruct{}, v2: CompareStruct{}},
 		{v1: map[string]int{}, v2: map[string]int{}},
-		{v1: make([]int, 5, 5), v2: make([]int, 5, 5)},
+		{v1: make([]int, 5), v2: make([]int, 5)},
 	} {
 		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
 		False(t, compareResult)
