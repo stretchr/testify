@@ -3,10 +3,10 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_version: ["1.16", "1.15", "1.14", "master"]
+        go_version: ["1.16.5", "1.15.13", "1.14.15"]
     steps:
       - uses: actions/checkout@v2
       - name: Setup Go
