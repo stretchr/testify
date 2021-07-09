@@ -112,6 +112,7 @@ func TestObjectsAreEqual(t *testing.T) {
 		{123.5, 123.5, true},
 		{[]byte("Hello World"), []byte("Hello World"), true},
 		{nil, nil, true},
+		{[]interface{}{1}, []interface{}{1}, true},
 
 		// cases that are expected not to be equal
 		{map[int]int{5: 10}, map[int]int{10: 20}, false},
@@ -146,6 +147,38 @@ func TestObjectsAreEqual(t *testing.T) {
 		t.Fail()
 	}
 
+}
+
+func TestObjectsAreEqualValues(t *testing.T) {
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
+		// cases that are expected to be equal
+		{uint32(10), int32(10), true},
+		{[]interface{}{1}, []interface{}{1}, true},
+		{[]interface{}{int32(1)}, []interface{}{int64(1)}, true},
+		{[1]interface{}{int32(1)}, [1]interface{}{int64(1)}, true},
+		{map[string]interface{}{"1": int32(1)}, map[string]interface{}{"1": int64(1)}, true},
+		{map[int]interface{}{1: int32(1)}, map[int64]interface{}{1: int64(1)}, true},
+
+		// cases that are expected not to be equal
+		{0, nil, false},
+		{nil, 0, false},
+		{map[interface{}]interface{}{1: int32(1)}, map[interface{}]interface{}{"1": int64(1)}, false},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("ObjectsAreEqualValues(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := ObjectsAreEqualValues(c.expected, c.actual)
+
+			if res != c.result {
+				t.Errorf("ObjectsAreEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+
+		})
+	}
 }
 
 func TestImplements(t *testing.T) {
