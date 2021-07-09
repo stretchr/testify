@@ -378,8 +378,8 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 
 	if !samePointers(expected, actual) {
 		return Fail(t, fmt.Sprintf("Not same: \n"+
-			"expected: %p %#v\n"+
-			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
+			"expected: %p %#v (%T)\n"+
+			"actual  : %p %#v (%T)", expected, expected, expected, actual, actual, actual), msgAndArgs...)
 	}
 
 	return true
