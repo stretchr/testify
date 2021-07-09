@@ -32,6 +32,29 @@ func (i *TestExampleImplementation) TheExampleMethod(a, b, c int) (int, error) {
 	return args.Int(0), errors.New("Whoops")
 }
 
+type options struct {
+	num int
+	str string
+}
+
+type OptionFn func(*options)
+
+func OpNum(n int) OptionFn {
+	return func(o *options) {
+		o.num = n
+	}
+}
+
+func OpStr(s string) OptionFn {
+	return func(o *options) {
+		o.str = s
+	}
+}
+func (i *TestExampleImplementation) TheExampleMethodFunctionalOptions(x string, opts ...OptionFn) error {
+	args := i.Called(x, opts)
+	return args.Error(0)
+}
+
 //go:noinline
 func (i *TestExampleImplementation) TheExampleMethod2(yesorno bool) {
 	i.Called(yesorno)
@@ -1038,6 +1061,23 @@ func Test_Mock_AssertExpectationsCustomType(t *testing.T) {
 
 	// make the call now
 	mockedService.TheExampleMethod3(&ExampleType{})
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
+func Test_Mock_AssertExpectationsFunctionalOptionsType(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions("[]mock.OptionFn", OpNum(1), OpStr("foo"))).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	mockedService.TheExampleMethodFunctionalOptions("test", OpNum(1), OpStr("foo"))
 
 	// now assert expectations
 	assert.True(t, mockedService.AssertExpectations(tt))
