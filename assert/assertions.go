@@ -718,10 +718,14 @@ func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...inte
 // return (false, false) if impossible.
 // return (true, false) if element was not found.
 // return (true, true) if element was found.
-func includeElement(list interface{}, element interface{}) (ok, found bool) {
+func containsElement(list interface{}, element interface{}) (ok, found bool) {
 
 	listValue := reflect.ValueOf(list)
-	listKind := reflect.TypeOf(list).Kind()
+	listType := reflect.TypeOf(list)
+	if listType == nil {
+		return false, false
+	}
+	listKind := listType.Kind()
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
@@ -764,7 +768,7 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 		h.Helper()
 	}
 
-	ok, found := includeElement(s, contains)
+	ok, found := containsElement(s, contains)
 	if !ok {
 		return Fail(t, fmt.Sprintf("%#v could not be applied builtin len()", s), msgAndArgs...)
 	}
@@ -787,7 +791,7 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 		h.Helper()
 	}
 
-	ok, found := includeElement(s, contains)
+	ok, found := containsElement(s, contains)
 	if !ok {
 		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
 	}
@@ -831,7 +835,7 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
-		ok, found := includeElement(list, element)
+		ok, found := containsElement(list, element)
 		if !ok {
 			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
 		}
@@ -852,7 +856,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		h.Helper()
 	}
 	if subset == nil {
-		return Fail(t, fmt.Sprintf("nil is the empty set which is a subset of every set"), msgAndArgs...)
+		return Fail(t, "nil is the empty set which is a subset of every set", msgAndArgs...)
 	}
 
 	subsetValue := reflect.ValueOf(subset)
@@ -875,7 +879,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 
 	for i := 0; i < subsetValue.Len(); i++ {
 		element := subsetValue.Index(i).Interface()
-		ok, found := includeElement(list, element)
+		ok, found := containsElement(list, element)
 		if !ok {
 			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
 		}
@@ -1161,7 +1165,7 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	bf, bok := toFloat(actual)
 
 	if !aok || !bok {
-		return Fail(t, fmt.Sprintf("Parameters must be numerical"), msgAndArgs...)
+		return Fail(t, "Parameters must be numerical", msgAndArgs...)
 	}
 
 	if math.IsNaN(af) && math.IsNaN(bf) {
@@ -1169,7 +1173,7 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 	}
 
 	if math.IsNaN(af) {
-		return Fail(t, fmt.Sprintf("Expected must not be NaN"), msgAndArgs...)
+		return Fail(t, "Expected must not be NaN", msgAndArgs...)
 	}
 
 	if math.IsNaN(bf) {
@@ -1192,7 +1196,7 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, fmt.Sprintf("Parameters must be slice"), msgAndArgs...)
+		return Fail(t, "Parameters must be slice", msgAndArgs...)
 	}
 
 	actualSlice := reflect.ValueOf(actual)
@@ -1302,7 +1306,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	if expected == nil || actual == nil ||
 		reflect.TypeOf(actual).Kind() != reflect.Slice ||
 		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, fmt.Sprintf("Parameters must be slice"), msgAndArgs...)
+		return Fail(t, "Parameters must be slice", msgAndArgs...)
 	}
 
 	actualSlice := reflect.ValueOf(actual)
