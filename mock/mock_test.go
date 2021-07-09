@@ -1065,6 +1065,317 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 }
 
+func Test_Mock_AssertExpectationsInOrder_InOrder(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_InOrder", 1, 2, 3).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_InOrder", 2, 3, 4).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_InOrder", 3, 4, 5).Return()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make most of the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the last call
+	mockedService.Called(3, 4, 5)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_MissingFirstCall(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingFirstCall", 1, 2, 3).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingFirstCall", 2, 3, 4).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingFirstCall", 3, 4, 5).Return()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(2, 3, 4)
+	mockedService.Called(3, 4, 5)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_MissingMidCall(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingMidCall", 1, 2, 3).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingMidCall", 2, 3, 4).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingMidCall", 3, 4, 5).Return()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(3, 4, 5)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_MissingLastCall(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingLastCall", 1, 2, 3).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingLastCall", 2, 3, 4).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_MissingLastCall", 3, 4, 5).Return()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_OutOfOrder(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_OutOfOrder", 1, 2, 3).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_OutOfOrder", 2, 3, 4).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_OutOfOrder", 3, 4, 5).Return()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(3, 4, 5)
+	mockedService.Called(2, 3, 4)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_OptionalLast(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_OptionalLast", 1, 2, 3).Return()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_OptionalLast", 2, 3, 4).Return().Maybe()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(1, 2, 3)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_OptionalFirst(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_OptionalFirst", 1, 2, 3).Return().Maybe()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_OptionalFirst", 2, 3, 4).Return()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(2, 3, 4)
+	mockedService.Called(2, 3, 4)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_Repeatability(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability", 1, 2, 3).Return().Once()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability", 2, 3, 4).Return().Twice()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability", 3, 4, 5).Return().Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+	mockedService.Called(2, 3, 4)
+	mockedService.Called(3, 4, 5)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_Repeatability_TooFewCalls(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_TooFewCalls", 1, 2, 3).Return().Once()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_TooFewCalls", 2, 3, 4).Return().Twice()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_TooFewCalls", 3, 4, 5).Return().Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+	mockedService.Called(3, 4, 5)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_Repeatability_NotCalled(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_NotCalled", 1, 2, 3).Return().Once()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_NotCalled", 2, 3, 4).Return().Twice()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_NotCalled", 3, 4, 5).Return().Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(3, 4, 5)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_Repeatability_LastNotCalled(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_LastNotCalled", 1, 2, 3).Return().Once()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_LastNotCalled", 2, 3, 4).Return().Twice()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_LastNotCalled", 3, 4, 5).Return().Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+	mockedService.Called(2, 3, 4)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_Repeatability_CalledOutOfOrder(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_CalledOutOfOrder", 1, 2, 3).Return().Twice()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_CalledOutOfOrder", 2, 3, 4).Return().Twice()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_Repeatability_Optional(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_Optional", 1, 2, 3).Return().Twice()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_Optional", 2, 3, 4).Return().Twice().Maybe()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(1, 2, 3)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+func Test_Mock_AssertExpectationsInOrder_Repeatability_PartialCalledOptional(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_PartialCalledOptional", 1, 2, 3).Return().Twice()
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_PartialCalledOptional", 2, 3, 4).Return().Twice().Maybe()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(1, 2, 3)
+	mockedService.Called(2, 3, 4)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
+// this test provides code coverage of an edge case that shouldn't be hit
+// in real-world-usage
+func Test_Mock_AssertExpectationsInOrder_Repeatability_HackAdditionalExpectedCalls(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectationsInOrder_Repeatability_HackAdditionalExpectedCalls", 2, 3, 4).Return().Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+	// make the calls
+	mockedService.Called(2, 3, 4)
+
+	// HACK
+	mockedService.expectedCalls()[0].totalCalls++
+
+	// now assert expectations
+	assert.False(t, mockedService.AssertExpectationsInOrder(tt))
+
+}
+
 func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -1209,14 +1520,14 @@ func Test_Mock_AssertOptional(t *testing.T) {
 	ms1.TheExampleMethod(1, 2, 3)
 
 	tt1 := new(testing.T)
-	assert.Equal(t, true, ms1.AssertExpectations(tt1))
+	assert.Equal(t, true, ms1.AssertExpectationsInOrder(tt1))
 
 	// Optional not called
 	var ms2 = new(TestExampleImplementation)
 	ms2.On("TheExampleMethod", 1, 2, 3).Maybe().Return(4, nil)
 
 	tt2 := new(testing.T)
-	assert.Equal(t, true, ms2.AssertExpectations(tt2))
+	assert.Equal(t, true, ms2.AssertExpectationsInOrder(tt2))
 
 	// Non-optional called
 	var ms3 = new(TestExampleImplementation)
@@ -1224,7 +1535,7 @@ func Test_Mock_AssertOptional(t *testing.T) {
 	ms3.TheExampleMethod(1, 2, 3)
 
 	tt3 := new(testing.T)
-	assert.Equal(t, true, ms3.AssertExpectations(tt3))
+	assert.Equal(t, true, ms3.AssertExpectationsInOrder(tt3))
 }
 
 /*
@@ -1441,7 +1752,7 @@ func Test_MockMethodCalled(t *testing.T) {
 	retArgs := m.MethodCalled("foo", "hello")
 	require.True(t, len(retArgs) == 1)
 	require.Equal(t, "world", retArgs[0])
-	m.AssertExpectations(t)
+	m.AssertExpectationsInOrder(t)
 }
 
 func Test_MockMethodCalled_Panic(t *testing.T) {
@@ -1449,7 +1760,7 @@ func Test_MockMethodCalled_Panic(t *testing.T) {
 	m.On("foo", "hello").Panic("world panics")
 
 	require.PanicsWithValue(t, "world panics", func() { m.MethodCalled("foo", "hello") })
-	m.AssertExpectations(t)
+	m.AssertExpectationsInOrder(t)
 }
 
 // Test to validate fix for racy concurrent call access in MethodCalled()
@@ -1551,7 +1862,7 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 
 	res := m.GetTime(1)
 	require.Equal(t, "SomeTime", res)
-	m.AssertExpectations(t)
+	m.AssertExpectationsInOrder(t)
 }
 
 func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
