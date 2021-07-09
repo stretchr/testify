@@ -1065,6 +1065,24 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 }
 
+func Test_Mock_AssertExpectations_With_Optional_Repeatability(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectations_With_Optional_Repeatability", 1, 2, 3).Maybe().Once().Return(5, 6, 7)
+
+	tt := new(testing.T)
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+	mockedService.Called(1, 2, 3)
+
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+	assert.Panics(t, func() {
+		mockedService.Called(1, 2, 3)
+	})
+}
+
 func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
