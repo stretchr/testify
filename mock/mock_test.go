@@ -1240,6 +1240,77 @@ func Test_Arguments_Get(t *testing.T) {
 
 }
 
+func Test_Arguments_Returns(t *testing.T) {
+
+	var (
+		x    int = 7
+		args     = Arguments([]interface{}{"string", 123, &x, nil, true, nil, errors.New("my hovercraft is full of eels")})
+
+		s         string
+		n         int
+		p, nP     *int
+		b         bool
+		nErr, err error
+	)
+	args.Returns(&s, &n, &p, &nP, &b, &nErr, &err)
+
+	assert.Equal(t, "string", s)
+	assert.Equal(t, 123, n)
+	if assert.NotNil(t, p) {
+		assert.Equal(t, 7, *p)
+	}
+	assert.Nil(t, nP)
+	assert.True(t, b)
+	assert.Error(t, err)
+	assert.NoError(t, nErr)
+
+}
+
+func Test_Arguments_Returns_WithNonPointer(t *testing.T) {
+
+	var args = Arguments([]interface{}{1})
+	var i int
+	assert.PanicsWithValue(t, "assert: arguments: Value 0 in call of Returns() is non-pointer.",
+		func() { args.Returns(i) })
+
+}
+
+func Test_Arguments_Returns_WithPointerAndSinglePointer(t *testing.T) {
+
+	var i int = 1
+	var args = Arguments([]interface{}{&i})
+	var j *int
+	assert.PanicsWithValue(t, "assert: arguments: Value 0 in call of Returns() is non-pointer.",
+		func() { args.Returns(j) })
+
+}
+
+func Test_Arguments_Returns_WithNilArgumentAndNonNilType(t *testing.T) {
+
+	var args = Arguments([]interface{}{nil})
+	var i int
+	assert.PanicsWithValue(t, "assert: arguments: Cannot assign nil argument 0 to value in call of Returns().",
+		func() { args.Returns(&i) })
+
+}
+
+func Test_Arguments_Returns_WithTypeMismatch(t *testing.T) {
+
+	var args = Arguments([]interface{}{1})
+	var i *int
+	assert.Panics(t, func() { args.Returns(&i) })
+
+}
+
+func Test_Arguments_Returns_WithValueLengthMismatch(t *testing.T) {
+
+	var args = Arguments([]interface{}{1})
+	var i, j int
+	assert.PanicsWithValue(t, "assert: arguments: Cannot call Returns() with 2 value(s) because there are 1 argument(s).",
+		func() { args.Returns(&i, &j) })
+
+}
+
 func Test_Arguments_Is(t *testing.T) {
 
 	var args = Arguments([]interface{}{"string", 123, true})
