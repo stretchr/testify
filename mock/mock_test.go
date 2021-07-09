@@ -1270,7 +1270,31 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"string", 456, "false", "extra"})
 
 	assert.Equal(t, 3, count)
-	assert.Contains(t, diff, `(string=extra) != (Missing)`)
+	assert.Contains(t, diff, `inconsistent function arity`)
+
+}
+
+func Test_Arguments_Diff_DifferentNumberOfArgsWithAnything(t *testing.T) {
+
+	var args = Arguments([]interface{}{Anything})
+	var diff string
+	var count int
+	diff, count = args.Diff([]interface{}{})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `inconsistent function arity`)
+
+}
+
+func Test_Arguments_Diff_DifferentNumberOfArgsWithActualAnything(t *testing.T) {
+
+	var args = Arguments([]interface{}{})
+	var diff string
+	var count int
+	diff, count = args.Diff([]interface{}{Anything})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `inconsistent function arity`)
 
 }
 
