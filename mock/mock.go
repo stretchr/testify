@@ -820,8 +820,11 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 
+			// check for []byte and []uint8
+			var matchedBtye = string(expected.(AnythingOfTypeArgument)) == "[]byte" && reflect.TypeOf(actual).String() == "[]uint8"
+
 			// type checking
-			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
+			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) && !matchedBtye {
 				// not match
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
