@@ -758,10 +758,40 @@ func MatchedBy(fn interface{}) argumentMatcher {
 	return argumentMatcher{fn: reflect.ValueOf(fn)}
 }
 
+// Identify the file in the callstack
+// https://gist.github.com/swdunlop/9629168
+func identifySource() string {
+	var name, file string
+	var line int
+	var pc [16]uintptr
+
+	n := runtime.Callers(4, pc[:])
+	for _, pc := range pc[:n] {
+		fn := runtime.FuncForPC(pc)
+		if fn == nil {
+			continue
+		}
+		file, line = fn.FileLine(pc)
+		name = fn.Name()
+		if !strings.HasPrefix(name, "runtime.") {
+			break
+		}
+	}
+
+	switch {
+	case name != "":
+		return fmt.Sprintf("%v:%v", name, line)
+	case file != "":
+		return fmt.Sprintf("%v:%v", file, line)
+	}
+
+	return fmt.Sprintf("pc:%x", pc)
+}
+
 // Get Returns the argument at the specified index.
 func (args Arguments) Get(index int) interface{} {
 	if index+1 > len(args) {
-		panic(fmt.Sprintf("assert: arguments: Cannot call Get(%d) because there are %d argument(s).", index, len(args)))
+		panic(fmt.Sprintf("assert: arguments: Cannot call Get(%d) because there are %d argument(s).\n Possible source:%s", index, len(args), identifySource()))
 	}
 	return args[index]
 }

@@ -1569,6 +1569,22 @@ func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
 	m.TheExampleMethod(1, 1, 2)
 }
 
+func TestArgumentCallMismatchedShowsAssertionInformation(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			assertionExp := `\s*assert: arguments: Cannot call Get\(\d\) because there are \d argument\(s\)\.`
+			sourceRegExp := `Possible source:.+:\d+`
+			matchingExp := regexp.MustCompile(fmt.Sprintf(`%v\s*%v`, assertionExp, sourceRegExp))
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(TestExampleImplementation)
+	m.On("TheExampleMethod", 1, 1, 1).Return()
+
+	m.TheExampleMethod(1, 1, 1)
+}
+
 func TestClosestCallFavorsFirstMock(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
