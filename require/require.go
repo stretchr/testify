@@ -6,10 +6,12 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
+	"fmt"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -1278,6 +1280,17 @@ func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 		return
 	}
 	t.FailNow()
+}
+
+// NoErrors requires multiple functions not to return any errors
+func NoErrors(t TestingT, msg string, errors ...error) {
+	for index, err := range errors {
+		message := fmt.Sprintf("error found in index %d -> %s", index, msg)
+		if !assert.NoError(t, err, message) {
+			t.FailNow()
+		}
+
+	}
 }
 
 // NoFileExists checks whether a file does not exist in a given path. It fails

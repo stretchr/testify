@@ -197,6 +197,15 @@ func TestNoError(t *testing.T) {
 	}
 }
 
+func TestNoErrors(t *testing.T) {
+	NoErrors(t, "nils should not cause any trouble", nil, nil, nil)
+	mockT := new(MockT)
+	NoErrors(mockT, "multiple errors", errors.New("some error"), errors.New("some error 2"), errors.New("some error 3"))
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestError(t *testing.T) {
 
 	Error(t, errors.New("some error"))
