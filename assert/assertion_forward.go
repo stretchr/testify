@@ -827,22 +827,22 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 // Len also fails if the object has a type that len() not accept.
 //
 //    a.Len(mySlice, 3)
-func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface{}) bool {
+func (a *Assertions) Len(expected int, object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return Len(a.t, object, length, msgAndArgs...)
+	return Len(a.t, expected, object, msgAndArgs...)
 }
 
 // Lenf asserts that the specified object has specific length.
 // Lenf also fails if the object has a type that len() not accept.
 //
 //    a.Lenf(mySlice, 3, "error message %s", "formatted")
-func (a *Assertions) Lenf(object interface{}, length int, msg string, args ...interface{}) bool {
+func (a *Assertions) Lenf(length int, object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return Lenf(a.t, object, length, msg, args...)
+	return Lenf(a.t, length, object, msg, args...)
 }
 
 // Less asserts that the first element is less than the second

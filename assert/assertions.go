@@ -631,17 +631,17 @@ func getLen(x interface{}) (ok bool, length int) {
 // Len also fails if the object has a type that len() not accept.
 //
 //    assert.Len(t, mySlice, 3)
-func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) bool {
+func Len(t TestingT, expected int, actual interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	ok, l := getLen(object)
+	ok, l := getLen(actual)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", actual), msgAndArgs...)
 	}
 
-	if l != length {
-		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
+	if l != expected {
+		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", actual, expected, l), msgAndArgs...)
 	}
 	return true
 }

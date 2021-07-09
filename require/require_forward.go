@@ -6,10 +6,11 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -828,22 +829,22 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 // Len also fails if the object has a type that len() not accept.
 //
 //    a.Len(mySlice, 3)
-func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface{}) {
+func (a *Assertions) Len(length int, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	Len(a.t, object, length, msgAndArgs...)
+	Len(a.t, length, object, msgAndArgs...)
 }
 
 // Lenf asserts that the specified object has specific length.
 // Lenf also fails if the object has a type that len() not accept.
 //
 //    a.Lenf(mySlice, 3, "error message %s", "formatted")
-func (a *Assertions) Lenf(object interface{}, length int, msg string, args ...interface{}) {
+func (a *Assertions) Lenf(length int, object interface{}, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	Lenf(a.t, object, length, msg, args...)
+	Lenf(a.t, length, object, msg, args...)
 }
 
 // Less asserts that the first element is less than the second

@@ -421,11 +421,11 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 // Lenf also fails if the object has a type that len() not accept.
 //
 //    assert.Lenf(t, mySlice, 3, "error message %s", "formatted")
-func Lenf(t TestingT, object interface{}, length int, msg string, args ...interface{}) bool {
+func Lenf(t TestingT, expected int, actual interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return Len(t, object, length, append([]interface{}{msg}, args...)...)
+	return Len(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
 // Lessf asserts that the first element is less than the second
