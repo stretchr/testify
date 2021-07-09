@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -698,7 +699,8 @@ func IsType(t interface{}) *IsTypeArgument {
 // not the argument is matched by the expectation fixture function.
 type argumentMatcher struct {
 	// fn is a function which accepts one argument, and returns a bool.
-	fn reflect.Value
+	fn          reflect.Value
+	description string
 }
 
 func (f argumentMatcher) Matches(argument interface{}) bool {
@@ -728,7 +730,10 @@ func (f argumentMatcher) Matches(argument interface{}) bool {
 }
 
 func (f argumentMatcher) String() string {
-	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
+	if f.description == "" {
+		return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
+	}
+	return f.description
 }
 
 // MatchedBy can be used to match a mock call based on only certain properties
@@ -756,6 +761,50 @@ func MatchedBy(fn interface{}) argumentMatcher {
 	}
 
 	return argumentMatcher{fn: reflect.ValueOf(fn)}
+}
+
+// JSONEq can be used to check if an argument matches an expected JSON body.
+//
+// Example:
+// On("ParseContent", JSONEq(`{"name": "Foo", "age": 25}`))
+// matches:
+// - Strings: `{"age": 25, "name": "Foo"}`;
+// - A slice of bytes: []byte(`{"age": 25, "name": "Foo"}`);
+// - Any argument that when converted to JSON will match the expected JSON.
+func JSONEq(expectedJSON string) argumentMatcher {
+	var parsedExpectedJSON interface{}
+	if err := json.Unmarshal([]byte(expectedJSON), &parsedExpectedJSON); err != nil {
+		panic(fmt.Sprintf("could not parse expected argument as JSON: %v", err))
+	}
+
+	fn := func(argument interface{}) bool {
+		var objectToCompare interface{}
+		var err error
+
+		switch input := argument.(type) {
+		case string:
+			err = json.Unmarshal([]byte(input), &objectToCompare)
+		case []byte:
+			err = json.Unmarshal(input, &objectToCompare)
+		default: // Convert argument to JSON and tries to convert it to interface{} to compare
+			convertedArgument, argErr := json.Marshal(argument)
+			if argErr != nil {
+				panic(fmt.Sprintf("could not convert argument to JSON: %v", argErr))
+			}
+			err = json.Unmarshal(convertedArgument, &objectToCompare)
+		}
+
+		if err != nil {
+			panic(fmt.Sprintf("could not parse argument as JSON: %v", err))
+		}
+
+		return assert.ObjectsAreEqual(parsedExpectedJSON, objectToCompare)
+	}
+
+	return argumentMatcher{
+		fn:          reflect.ValueOf(fn),
+		description: fmt.Sprintf("JSON content `%s`)", expectedJSON),
+	}
 }
 
 // Get Returns the argument at the specified index.

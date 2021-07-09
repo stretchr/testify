@@ -1690,3 +1690,34 @@ type user interface {
 type mockUser struct{ Mock }
 
 func (m *mockUser) Use(c caller) { m.Called(c) }
+
+type jsonHandler struct{ Mock }
+
+func (m *jsonHandler) FunctionThatHandlesJSON(json interface{}) bool {
+	return m.Called(json).Bool(0)
+}
+
+func Test_MatchesJSON(t *testing.T) {
+	mock := new(jsonHandler)
+	mock.On("FunctionThatHandlesJSON", JSONEq(`{"name": "Esdras", "age": 36}`)).Return(true)
+
+	resultString := mock.FunctionThatHandlesJSON(`{"age": 36, "name": "Esdras"}`)
+	assert.True(t, resultString)
+
+	resultByte := mock.FunctionThatHandlesJSON([]byte(`{"age": 36, "name": "Esdras"}`))
+	assert.True(t, resultByte)
+
+	resultMap := mock.FunctionThatHandlesJSON(map[string]interface{}{"name": "Esdras", "age": 36})
+	assert.True(t, resultMap)
+
+	var input struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+	input.Name = "Esdras"
+	input.Age = 36
+	resultStruct := mock.FunctionThatHandlesJSON(input)
+	assert.True(t, resultStruct)
+
+	mock.AssertExpectations(t)
+}
