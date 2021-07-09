@@ -1342,6 +1342,7 @@ func TestInDelta(t *testing.T) {
 	False(t, InDelta(mockT, "", nil, 1), "Expected non numerals to fail")
 	False(t, InDelta(mockT, 42, math.NaN(), 0.01), "Expected NaN for actual to fail")
 	False(t, InDelta(mockT, math.NaN(), 42, 0.01), "Expected NaN for expected to fail")
+	True(t, InDelta(mockT, math.NaN(), math.NaN(), 0.01), "Expected NaN for both to pass")
 
 	cases := []struct {
 		a, b  interface{}
@@ -1372,19 +1373,19 @@ func TestInDeltaSlice(t *testing.T) {
 	mockT := new(testing.T)
 
 	True(t, InDeltaSlice(mockT,
-		[]float64{1.001, 0.999},
-		[]float64{1, 1},
-		0.1), "{1.001, 0.009} is element-wise close to {1, 1} in delta=0.1")
+		[]float64{1.001, math.NaN(), 0.999},
+		[]float64{1, math.NaN(), 1},
+		0.1), "{1.001, NaN, 0.009} is element-wise close to {1, NaN, 1} in delta=0.1")
 
 	True(t, InDeltaSlice(mockT,
-		[]float64{1, 2},
-		[]float64{0, 3},
-		1), "{1, 2} is element-wise close to {0, 3} in delta=1")
+		[]float64{1, math.NaN(), 2},
+		[]float64{0, math.NaN(), 3},
+		1), "{1, NaN, 2} is element-wise close to {0, NaN, 3} in delta=1")
 
 	False(t, InDeltaSlice(mockT,
-		[]float64{1, 2},
-		[]float64{0, 3},
-		0.1), "{1, 2} is not element-wise close to {0, 3} in delta=0.1")
+		[]float64{1, math.NaN(), 2},
+		[]float64{0, math.NaN(), 3},
+		0.1), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
 
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
@@ -1404,10 +1405,12 @@ func TestInDeltaMapValues(t *testing.T) {
 			expect: map[string]float64{
 				"foo": 1.0,
 				"bar": 2.0,
+				"baz": math.NaN(),
 			},
 			actual: map[string]float64{
 				"foo": 1.01,
 				"bar": 1.99,
+				"baz": math.NaN(),
 			},
 			delta: 0.1,
 			f:     True,
@@ -1440,10 +1443,10 @@ func TestInDeltaMapValues(t *testing.T) {
 		{
 			title: "Within delta with zero value",
 			expect: map[string]float64{
-				"zero": 0.0,
+				"zero": 0,
 			},
 			actual: map[string]float64{
-				"zero": 0.0,
+				"zero": 0,
 			},
 			delta: 0.1,
 			f:     True,
@@ -1451,12 +1454,12 @@ func TestInDeltaMapValues(t *testing.T) {
 		{
 			title: "With missing key with zero value",
 			expect: map[string]float64{
-				"zero": 0.0,
-				"foo":  0.0,
+				"zero": 0,
+				"foo":  0,
 			},
 			actual: map[string]float64{
-				"zero": 0.0,
-				"bar":  0.0,
+				"zero": 0,
+				"bar":  0,
 			},
 			f: False,
 		},
@@ -1480,6 +1483,7 @@ func TestInEpsilon(t *testing.T) {
 		{uint64(100), uint8(101), 0.01},
 		{0.1, -0.1, 2},
 		{0.1, 0, 2},
+		{math.NaN(), math.NaN(), 1},
 		{time.Second, time.Second + time.Millisecond, 0.002},
 	}
 
@@ -1515,9 +1519,9 @@ func TestInEpsilonSlice(t *testing.T) {
 	mockT := new(testing.T)
 
 	True(t, InEpsilonSlice(mockT,
-		[]float64{2.2, 2.0},
-		[]float64{2.1, 2.1},
-		0.06), "{2.2, 2.0} is element-wise close to {2.1, 2.1} in espilon=0.06")
+		[]float64{2.2, math.NaN(), 2.0},
+		[]float64{2.1, math.NaN(), 2.1},
+		0.06), "{2.2, NaN, 2.0} is element-wise close to {2.1, NaN, 2.1} in espilon=0.06")
 
 	False(t, InEpsilonSlice(mockT,
 		[]float64{2.2, 2.0},
