@@ -619,6 +619,21 @@ func Test_Mock_Return_Run_Out_Of_Order(t *testing.T) {
 	assert.NotNil(t, call.Run)
 }
 
+func Test_Mock_Return_Func(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethod", 1, 2, 3).
+		Return(func(args Arguments) Arguments {
+			return []interface{}{42, fmt.Errorf("hrm")}
+		}).
+		Once()
+
+	answer, _ := mockedService.TheExampleMethod(1, 2, 3)
+	assert.Equal(t, 42, answer)
+}
+
 func Test_Mock_Return_Once(t *testing.T) {
 
 	// make a test impl object
