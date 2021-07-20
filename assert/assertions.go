@@ -376,7 +376,7 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 		h.Helper()
 	}
 
-	if !samePointers(expected, actual) {
+	if !samePointers(expected, actual, true) {
 		return Fail(t, fmt.Sprintf("Not same: \n"+
 			"expected: %p %#v\n"+
 			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
@@ -396,7 +396,7 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 		h.Helper()
 	}
 
-	if samePointers(expected, actual) {
+	if samePointers(expected, actual, true) {
 		return Fail(t, fmt.Sprintf(
 			"Expected and actual point to the same object: %p %#v",
 			expected, expected), msgAndArgs...)
@@ -406,19 +406,40 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 
 // samePointers compares two generic interface objects and returns whether
 // they point to the same object
-func samePointers(first, second interface{}) bool {
+func samePointers(first, second interface{}, considerType bool) bool {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
 	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
 		return false
 	}
 
-	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
-	if firstType != secondType {
-		return false
+	if considerType {
+		firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
+		if firstType != secondType {
+			return false
+		}
 	}
 
 	// compare pointer addresses
-	return first == second
+	return reflect.ValueOf(first).Pointer() == reflect.ValueOf(second).Pointer()
+}
+
+// SameAddress asserts that two pointers reference to the same address.
+//
+//    assert.SameAddress(t, ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of value only.
+func SameAddress(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if !samePointers(expected, actual, false) {
+		return Fail(t, fmt.Sprintf(
+			"Expected and actual point to the same address: %p %#v",
+			expected, expected), msgAndArgs...)
+	}
+	return true
 }
 
 // formatUnequalValues takes two values of arbitrary types and returns string
