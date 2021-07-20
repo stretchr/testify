@@ -705,6 +705,19 @@ func Samef(t TestingT, expected interface{}, actual interface{}, msg string, arg
 	return Same(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
+// SameAddressf asserts that two pointers reference to the same address.
+//
+//    assert.SameAddressf(t, ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of value only.
+func SameAddressf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return SameAddress(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
 // Subsetf asserts that the specified list(array, slice...) contains all
 // elements given in the specified subset(array, slice...).
 //

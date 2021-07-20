@@ -264,8 +264,9 @@ func Test_samePointers(t *testing.T) {
 	p := ptr(2)
 
 	type args struct {
-		first  interface{}
-		second interface{}
+		first        interface{}
+		second       interface{}
+		considerType bool
 	}
 	tests := []struct {
 		name      string
@@ -274,35 +275,63 @@ func Test_samePointers(t *testing.T) {
 	}{
 		{
 			name:      "1 != 2",
-			args:      args{first: 1, second: 2},
+			args:      args{first: 1, second: 2, considerType: true},
 			assertion: False,
 		},
 		{
 			name:      "1 != 1 (not same ptr)",
-			args:      args{first: 1, second: 1},
+			args:      args{first: 1, second: 1, considerType: true},
 			assertion: False,
 		},
 		{
 			name:      "ptr(1) == ptr(1)",
-			args:      args{first: p, second: p},
+			args:      args{first: p, second: p, considerType: true},
 			assertion: True,
 		},
 		{
 			name:      "int(1) != float32(1)",
-			args:      args{first: int(1), second: float32(1)},
+			args:      args{first: int(1), second: float32(1), considerType: true},
 			assertion: False,
 		},
 		{
 			name:      "array != slice",
-			args:      args{first: [2]int{1, 2}, second: []int{1, 2}},
+			args:      args{first: [2]int{1, 2}, second: []int{1, 2}, considerType: true},
 			assertion: False,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, samePointers(tt.args.first, tt.args.second))
+			tt.assertion(t, samePointers(tt.args.first, tt.args.second, tt.args.considerType))
 		})
 	}
+}
+
+func TestSameAddress(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if SameAddress(mockT, ptr(1), ptr(1)) {
+		t.Error("SameAddress should return false")
+	}
+	if SameAddress(mockT, 1, 1) {
+		t.Error("SameAddress should return false")
+	}
+	p := ptr(2)
+	if SameAddress(mockT, p, *p) {
+		t.Error("SameAddress should return false")
+	}
+	if !SameAddress(mockT, p, p) {
+		t.Error("SameAddress should return true")
+	}
+
+	type testStruct struct {
+		inside int
+	}
+	s := testStruct{}
+	if !SameAddress(mockT, &s, &(s.inside)) {
+		t.Error("SameAddress should return true")
+	}
+
 }
 
 // bufferT implements TestingT. Its implementation of Errorf writes the output that would be produced by
