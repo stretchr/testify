@@ -35,25 +35,53 @@ var (
 	out       = flag.String("out", "", "What file to write the source code to")
 )
 
+type Context struct {
+	files map[string]*ast.File
+	fset  *token.FileSet
+	scope *types.Scope
+	docs  *doc.Package
+
+	tags map[string]string
+}
+
 func main() {
 	flag.Parse()
 
-	scope, docs, err := parsePackageSource(*pkg)
+	var ctx Context
+
+	err := ctx.parsePackageSource(*pkg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	importer, funcs, err := analyzeCode(scope, docs)
+	funcs, err := ctx.analyzeCode()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := generateCode(importer, funcs); err != nil {
+	err = ctx.generateCode(funcs)
+	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func generateCode(importer imports.Importer, funcs []testFunc) error {
+func (c *Context) generateCode(funcs []testFunc) error {
+	tags := map[string]struct{}{}
+	for _, f := range funcs {
+		tags[f.Tags] = struct{}{}
+	}
+
+	for tag := range tags {
+		err := c.generateCodeTag(funcs, tag)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Context) generateCodeTag(funcs []testFunc, tags string) error {
 	buff := bytes.NewBuffer(nil)
 
 	tmplHead, tmplFunc, err := parseTemplates()
@@ -61,12 +89,26 @@ func generateCode(importer imports.Importer, funcs []testFunc) error {
 		return err
 	}
 
+	// Make imports for given functions set (filtered by build tags)
+	importer := imports.New(*outputPkg)
+	for _, fn := range funcs {
+		if fn.Tags != tags {
+			continue
+		}
+
+		sig := fn.TypeInfo.Type().(*types.Signature)
+
+		importer.AddImportsFrom(sig.Params())
+	}
+
 	// Generate header
 	if err := tmplHead.Execute(buff, struct {
-		Name    string
-		Imports map[string]string
+		Name      string
+		BuildTags string
+		Imports   map[string]string
 	}{
 		*outputPkg,
+		tags,
 		importer.Imports(),
 	}); err != nil {
 		return err
@@ -74,6 +116,10 @@ func generateCode(importer imports.Importer, funcs []testFunc) error {
 
 	// Generate funcs
 	for _, fn := range funcs {
+		if fn.Tags != tags {
+			continue
+		}
+
 		buff.Write([]byte("\n\n"))
 		if err := tmplFunc.Execute(buff, &fn); err != nil {
 			return err
@@ -86,7 +132,7 @@ func generateCode(importer imports.Importer, funcs []testFunc) error {
 	}
 
 	// Write file
-	output, err := outputFile()
+	output, err := outputFile(tags)
 	if err != nil {
 		return err
 	}
@@ -114,28 +160,30 @@ func parseTemplates() (*template.Template, *template.Template, error) {
 	return tmplHead, tmpl, nil
 }
 
-func outputFile() (*os.File, error) {
+func outputFile(tags string) (*os.File, error) {
 	filename := *out
 	if filename == "-" || (filename == "" && *tmplFile == "") {
 		return os.Stdout, nil
 	}
 	if filename == "" {
-		filename = strings.TrimSuffix(strings.TrimSuffix(*tmplFile, ".tmpl"), ".go") + ".go"
+		if tags != "" {
+			tags = "_" + tags
+		}
+		filename = strings.TrimSuffix(strings.TrimSuffix(*tmplFile, ".tmpl"), ".go") + tags + ".go"
 	}
 	return os.Create(filename)
 }
 
 // analyzeCode takes the types scope and the docs and returns the import
 // information and information about all the assertion functions.
-func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []testFunc, error) {
-	testingT := scope.Lookup("TestingT").Type().Underlying().(*types.Interface)
+func (c *Context) analyzeCode() ([]testFunc, error) {
+	testingT := c.scope.Lookup("TestingT").Type().Underlying().(*types.Interface)
 
-	importer := imports.New(*outputPkg)
 	var funcs []testFunc
 	// Go through all the top level functions
-	for _, fdocs := range docs.Funcs {
+	for _, fdocs := range c.docs.Funcs {
 		// Find the function
-		obj := scope.Lookup(fdocs.Name)
+		obj := c.scope.Lookup(fdocs.Name)
 
 		fn, ok := obj.(*types.Func)
 		if !ok {
@@ -164,33 +212,43 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []tes
 			continue
 		}
 
-		funcs = append(funcs, testFunc{*outputPkg, fdocs, fn})
-		importer.AddImportsFrom(sig.Params())
+		tags := c.buildTags(obj)
+
+		funcs = append(funcs, testFunc{
+			CurrentPkg: *outputPkg,
+			Tags:       tags,
+			DocInfo:    fdocs,
+			TypeInfo:   fn,
+		})
 	}
-	return importer, funcs, nil
+	return funcs, nil
 }
 
 // parsePackageSource returns the types scope and the package documentation from the package
-func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
+func (c *Context) parsePackageSource(pkg string) error {
 	pd, err := build.Import(pkg, ".", 0)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
-	fset := token.NewFileSet()
-	files := make(map[string]*ast.File)
+	c.fset = token.NewFileSet()
+	c.files = make(map[string]*ast.File)
+	c.tags = make(map[string]string)
 	fileList := make([]*ast.File, len(pd.GoFiles))
 	for i, fname := range pd.GoFiles {
 		src, err := ioutil.ReadFile(path.Join(pd.Dir, fname))
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
-		f, err := parser.ParseFile(fset, fname, src, parser.ParseComments|parser.AllErrors)
+		f, err := parser.ParseFile(c.fset, fname, src, parser.ParseComments|parser.AllErrors)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
-		files[fname] = f
+
+		c.files[fname] = f
 		fileList[i] = f
+
+		c.parseBuildTags(fname, f)
 	}
 
 	cfg := types.Config{
@@ -199,21 +257,52 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	info := types.Info{
 		Defs: make(map[*ast.Ident]types.Object),
 	}
-	tp, err := cfg.Check(pkg, fset, fileList, &info)
+	tp, err := cfg.Check(pkg, c.fset, fileList, &info)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
-	scope := tp.Scope()
+	c.scope = tp.Scope()
 
-	ap, _ := ast.NewPackage(fset, files, nil, nil)
-	docs := doc.New(ap, pkg, 0)
+	ap, _ := ast.NewPackage(c.fset, c.files, nil, nil)
+	c.docs = doc.New(ap, pkg, 0)
 
-	return scope, docs, nil
+	return nil
+}
+
+func (c *Context) buildTags(o types.Object) string {
+	tf := c.fset.File(o.Pos())
+
+	return c.tags[tf.Name()]
+}
+
+func (c *Context) parseBuildTags(fname string, f *ast.File) {
+	const pref = "// +build "
+
+	for _, g := range f.Comments {
+		for _, comm := range g.List {
+			t := comm.Text
+			if !strings.HasPrefix(t, pref) {
+				continue
+			}
+
+			t = strings.TrimPrefix(t, pref)
+			t = strings.TrimSpace(t)
+			t = strings.ReplaceAll(t, ",", "-")
+			t = strings.ReplaceAll(t, " ", "_")
+			t = strings.ReplaceAll(t, "!", "N")
+
+			c.tags[fname] = t
+			return
+		}
+	}
+
+	c.tags[fname] = ""
 }
 
 type testFunc struct {
 	CurrentPkg string
+	Tags       string
 	DocInfo    *doc.Func
 	TypeInfo   *types.Func
 }
@@ -297,17 +386,22 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 	return strings.Replace(f.Comment(), search, replace, -1)
 }
 
-var headerTemplate = `/*
+var headerTemplate = `{{ with .BuildTags }}// +build {{ . }}
+{{ end }}
+/*
 * CODE GENERATED AUTOMATICALLY WITH github.com/stretchr/testify/_codegen
 * THIS FILE MUST NOT BE EDITED BY HAND
 */
 
 package {{.Name}}
 
+{{ with .Imports }}
 import (
-{{range $path, $name := .Imports}}
+{{range $path, $name := .}}
 	{{$name}} "{{$path}}"{{end}}
 )
+{{ end }}
+{{ if ne .Name "assert" }}var _ assert.TestingT // in case no function required assert package{{ end }}
 `
 
 var funcTemplate = `{{.Comment}}
