@@ -664,6 +664,10 @@ const (
 	Anything = "mock.Anything"
 )
 
+var (
+	errorType = reflect.TypeOf((*error)(nil)).Elem()
+)
+
 // AnythingOfTypeArgument is a string that contains the type of an argument
 // for use when type checking.  Used in Diff and Assert.
 type AnythingOfTypeArgument string
@@ -702,6 +706,10 @@ type argumentMatcher struct {
 }
 
 func (f argumentMatcher) Matches(argument interface{}) bool {
+	return f.match(argument) == nil
+}
+
+func (f argumentMatcher) match(argument interface{}) error {
 	expectType := f.fn.Type().In(0)
 	expectTypeNilSupported := false
 	switch expectType.Kind() {
@@ -722,25 +730,52 @@ func (f argumentMatcher) Matches(argument interface{}) bool {
 	}
 	if argType == nil || argType.AssignableTo(expectType) {
 		result := f.fn.Call([]reflect.Value{arg})
-		return result[0].Bool()
+
+		var matchError error
+		switch {
+		case result[0].Type().Kind() == reflect.Bool:
+			if !result[0].Bool() {
+				matchError = fmt.Errorf("not matched by %s", f)
+			}
+		case result[0].Type().Implements(errorType):
+			if !result[0].IsNil() {
+				matchError = result[0].Interface().(error)
+			}
+		default:
+			panic(fmt.Errorf("matcher function of unknown type: %s", result[0].Type().Kind()))
+		}
+
+		return matchError
 	}
-	return false
+	return fmt.Errorf("unexpected type for %s", f)
 }
 
 func (f argumentMatcher) String() string {
-	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
+	return fmt.Sprintf("func(%s) %s", f.fn.Type().In(0).String(), f.fn.Type().Out(0).String())
+}
+
+func (f argumentMatcher) GoString() string {
+	return fmt.Sprintf("MatchedBy(%s)", f)
 }
 
 // MatchedBy can be used to match a mock call based on only certain properties
 // from a complex struct or some calculation. It takes a function that will be
-// evaluated with the called argument and will return true when there's a match
-// and false otherwise.
+// evaluated with the called argument and will return either a boolean (true
+// when there's a match and false otherwise) or an error (nil when there's a
+// match and error holding the failure message otherwise).
 //
-// Example:
-// m.On("Do", MatchedBy(func(req *http.Request) bool { return req.Host == "example.com" }))
+// Examples:
+//  m.On("Do", MatchedBy(func(req *http.Request) bool { return req.Host == "example.com" }))
+//
+//  m.On("Do", MatchedBy(func(req *http.Request) (err error) {
+//  	if req.Host != "example.com" {
+//  		err = errors.New("host was not example.com")
+//  	}
+//  	return
+//  })
 //
 // |fn|, must be a function accepting a single argument (of the expected type)
-// which returns a bool. If |fn| doesn't match the required signature,
+// which returns a bool or error. If |fn| doesn't match the required signature,
 // MatchedBy() panics.
 func MatchedBy(fn interface{}) argumentMatcher {
 	fnType := reflect.TypeOf(fn)
@@ -751,8 +786,9 @@ func MatchedBy(fn interface{}) argumentMatcher {
 	if fnType.NumIn() != 1 {
 		panic(fmt.Sprintf("assert: arguments: %s does not take exactly one argument", fn))
 	}
-	if fnType.NumOut() != 1 || fnType.Out(0).Kind() != reflect.Bool {
-		panic(fmt.Sprintf("assert: arguments: %s does not return a bool", fn))
+
+	if fnType.NumOut() != 1 || (fnType.Out(0).Kind() != reflect.Bool && !fnType.Out(0).Implements(errorType)) {
+		panic(fmt.Sprintf("assert: arguments: %s does not return a bool or a error", fn))
 	}
 
 	return argumentMatcher{fn: reflect.ValueOf(fn)}
@@ -812,11 +848,11 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
-			if matcher.Matches(actual) {
+			if matchError := matcher.match(actual); matchError == nil {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
 				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
+				output = fmt.Sprintf("%s\t%d: FAIL:  %s %s\n", output, i, actualFmt, matchError)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 

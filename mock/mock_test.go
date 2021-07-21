@@ -1346,11 +1346,36 @@ func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 
 	diff, count = args.Diff([]interface{}{"string", false, true})
 	assert.Equal(t, 1, count)
-	assert.Contains(t, diff, `(bool=false) not matched by func(int) bool`)
+	assert.Contains(t, diff, `(bool=false) unexpected type for func(int) bool`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, false})
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `(int=123) matched by func(int) bool`)
+
+	diff, count = args.Diff([]interface{}{"string", 123, true})
+	assert.Equal(t, 0, count)
+	assert.Contains(t, diff, `No differences.`)
+}
+
+func Test_Arguments_Diff_WithArgMatcherReturningError(t *testing.T) {
+	matchFn := func(a int) (err error) {
+		if a != 123 {
+			err = errors.New("did not match")
+		}
+		return
+	}
+	var args = Arguments([]interface{}{"string", MatchedBy(matchFn), true})
+
+	diff, count := args.Diff([]interface{}{"string", 124, true})
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(int=124) did not match`)
+
+	diff, count = args.Diff([]interface{}{"string", false, true})
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(bool=false) unexpected type for func(int) error`)
+
+	diff, count = args.Diff([]interface{}{"string", 123, false})
+	assert.Contains(t, diff, `(int=123) matched by func(int) error`)
 
 	diff, count = args.Diff([]interface{}{"string", 123, true})
 	assert.Equal(t, 0, count)
@@ -1541,7 +1566,7 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(
-				`\s+mock: Unexpected Method Call\s+-*\s+GetTime\(int\)\s+0: 1\s+The closest call I have is:\s+GetTime\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(int=1\) not matched by func\(int\) bool`)
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTime\(int\)\s+0: 1\s+The closest call I have is:\s+GetTime\(mock.argumentMatcher\)\s+0: MatchedBy\(func\(int\) bool\)\s+Diff:.*\(int=1\) not matched by func\(int\) bool`)
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
