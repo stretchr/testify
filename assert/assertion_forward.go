@@ -1386,6 +1386,32 @@ func (a *Assertions) Same(expected interface{}, actual interface{}, msgAndArgs .
 	return Same(a.t, expected, actual, msgAndArgs...)
 }
 
+// SameAddress asserts that two pointers reference to the same address.
+//
+//    a.SameAddress(ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of value only.
+func (a *Assertions) SameAddress(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return SameAddress(a.t, expected, actual, msgAndArgs...)
+}
+
+// SameAddressf asserts that two pointers reference to the same address.
+//
+//    a.SameAddressf(ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of value only.
+func (a *Assertions) SameAddressf(expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return SameAddressf(a.t, expected, actual, msg, args...)
+}
+
 // Samef asserts that two pointers reference the same object.
 //
 //    a.Samef(ptr1, ptr2, "error message %s", "formatted")
