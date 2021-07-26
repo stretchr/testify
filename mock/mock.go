@@ -457,7 +457,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 			m.fail("mock: Unexpected Method Call\n-----------------------------\n\n%s\n\nMust not be called before%s:\n\n%s",
 				callString(call.Method, call.Arguments, true),
 				func() (s string) {
-					if requirement.Repeatability+requirement.totalCalls > 1 {
+					if requirement.totalCalls > 0 {
 						s = " another call of"
 					}
 					if call.Parent != requirement.Parent {

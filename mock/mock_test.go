@@ -738,7 +738,7 @@ func Test_Mock_Return_NotBefore_Out_Of_Order(t *testing.T) {
 
 	b := mockedService.
 		On("TheExampleMethod", 1, 2, 3).
-		Return(4, nil)
+		Return(4, nil).Twice()
 	c := mockedService.
 		On("TheExampleMethod2", true).
 		Return().
