@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -168,40 +170,64 @@ type SuiteTester struct {
 
 	TimeBefore []time.Time
 	TimeAfter  []time.Time
+
+	SuiteT      *testing.T
+	SuiteGroupT *testing.T
+	TestT       map[string]*testing.T
 }
 
 // The SetupSuite method will be run by testify once, at the very
 // start of the testing suite, before any tests are run.
 func (suite *SuiteTester) SetupSuite() {
 	suite.SetupSuiteRunCount++
+	suite.SuiteGroupT = suite.T()
 }
 
 func (suite *SuiteTester) BeforeTest(suiteName, testName string) {
 	suite.SuiteNameBefore = append(suite.SuiteNameBefore, suiteName)
 	suite.TestNameBefore = append(suite.TestNameBefore, testName)
 	suite.TimeBefore = append(suite.TimeBefore, time.Now())
+	suite.TestT[testName] = suite.T()
 }
 
 func (suite *SuiteTester) AfterTest(suiteName, testName string) {
 	suite.SuiteNameAfter = append(suite.SuiteNameAfter, suiteName)
 	suite.TestNameAfter = append(suite.TestNameAfter, testName)
 	suite.TimeAfter = append(suite.TimeAfter, time.Now())
+	// T should be from the sub-test
+	assert.True(suite.T(), suite.TestT[testName] == suite.T())
 }
 
 // The TearDownSuite method will be run by testify once, at the very
 // end of the testing suite, after all tests have been run.
 func (suite *SuiteTester) TearDownSuite() {
 	suite.TearDownSuiteRunCount++
+	// T should be from the suite
+	assert.True(suite.T(), suite.SuiteT == suite.T())
 }
 
 // The SetupTest method will be run before every test in the suite.
 func (suite *SuiteTester) SetupTest() {
 	suite.SetupTestRunCount++
+	var subSuites []*testing.T
+	for _, value := range suite.TestT {
+		subSuites = append(subSuites, value)
+	}
+	// T should be from one of the tests, not suite
+	assert.Contains(suite.T(), subSuites, suite.T())
+	assert.False(suite.T(), suite.SuiteT == suite.T() || suite.SuiteGroupT == suite.T())
 }
 
 // The TearDownTest method will be run after every test in the suite.
 func (suite *SuiteTester) TearDownTest() {
 	suite.TearDownTestRunCount++
+	var subSuites []*testing.T
+	for _, value := range suite.TestT {
+		subSuites = append(subSuites, value)
+	}
+	// T should be from one of the tests, not suite
+	assert.Contains(suite.T(), subSuites, suite.T())
+	assert.False(suite.T(), suite.SuiteT == suite.T() || suite.SuiteGroupT == suite.T())
 }
 
 // Every method in a testing suite that begins with "Test" will be run
@@ -213,6 +239,8 @@ func (suite *SuiteTester) TestOne() {
 	suite.TestOneRunCount++
 	assert.Equal(suite.T(), suite.TestOneRunCount, beforeCount+1)
 	suite.Equal(suite.TestOneRunCount, beforeCount+1)
+	// T should be from the right test
+	assert.True(suite.T(), suite.T() == suite.TestT["TestOne"])
 }
 
 // TestTwo is another example of a test.
@@ -221,10 +249,14 @@ func (suite *SuiteTester) TestTwo() {
 	suite.TestTwoRunCount++
 	assert.NotEqual(suite.T(), suite.TestTwoRunCount, beforeCount)
 	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
+	// T should be from the right test
+	assert.True(suite.T(), suite.T() == suite.TestT["TestTwo"])
 }
 
 func (suite *SuiteTester) TestSkip() {
 	suite.T().Skip()
+	// T should be from the right test
+	assert.True(suite.T(), suite.T() == suite.TestT["TestSkip"])
 }
 
 // NonTestMethod does not begin with "Test", so it will not be run by
@@ -236,6 +268,9 @@ func (suite *SuiteTester) NonTestMethod() {
 
 func (suite *SuiteTester) TestSubtest() {
 	suite.TestSubtestRunCount++
+
+	// T should be from the right test
+	assert.True(suite.T(), suite.T() == suite.TestT["TestSubtest"])
 
 	for _, t := range []struct {
 		testName string
@@ -282,7 +317,10 @@ func (suite *SuiteSkipTester) TearDownSuite() {
 // TestRunSuite will be run by the 'go test' command, so within it, we
 // can run our suite using the Run(*testing.T, TestingSuite) function.
 func TestRunSuite(t *testing.T) {
-	suiteTester := new(SuiteTester)
+	suiteTester := &SuiteTester{
+		TestT:  make(map[string]*testing.T),
+		SuiteT: t,
+	}
 	Run(t, suiteTester)
 
 	// Normally, the test would end here.  The following are simply
@@ -343,11 +381,10 @@ func TestRunSuite(t *testing.T) {
 	suiteSkipTester := new(SuiteSkipTester)
 	Run(t, suiteSkipTester)
 
-	// The suite was only run once, so the SetupSuite and TearDownSuite
-	// methods should have each been run only once, even though SetupSuite
-	// called Skip()
+	// The suite was only run once, so SetupSuite method should have been
+	// run only once. Since SetupSuite called Skip(), Teardown isn't called.
 	assert.Equal(t, suiteSkipTester.SetupSuiteRunCount, 1)
-	assert.Equal(t, suiteSkipTester.TearDownSuiteRunCount, 1)
+	assert.Equal(t, suiteSkipTester.TearDownSuiteRunCount, 0)
 
 }
 
@@ -380,7 +417,7 @@ func TestSkippingSuiteSetup(t *testing.T) {
 
 func TestSuiteGetters(t *testing.T) {
 	suite := new(SuiteTester)
-	suite.SetT(t)
+	suite.setT(t)
 	assert.NotNil(t, suite.Assert())
 	assert.Equal(t, suite.Assertions, suite.Assert())
 	assert.NotNil(t, suite.Require())
@@ -470,6 +507,7 @@ func (s *CallOrderSuite) TearDownSuite() {
 	s.call("TearDownSuite")
 	assert.Equal(s.T(), "SetupSuite;SetupTest;Test A;TearDownTest;SetupTest;Test B;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
 }
+
 func (s *CallOrderSuite) SetupTest() {
 	s.call("SetupTest")
 }
@@ -586,4 +624,87 @@ func (s *FailfastSuite) Test_A_Fails() {
 func (s *FailfastSuite) Test_B_Passes() {
 	s.call("Test B Passes")
 	s.Require().True(true)
+}
+
+type parallelSuiteData struct {
+	calls          []string
+	callsIndex     map[string]int
+	parallelSuiteT map[string]*parallelSuite
+}
+
+type parallelSuite struct {
+	Suite
+	mutex *sync.Mutex
+	data  *parallelSuiteData
+}
+
+func (s *parallelSuite) call(method string) {
+	time.Sleep(time.Duration(rand.Intn(300)) * time.Millisecond)
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.data.calls = append(s.data.calls, method)
+	s.data.callsIndex[method] = len(s.data.calls) - 1
+}
+
+func (s *parallelSuite) Copy() TestingSuite {
+	// shallow copy since data is protected by mutex anyway
+	c := *s
+	return &c
+}
+
+func TestSuiteParallel(t *testing.T) {
+	data := parallelSuiteData{
+		calls:          []string{},
+		callsIndex:     make(map[string]int, 8),
+		parallelSuiteT: make(map[string]*parallelSuite, 2),
+	}
+	s := &parallelSuite{mutex: &sync.Mutex{}, data: &data}
+	Run(t, s)
+}
+
+func (s *parallelSuite) SetupSuite() {
+	s.call("SetupSuite")
+}
+
+func (s *parallelSuite) TearDownSuite() {
+	s.call("TearDownSuite")
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	// first 3 calls and last call is known ordering
+	assert.Equal(s.T(), []string{"SetupSuite", "BeforeTest Test_A", "BeforeTest Test_B"}, s.data.calls[:3])
+	assert.Equal(s.T(), "TearDownSuite", s.data.calls[len(s.data.calls)-1])
+	// should have these calls
+	assert.Subset(s.T(), s.data.calls, []string{"Test_A", "AfterTest Test_A", "Test_B", "AfterTest Test_B"})
+	// there won't be any other ordering guarantees between tests A and B since they are run in parallel,
+	// but verify that AfterTest is run after the test
+	assert.Greater(s.T(), s.data.callsIndex["AfterTest Test_A"], s.data.callsIndex["Test_A"])
+	assert.Greater(s.T(), s.data.callsIndex["AfterTest Test_B"], s.data.callsIndex["Test_B"])
+	// verify that copies of s are created correctly
+	assert.NotEqual(s.T(), s, s.data.parallelSuiteT["Test_A"])
+	assert.NotEqual(s.T(), s, s.data.parallelSuiteT["Test_B"])
+	assert.NotEqual(s.T(), s.data.parallelSuiteT["Test_A"], s.data.parallelSuiteT["Test_B"])
+}
+
+func (s *parallelSuite) BeforeTest(suiteName, testName string) {
+	s.call(fmt.Sprintf("BeforeTest %s", testName))
+}
+
+func (s *parallelSuite) AfterTest(suiteName, testName string) {
+	s.call(fmt.Sprintf("AfterTest %s", testName))
+}
+
+func (s *parallelSuite) Test_A() {
+	s.T().Parallel()
+	s.call("Test_A")
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.data.parallelSuiteT["Test_A"] = s
+}
+
+func (s *parallelSuite) Test_B() {
+	s.T().Parallel()
+	s.call("Test_B")
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.data.parallelSuiteT["Test_B"] = s
 }

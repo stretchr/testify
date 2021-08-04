@@ -6,10 +6,7 @@
 // implement).
 //
 // A testing suite is usually built by first extending the built-in
-// suite functionality from suite.Suite in testify.  Alternatively,
-// you could reproduce that logic on your own if you wanted (you
-// just need to implement the TestingSuite interface from
-// suite/interfaces.go).
+// suite functionality from suite.Suite in testify.
 //
 // After that, you can implement any of the interfaces in
 // suite/interfaces.go to add setup/teardown functionality to your
@@ -22,6 +19,10 @@
 // (using suite.Run from testify) inside any function that matches the
 // identity that "go test" is already looking for (i.e.
 // func(*testing.T)).
+//
+// To be able to run parallel sub-tests, your testing suite should
+// implement "CopySuite". This may or may not be a deepcopy depending
+// on the fields in the struct.
 //
 // Regular expression to select test suites specified command-line
 // argument "-run". Regular expression to select the methods

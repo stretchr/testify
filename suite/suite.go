@@ -30,11 +30,20 @@ func (suite *Suite) T() *testing.T {
 	return suite.t
 }
 
-// SetT sets the current *testing.T context.
-func (suite *Suite) SetT(t *testing.T) {
+// setT sets the current *testing.T context.
+func (suite *Suite) setT(t *testing.T) {
+	if suite.t != nil {
+		panic("suite.t already set, can't overwrite")
+	}
 	suite.t = t
 	suite.Assertions = assert.New(t)
 	suite.require = require.New(t)
+}
+
+func (suite *Suite) clearT() {
+	suite.t = nil
+	suite.Assertions = nil
+	suite.require = nil
 }
 
 // Require returns a require context for suite.
@@ -69,11 +78,16 @@ func failOnPanic(t *testing.T) {
 // called in place of t.Run(name, func(t *testing.T)) in test suite code.
 // The passed-in func will be executed as a subtest with a fresh instance of t.
 // Provides compatibility with go test pkg -run TestSuite/TestName/SubTestName.
+// Deprecated: This method doesn't handle parallel sub-tests and will be removed in v2.
 func (suite *Suite) Run(name string, subtest func()) bool {
 	oldT := suite.T()
-	defer suite.SetT(oldT)
+	defer func() {
+		suite.clearT()
+		suite.setT(oldT)
+	}()
 	return oldT.Run(name, func(t *testing.T) {
-		suite.SetT(t)
+		suite.clearT()
+		suite.setT(t)
 		subtest()
 	})
 }
@@ -82,8 +96,6 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
 	defer failOnPanic(t)
-
-	suite.SetT(t)
 
 	var suiteSetupDone bool
 
@@ -96,84 +108,95 @@ func Run(t *testing.T, suite TestingSuite) {
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
 
-	for i := 0; i < methodFinder.NumMethod(); i++ {
-		method := methodFinder.Method(i)
+	t.Run("All", func(t *testing.T) {
+		defer failOnPanic(t)
 
-		ok, err := methodFilter(method.Name)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
-			os.Exit(1)
-		}
+		suite.setT(t)
 
-		if !ok {
-			continue
-		}
+		for i := 0; i < methodFinder.NumMethod(); i++ {
+			method := methodFinder.Method(i)
 
-		if !suiteSetupDone {
-			if stats != nil {
-				stats.Start = time.Now()
+			ok, err := methodFilter(method.Name)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
+				os.Exit(1)
 			}
 
-			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-				setupAllSuite.SetupSuite()
+			if !ok {
+				continue
 			}
 
-			suiteSetupDone = true
-		}
-
-		test := testing.InternalTest{
-			Name: method.Name,
-			F: func(t *testing.T) {
-				parentT := suite.T()
-				suite.SetT(t)
-				defer failOnPanic(t)
-				defer func() {
-					if stats != nil {
-						passed := !t.Failed()
-						stats.end(method.Name, passed)
-					}
-
-					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(suiteName, method.Name)
-					}
-
-					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-						tearDownTestSuite.TearDownTest()
-					}
-
-					suite.SetT(parentT)
-				}()
-
-				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-					setupTestSuite.SetupTest()
-				}
-				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-				}
-
+			if !suiteSetupDone {
 				if stats != nil {
-					stats.start(method.Name)
+					stats.Start = time.Now()
 				}
 
-				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
-			},
+				if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+					setupAllSuite.SetupSuite()
+				}
+
+				suiteSetupDone = true
+			}
+
+			test := testing.InternalTest{
+				Name: method.Name,
+				F: func(t *testing.T) {
+					defer failOnPanic(t)
+					childSuite := suite
+					if c, ok := suite.(CopySuite); ok {
+						childSuite = c.Copy()
+						childSuite.clearT()
+					}
+					childSuite.setT(t)
+					defer func() {
+						if _, ok := suite.(CopySuite); !ok {
+							defer suite.clearT()
+						}
+						if stats != nil {
+							passed := !t.Failed()
+							stats.end(method.Name, passed)
+						}
+
+						if tearDownTestSuite, ok := childSuite.(TearDownTestSuite); ok {
+							tearDownTestSuite.TearDownTest()
+						}
+
+						if afterTestSuite, ok := childSuite.(AfterTest); ok {
+							afterTestSuite.AfterTest(suiteName, method.Name)
+						}
+					}()
+
+					if beforeTestSuite, ok := childSuite.(BeforeTest); ok {
+						beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+					}
+					if setupTestSuite, ok := childSuite.(SetupTestSuite); ok {
+						setupTestSuite.SetupTest()
+					}
+
+					if stats != nil {
+						stats.start(method.Name)
+					}
+
+					method.Func.Call([]reflect.Value{reflect.ValueOf(childSuite)})
+				},
+			}
+			tests = append(tests, test)
 		}
-		tests = append(tests, test)
-	}
+
+		suite.clearT()
+		runTests(t, tests)
+	})
 	if suiteSetupDone {
-		defer func() {
-			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-				tearDownAllSuite.TearDownSuite()
-			}
+		suite.setT(t)
+		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+			tearDownAllSuite.TearDownSuite()
+		}
 
-			if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-				stats.End = time.Now()
-				suiteWithStats.HandleStats(suiteName, stats)
-			}
-		}()
+		if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+			stats.End = time.Now()
+			suiteWithStats.HandleStats(suiteName, stats)
+		}
 	}
-
-	runTests(t, tests)
 }
 
 // Filtering method according to set regular expression
@@ -185,25 +208,13 @@ func methodFilter(name string) (bool, error) {
 	return regexp.MatchString(*matchMethod, name)
 }
 
-func runTests(t testing.TB, tests []testing.InternalTest) {
+func runTests(t *testing.T, tests []testing.InternalTest) {
 	if len(tests) == 0 {
 		t.Log("warning: no tests to run")
 		return
 	}
 
-	r, ok := t.(runner)
-	if !ok { // backwards compatibility with Go 1.6 and below
-		if !testing.RunTests(allTestsFilter, tests) {
-			t.Fail()
-		}
-		return
-	}
-
 	for _, test := range tests {
-		r.Run(test.Name, test.F)
+		t.Run(test.Name, test.F)
 	}
-}
-
-type runner interface {
-	Run(name string, f func(t *testing.T)) bool
 }
