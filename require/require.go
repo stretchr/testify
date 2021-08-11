@@ -1052,6 +1052,40 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	t.FailNow()
 }
 
+// JSONPartialEq asserts that the expected JSON construct exists within
+// the actual. Note that while the order of the properties does not
+// matter, the order of elements within an array does matter. This can
+// be circumvented by using an empty map to properly offset the expected.
+//
+//    assert.JSONPartialEq(t, `{"foo": {"foo": "bar"}}`, `{"hello": "world", "foo": {"foo": "bar", "hello": "world"}}`)
+//    assert.JSONPartialEq(t, `{"foo": [{}, {"hello": "world"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`)
+func JSONPartialEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JSONPartialEq(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// JSONPartialEqf asserts that the expected JSON construct exists within
+// the actual. Note that while the order of the properties does not
+// matter, the order of elements within an array does matter. This can
+// be circumvented by using an empty map to properly offset the expected.
+//
+//    assert.JSONPartialEqf(t, `{"foo": {"foo": "bar"}}`, `{"hello": "world", "foo": {"foo": "bar", "hello": "world"}}`, "error message %s", "formatted")
+//    assert.JSONPartialEqf(t, `{"foo": [{}, {"hello": "world"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`, "error message %s", "formatted")
+func JSONPartialEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JSONPartialEqf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //

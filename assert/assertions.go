@@ -1565,6 +1565,65 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
+// JSONPartialEq asserts that the expected JSON construct exists within
+// the actual. Note that while the order of the properties does not
+// matter, the order of elements within an array does matter. This can
+// be circumvented by using an empty map to properly offset the expected.
+//
+//    assert.JSONPartialEq(t, `{"foo": {"foo": "bar"}}`, `{"hello": "world", "foo": {"foo": "bar", "hello": "world"}}`)
+//    assert.JSONPartialEq(t, `{"foo": [{}, {"hello": "world"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`)
+func JSONPartialEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	var expectedJSONAsInterface, actualJSONAsInterface interface{}
+
+	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
+		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
+	}
+
+	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
+		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
+	}
+
+	prune(&actualJSONAsInterface, &expectedJSONAsInterface)
+
+	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
+}
+
+// Remove all map key/values that exist in `a` but not in `b`
+// (unordered), and remove all array elements that exist in `a`
+// but not in `b` (ordered).
+func prune(a, b *interface{}) {
+	switch aTyped := (*a).(type) {
+	case map[string]interface{}:
+		for k, aValue := range aTyped {
+			if bMap, ok := (*b).(map[string]interface{}); ok {
+				if bValue, ok := bMap[k]; ok {
+					prune(&aValue, &bValue)
+					aTyped[k] = aValue
+				} else {
+					delete(aTyped, k)
+				}
+			}
+		}
+	case []interface{}:
+		temp := []interface{}{}
+
+		for i, aValue := range aTyped {
+			if bArray, ok := (*b).([]interface{}); ok {
+				if len(bArray) > i {
+					prune(&aValue, &bArray[i])
+					temp = append(temp, aValue)
+				}
+			}
+		}
+
+		*a = temp
+	}
+}
+
 // YAMLEq asserts that two YAML strings are equivalent.
 func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
