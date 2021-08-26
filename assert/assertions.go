@@ -1598,8 +1598,8 @@ func JSONPartialEq(t TestingT, expected string, actual string, msgAndArgs ...int
 func prune(a, b *interface{}) {
 	switch aTyped := (*a).(type) {
 	case map[string]interface{}:
-		for k, aValue := range aTyped {
-			if bMap, ok := (*b).(map[string]interface{}); ok {
+		if bMap, ok := (*b).(map[string]interface{}); ok {
+			for k, aValue := range aTyped {
 				if bValue, ok := bMap[k]; ok {
 					prune(&aValue, &bValue)
 					aTyped[k] = aValue
