@@ -1611,8 +1611,8 @@ func prune(a, b *interface{}) {
 	case []interface{}:
 		temp := []interface{}{}
 
-		for i, aValue := range aTyped {
-			if bArray, ok := (*b).([]interface{}); ok {
+		if bArray, ok := (*b).([]interface{}); ok {
+			for i, aValue := range aTyped {
 				if len(bArray) > i {
 					prune(&aValue, &bArray[i])
 					temp = append(temp, aValue)
