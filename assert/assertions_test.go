@@ -1873,8 +1873,7 @@ func TestJSONPartialEq_EquivalentButNotEqual(t *testing.T) {
 
 func TestJSONPartialEq_HashOfArraysAndHashes(t *testing.T) {
 	mockT := new(testing.T)
-	True(t, JSONPartialEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
-		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}"))
+	True(t, JSONPartialEq(mockT, `{"numeric": 1.5, "array": [{"foo": "bar"}, 1, "string", ["nested", "array", 5.5]], "hash": {"nested": "hash", "nested_slice": ["this", "is", "nested"]}, "string": "foo"}`, `{"numeric": 1.5, "hash": {"nested": "hash", "nested_slice": ["this", "is", "nested"]}, "string": "foo", "array": [{"foo": "bar"}, 1, "string", ["nested", "array", 5.5]]}`))
 }
 
 func TestJSONPartialEq_Array(t *testing.T) {
