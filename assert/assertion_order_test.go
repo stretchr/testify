@@ -2,6 +2,7 @@ package assert
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -43,10 +44,13 @@ func TestIsIncreasing(t *testing.T) {
 		{collection: []uint64{2, 1}, msg: `"2" is not less than "1"`},
 		{collection: []float32{2.34, 1.23}, msg: `"2.34" is not less than "1.23"`},
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than "1.23"`},
+		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
-		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, IsIncreasing(out, currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {
+			out := &outputT{buf: bytes.NewBuffer(nil)}
+			False(t, IsIncreasing(out, currCase.collection))
+			Contains(t, out.buf.String(), currCase.msg)
+		})
 	}
 }
 
@@ -88,10 +92,13 @@ func TestIsNonIncreasing(t *testing.T) {
 		{collection: []uint64{1, 2}, msg: `"1" is not greater than or equal to "2"`},
 		{collection: []float32{1.23, 2.34}, msg: `"1.23" is not greater than or equal to "2.34"`},
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than or equal to "2.34"`},
+		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
-		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, IsNonIncreasing(out, currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {
+			out := &outputT{buf: bytes.NewBuffer(nil)}
+			False(t, IsNonIncreasing(out, currCase.collection))
+			Contains(t, out.buf.String(), currCase.msg)
+		})
 	}
 }
 
@@ -133,10 +140,13 @@ func TestIsDecreasing(t *testing.T) {
 		{collection: []uint64{1, 2}, msg: `"1" is not greater than "2"`},
 		{collection: []float32{1.23, 2.34}, msg: `"1.23" is not greater than "2.34"`},
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than "2.34"`},
+		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
-		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, IsDecreasing(out, currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {
+			out := &outputT{buf: bytes.NewBuffer(nil)}
+			False(t, IsDecreasing(out, currCase.collection))
+			Contains(t, out.buf.String(), currCase.msg)
+		})
 	}
 }
 
@@ -178,10 +188,13 @@ func TestIsNonDecreasing(t *testing.T) {
 		{collection: []uint64{2, 1}, msg: `"2" is not less than or equal to "1"`},
 		{collection: []float32{2.34, 1.23}, msg: `"2.34" is not less than or equal to "1.23"`},
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than or equal to "1.23"`},
+		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
-		out := &outputT{buf: bytes.NewBuffer(nil)}
-		False(t, IsNonDecreasing(out, currCase.collection))
-		Contains(t, out.buf.String(), currCase.msg)
+		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {
+			out := &outputT{buf: bytes.NewBuffer(nil)}
+			False(t, IsNonDecreasing(out, currCase.collection))
+			Contains(t, out.buf.String(), currCase.msg)
+		})
 	}
 }
 
