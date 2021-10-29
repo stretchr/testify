@@ -9,7 +9,7 @@ import (
 func isOrdered(t TestingT, object interface{}, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
 	objKind := reflect.TypeOf(object).Kind()
 	if objKind != reflect.Slice && objKind != reflect.Array {
-		return false
+		return Fail(t, fmt.Sprintf("object %T is not a collection", object), msgAndArgs...)
 	}
 
 	objValue := reflect.ValueOf(object)
