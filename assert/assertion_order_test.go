@@ -6,6 +6,14 @@ import (
 	"testing"
 )
 
+type sortInterface struct {
+	content []int
+}
+
+func (s *sortInterface) Len() int           { return len(s.content) }
+func (s *sortInterface) Swap(i, j int)      { s.content[i], s.content[j] = s.content[j], s.content[i] }
+func (s *sortInterface) Less(i, j int) bool { return s.content[i] < s.content[j] }
+
 func TestIsIncreasing(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -23,6 +31,10 @@ func TestIsIncreasing(t *testing.T) {
 
 	if IsIncreasing(mockT, []int{2, 1}) {
 		t.Error("IsIncreasing should return false")
+	}
+
+	if !IsIncreasing(mockT, &sortInterface{[]int{1, 2, 4}}) {
+		t.Error("IsIncreasing should return true")
 	}
 
 	// Check error report
@@ -44,6 +56,8 @@ func TestIsIncreasing(t *testing.T) {
 		{collection: []uint64{2, 1}, msg: `"2" is not less than "1"`},
 		{collection: []float32{2.34, 1.23}, msg: `"2.34" is not less than "1.23"`},
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than "1.23"`},
+		{collection: &sortInterface{[]int{2, 1}}, msg: `element 0 is not less than element 1`},
+		{collection: &sortInterface{[]int{1, 1}}, msg: `element 0 is not less than element 1`},
 		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
 		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {
@@ -73,6 +87,10 @@ func TestIsNonIncreasing(t *testing.T) {
 		t.Error("IsNonIncreasing should return false")
 	}
 
+	if !IsNonIncreasing(mockT, &sortInterface{[]int{10, 9, 9, 2}}) {
+		t.Error("IsNonIncreasing should return true")
+	}
+
 	// Check error report
 	for _, currCase := range []struct {
 		collection interface{}
@@ -92,6 +110,7 @@ func TestIsNonIncreasing(t *testing.T) {
 		{collection: []uint64{1, 2}, msg: `"1" is not greater than or equal to "2"`},
 		{collection: []float32{1.23, 2.34}, msg: `"1.23" is not greater than or equal to "2.34"`},
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than or equal to "2.34"`},
+		{collection: &sortInterface{[]int{1, 2}}, msg: `element 0 is not greater than or equal to element 1`},
 		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
 		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {
@@ -121,6 +140,10 @@ func TestIsDecreasing(t *testing.T) {
 		t.Error("IsDecreasing should return false")
 	}
 
+	if !IsDecreasing(mockT, &sortInterface{[]int{4, 2, 1}}) {
+		t.Error("IsDecreasing should return true")
+	}
+
 	// Check error report
 	for _, currCase := range []struct {
 		collection interface{}
@@ -140,6 +163,8 @@ func TestIsDecreasing(t *testing.T) {
 		{collection: []uint64{1, 2}, msg: `"1" is not greater than "2"`},
 		{collection: []float32{1.23, 2.34}, msg: `"1.23" is not greater than "2.34"`},
 		{collection: []float64{1.23, 2.34}, msg: `"1.23" is not greater than "2.34"`},
+		{collection: &sortInterface{[]int{1, 2}}, msg: `element 0 is not greater than element 1`},
+		{collection: &sortInterface{[]int{1, 1}}, msg: `element 0 is not greater than element 1`},
 		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
 		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {
@@ -169,6 +194,18 @@ func TestIsNonDecreasing(t *testing.T) {
 		t.Error("IsNonDecreasing should return false")
 	}
 
+	if !IsNonDecreasing(mockT, &sortInterface{[]int{1, 2, 2, 10}}) {
+		t.Error("IsNonDecreasing should return true")
+	}
+
+	if !IsNonDecreasing(mockT, &sortInterface{[]int{1}}) {
+		t.Error("IsNonDecreasing should return true")
+	}
+
+	if !IsNonDecreasing(mockT, &sortInterface{[]int{}}) {
+		t.Error("IsNonDecreasing should return true")
+	}
+
 	// Check error report
 	for _, currCase := range []struct {
 		collection interface{}
@@ -188,6 +225,7 @@ func TestIsNonDecreasing(t *testing.T) {
 		{collection: []uint64{2, 1}, msg: `"2" is not less than or equal to "1"`},
 		{collection: []float32{2.34, 1.23}, msg: `"2.34" is not less than or equal to "1.23"`},
 		{collection: []float64{2.34, 1.23}, msg: `"2.34" is not less than or equal to "1.23"`},
+		{collection: &sortInterface{[]int{2, 1}}, msg: `element 0 is not less than or equal to element 1`},
 		{collection: struct{}{}, msg: `object struct {} is not a collection`},
 	} {
 		t.Run(fmt.Sprintf("%#v", currCase.collection), func(t *testing.T) {

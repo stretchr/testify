@@ -3,10 +3,15 @@ package assert
 import (
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 // isOrdered checks that collection contains orderable elements.
 func isOrdered(t TestingT, object interface{}, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
+	if objSortInterface, ok := object.(sort.Interface); ok {
+		return isOrderedSortInterface(t, objSortInterface, allowedComparesResults, failMessage, msgAndArgs...)
+	}
+
 	objKind := reflect.TypeOf(object).Kind()
 	if objKind != reflect.Slice && objKind != reflect.Array {
 		return Fail(t, fmt.Sprintf("object %T is not a collection", object), msgAndArgs...)
@@ -37,8 +42,41 @@ func isOrdered(t TestingT, object interface{}, allowedComparesResults []CompareT
 		}
 
 		if !containsValue(allowedComparesResults, compareResult) {
-			return Fail(t, fmt.Sprintf(failMessage, prevValue, value), msgAndArgs...)
+			return Fail(t, fmt.Sprintf(`"%v"`+failMessage+`"%v"`, prevValue, value), msgAndArgs...)
 		}
+	}
+
+	return true
+}
+
+// isOrderedSortInterface checks that sort.Interface collection contains orderable elements.
+func isOrderedSortInterface(t TestingT, object sort.Interface, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
+	allowLess, allowGreater, allowEqual := false, false, false
+	for _, comparison := range allowedComparesResults {
+		switch comparison {
+		case compareLess:
+			allowLess = true
+		case compareGreater:
+			allowGreater = true
+		case compareEqual:
+			allowEqual = true
+		}
+	}
+
+	n := object.Len()
+	for i := n - 1; i > 0; i-- {
+		if allowLess && object.Less(i-1, i) {
+			continue
+		}
+		if allowGreater && object.Less(i, i-1) {
+			continue
+		}
+		// if allowLess or allowGreater are true then we can assume that the less and greater tests
+		// respectively have already failed and avoid making repeated calls to Less()
+		if allowEqual && (allowLess || !object.Less(i-1, i)) && (allowGreater || !object.Less(i, i-1)) {
+			continue
+		}
+		return Fail(t, fmt.Sprintf("element %d"+failMessage+"element %d", i-1, i), msgAndArgs...)
 	}
 
 	return true
@@ -53,7 +91,7 @@ func IsIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) boo
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return isOrdered(t, object, []CompareType{compareLess}, "\"%v\" is not less than \"%v\"", msgAndArgs)
+	return isOrdered(t, object, []CompareType{compareLess}, " is not less than ", msgAndArgs)
 }
 
 // IsNonIncreasing asserts that the collection is not increasing
@@ -65,7 +103,7 @@ func IsNonIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) 
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return isOrdered(t, object, []CompareType{compareEqual, compareGreater}, "\"%v\" is not greater than or equal to \"%v\"", msgAndArgs)
+	return isOrdered(t, object, []CompareType{compareEqual, compareGreater}, " is not greater than or equal to ", msgAndArgs)
 }
 
 // IsDecreasing asserts that the collection is decreasing
@@ -77,7 +115,7 @@ func IsDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) boo
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return isOrdered(t, object, []CompareType{compareGreater}, "\"%v\" is not greater than \"%v\"", msgAndArgs)
+	return isOrdered(t, object, []CompareType{compareGreater}, " is not greater than ", msgAndArgs)
 }
 
 // IsNonDecreasing asserts that the collection is not decreasing
@@ -89,5 +127,5 @@ func IsNonDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) 
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return isOrdered(t, object, []CompareType{compareLess, compareEqual}, "\"%v\" is not less than or equal to \"%v\"", msgAndArgs)
+	return isOrdered(t, object, []CompareType{compareLess, compareEqual}, " is not less than or equal to ", msgAndArgs)
 }
