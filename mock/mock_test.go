@@ -817,12 +817,15 @@ func Test_Mock_Called_blocks(t *testing.T) {
 
 	ch := make(chan Arguments)
 
+	timer := time.NewTimer(1 * time.Millisecond)
+	defer timer.Stop()
+
 	go asyncCall(&mockedService.Mock, ch)
 
 	select {
 	case <-ch:
 		t.Fatal("should have waited")
-	case <-time.After(1 * time.Millisecond):
+	case <-timer.C:
 	}
 
 	returnArguments := <-ch
