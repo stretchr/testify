@@ -563,9 +563,13 @@ func isEmpty(object interface{}) bool {
 
 	switch objValue.Kind() {
 	// collection types are empty when they have no element
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
+	case reflect.Chan, reflect.Map, reflect.Slice:
 		return objValue.Len() == 0
-		// pointers are empty if nil or if the value they point to is empty
+	// array types are empty when they match their zero-initialized state
+	case reflect.Array:
+		zero := reflect.Zero(objValue.Type()).Interface()
+		return ObjectsAreEqual(zero, object)
+	// pointers are empty if nil or if the value they point to is empty
 	case reflect.Ptr:
 		if objValue.IsNil() {
 			return true

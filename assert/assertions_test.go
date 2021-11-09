@@ -1131,6 +1131,7 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty(new(time.Time)))
 	True(t, isEmpty(time.Time{}))
 	True(t, isEmpty(make(chan struct{})))
+	True(t, isEmpty([1]int{}))
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
 	False(t, isEmpty([]string{"something"}))
@@ -1138,7 +1139,7 @@ func Test_isEmpty(t *testing.T) {
 	False(t, isEmpty(true))
 	False(t, isEmpty(map[string]string{"Hello": "World"}))
 	False(t, isEmpty(chWithValue))
-
+	False(t, isEmpty([1]int{42}))
 }
 
 func TestEmpty(t *testing.T) {
@@ -1172,6 +1173,7 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, TStruct{}), "struct with zero values is empty")
 	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
 	True(t, Empty(mockT, sP), "ptr to nil value is empty")
+	True(t, Empty(mockT, [1]int{}), "array is state")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -1182,6 +1184,7 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
 	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
 	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
+	False(t, Empty(mockT, [1]int{42}), "array is not state")
 }
 
 func TestNotEmpty(t *testing.T) {
@@ -1196,6 +1199,7 @@ func TestNotEmpty(t *testing.T) {
 	False(t, NotEmpty(mockT, 0), "Zero int value is empty")
 	False(t, NotEmpty(mockT, false), "False value is empty")
 	False(t, NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
+	False(t, NotEmpty(mockT, [1]int{}), "array is state")
 
 	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
 	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -1203,6 +1207,7 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
 	True(t, NotEmpty(mockT, true), "True value is not empty")
 	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
+	True(t, NotEmpty(mockT, [1]int{42}), "array is not state")
 }
 
 func Test_getLen(t *testing.T) {
