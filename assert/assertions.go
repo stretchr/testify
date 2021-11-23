@@ -244,7 +244,7 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 	}
 	content := []labeledContent{
 		{"Error Trace", strings.Join(CallerInfo(), "\n\t\t\t")},
-		{"Error", failureMessage},
+		{"Error", colorize(failureMessage)},
 	}
 
 	// Add test name if the Go version supports it
