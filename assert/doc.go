@@ -45,9 +45,6 @@
 //
 // Color
 //
-// Failed equality comparisons will be colored when printing to a terminal, and
-// not colored when printing to pipes.
-//
-// This behavior can be overridden by setting environment variable
-// TESTIFY_COLOR=true or TESTIFY_COLOR=false.
+// If you set TESTIFY_COLOR=true in your environment then certain comparison
+// failures will printed in color.
 package assert

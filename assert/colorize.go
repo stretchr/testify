@@ -1,12 +1,11 @@
 package assert
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"sync"
-
-	"golang.org/x/term"
 )
 
 const (
@@ -20,8 +19,10 @@ var (
 )
 
 func figureOutShouldColorize() bool {
-	// Auto: Color terminal output but not piped output
-	autoResponse := term.IsTerminal(int(os.Stdout.Fd()))
+	// FIXME: The auto response should be true on terminals and false on
+	// not-terminals, but my attempts at checking os.Stdout() terminalness have
+	// all failed. Patches welcome!
+	autoResponse := false
 
 	hint := os.Getenv("TESTIFY_COLOR")
 	if len(hint) == 0 {
@@ -38,7 +39,7 @@ func figureOutShouldColorize() bool {
 		return value
 	}
 
-	// FIXME: Print a warning here
+	fmt.Printf("WARNING: TESTIFY_COLOR should be either true or false, was: \"%s\"\n", hint)
 
 	return autoResponse
 }
