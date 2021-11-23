@@ -42,4 +42,12 @@
 //
 // Every assertion function also takes an optional string message as the final argument,
 // allowing custom error messages to be appended to the message the assertion method outputs.
+//
+// Color
+//
+// Failed equality comparisons will be colored when printing to a terminal, and
+// not colored when printing to pipes.
+//
+// This behavior can be overridden by setting environment variable
+// TESTIFY_COLOR=true or TESTIFY_COLOR=false.
 package assert
