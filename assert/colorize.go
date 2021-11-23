@@ -44,15 +44,21 @@ func figureOutShouldColorize() bool {
 	return autoResponse
 }
 
+// Colorize string or not depending on what figureOutShouldColorize() says
 func colorize(plainText string) string {
 	setShouldColorize.Do(func() {
 		shouldColorize = figureOutShouldColorize()
 	})
 
-	if !shouldColorize {
-		return plainText
+	if shouldColorize {
+		return doColorize(plainText)
 	}
+	return plainText
+}
 
+// Colorize unconditionally. You probably should call colorize() instead of this
+// function.
+func doColorize(plainText string) string {
 	re := regexp.MustCompile(`(.*)\n` + expected_colon + `(.*)\n` + actual_colon + `(.*)`)
 
 	return string(
