@@ -14,63 +14,109 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
 
-// Suite is a basic testing suite with methods for storing and
-// retrieving the current *testing.T context.
-type Suite struct {
+// T is a basic testing suite with methods for accessing
+// appropriate *testing.T objects in tests.
+type T struct {
 	*assert.Assertions
-	require *require.Assertions
-	t       *testing.T
+	require  *require.Assertions
+	testingT *testing.T
 }
 
-// T retrieves the current *testing.T context.
-func (suite *Suite) T() *testing.T {
-	return suite.t
+func (t *T) Cleanup(f func()) {
+	t.testingT.Cleanup(f)
+}
+
+func (t *T) Error(args ...interface{}) {
+	t.testingT.Error(args...)
+}
+
+func (t *T) Errorf(format string, args ...interface{}) {
+	t.testingT.Errorf(format, args...)
+}
+
+func (t *T) Fail() {
+	t.testingT.Fail()
+}
+
+func (t *T) FailNow() {
+	t.testingT.FailNow()
+}
+
+func (t *T) Failed() bool {
+	return t.testingT.Failed()
+}
+
+func (t *T) Fatal(args ...interface{}) {
+	t.testingT.Fatal(args...)
+}
+
+func (t *T) Fatalf(format string, args ...interface{}) {
+	t.testingT.Fatalf(format, args...)
+}
+
+func (t *T) Helper() {
+	t.testingT.Helper()
+}
+
+func (t *T) Log(args ...interface{}) {
+	t.testingT.Log(args...)
+}
+
+func (t *T) Logf(format string, args ...interface{}) {
+	t.testingT.Logf(format, args...)
+}
+
+func (t *T) Name() string {
+	return t.testingT.Name()
+}
+func (t *T) Skip(args ...interface{}) {
+	t.testingT.Skip(args...)
+}
+
+func (t *T) SkipNow() {
+	t.testingT.SkipNow()
+}
+
+func (t *T) Skipf(format string, args ...interface{}) {
+	t.testingT.Skipf(format, args...)
+}
+func (t *T) Skipped() bool {
+	return t.testingT.Skipped()
+}
+
+func (t *T) TempDir() string {
+	return t.testingT.TempDir()
+}
+
+func (t *T) Parallel() {
+	t.testingT.Parallel()
 }
 
 // setT sets the current *testing.T context.
-func (suite *Suite) setT(t *testing.T) {
-	if suite.t != nil {
-		panic("suite.t already set, can't overwrite")
+func (t *T) setT(testingT *testing.T) {
+	if t.testingT != nil {
+		panic("T.testingT already set, can't overwrite")
 	}
-	suite.t = t
-	suite.Assertions = assert.New(t)
-	suite.require = require.New(t)
-}
-
-func (suite *Suite) clearT() {
-	suite.t = nil
-	suite.Assertions = nil
-	suite.require = nil
+	t.testingT = testingT
+	t.Assertions = assert.New(testingT)
+	t.require = require.New(testingT)
 }
 
 // Require returns a require context for suite.
-func (suite *Suite) Require() *require.Assertions {
-	if suite.require == nil {
-		suite.require = require.New(suite.T())
+func (t *T) Require() *require.Assertions {
+	if t.testingT == nil {
+		panic("T.testingT not set, can't get Require object")
 	}
-	return suite.require
+	return t.require
 }
 
-// Assert returns an assert context for suite.  Normally, you can call
-// `suite.NoError(expected, actual)`, but for situations where the embedded
-// methods are overridden (for example, you might want to override
-// assert.Assertions with require.Assertions), this method is provided so you
-// can call `suite.Assert().NoError()`.
-func (suite *Suite) Assert() *assert.Assertions {
-	if suite.Assertions == nil {
-		suite.Assertions = assert.New(suite.T())
-	}
-	return suite.Assertions
-}
-
-func failOnPanic(t *testing.T) {
+func failOnPanic(t *T) {
 	r := recover()
 	if r != nil {
 		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
-		t.FailNow()
+		t.testingT.FailNow()
 	}
 }
 
@@ -78,23 +124,20 @@ func failOnPanic(t *testing.T) {
 // called in place of t.Run(name, func(t *testing.T)) in test suite code.
 // The passed-in func will be executed as a subtest with a fresh instance of t.
 // Provides compatibility with go test pkg -run TestSuite/TestName/SubTestName.
-// Deprecated: This method doesn't handle parallel sub-tests and will be removed in v2.
-func (suite *Suite) Run(name string, subtest func()) bool {
-	oldT := suite.T()
-	defer func() {
-		suite.clearT()
-		suite.setT(oldT)
-	}()
-	return oldT.Run(name, func(t *testing.T) {
-		suite.clearT()
-		suite.setT(t)
-		subtest()
+func (t *T) Run(name string, subtest func(t *T)) bool {
+	return t.testingT.Run(name, func(testingT *testing.T) {
+		t := &T{}
+		t.setT(testingT)
+		subtest(t)
 	})
 }
 
 // Run takes a testing suite and runs all of the tests attached
 // to it.
-func Run(t *testing.T, suite TestingSuite) {
+func Run(testingT *testing.T, suite interface{}) {
+	t := &T{}
+	t.setT(testingT)
+
 	defer failOnPanic(t)
 
 	var suiteSetupDone bool
@@ -108,93 +151,90 @@ func Run(t *testing.T, suite TestingSuite) {
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
 
-	t.Run("All", func(t *testing.T) {
-		defer failOnPanic(t)
+	for i := 0; i < methodFinder.NumMethod(); i++ {
+		method := methodFinder.Method(i)
 
-		suite.setT(t)
-
-		for i := 0; i < methodFinder.NumMethod(); i++ {
-			method := methodFinder.Method(i)
-
-			ok, err := methodFilter(method.Name)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
-				os.Exit(1)
-			}
-
-			if !ok {
-				continue
-			}
-
-			if !suiteSetupDone {
-				if stats != nil {
-					stats.Start = time.Now()
-				}
-
-				if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-					setupAllSuite.SetupSuite()
-				}
-
-				suiteSetupDone = true
-			}
-
-			test := testing.InternalTest{
-				Name: method.Name,
-				F: func(t *testing.T) {
-					defer failOnPanic(t)
-					childSuite := suite
-					if c, ok := suite.(CopySuite); ok {
-						childSuite = c.Copy()
-						childSuite.clearT()
-					}
-					childSuite.setT(t)
-					defer func() {
-						if _, ok := suite.(CopySuite); !ok {
-							defer suite.clearT()
-						}
-						if stats != nil {
-							passed := !t.Failed()
-							stats.end(method.Name, passed)
-						}
-
-						if tearDownTestSuite, ok := childSuite.(TearDownTestSuite); ok {
-							tearDownTestSuite.TearDownTest()
-						}
-
-						if afterTestSuite, ok := childSuite.(AfterTest); ok {
-							afterTestSuite.AfterTest(suiteName, method.Name)
-						}
-					}()
-
-					if beforeTestSuite, ok := childSuite.(BeforeTest); ok {
-						beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-					}
-					if setupTestSuite, ok := childSuite.(SetupTestSuite); ok {
-						setupTestSuite.SetupTest()
-					}
-
-					if stats != nil {
-						stats.start(method.Name)
-					}
-
-					method.Func.Call([]reflect.Value{reflect.ValueOf(childSuite)})
-				},
-			}
-			tests = append(tests, test)
+		ok, err := methodFilter(method.Name)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
+			os.Exit(1)
 		}
 
-		suite.clearT()
-		runTests(t, tests)
+		if !ok {
+			continue
+		}
+
+		if !suiteSetupDone {
+			if stats != nil {
+				stats.Start = time.Now()
+			}
+
+			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+				setupAllSuite.SetupSuite(t)
+			}
+
+			suiteSetupDone = true
+		}
+
+		test := testing.InternalTest{
+			Name: method.Name,
+			F: func(testingT *testing.T) {
+				t := &T{}
+				t.setT(testingT)
+
+				defer failOnPanic(t)
+
+				defer func() {
+					if stats != nil {
+						passed := !t.testingT.Failed()
+						stats.end(method.Name, passed)
+					}
+
+					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+						tearDownTestSuite.TearDownTest(t)
+					}
+
+					if afterTestSuite, ok := suite.(AfterTest); ok {
+						afterTestSuite.AfterTest(t, suiteName, method.Name)
+					}
+				}()
+
+				if beforeTestSuite, ok := suite.(BeforeTest); ok {
+					beforeTestSuite.BeforeTest(t, methodFinder.Elem().Name(), method.Name)
+				}
+				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+					setupTestSuite.SetupTest(t)
+				}
+
+				if stats != nil {
+					stats.start(method.Name)
+				}
+
+				method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
+			},
+		}
+		tests = append(tests, test)
+	}
+
+	if len(tests) == 0 {
+		testingT.Log("warning: no tests to run")
+		return
+	}
+
+	// run sub-tests in a group so tearDownSuite is called in the right order
+	testingT.Run("All", func(testingT *testing.T) {
+		for _, test := range tests {
+			testingT.Run(test.Name, test.F)
+		}
 	})
 	if suiteSetupDone {
-		suite.setT(t)
 		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-			tearDownAllSuite.TearDownSuite()
+			tearDownAllSuite.TearDownSuite(t)
 		}
 
 		if suiteWithStats, measureStats := suite.(WithStats); measureStats {
 			stats.End = time.Now()
-			suiteWithStats.HandleStats(suiteName, stats)
+			suiteWithStats.HandleStats(t, suiteName, stats)
 		}
 	}
 }
@@ -206,15 +246,4 @@ func methodFilter(name string) (bool, error) {
 		return false, nil
 	}
 	return regexp.MatchString(*matchMethod, name)
-}
-
-func runTests(t *testing.T, tests []testing.InternalTest) {
-	if len(tests) == 0 {
-		t.Log("warning: no tests to run")
-		return
-	}
-
-	for _, test := range tests {
-		t.Run(test.Name, test.F)
-	}
 }
