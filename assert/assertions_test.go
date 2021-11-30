@@ -3269,7 +3269,6 @@ func TestNotErrorIs(t *testing.T) {
 }
 
 func TestErrorAs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
 		err    error
 		result bool
@@ -3282,9 +3281,13 @@ func TestErrorAs(t *testing.T) {
 		tt := tt
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := ErrorAs(mockT, tt.err, &target)
 			if res != tt.result {
 				t.Errorf("ErrorAs(%#v,%#v) should return %t", tt.err, target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
 			}
 		})
 	}
