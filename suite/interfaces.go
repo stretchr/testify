@@ -1,6 +1,9 @@
 package suite
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 // *testing.T interface for < go1.15
 type testingT interface {
@@ -13,6 +16,7 @@ type testingT interface {
 // *testing.T interface for go1.15
 type testingT115 interface {
 	TempDir() string
+	Deadline() (deadline time.Time, ok bool)
 }
 
 // *testing.T interface for go1.17

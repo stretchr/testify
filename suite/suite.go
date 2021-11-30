@@ -87,10 +87,25 @@ func (t *T) Skipped() bool {
 }
 
 func (t *T) TempDir() string {
-	if t, ok := t.testingT.(testingT115); ok {
-		return t.TempDir()
+	if testingT, ok := t.testingT.(testingT115); ok {
+		return testingT.TempDir()
 	}
 	panic("*testing.T does not support TempDir()")
+}
+
+func (t *T) Deadline() (deadline time.Time, ok bool) {
+	if testingT, ok := t.testingT.(testingT115); ok {
+		return testingT.Deadline()
+	}
+	panic("*testing.T does not support Deadline()")
+}
+
+func (t *T) Setenv(key, value string) {
+	if testingT, ok := t.testingT.(testingT117); ok {
+		testingT.Setenv(key, value)
+		return
+	}
+	panic("*testing.T does not support Setenv()")
 }
 
 func (t *T) Parallel() {
