@@ -1451,7 +1451,7 @@ func NotErrorAsf(t TestingT, err error, target interface{}, msg string, args ...
 }
 
 // NotErrorIs asserts that at none of the errors in err's chain matches target.
-// This is a wrapper for errors.Is.
+// This is the inverse of the ErrorIs function.
 func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1463,7 +1463,7 @@ func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) 
 }
 
 // NotErrorIsf asserts that at none of the errors in err's chain matches target.
-// This is a wrapper for errors.Is.
+// This is the inverse of the ErrorIs function.
 func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
