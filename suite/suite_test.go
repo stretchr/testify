@@ -251,7 +251,7 @@ func (s *SuiteTester) TestTwo(t *suite.T) {
 }
 
 func (s *SuiteTester) TestSkip(t *suite.T) {
-	t.T().Skip()
+	t.Skip()
 	// T should be from the right test
 	assert.True(t, t == s.TestT["TestSkip"])
 }
@@ -294,7 +294,7 @@ type SuiteSkipTester struct {
 
 func (s *SuiteSkipTester) SetupSuite(t *suite.T) {
 	s.SetupSuiteRunCount++
-	t.T().Skip()
+	t.Skip()
 }
 
 func (s *SuiteSkipTester) TestNothing(_ *suite.T) {
@@ -409,11 +409,11 @@ func TestSkippingSuiteSetup(t *testing.T) {
 type SuiteLoggingTester struct{}
 
 func (s *SuiteLoggingTester) TestLoggingPass(t *suite.T) {
-	t.T().Log("TESTLOGPASS")
+	t.Log("TESTLOGPASS")
 }
 
 func (s *SuiteLoggingTester) TestLoggingFail(t *suite.T) {
-	t.T().Log("TESTLOGFAIL")
+	t.Log("TESTLOGFAIL")
 	assert.NotNil(t, nil) // expected to fail
 }
 
@@ -595,7 +595,7 @@ func (s *FailfastSuite) TearDownTest(_ *suite.T) {
 
 func (s *FailfastSuite) Test_A_Fails(t *suite.T) {
 	s.call("Test A Fails")
-	t.T().Error("Test A meant to fail")
+	t.Error("Test A meant to fail")
 }
 
 func (s *FailfastSuite) Test_B_Passes(t *suite.T) {
@@ -664,7 +664,7 @@ func (s *parallelSuite) AfterTest(_ *suite.T, _, testName string) {
 }
 
 func (s *parallelSuite) Test_A(t *suite.T) {
-	t.T().Parallel()
+	t.Parallel()
 	s.call("Test_A")
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -672,7 +672,7 @@ func (s *parallelSuite) Test_A(t *suite.T) {
 }
 
 func (s *parallelSuite) Test_B(t *suite.T) {
-	t.T().Parallel()
+	t.Parallel()
 	s.call("Test_B")
 	s.mutex.Lock()
 	defer s.mutex.Unlock()

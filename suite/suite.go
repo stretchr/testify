@@ -20,12 +20,81 @@ var matchMethod = flag.String("testify.m", "", "regular expression to select tes
 // appropriate *testing.T objects in tests.
 type T struct {
 	*assert.Assertions
-	testingT *testing.T
 	require  *require.Assertions
+	testingT testingT
+}
+
+func (t *T) Cleanup(f func()) {
+	t.testingT.Cleanup(f)
+}
+
+func (t *T) Error(args ...interface{}) {
+	t.testingT.Error(args...)
 }
 
 func (t *T) Errorf(format string, args ...interface{}) {
 	t.testingT.Errorf(format, args...)
+}
+
+func (t *T) Fail() {
+	t.testingT.Fail()
+}
+
+func (t *T) FailNow() {
+	t.testingT.FailNow()
+}
+
+func (t *T) Failed() bool {
+	return t.testingT.Failed()
+}
+
+func (t *T) Fatal(args ...interface{}) {
+	t.testingT.Fatal(args...)
+}
+
+func (t *T) Fatalf(format string, args ...interface{}) {
+	t.testingT.Fatalf(format, args...)
+}
+
+func (t *T) Helper() {
+	t.testingT.Helper()
+}
+
+func (t *T) Log(args ...interface{}) {
+	t.testingT.Log(args...)
+}
+
+func (t *T) Logf(format string, args ...interface{}) {
+	t.testingT.Logf(format, args...)
+}
+
+func (t *T) Name() string {
+	return t.testingT.Name()
+}
+func (t *T) Skip(args ...interface{}) {
+	t.testingT.Skip(args...)
+}
+
+func (t *T) SkipNow() {
+	t.testingT.SkipNow()
+}
+
+func (t *T) Skipf(format string, args ...interface{}) {
+	t.testingT.Skipf(format, args...)
+}
+func (t *T) Skipped() bool {
+	return t.testingT.Skipped()
+}
+
+func (t *T) TempDir() string {
+	if t, ok := t.testingT.(testingT115); ok {
+		return t.TempDir()
+	}
+	panic("*testing.T does not support TempDir()")
+}
+
+func (t *T) Parallel() {
+	t.testingT.Parallel()
 }
 
 // setT sets the current *testing.T context.
@@ -36,10 +105,6 @@ func (t *T) setT(testingT *testing.T) {
 	t.testingT = testingT
 	t.Assertions = assert.New(testingT)
 	t.require = require.New(testingT)
-}
-
-func (t *T) T() *testing.T {
-	return t.testingT
 }
 
 // Require returns a require context for suite.
@@ -53,8 +118,8 @@ func (t *T) Require() *require.Assertions {
 func failOnPanic(t *T) {
 	r := recover()
 	if r != nil {
-		t.testingT.Errorf("test panicked: %v\n%s", r, debug.Stack())
-		t.testingT.FailNow()
+		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
+		t.FailNow()
 	}
 }
 
@@ -124,7 +189,7 @@ func Run(testingT *testing.T, suite interface{}) {
 
 				defer func() {
 					if stats != nil {
-						passed := !t.testingT.Failed()
+						passed := !t.Failed()
 						stats.end(method.Name, passed)
 					}
 

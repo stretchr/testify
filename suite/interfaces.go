@@ -1,5 +1,25 @@
 package suite
 
+import "testing"
+
+// *testing.T interface for < go1.15
+type testingT interface {
+	testing.TB
+
+	Parallel()
+	Run(name string, f func(t *testing.T)) bool
+}
+
+// *testing.T interface for go1.15
+type testingT115 interface {
+	TempDir() string
+}
+
+// *testing.T interface for go1.17
+type testingT117 interface {
+	Setenv(key, value string)
+}
+
 // SetupAllSuite has a SetupSuite method, which will run before the
 // tests in the suite are run.
 type SetupAllSuite interface {
