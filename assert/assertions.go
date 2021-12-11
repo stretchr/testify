@@ -1672,7 +1672,9 @@ type tHelper interface {
 }
 
 // Eventually asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// periodically checking target function each tick. The target function
+// is checked once immediately before Eventually starts its periodic
+// checks.
 //
 //    assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
