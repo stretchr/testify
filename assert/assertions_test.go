@@ -2374,6 +2374,25 @@ func TestEventuallyTrue(t *testing.T) {
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+func TestEventuallyTrueImmediately(t *testing.T) {
+	condition := func() bool {
+		return true
+	}
+
+	c := make(chan struct{})
+
+	go func() {
+		Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond)
+		close(c)
+	}()
+
+	select {
+	case <-c:
+	case <-time.After(20 * time.Millisecond):
+		FailNow(t, `waited too long`)
+	}
+}
+
 func TestNeverFalse(t *testing.T) {
 	condition := func() bool {
 		return false

@@ -1680,6 +1680,10 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
+	if condition() {
+		return true
+	}
+
 	ch := make(chan bool, 1)
 
 	timer := time.NewTimer(waitFor)
