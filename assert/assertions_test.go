@@ -2416,9 +2416,14 @@ func TestNeverTrue(t *testing.T) {
 
 func TestEventuallyIssue805(t *testing.T) {
 	mockT := new(testing.T)
+	returnVal := false
 
 	NotPanics(t, func() {
-		condition := func() bool { <-time.After(time.Millisecond); return true }
+		condition := func() bool {
+			<-time.After(time.Millisecond)
+			defer func() { returnVal = true }()
+			return returnVal
+		}
 		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
 	})
 }
