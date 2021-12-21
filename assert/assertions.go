@@ -1801,6 +1801,31 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 	), msgAndArgs...)
 }
 
+// NotErrorAs asserts that at none of the errors in err's chain matches target, otherwise, sets target to that error value.
+// This is a wrapper for errors.As.
+func NotErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if !errors.As(err, target) {
+		return true
+	}
+
+	var expectedText string
+	if target != nil {
+		if tErr, ok := target.(error); ok {
+			expectedText = tErr.Error()
+		}
+	}
+
+	chain := buildErrorChainString(err)
+
+	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
+		"found: %q\n"+
+		"in chain: %s", expectedText, chain,
+	), msgAndArgs...)
+}
+
 func buildErrorChainString(err error) string {
 	if err == nil {
 		return ""

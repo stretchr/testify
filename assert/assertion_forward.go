@@ -1119,6 +1119,24 @@ func (a *Assertions) NotEqualf(expected interface{}, actual interface{}, msg str
 	return NotEqualf(a.t, expected, actual, msg, args...)
 }
 
+// NotErrorAs asserts that at none of the errors in err's chain matches target, otherwise, sets target to that error value.
+// This is a wrapper for errors.As.
+func (a *Assertions) NotErrorAs(err error, target interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotErrorAs(a.t, err, target, msgAndArgs...)
+}
+
+// NotErrorAsf asserts that at none of the errors in err's chain matches target, otherwise, sets target to that error value.
+// This is a wrapper for errors.As.
+func (a *Assertions) NotErrorAsf(err error, target interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotErrorAsf(a.t, err, target, msg, args...)
+}
+
 // NotErrorIs asserts that at none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func (a *Assertions) NotErrorIs(err error, target error, msgAndArgs ...interface{}) bool {
