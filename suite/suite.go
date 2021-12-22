@@ -3,6 +3,7 @@ package suite
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"regexp"
@@ -23,11 +24,17 @@ type Suite struct {
 	*assert.Assertions
 	require *require.Assertions
 	t       *testing.T
+	f       *testing.F
 }
 
 // T retrieves the current *testing.T context.
 func (suite *Suite) T() *testing.T {
 	return suite.t
+}
+
+// F retrieves the current *testing.F context.
+func (suite *Suite) F() *testing.F {
+	return suite.f
 }
 
 // SetT sets the current *testing.T context.
@@ -37,10 +44,30 @@ func (suite *Suite) SetT(t *testing.T) {
 	suite.require = require.New(t)
 }
 
+// SetT sets the current *testing.T context.
+func (suite *Suite) SetF(f *testing.F) {
+	suite.f = f
+	suite.Assertions = assert.New(f)
+	suite.require = require.New(f)
+}
+
 // Require returns a require context for suite.
 func (suite *Suite) Require() *require.Assertions {
 	if suite.require == nil {
-		suite.require = require.New(suite.T())
+
+		var tT require.TestingT
+		if suite.T() != nil {
+			tT = suite.T()
+		}
+		if suite.F() != nil {
+			tT = suite.F()
+		}
+
+		if tT == nil {
+			panic("Neither T nor F was non-nil")
+		}
+		log.Printf("tT:%v\n", tT)
+		suite.require = require.New(tT)
 	}
 	return suite.require
 }
@@ -52,12 +79,19 @@ func (suite *Suite) Require() *require.Assertions {
 // can call `suite.Assert().NoError()`.
 func (suite *Suite) Assert() *assert.Assertions {
 	if suite.Assertions == nil {
-		suite.Assertions = assert.New(suite.T())
+		var tT assert.TestingT
+		if suite.T() != nil {
+			tT = suite.T()
+		}
+		if suite.F() != nil {
+			tT = suite.F()
+		}
+		suite.Assertions = assert.New(tT)
 	}
 	return suite.Assertions
 }
 
-func failOnPanic(t *testing.T) {
+func failOnPanic(t testing.TB) {
 	r := recover()
 	if r != nil {
 		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
@@ -80,10 +114,17 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 
 // Run takes a testing suite and runs all of the tests attached
 // to it.
-func Run(t *testing.T, suite TestingSuite) {
+func Run(t testing.TB, suite TestingSuite) {
 	defer failOnPanic(t)
 
-	suite.SetT(t)
+	if tT, ok := t.(*testing.T); ok {
+		suite.SetT(tT)
+	}
+
+	if fF, ok := t.(*testing.F); ok {
+		suite.SetF(fF)
+
+	}
 
 	var suiteSetupDone bool
 
@@ -179,7 +220,7 @@ func Run(t *testing.T, suite TestingSuite) {
 // Filtering method according to set regular expression
 // specified command-line argument -m
 func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Test", name); !ok {
+	if ok, _ := regexp.MatchString("^(Test|Fuzz)", name); !ok {
 		return false, nil
 	}
 	return regexp.MatchString(*matchMethod, name)
@@ -193,12 +234,13 @@ func runTests(t testing.TB, tests []testing.InternalTest) {
 
 	r, ok := t.(runner)
 	if !ok { // backwards compatibility with Go 1.6 and below
+		// t.F doesn't have Run() so Fuzz tests also
+		// take this branch
 		if !testing.RunTests(allTestsFilter, tests) {
 			t.Fail()
 		}
 		return
 	}
-
 	for _, test := range tests {
 		r.Run(test.Name, test.F)
 	}
