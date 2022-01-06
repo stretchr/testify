@@ -3,7 +3,6 @@ package suite
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 	"regexp"
@@ -44,7 +43,7 @@ func (suite *Suite) SetT(t *testing.T) {
 	suite.require = require.New(t)
 }
 
-// SetT sets the current *testing.T context.
+// SetF sets the current *testing.F context.
 func (suite *Suite) SetF(f *testing.F) {
 	suite.f = f
 	suite.Assertions = assert.New(f)
@@ -66,7 +65,6 @@ func (suite *Suite) Require() *require.Assertions {
 		if tT == nil {
 			panic("Neither T nor F was non-nil")
 		}
-		log.Printf("tT:%v\n", tT)
 		suite.require = require.New(tT)
 	}
 	return suite.require
