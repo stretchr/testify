@@ -560,7 +560,7 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 	if !m.methodWasCalled(methodName, arguments) {
 		var calledWithArgs []string
 		for _, call := range m.calls() {
-			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
+			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v(%v)", call.Method, call.Arguments))
 		}
 		if len(calledWithArgs) == 0 {
 			return assert.Fail(t, "Should have called with given arguments",
