@@ -18,8 +18,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/goccy/go-yaml"
 	"github.com/pmezard/go-difflib/difflib"
-	"gopkg.in/yaml.v3"
 )
 
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_format.go.tmpl"
