@@ -306,7 +306,7 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 	case reflect.Struct:
 		{
 			// All structs enter here. We're not interested in most types.
-			if !obj1Value.CanConvert(timeType) {
+			if !canConvert(obj1Value, timeType) {
 				break
 			}
 
