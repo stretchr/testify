@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"runtime"
 	"testing"
+	"time"
 )
 
 func TestCompare(t *testing.T) {
@@ -22,6 +23,7 @@ func TestCompare(t *testing.T) {
 	type customFloat32 float32
 	type customFloat64 float64
 	type customString string
+	type customTime time.Time
 	for _, currCase := range []struct {
 		less    interface{}
 		greater interface{}
@@ -52,6 +54,8 @@ func TestCompare(t *testing.T) {
 		{less: customFloat32(1.23), greater: customFloat32(2.23), cType: "float32"},
 		{less: float64(1.23), greater: float64(2.34), cType: "float64"},
 		{less: customFloat64(1.23), greater: customFloat64(2.34), cType: "float64"},
+		{less: time.Now(), greater: time.Now().Add(time.Hour), cType: "time.Time"},
+		{less: customTime(time.Now()), greater: customTime(time.Now().Add(time.Hour)), cType: "time.Time"},
 	} {
 		resLess, isComparable := compare(currCase.less, currCase.greater, reflect.ValueOf(currCase.less).Kind())
 		if !isComparable {
@@ -59,7 +63,8 @@ func TestCompare(t *testing.T) {
 		}
 
 		if resLess != compareLess {
-			t.Errorf("object less should be less than greater for type " + currCase.cType)
+			t.Errorf("object less (%v) should be less than greater (%v) for type "+currCase.cType,
+				currCase.less, currCase.greater)
 		}
 
 		resGreater, isComparable := compare(currCase.greater, currCase.less, reflect.ValueOf(currCase.less).Kind())

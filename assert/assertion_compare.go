@@ -3,6 +3,7 @@ package assert
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
 
 type CompareType int
@@ -30,6 +31,8 @@ var (
 	float64Type = reflect.TypeOf(float64(1))
 
 	stringType = reflect.TypeOf("")
+
+	timeType = reflect.TypeOf(time.Time{})
 )
 
 func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
@@ -298,6 +301,27 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 			if stringobj1 < stringobj2 {
 				return compareLess, true
 			}
+		}
+	// Check for known struct types we can check for compare results.
+	case reflect.Struct:
+		{
+			// All structs enter here. We're not interested in most types.
+			if !obj1Value.CanConvert(timeType) {
+				break
+			}
+
+			// time.Time can compared!
+			timeObj1, ok := obj1.(time.Time)
+			if !ok {
+				timeObj1 = obj1Value.Convert(timeType).Interface().(time.Time)
+			}
+
+			timeObj2, ok := obj2.(time.Time)
+			if !ok {
+				timeObj2 = obj2Value.Convert(timeType).Interface().(time.Time)
+			}
+
+			return compare(timeObj1.UnixNano(), timeObj2.UnixNano(), reflect.Int64)
 		}
 	}
 
