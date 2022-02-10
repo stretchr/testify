@@ -1,5 +1,9 @@
 // +build !go1.17
 
+// TODO: once support for Go 1.16 is dropped, this file can be
+//       merged/removed with assertion_compare_go1.17_test.go and
+//       assertion_compare_can_convert.go
+
 package assert
 
 import "reflect"
