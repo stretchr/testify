@@ -812,7 +812,16 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
-			if matcher.Matches(actual) {
+			var matches bool
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						actualFmt = fmt.Sprintf("panic in argument matcher: %v", r)
+					}
+				}()
+				matches = matcher.Matches(actual)
+			}()
+			if matches {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
 				differences++
