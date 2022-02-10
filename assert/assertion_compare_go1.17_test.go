@@ -1,3 +1,4 @@
+//go:build go1.17
 // +build go1.17
 
 // TODO: once support for Go 1.16 is dropped, this file can be
