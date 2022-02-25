@@ -278,7 +278,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	c := newCall(m, methodName, assert.CallerInfo(), arguments...)
+	c := newCall(m, methodName, assert.CallerInfo(m.test), arguments...)
 	m.ExpectedCalls = append(m.ExpectedCalls, c)
 	return c
 }
@@ -404,7 +404,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		// expected call found but it has already been called with repeatable times
 		if call != nil {
 			m.mutex.Unlock()
-			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo(m.test))
 		}
 		// we have to fail here - because we don't know what to do
 		// as the return arguments.  This is because:
@@ -423,7 +423,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 				strings.TrimSpace(mismatch),
 			)
 		} else {
-			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo(m.test))
 		}
 	}
 
@@ -435,7 +435,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	call.totalCalls++
 
 	// add the call
-	m.Calls = append(m.Calls, *newCall(m, methodName, assert.CallerInfo(), arguments...))
+	m.Calls = append(m.Calls, *newCall(m, methodName, assert.CallerInfo(m.test), arguments...))
 	m.mutex.Unlock()
 
 	// block if specified
@@ -527,7 +527,7 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	}
 
 	if somethingMissing {
-		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo(t))
 	}
 
 	return !somethingMissing
@@ -873,7 +873,7 @@ func (args Arguments) Assert(t TestingT, objects ...interface{}) bool {
 
 	// there are differences... report them...
 	t.Logf(diff)
-	t.Errorf("%sArguments do not match.", assert.CallerInfo())
+	t.Errorf("%sArguments do not match.", assert.CallerInfo(t))
 
 	return false
 

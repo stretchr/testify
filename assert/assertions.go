@@ -13,9 +13,11 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strings"
+	"testing"
 	"time"
 	"unicode"
 	"unicode/utf8"
+	"unsafe"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
@@ -102,7 +104,13 @@ the problem actually occurred in calling code.*/
 // CallerInfo returns an array of strings containing the file and line number
 // of each stack frame leading from the current test to the assert call that
 // failed.
-func CallerInfo() []string {
+func CallerInfo(t TestingT) []string {
+	// Start at the innermost test object. We'll visit parent objects as we walk up the call stack.
+	var testingT reflect.Value
+	switch t := t.(type) {
+	case *testing.B, *testing.T:
+		testingT = reflect.Indirect(reflect.ValueOf(t)).FieldByName("common")
+	}
 
 	const maxStackLen = 50
 	var pcs [maxStackLen]uintptr
@@ -118,14 +126,26 @@ func CallerInfo() []string {
 			break
 		}
 
-		name := frame.Func.Name()
-		// testing.tRunner is the standard library function that calls
-		// tests. Subtests are called directly by tRunner, without going through
-		// the Test/Benchmark/Example function that contains the t.Run calls, so
-		// with subtests we should break when we hit tRunner, without adding it
-		// to the list of callers.
-		if name == "testing.tRunner" {
-			break
+		// Stop the trace when we hit Go's testing package.
+		if strings.HasSuffix(frame.File, "/src/testing/testing.go") {
+			// Have we reached the outermost (sub-)test object?
+			if !testingT.IsValid() {
+				break
+			}
+
+			// Retrieve the call stack that created the current test object.
+			creator := testingT.FieldByName("creator")
+			var b []byte
+			hdr := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+			hdr.Len = creator.Len()
+			hdr.Cap = creator.Len()
+			hdr.Data = uintptr(creator.Pointer())
+			pcsn := *(*[]uintptr)(unsafe.Pointer(hdr))
+			frames = runtime.CallersFrames(pcsn)
+
+			// Get the parent of the current test object.
+			testingT = reflect.Indirect(testingT.FieldByName("parent"))
+			continue
 		}
 
 		parts := strings.Split(frame.File, "/")
@@ -138,6 +158,7 @@ func CallerInfo() []string {
 		}
 
 		// Drop the package
+		name := frame.Func.Name()
 		segments := strings.Split(name, ".")
 		name = segments[len(segments)-1]
 		if isTest(name, "Test") ||
@@ -236,7 +257,7 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 		h.Helper()
 	}
 	content := []labeledContent{
-		{"Error Trace", strings.Join(CallerInfo(), "\n\t\t\t")},
+		{"Error Trace", strings.Join(CallerInfo(t), "\n\t\t\t")},
 		{"Error", failureMessage},
 	}
 
