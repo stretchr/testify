@@ -211,11 +211,9 @@ import (
     "github.com/stretchr/testify/suite"
 )
 
-// Define the suite, and absorb the built-in basic suite
-// functionality from testify - including a T() method which
-// returns the current testing context
+// Define the suite, which is simply a struct with all
+// fields that tests need.
 type ExampleTestSuite struct {
-    suite.Suite
     VariableThatShouldStartAtFive int
 }
 
@@ -227,8 +225,8 @@ func (suite *ExampleTestSuite) SetupTest() {
 
 // All methods that begin with "Test" are run as tests within a
 // suite.
-func (suite *ExampleTestSuite) TestExample() {
-    assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
+func (suite *ExampleTestSuite) TestExample(t *suite.T) {
+    assert.Equal(t, 5, suite.VariableThatShouldStartAtFive)
 }
 
 // In order for 'go test' to run this suite, we need to create
@@ -251,23 +249,22 @@ import (
     "github.com/stretchr/testify/suite"
 )
 
-// Define the suite, and absorb the built-in basic suite
-// functionality from testify - including assertion methods.
+// Define the suite, which is simply a struct with all
+// fields that tests need.
 type ExampleTestSuite struct {
-    suite.Suite
     VariableThatShouldStartAtFive int
 }
 
 // Make sure that VariableThatShouldStartAtFive is set to five
 // before each test
-func (suite *ExampleTestSuite) SetupTest() {
+func (suite *ExampleTestSuite) SetupTest(t *suite.T) {
     suite.VariableThatShouldStartAtFive = 5
 }
 
 // All methods that begin with "Test" are run as tests within a
 // suite.
-func (suite *ExampleTestSuite) TestExample() {
-    suite.Equal(suite.VariableThatShouldStartAtFive, 5)
+func (suite *ExampleTestSuite) TestExample(t *suite.T) {
+    t.Equal(5, suite.VariableThatShouldStartAtFive)
 }
 
 // In order for 'go test' to run this suite, we need to create

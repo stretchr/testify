@@ -14,50 +14,123 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
 
-// Suite is a basic testing suite with methods for storing and
-// retrieving the current *testing.T context.
-type Suite struct {
+// T is a basic testing suite with methods for accessing
+// appropriate *testing.T objects in tests.
+type T struct {
 	*assert.Assertions
-	require *require.Assertions
-	t       *testing.T
+	require  *require.Assertions
+	testingT testingT
 }
 
-// T retrieves the current *testing.T context.
-func (suite *Suite) T() *testing.T {
-	return suite.t
+func (t *T) Cleanup(f func()) {
+	t.testingT.Cleanup(f)
 }
 
-// SetT sets the current *testing.T context.
-func (suite *Suite) SetT(t *testing.T) {
-	suite.t = t
-	suite.Assertions = assert.New(t)
-	suite.require = require.New(t)
+func (t *T) Error(args ...interface{}) {
+	t.testingT.Error(args...)
+}
+
+func (t *T) Errorf(format string, args ...interface{}) {
+	t.testingT.Errorf(format, args...)
+}
+
+func (t *T) Fail() {
+	t.testingT.Fail()
+}
+
+func (t *T) FailNow() {
+	t.testingT.FailNow()
+}
+
+func (t *T) Failed() bool {
+	return t.testingT.Failed()
+}
+
+func (t *T) Fatal(args ...interface{}) {
+	t.testingT.Fatal(args...)
+}
+
+func (t *T) Fatalf(format string, args ...interface{}) {
+	t.testingT.Fatalf(format, args...)
+}
+
+func (t *T) Helper() {
+	t.testingT.Helper()
+}
+
+func (t *T) Log(args ...interface{}) {
+	t.testingT.Log(args...)
+}
+
+func (t *T) Logf(format string, args ...interface{}) {
+	t.testingT.Logf(format, args...)
+}
+
+func (t *T) Name() string {
+	return t.testingT.Name()
+}
+func (t *T) Skip(args ...interface{}) {
+	t.testingT.Skip(args...)
+}
+
+func (t *T) SkipNow() {
+	t.testingT.SkipNow()
+}
+
+func (t *T) Skipf(format string, args ...interface{}) {
+	t.testingT.Skipf(format, args...)
+}
+func (t *T) Skipped() bool {
+	return t.testingT.Skipped()
+}
+
+func (t *T) TempDir() string {
+	if testingT, ok := t.testingT.(testingT115); ok {
+		return testingT.TempDir()
+	}
+	panic("*testing.T does not support TempDir()")
+}
+
+func (t *T) Deadline() (deadline time.Time, ok bool) {
+	if testingT, ok := t.testingT.(testingT115); ok {
+		return testingT.Deadline()
+	}
+	panic("*testing.T does not support Deadline()")
+}
+
+func (t *T) Setenv(key, value string) {
+	if testingT, ok := t.testingT.(testingT117); ok {
+		testingT.Setenv(key, value)
+		return
+	}
+	panic("*testing.T does not support Setenv()")
+}
+
+func (t *T) Parallel() {
+	t.testingT.Parallel()
+}
+
+// setT sets the current *testing.T context.
+func (t *T) setT(testingT *testing.T) {
+	if t.testingT != nil {
+		panic("T.testingT already set, can't overwrite")
+	}
+	t.testingT = testingT
+	t.Assertions = assert.New(testingT)
+	t.require = require.New(testingT)
 }
 
 // Require returns a require context for suite.
-func (suite *Suite) Require() *require.Assertions {
-	if suite.require == nil {
-		suite.require = require.New(suite.T())
+func (t *T) Require() *require.Assertions {
+	if t.testingT == nil {
+		panic("T.testingT not set, can't get Require object")
 	}
-	return suite.require
+	return t.require
 }
 
-// Assert returns an assert context for suite.  Normally, you can call
-// `suite.NoError(expected, actual)`, but for situations where the embedded
-// methods are overridden (for example, you might want to override
-// assert.Assertions with require.Assertions), this method is provided so you
-// can call `suite.Assert().NoError()`.
-func (suite *Suite) Assert() *assert.Assertions {
-	if suite.Assertions == nil {
-		suite.Assertions = assert.New(suite.T())
-	}
-	return suite.Assertions
-}
-
-func failOnPanic(t *testing.T) {
+func failOnPanic(t *T) {
 	r := recover()
 	if r != nil {
 		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
@@ -69,21 +142,21 @@ func failOnPanic(t *testing.T) {
 // called in place of t.Run(name, func(t *testing.T)) in test suite code.
 // The passed-in func will be executed as a subtest with a fresh instance of t.
 // Provides compatibility with go test pkg -run TestSuite/TestName/SubTestName.
-func (suite *Suite) Run(name string, subtest func()) bool {
-	oldT := suite.T()
-	defer suite.SetT(oldT)
-	return oldT.Run(name, func(t *testing.T) {
-		suite.SetT(t)
-		subtest()
+func (t *T) Run(name string, subtest func(t *T)) bool {
+	return t.testingT.Run(name, func(testingT *testing.T) {
+		t := &T{}
+		t.setT(testingT)
+		subtest(t)
 	})
 }
 
 // Run takes a testing suite and runs all of the tests attached
 // to it.
-func Run(t *testing.T, suite TestingSuite) {
-	defer failOnPanic(t)
+func Run(testingT *testing.T, suite interface{}) {
+	t := &T{}
+	t.setT(testingT)
 
-	suite.SetT(t)
+	defer failOnPanic(t)
 
 	var suiteSetupDone bool
 
@@ -115,7 +188,7 @@ func Run(t *testing.T, suite TestingSuite) {
 			}
 
 			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-				setupAllSuite.SetupSuite()
+				setupAllSuite.SetupSuite(t)
 			}
 
 			suiteSetupDone = true
@@ -123,57 +196,65 @@ func Run(t *testing.T, suite TestingSuite) {
 
 		test := testing.InternalTest{
 			Name: method.Name,
-			F: func(t *testing.T) {
-				parentT := suite.T()
-				suite.SetT(t)
+			F: func(testingT *testing.T) {
+				t := &T{}
+				t.setT(testingT)
+
 				defer failOnPanic(t)
+
 				defer func() {
 					if stats != nil {
 						passed := !t.Failed()
 						stats.end(method.Name, passed)
 					}
 
-					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(suiteName, method.Name)
-					}
-
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-						tearDownTestSuite.TearDownTest()
+						tearDownTestSuite.TearDownTest(t)
 					}
 
-					suite.SetT(parentT)
+					if afterTestSuite, ok := suite.(AfterTest); ok {
+						afterTestSuite.AfterTest(t, suiteName, method.Name)
+					}
 				}()
 
-				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-					setupTestSuite.SetupTest()
-				}
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+					beforeTestSuite.BeforeTest(t, methodFinder.Elem().Name(), method.Name)
+				}
+				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+					setupTestSuite.SetupTest(t)
 				}
 
 				if stats != nil {
 					stats.start(method.Name)
 				}
 
-				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+				method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
 			},
 		}
 		tests = append(tests, test)
 	}
-	if suiteSetupDone {
-		defer func() {
-			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-				tearDownAllSuite.TearDownSuite()
-			}
 
-			if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-				stats.End = time.Now()
-				suiteWithStats.HandleStats(suiteName, stats)
-			}
-		}()
+	if len(tests) == 0 {
+		testingT.Log("warning: no tests to run")
+		return
 	}
 
-	runTests(t, tests)
+	// run sub-tests in a group so tearDownSuite is called in the right order
+	testingT.Run("All", func(testingT *testing.T) {
+		for _, test := range tests {
+			testingT.Run(test.Name, test.F)
+		}
+	})
+	if suiteSetupDone {
+		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+			tearDownAllSuite.TearDownSuite(t)
+		}
+
+		if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+			stats.End = time.Now()
+			suiteWithStats.HandleStats(t, suiteName, stats)
+		}
+	}
 }
 
 // Filtering method according to set regular expression
@@ -183,27 +264,4 @@ func methodFilter(name string) (bool, error) {
 		return false, nil
 	}
 	return regexp.MatchString(*matchMethod, name)
-}
-
-func runTests(t testing.TB, tests []testing.InternalTest) {
-	if len(tests) == 0 {
-		t.Log("warning: no tests to run")
-		return
-	}
-
-	r, ok := t.(runner)
-	if !ok { // backwards compatibility with Go 1.6 and below
-		if !testing.RunTests(allTestsFilter, tests) {
-			t.Fail()
-		}
-		return
-	}
-
-	for _, test := range tests {
-		r.Run(test.Name, test.F)
-	}
-}
-
-type runner interface {
-	Run(name string, f func(t *testing.T)) bool
 }

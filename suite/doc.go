@@ -5,15 +5,15 @@
 // or individual tests (depending on which interface(s) you
 // implement).
 //
-// A testing suite is usually built by first extending the built-in
-// suite functionality from suite.Suite in testify.  Alternatively,
-// you could reproduce that logic on your own if you wanted (you
-// just need to implement the TestingSuite interface from
-// suite/interfaces.go).
+// A testing suite is usually built by defining a Suite struct
+// that includes all fields that tests need.
 //
 // After that, you can implement any of the interfaces in
 // suite/interfaces.go to add setup/teardown functionality to your
 // suite, and add any methods that start with "Test" to add tests.
+// Test methods must match signature: `func(*suite.T)`. The suite.T
+// object passed may be used to run sub-tests, verify assertions
+// and control test execution.
 // Methods that do not match any suite interfaces and do not begin
 // with "Test" will not be run by testify, and can safely be used as
 // helper methods.
@@ -36,25 +36,23 @@
 //         "github.com/stretchr/testify/suite"
 //     )
 //
-//     // Define the suite, and absorb the built-in basic suite
-//     // functionality from testify - including a T() method which
-//     // returns the current testing context
+//     // Define the suite, which is simply a struct with all
+//     // fields that tests need.
 //     type ExampleTestSuite struct {
-//         suite.Suite
 //         VariableThatShouldStartAtFive int
 //     }
 //
 //     // Make sure that VariableThatShouldStartAtFive is set to five
 //     // before each test
-//     func (suite *ExampleTestSuite) SetupTest() {
+//     func (suite *ExampleTestSuite) SetupTest(t *suite.T) {
 //         suite.VariableThatShouldStartAtFive = 5
 //     }
 //
 //     // All methods that begin with "Test" are run as tests within a
 //     // suite.
-//     func (suite *ExampleTestSuite) TestExample() {
-//         assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
-//         suite.Equal(5, suite.VariableThatShouldStartAtFive)
+//     func (suite *ExampleTestSuite) TestExample(t *suite.T) {
+//         assert.Equal(t, 5, suite.VariableThatShouldStartAtFive)
+//         t.Equal(5, suite.VariableThatShouldStartAtFive)
 //     }
 //
 //     // In order for 'go test' to run this suite, we need to create
