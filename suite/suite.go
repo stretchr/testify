@@ -22,15 +22,15 @@ var matchMethod = flag.String("testify.m", "", "regular expression to select tes
 // retrieving the current *testing.T context.
 type Suite struct {
 	*assert.Assertions
-	mu      sync.Mutex
+	mu      sync.RWMutex
 	require *require.Assertions
 	t       *testing.T
 }
 
 // T retrieves the current *testing.T context.
 func (suite *Suite) T() *testing.T {
-	suite.mu.Lock()
-	defer suite.mu.Unlock()
+	suite.mu.RLock()
+	defer suite.mu.RUnlock()
 	return suite.t
 }
 
