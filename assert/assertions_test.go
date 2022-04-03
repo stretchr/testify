@@ -218,6 +218,57 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+func jsonUnmarshalled(t time.Time) time.Time {
+	now := struct {
+		Now time.Time
+	}{t}
+
+	jsonBytes, _ := json.Marshal(now)
+
+	var unmarshalledNow struct {
+		Now time.Time
+	}
+	_ = json.Unmarshal(jsonBytes, &unmarshalledNow)
+
+	return unmarshalledNow.Now
+}
+
+func TestTimeEqual(t *testing.T) {
+	mockT := new(testing.T)
+	now := time.Now()
+	locationEST, _ := time.LoadLocation("America/New_York")
+	locationCST, _ := time.LoadLocation("America/Chicago")
+
+	cases := []struct {
+		name  string
+		a     time.Time
+		b     time.Time
+		equal bool
+	}{
+		{"compare now", now, now, true},
+		{"different timestamps", time.Unix(0, 0), time.Unix(0, 1), false},
+		{"different time zones", now.In(locationEST), now.In(locationCST), true},
+		{"json unmarshalled time", now, jsonUnmarshalled(now), true},
+	}
+
+	for _, testCase := range cases {
+		t.Run(
+			testCase.name,
+			func(t *testing.T) {
+				res := TimeEqual(mockT, testCase.a, testCase.b)
+
+				if res != testCase.equal {
+					t.Errorf(
+						"TimeEqual(%#v, %#v) should return %#v",
+						testCase.a,
+						testCase.b,
+						testCase.equal,
+					)
+				}
+			})
+	}
+}
+
 func ptr(i int) *int {
 	return &i
 }

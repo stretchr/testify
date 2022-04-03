@@ -1812,6 +1812,32 @@ func Subsetf(t TestingT, list interface{}, subset interface{}, msg string, args 
 	t.FailNow()
 }
 
+// TimeEqual compares two times by timestamp.
+// This allows you to compare two times in different time zones or
+// times that have been JSON-unmarshalled.
+func TimeEqual(t TestingT, expected time.Time, actual time.Time, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.TimeEqual(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// TimeEqualf compares two times by timestamp.
+// This allows you to compare two times in different time zones or
+// times that have been JSON-unmarshalled.
+func TimeEqualf(t TestingT, expected time.Time, actual time.Time, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.TimeEqualf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // True asserts that the specified value is true.
 //
 //    assert.True(t, myBool)

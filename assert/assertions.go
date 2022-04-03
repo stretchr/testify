@@ -352,6 +352,37 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 
 }
 
+// TimeEqual compares two times by timestamp.
+// This allows you to compare two times in different time zones or
+// times that have been JSON-unmarshalled.
+func TimeEqual(
+	t TestingT,
+	expected time.Time,
+	actual time.Time,
+	msgAndArgs ...interface{},
+) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if err := validateEqualArgs(expected, actual); err != nil {
+		return Fail(t, fmt.Sprintf("Invalid operation: %#v == %#v (%s)",
+			expected, actual, err), msgAndArgs...)
+	}
+
+	equal := expected.UnixNano() == actual.UnixNano()
+
+	if !equal {
+		diff := diff(expected, actual)
+		expectedString, actualString := formatUnequalValues(expected, actual)
+		return Fail(t, fmt.Sprintf("Not equal: \n"+
+			"expected: %s\n"+
+			"actual  : %s%s", expectedString, actualString, diff), msgAndArgs...)
+	}
+
+	return true
+}
+
 // validateEqualArgs checks whether provided arguments can be safely used in the
 // Equal/NotEqual functions.
 func validateEqualArgs(expected, actual interface{}) error {

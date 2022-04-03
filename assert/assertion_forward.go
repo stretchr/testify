@@ -1421,6 +1421,26 @@ func (a *Assertions) Subsetf(list interface{}, subset interface{}, msg string, a
 	return Subsetf(a.t, list, subset, msg, args...)
 }
 
+// TimeEqual compares two times by timestamp.
+// This allows you to compare two times in different time zones or
+// times that have been JSON-unmarshalled.
+func (a *Assertions) TimeEqual(expected time.Time, actual time.Time, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return TimeEqual(a.t, expected, actual, msgAndArgs...)
+}
+
+// TimeEqualf compares two times by timestamp.
+// This allows you to compare two times in different time zones or
+// times that have been JSON-unmarshalled.
+func (a *Assertions) TimeEqualf(expected time.Time, actual time.Time, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return TimeEqualf(a.t, expected, actual, msg, args...)
+}
+
 // True asserts that the specified value is true.
 //
 //    a.True(myBool)
