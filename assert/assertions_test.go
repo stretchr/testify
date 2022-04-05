@@ -1061,6 +1061,44 @@ func TestNoError(t *testing.T) {
 	False(t, NoError(mockT, err), "NoError should fail with empty error interface")
 }
 
+func TestIsError(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	// start with a nil error
+	var expetedErr error
+	var err error
+
+	False(t, IsError(expetedErr)(mockT, err), "IsError should return True for nil expected error")
+
+	// now set an expected error
+	expetedErr = errors.New("expected error")
+
+	False(t, IsError(expetedErr)(mockT, err), "IsError should return True for nil arg")
+
+	// now set error to same as expected error
+	err = errors.New("expected error")
+
+	True(t, IsError(expetedErr)(mockT, err), "IsError with error should return True for same error")
+
+	// now set error to another error
+	err = errors.New("another error")
+
+	False(t, IsError(expetedErr)(mockT, err), "IsError with error should return False for different error")
+
+	// returning an empty error interface
+	err = func() error {
+		var err *customError
+		return err
+	}()
+
+	if err == nil { // err is not nil here!
+		t.Errorf("Error should be nil due to empty interface: %s", err)
+	}
+
+	False(t, IsError(expetedErr)(mockT, err), "IsError should fail with empty error interface")
+}
+
 type customError struct{}
 
 func (*customError) Error() string { return "fail" }

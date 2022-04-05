@@ -1337,6 +1337,21 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	return true
 }
 
+// IsError asserts that a function returned a specific error.
+//
+//   actualObj, err := SomeFunction()
+//   if assert.IsError(expectedErr)(t, err) {
+//	   assert.Equal(t, expectedObj, actualObj)
+//   }
+func IsError(theError error) func(t TestingT, err error, msgAndArgs ...interface{}) bool {
+	return func(t TestingT, err error, msgAndArgs ...interface{}) bool {
+		if theError == nil {
+			return Fail(t, "An expected error is required but got nil.")
+		}
+		return EqualError(t, err, theError.Error(), msgAndArgs...)
+	}
+}
+
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
 //   actualObj, err := SomeFunction()
