@@ -815,7 +815,6 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 		return true // we consider nil to be equal to the nil set
 	}
 
-	subsetValue := reflect.ValueOf(subset)
 	defer func() {
 		if e := recover(); e != nil {
 			ok = false
@@ -825,12 +824,30 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	listKind := reflect.TypeOf(list).Kind()
 	subsetKind := reflect.TypeOf(subset).Kind()
 
-	if listKind != reflect.Array && listKind != reflect.Slice {
+	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice {
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+	}
+
+	subsetValue := reflect.ValueOf(subset)
+	if subsetKind == reflect.Map && listKind == reflect.Map {
+		listValue := reflect.ValueOf(list)
+		subsetKeys := subsetValue.MapKeys()
+
+		for i := 0; i < len(subsetKeys); i++ {
+			subsetKey := subsetKeys[i]
+			subsetElement := subsetValue.MapIndex(subsetKey).Interface()
+			listElement := listValue.MapIndex(subsetKey).Interface()
+
+			if !ObjectsAreEqual(subsetElement, listElement) {
+				return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, subsetElement), msgAndArgs...)
+			}
+		}
+
+		return true
 	}
 
 	for i := 0; i < subsetValue.Len(); i++ {
