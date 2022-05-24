@@ -1462,6 +1462,26 @@ func (a *Assertions) WithinDurationf(expected time.Time, actual time.Time, delta
 	WithinDurationf(a.t, expected, actual, delta, msg, args...)
 }
 
+// WithinTimeRange asserts that a time is within a time range (inclusive).
+//
+//   a.WithinTimeRange(time.Now(), time.Now(), time.Now())
+func (a *Assertions) WithinTimeRange(expected time.Time, start time.Time, end time.Time, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	WithinTimeRange(a.t, expected, start, end, msgAndArgs...)
+}
+
+// WithinTimeRangef asserts that a time is within a time range (inclusive).
+//
+//   a.WithinTimeRangef(time.Now(), time.Now(), time.Now(), "error message %s", "formatted")
+func (a *Assertions) WithinTimeRangef(expected time.Time, start time.Time, end time.Time, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	WithinTimeRangef(a.t, expected, start, end, msg, args...)
+}
+
 // YAMLEq asserts that two YAML strings are equivalent.
 func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {

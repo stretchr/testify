@@ -736,7 +736,7 @@ func WithinDurationf(t TestingT, expected time.Time, actual time.Time, delta tim
 	return WithinDuration(t, expected, actual, delta, append([]interface{}{msg}, args...)...)
 }
 
-// WithinTimeRangef asserts that a time is within a certain range (inclusive).
+// WithinTimeRangef asserts that a time is within a time range (inclusive).
 //
 //   assert.WithinTimeRangef(t, time.Now(), time.Now(), time.Now(), "error message %s", "formatted")
 func WithinTimeRangef(t TestingT, expected time.Time, start time.Time, end time.Time, msg string, args ...interface{}) bool {
