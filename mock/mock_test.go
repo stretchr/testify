@@ -766,13 +766,8 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 	c = m.On("Once", 1).Return("one").Once()
 	c.Repeatability = -1
 	f, c = m.findExpectedCall("Once", 1)
-	if assert.Equal(t, -1, f) {
-		if assert.NotNil(t, c) {
-			assert.Equal(t, "Once", c.Method)
-			assert.Equal(t, 1, c.Arguments[0])
-			assert.Equal(t, "one", c.ReturnArguments[0])
-		}
-	}
+	assert.Equal(t, -1, f)
+	assert.Nil(t, c)
 }
 
 func Test_callString(t *testing.T) {
@@ -1441,6 +1436,25 @@ func Test_MockMethodCalled(t *testing.T) {
 	retArgs := m.MethodCalled("foo", "hello")
 	require.True(t, len(retArgs) == 1)
 	require.Equal(t, "world", retArgs[0])
+	m.AssertExpectations(t)
+}
+
+func Test_MockMethodCalled_WithRepeatability(t *testing.T) {
+	m := new(Mock)
+	c := m.On("foo", "hello").Return("world")
+	c.Repeatability = -1
+
+	defer func() {
+		if r := recover(); r != nil {
+			matchingExp := regexp.MustCompile(`\n` +
+				`assert: mock: The method has been called over 0 times.\n\t` +
+				`Either do one more Mock.On\("foo"\).Return\(...\), or remove extra call.\n\t` +
+				`This call was unexpected:\n\t\tfoo\(string\)\n\t\t0: "hello"\n\tat: .*`,
+			)
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+	m.MethodCalled("foo", "hello")
 	m.AssertExpectations(t)
 }
 
