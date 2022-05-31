@@ -783,7 +783,6 @@ func (args Arguments) Is(objects ...interface{}) bool {
 func (args Arguments) Diff(objects []interface{}) (string, int) {
 	//TODO: could return string as error and nil for No difference
 
-	var output = "\n"
 	var differences int
 
 	var maxArgCount = len(args)
@@ -791,32 +790,23 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		maxArgCount = len(objects)
 	}
 
+	outputFuncs := make([]func() string, maxArgCount)
+
 	for i := 0; i < maxArgCount; i++ {
 		var actual, expected interface{}
-		var actualFmt, expectedFmt string
-
-		if len(objects) <= i {
-			actual = "(Missing)"
-			actualFmt = "(Missing)"
-		} else {
+		if len(objects) > i {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
 		}
-
-		if len(args) <= i {
-			expected = "(Missing)"
-			expectedFmt = "(Missing)"
-		} else {
+		if len(args) > i {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
 			if matcher.Matches(actual) {
-				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
+				outputFuncs[i] = reportFunc(i, true, actual, expected)
 			} else {
 				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
+				outputFuncs[i] = reportFunc(i, false, actual, expected)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 
@@ -824,7 +814,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
 				// not match
 				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+				outputFuncs[i] = reportFunc(i, false, actual, expected)
 			}
 
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*IsTypeArgument)(nil)) {
@@ -834,27 +824,95 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
 			}
 		} else {
-
 			// normal checking
-
 			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
-				// match
-				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
+				outputFuncs[i] = reportFunc(i, true, actual, expected)
+
 			} else {
 				// not match
 				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
+				outputFuncs[i] = reportFunc(i, false, actual, expected)
 			}
 		}
-
 	}
 
 	if differences == 0 {
 		return "No differences.", differences
 	}
 
-	return output, differences
+	var output = "\n"
 
+	// Generate output, highlighting the failed expectations.
+	for _, f := range outputFuncs {
+		if f != nil {
+			output += f()
+		}
+	}
+
+	return output, differences
+}
+
+// Returns a function that will report on the pass/fail of a specific argument expectation.
+// i is the argument index, pass indicates pass/fail, actual and expected are the argument values.
+func reportFunc(i int, pass bool, actual, expected interface{}) func() string {
+	var actDisplay, expDisplay interface{}
+	if actual == nil {
+		actDisplay = "(Missing)"
+	} else {
+		actDisplay = actual
+	}
+	if expected == nil {
+		expDisplay = "(Missing)"
+	} else {
+		expDisplay = expected
+	}
+
+	if matcher, ok := expected.(argumentMatcher); ok {
+		tvFmt := typeValueFmt(2, actual)
+		switch pass {
+		case true:
+			return func() string { return fmt.Sprintf("\t%d: PASS:  "+tvFmt+" matched by %s\n", i, actDisplay, matcher) }
+		case false:
+			return func() string {
+				return fmt.Sprintf("\t%d: FAIL:  "+tvFmt+" not matched by %s\n", i, actDisplay, matcher)
+			}
+		}
+	}
+
+	if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
+		if !pass {
+			tvFmt := typeValueFmt(4, actual)
+			return func() string {
+				return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - "+tvFmt+"\n", i, expected, reflect.TypeOf(actual).Name(), actual)
+			}
+		}
+		return nil
+	}
+
+	actTvFmt := typeValueFmt(2, actual)
+	expTvFmt := typeValueFmt(3, expected)
+
+	switch pass {
+	case true:
+		return func() string {
+			return fmt.Sprintf("\t%d: PASS:  "+actTvFmt+" == "+expTvFmt+"\n", i, actDisplay, expDisplay)
+		}
+	case false:
+		return func() string {
+			return fmt.Sprintf("\t%d: FAIL:  "+actTvFmt+" != "+expTvFmt+"\n", i, actDisplay, expDisplay)
+		}
+	}
+	return nil
+}
+
+// Generates a format string for a type=value pair or, if the value is nil, returns "(Missing)"
+func typeValueFmt(i int, value interface{}) string {
+	switch {
+	case value != nil:
+		return fmt.Sprintf("(%%[%d]T=%%[%d]v)", i, i)
+	default:
+		return "(Missing)"
+	}
 }
 
 // Assert compares the arguments with the specified objects and fails if
