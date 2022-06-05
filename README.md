@@ -344,3 +344,5 @@ License
 =======
 
 This project is licensed under the terms of the MIT license.
+
+difflib/ is Copyright (c) 2013, Patrick Mezard, see [difflib/LICENSE](difflib/LICENSE).

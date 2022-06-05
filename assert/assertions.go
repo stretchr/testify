@@ -18,7 +18,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pmezard/go-difflib/difflib"
+	"github.com/stretchr/testify/difflib"
+
 	yaml "gopkg.in/yaml.v3"
 )
 
