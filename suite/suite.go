@@ -22,7 +22,7 @@ var matchMethod = flag.String("testify.m", "", "regular expression to select tes
 // retrieving the current *testing.T context.
 type Suite struct {
 	*assert.Assertions
-	mu      sync.RWMutex
+	mu      *sync.RWMutex
 	require *require.Assertions
 	t       *testing.T
 }
