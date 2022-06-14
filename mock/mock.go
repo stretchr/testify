@@ -245,6 +245,10 @@ func (m *Mock) TestData() objx.Map {
 
 // Test sets the test struct variable of the mock object
 func (m *Mock) Test(t TestingT) {
+	if m.mutex == nil {
+		m.mutex = &sync.Mutex{}
+	}
+
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.test = t
@@ -274,6 +278,9 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
 		}
 	}
+
+	// Since we start mocks with the .On() function, m.mutex should be reset
+	m.mutex = &sync.Mutex{}
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
