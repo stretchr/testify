@@ -1,8 +1,11 @@
 package mock
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"runtime"
 	"sync"
@@ -90,6 +93,11 @@ type ExampleFuncType func(string) error
 
 func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType) error {
 	args := i.Called(fn)
+	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleMethodContext(ctx context.Context) error {
+	args := i.Called(ctx)
 	return args.Error(0)
 }
 
@@ -962,7 +970,6 @@ func Test_Mock_AssertExpectations(t *testing.T) {
 
 	// now assert expectations
 	assert.True(t, mockedService.AssertExpectations(tt))
-
 }
 
 func Test_Mock_AssertExpectations_Placeholder_NoArgs(t *testing.T) {
@@ -1063,6 +1070,35 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 	// now assert expectations
 	assert.True(t, mockedService.AssertExpectations(tt))
 
+}
+
+func Test_Mock_AssertExpectationsServerRace(t *testing.T) {
+	// This test reproduces the bug in https://github.com/stretchr/testify/issues/625
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("func1", AnythingOfType("*context.cancelCtx")).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// make the call now
+		mockedService.Called(r.Context())
+		w.Write([]byte("some response"))
+	}))
+	defer srv.Close()
+
+	req, err := http.NewRequest(http.MethodGet, srv.URL+"/", nil)
+	assert.NoError(t, err)
+	req = req.WithContext(context.Background())
+
+	res, err := http.DefaultClient.Do(req)
+
+	assert.NoError(t, err)
+	defer res.Body.Close()
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
 }
 
 func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
