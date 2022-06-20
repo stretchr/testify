@@ -915,6 +915,7 @@ func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
 	var mockedService1 = new(TestExampleImplementation)
 	var mockedService2 = new(TestExampleImplementation)
 	var mockedService3 = new(TestExampleImplementation)
+	var mockedService4 = new(TestExampleImplementation) // No expectations does not cause a panic
 
 	mockedService1.On("Test_AssertExpectationsForObjects_Helper", 1).Return()
 	mockedService2.On("Test_AssertExpectationsForObjects_Helper", 2).Return()
@@ -924,8 +925,8 @@ func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
 	mockedService2.Called(2)
 	mockedService3.Called(3)
 
-	assert.True(t, AssertExpectationsForObjects(t, &mockedService1.Mock, &mockedService2.Mock, &mockedService3.Mock))
-	assert.True(t, AssertExpectationsForObjects(t, mockedService1, mockedService2, mockedService3))
+	assert.True(t, AssertExpectationsForObjects(t, &mockedService1.Mock, &mockedService2.Mock, &mockedService3.Mock, &mockedService4.Mock))
+	assert.True(t, AssertExpectationsForObjects(t, mockedService1, mockedService2, mockedService3, mockedService4))
 
 }
 

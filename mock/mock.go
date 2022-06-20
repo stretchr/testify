@@ -508,6 +508,10 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	if m.mutex == nil {
+		m.mutex = &sync.Mutex{}
+	}
+
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	var somethingMissing bool
