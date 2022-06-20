@@ -1,4 +1,4 @@
-module github.com/sunhao1256/testify
+module github.com/stretchr/testify
 
 go 1.13
 
