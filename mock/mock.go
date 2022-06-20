@@ -305,7 +305,7 @@ func (m *Mock) OnOverwrite(methodName string, arguments ...interface{}) *Call {
 	defer m.mutex.Unlock()
 	index, c := m.findExpectedCall(methodName, arguments)
 	c = newCall(m, methodName, assert.CallerInfo(), arguments...)
-	if index < 0 {
+	if index >= 0 {
 		m.ExpectedCalls[index] = c
 	} else {
 		m.ExpectedCalls = append(m.ExpectedCalls, c)
