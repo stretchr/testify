@@ -343,15 +343,7 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 				bytesObj2 = obj2Value.Convert(bytesType).Interface().([]byte)
 			}
 
-			if bytes.Compare(bytesObj1, bytesObj2) > 0 {
-				return compareGreater, true
-			}
-			if bytes.Equal(bytesObj1, bytesObj2) {
-				return compareEqual, true
-			}
-			if bytes.Compare(bytesObj1, bytesObj2) < 0 {
-				return compareLess, true
-			}
+			return CompareType(bytes.Compare(bytesObj1, bytesObj2)), true
 		}
 	}
 
