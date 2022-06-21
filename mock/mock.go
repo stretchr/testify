@@ -289,28 +289,25 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
-//If exist same methodName and arguments will overwrite before call
+//Off cancel existed method with arguments call
 
-func (m *Mock) OnOverwrite(methodName string, arguments ...interface{}) *Call {
+func (m *Mock) Off(methodName string, arguments ...interface{}) {
 	for _, arg := range arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
 			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
 		}
 	}
 
-	// Since we start mocks with the .On() function, m.mutex should be reset
 	m.mutex = &sync.Mutex{}
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	index, c := m.findExpectedCall(methodName, arguments...)
-	c = newCall(m, methodName, assert.CallerInfo(), arguments...)
-	if index >= 0 {
-		m.ExpectedCalls[index] = c
+	index, _ := m.findExpectedCall(methodName, arguments...)
+	if index < 0 {
+		return
 	} else {
-		m.ExpectedCalls = append(m.ExpectedCalls, c)
+		m.ExpectedCalls = append(m.ExpectedCalls[:index], m.ExpectedCalls[index+1:]...)
 	}
-	return c
 }
 
 // /*
