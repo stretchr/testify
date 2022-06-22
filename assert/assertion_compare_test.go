@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -58,7 +59,8 @@ func TestCompare(t *testing.T) {
 		}
 
 		if resLess != compareLess {
-			t.Errorf("object less should be less than greater for type " + currCase.cType)
+			t.Errorf("object less (%v) should be less than greater (%v) for type "+currCase.cType,
+				currCase.less, currCase.greater)
 		}
 
 		resGreater, isComparable := compare(currCase.greater, currCase.less, reflect.ValueOf(currCase.less).Kind())
@@ -82,13 +84,35 @@ func TestCompare(t *testing.T) {
 }
 
 type outputT struct {
-	buf *bytes.Buffer
+	buf     *bytes.Buffer
+	helpers map[string]struct{}
 }
 
 // Implements TestingT
 func (t *outputT) Errorf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	t.buf.WriteString(s)
+}
+
+func (t *outputT) Helper() {
+	if t.helpers == nil {
+		t.helpers = make(map[string]struct{})
+	}
+	t.helpers[callerName(1)] = struct{}{}
+}
+
+// callerName gives the function name (qualified with a package path)
+// for the caller after skip frames (where 0 means the current function).
+func callerName(skip int) string {
+	// Make room for the skip PC.
+	var pc [1]uintptr
+	n := runtime.Callers(skip+2, pc[:]) // skip + runtime.Callers + callerName
+	if n == 0 {
+		panic("testing: zero callers found")
+	}
+	frames := runtime.CallersFrames(pc[:n])
+	frame, _ := frames.Next()
+	return frame.Function
 }
 
 func TestGreater(t *testing.T) {
@@ -127,7 +151,8 @@ func TestGreater(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Greater(out, currCase.less, currCase.greater))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Greater")
 	}
 }
 
@@ -167,7 +192,8 @@ func TestGreaterOrEqual(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.GreaterOrEqual")
 	}
 }
 
@@ -207,7 +233,8 @@ func TestLess(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Less(out, currCase.greater, currCase.less))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Less")
 	}
 }
 
@@ -247,7 +274,86 @@ func TestLessOrEqual(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, LessOrEqual(out, currCase.greater, currCase.less))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.LessOrEqual")
+	}
+}
+
+func TestPositive(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !Positive(mockT, 1) {
+		t.Error("Positive should return true")
+	}
+
+	if !Positive(mockT, 1.23) {
+		t.Error("Positive should return true")
+	}
+
+	if Positive(mockT, -1) {
+		t.Error("Positive should return false")
+	}
+
+	if Positive(mockT, -1.23) {
+		t.Error("Positive should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		e   interface{}
+		msg string
+	}{
+		{e: int(-1), msg: `"-1" is not positive`},
+		{e: int8(-1), msg: `"-1" is not positive`},
+		{e: int16(-1), msg: `"-1" is not positive`},
+		{e: int32(-1), msg: `"-1" is not positive`},
+		{e: int64(-1), msg: `"-1" is not positive`},
+		{e: float32(-1.23), msg: `"-1.23" is not positive`},
+		{e: float64(-1.23), msg: `"-1.23" is not positive`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, Positive(out, currCase.e))
+		Contains(t, out.buf.String(), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Positive")
+	}
+}
+
+func TestNegative(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !Negative(mockT, -1) {
+		t.Error("Negative should return true")
+	}
+
+	if !Negative(mockT, -1.23) {
+		t.Error("Negative should return true")
+	}
+
+	if Negative(mockT, 1) {
+		t.Error("Negative should return false")
+	}
+
+	if Negative(mockT, 1.23) {
+		t.Error("Negative should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		e   interface{}
+		msg string
+	}{
+		{e: int(1), msg: `"1" is not negative`},
+		{e: int8(1), msg: `"1" is not negative`},
+		{e: int16(1), msg: `"1" is not negative`},
+		{e: int32(1), msg: `"1" is not negative`},
+		{e: int64(1), msg: `"1" is not negative`},
+		{e: float32(1.23), msg: `"1.23" is not negative`},
+		{e: float64(1.23), msg: `"1.23" is not negative`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, Negative(out, currCase.e))
+		Contains(t, out.buf.String(), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Negative")
 	}
 }
 
@@ -281,7 +387,7 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 	}{
 		{v1: CompareStruct{}, v2: CompareStruct{}},
 		{v1: map[string]int{}, v2: map[string]int{}},
-		{v1: make([]int, 5, 5), v2: make([]int, 5, 5)},
+		{v1: make([]int, 5), v2: make([]int, 5)},
 	} {
 		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
 		False(t, compareResult)
@@ -321,5 +427,23 @@ func Test_containsValue(t *testing.T) {
 	} {
 		compareResult := containsValue(currCase.values, currCase.value)
 		Equal(t, currCase.result, compareResult)
+	}
+}
+
+func TestComparingMsgAndArgsForwarding(t *testing.T) {
+	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
+	expectedOutput := "format this c001\n"
+	funcs := []func(t TestingT){
+		func(t TestingT) { Greater(t, 1, 2, msgAndArgs...) },
+		func(t TestingT) { GreaterOrEqual(t, 1, 2, msgAndArgs...) },
+		func(t TestingT) { Less(t, 2, 1, msgAndArgs...) },
+		func(t TestingT) { LessOrEqual(t, 2, 1, msgAndArgs...) },
+		func(t TestingT) { Positive(t, 0, msgAndArgs...) },
+		func(t TestingT) { Negative(t, 0, msgAndArgs...) },
+	}
+	for _, f := range funcs {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		f(out)
+		Contains(t, out.buf.String(), expectedOutput)
 	}
 }

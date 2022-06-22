@@ -3,7 +3,7 @@ Testify - Thou Shalt Write Tests
 
 ℹ️ We are working on testify v2 and would love to hear what you'd like to see in it, have your say here: https://cutt.ly/testify
 
-[![Build Status](https://travis-ci.org/stretchr/testify.svg)](https://travis-ci.org/stretchr/testify) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![GoDoc](https://godoc.org/github.com/stretchr/testify?status.svg)](https://godoc.org/github.com/stretchr/testify)
+[![Build Status](https://travis-ci.org/stretchr/testify.svg)](https://travis-ci.org/stretchr/testify) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![PkgGoDev](https://pkg.go.dev/badge/github.com/stretchr/testify)](https://pkg.go.dev/github.com/stretchr/testify)
 
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
 
@@ -169,12 +169,12 @@ func TestSomething(t *testing.T) {
 
 }
 
-// TestSomethingElse is a second example of how to use our test object to
+// TestSomethingWithPlaceholder is a second example of how to use our test object to
 // make assertions about some target code we are testing.
 // This time using a placeholder. Placeholders might be used when the
 // data being passed in is normally dynamically generated and cannot be
 // predicted beforehand (eg. containing hashes that are time sensitive)
-func TestSomethingElse(t *testing.T) {
+func TestSomethingWithPlaceholder(t *testing.T) {
 
   // create an instance of our test object
   testObj := new(MyMockedObject)
@@ -348,7 +348,7 @@ To update Testify to the latest version, use `go get -u github.com/stretchr/test
 Supported go versions
 ==================
 
-We support the two major Go versions, which are 1.13 and 1.14 at the moment.
+We currently support the most recent major Go versions from 1.13 onward.
 
 ------
 

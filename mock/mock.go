@@ -218,13 +218,20 @@ type Mock struct {
 	// this data completely allowing you to do whatever you like with it.
 	testData objx.Map
 
-	mutex sync.Mutex
+	mutex *sync.Mutex
+}
+
+// String provides a %v format string for Mock.
+// Note: this is used implicitly by Arguments.Diff if a Mock is passed.
+// It exists because go's default %v formatting traverses the struct
+// without acquiring the mutex, which is detected by go test -race.
+func (m *Mock) String() string {
+	return fmt.Sprintf("%[1]T<%[1]p>", m)
 }
 
 // TestData holds any data that might be useful for testing.  Testify ignores
 // this data completely allowing you to do whatever you like with it.
 func (m *Mock) TestData() objx.Map {
-
 	if m.testData == nil {
 		m.testData = make(objx.Map)
 	}
@@ -238,6 +245,10 @@ func (m *Mock) TestData() objx.Map {
 
 // Test sets the test struct variable of the mock object
 func (m *Mock) Test(t TestingT) {
+	if m.mutex == nil {
+		m.mutex = &sync.Mutex{}
+	}
+
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.test = t
@@ -267,6 +278,9 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
 		}
 	}
+
+	// Since we start mocks with the .On() function, m.mutex should be reset
+	m.mutex = &sync.Mutex{}
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -333,29 +347,55 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 	return -1, expectedCall
 }
 
+type matchCandidate struct {
+	call      *Call
+	mismatch  string
+	diffCount int
+}
+
+func (c matchCandidate) isBetterMatchThan(other matchCandidate) bool {
+	if c.call == nil {
+		return false
+	}
+	if other.call == nil {
+		return true
+	}
+
+	if c.diffCount > other.diffCount {
+		return false
+	}
+	if c.diffCount < other.diffCount {
+		return true
+	}
+
+	if c.call.Repeatability > 0 && other.call.Repeatability <= 0 {
+		return true
+	}
+	return false
+}
+
 func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
-	var diffCount int
-	var closestCall *Call
-	var err string
+	var bestMatch matchCandidate
 
 	for _, call := range m.expectedCalls() {
 		if call.Method == method {
 
 			errInfo, tempDiffCount := call.Arguments.Diff(arguments)
-			if tempDiffCount < diffCount || diffCount == 0 {
-				diffCount = tempDiffCount
-				closestCall = call
-				err = errInfo
+			tempCandidate := matchCandidate{
+				call:      call,
+				mismatch:  errInfo,
+				diffCount: tempDiffCount,
 			}
-
+			if tempCandidate.isBetterMatchThan(bestMatch) {
+				bestMatch = tempCandidate
+			}
 		}
 	}
 
-	return closestCall, err
+	return bestMatch.call, bestMatch.mismatch
 }
 
 func callString(method string, arguments Arguments, includeArgumentValues bool) string {
-
 	var argValsString string
 	if includeArgumentValues {
 		var argVals []string
@@ -379,10 +419,10 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		panic("Couldn't get the caller information")
 	}
 	functionPath := runtime.FuncForPC(pc).Name()
-	//Next four lines are required to use GCCGO function naming conventions.
-	//For Ex:  github_com_docker_libkv_store_mock.WatchTree.pN39_github_com_docker_libkv_store_mock.Mock
-	//uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
-	//With GCCGO we need to remove interface information starting from pN<dd>.
+	// Next four lines are required to use GCCGO function naming conventions.
+	// For Ex:  github_com_docker_libkv_store_mock.WatchTree.pN39_github_com_docker_libkv_store_mock.Mock
+	// uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
+	// With GCCGO we need to remove interface information starting from pN<dd>.
 	re := regexp.MustCompile("\\.pN\\d+_")
 	if re.MatchString(functionPath) {
 		functionPath = re.Split(functionPath, -1)[0]
@@ -398,7 +438,7 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 // If Call.WaitFor is set, blocks until the channel is closed or receives a message.
 func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Arguments {
 	m.mutex.Lock()
-	//TODO: could combine expected and closes in single loop
+	// TODO: could combine expected and closes in single loop
 	found, call := m.findExpectedCall(methodName, arguments...)
 
 	if found < 0 {
@@ -504,6 +544,10 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	if m.mutex == nil {
+		m.mutex = &sync.Mutex{}
+	}
+
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	var somethingMissing bool
@@ -729,7 +773,7 @@ func (f argumentMatcher) Matches(argument interface{}) bool {
 }
 
 func (f argumentMatcher) String() string {
-	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).Name())
+	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).String())
 }
 
 // MatchedBy can be used to match a mock call based on only certain properties
@@ -782,12 +826,12 @@ func (args Arguments) Is(objects ...interface{}) bool {
 //
 // Returns the diff string and number of differences found.
 func (args Arguments) Diff(objects []interface{}) (string, int) {
-	//TODO: could return string as error and nil for No difference
+	// TODO: could return string as error and nil for No difference
 
-	var output = "\n"
+	output := "\n"
 	var differences int
 
-	var maxArgCount = len(args)
+	maxArgCount := len(args)
 	if len(objects) > maxArgCount {
 		maxArgCount = len(objects)
 	}
@@ -820,14 +864,12 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
-
 			// type checking
 			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
 				// not match
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 			}
-
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*IsTypeArgument)(nil)) {
 			t := expected.(*IsTypeArgument).t
 			if reflect.TypeOf(t) != reflect.TypeOf(actual) {
@@ -835,7 +877,6 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
 			}
 		} else {
-
 			// normal checking
 
 			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
@@ -855,7 +896,6 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 	}
 
 	return output, differences
-
 }
 
 // Assert compares the arguments with the specified objects and fails if
@@ -877,7 +917,6 @@ func (args Arguments) Assert(t TestingT, objects ...interface{}) bool {
 	t.Errorf("%sArguments do not match.", assert.CallerInfo())
 
 	return false
-
 }
 
 // String gets the argument at the specified index. Panics if there is no argument, or
@@ -886,7 +925,6 @@ func (args Arguments) Assert(t TestingT, objects ...interface{}) bool {
 // If no index is provided, String() returns a complete string representation
 // of the arguments.
 func (args Arguments) String(indexOrNil ...int) string {
-
 	if len(indexOrNil) == 0 {
 		// normal String() method - return a string representation of the args
 		var argsStr []string
@@ -896,7 +934,7 @@ func (args Arguments) String(indexOrNil ...int) string {
 		return strings.Join(argsStr, ",")
 	} else if len(indexOrNil) == 1 {
 		// Index has been specified - get the argument at that index
-		var index = indexOrNil[0]
+		index := indexOrNil[0]
 		var s string
 		var ok bool
 		if s, ok = args.Get(index).(string); !ok {
@@ -906,7 +944,6 @@ func (args Arguments) String(indexOrNil ...int) string {
 	}
 
 	panic(fmt.Sprintf("assert: arguments: Wrong number of arguments passed to String.  Must be 0 or 1, not %d", len(indexOrNil)))
-
 }
 
 // Int gets the argument at the specified index. Panics if there is no argument, or

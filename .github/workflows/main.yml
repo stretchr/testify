@@ -1,0 +1,19 @@
+name: All builds
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go_version: ["1.18.1", "1.17.6", "1.16.5"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v3.2.0
+        with:
+          go-version: ${{ matrix.go_version }}
+      - run: ./.ci.gogenerate.sh    
+      - run: ./.ci.gofmt.sh
+      - run: ./.ci.govet.sh
+      - run: go test -v -race ./...

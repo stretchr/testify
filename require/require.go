@@ -280,6 +280,36 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 	t.FailNow()
 }
 
+// ErrorContains asserts that a function returned an error (i.e. not `nil`)
+// and that the error contains the specified substring.
+//
+//   actualObj, err := SomeFunction()
+//   assert.ErrorContains(t, err,  expectedErrorSubString)
+func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ErrorContains(t, theError, contains, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
+// and that the error contains the specified substring.
+//
+//   actualObj, err := SomeFunction()
+//   assert.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
+func ErrorContainsf(t TestingT, theError error, contains string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ErrorContainsf(t, theError, contains, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // ErrorIs asserts that at least one of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func ErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
@@ -854,6 +884,126 @@ func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon fl
 	t.FailNow()
 }
 
+// IsDecreasing asserts that the collection is decreasing
+//
+//    assert.IsDecreasing(t, []int{2, 1, 0})
+//    assert.IsDecreasing(t, []float{2, 1})
+//    assert.IsDecreasing(t, []string{"b", "a"})
+func IsDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsDecreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsDecreasingf asserts that the collection is decreasing
+//
+//    assert.IsDecreasingf(t, []int{2, 1, 0}, "error message %s", "formatted")
+//    assert.IsDecreasingf(t, []float{2, 1}, "error message %s", "formatted")
+//    assert.IsDecreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
+func IsDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsDecreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsIncreasing asserts that the collection is increasing
+//
+//    assert.IsIncreasing(t, []int{1, 2, 3})
+//    assert.IsIncreasing(t, []float{1, 2})
+//    assert.IsIncreasing(t, []string{"a", "b"})
+func IsIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsIncreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsIncreasingf asserts that the collection is increasing
+//
+//    assert.IsIncreasingf(t, []int{1, 2, 3}, "error message %s", "formatted")
+//    assert.IsIncreasingf(t, []float{1, 2}, "error message %s", "formatted")
+//    assert.IsIncreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
+func IsIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsIncreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonDecreasing asserts that the collection is not decreasing
+//
+//    assert.IsNonDecreasing(t, []int{1, 1, 2})
+//    assert.IsNonDecreasing(t, []float{1, 2})
+//    assert.IsNonDecreasing(t, []string{"a", "b"})
+func IsNonDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonDecreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonDecreasingf asserts that the collection is not decreasing
+//
+//    assert.IsNonDecreasingf(t, []int{1, 1, 2}, "error message %s", "formatted")
+//    assert.IsNonDecreasingf(t, []float{1, 2}, "error message %s", "formatted")
+//    assert.IsNonDecreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
+func IsNonDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonDecreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonIncreasing asserts that the collection is not increasing
+//
+//    assert.IsNonIncreasing(t, []int{2, 1, 1})
+//    assert.IsNonIncreasing(t, []float{2, 1})
+//    assert.IsNonIncreasing(t, []string{"b", "a"})
+func IsNonIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonIncreasing(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNonIncreasingf asserts that the collection is not increasing
+//
+//    assert.IsNonIncreasingf(t, []int{2, 1, 1}, "error message %s", "formatted")
+//    assert.IsNonIncreasingf(t, []float{2, 1}, "error message %s", "formatted")
+//    assert.IsNonIncreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
+func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNonIncreasingf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // IsType asserts that the specified objects are of the same type.
 func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
@@ -987,6 +1137,34 @@ func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...inter
 		h.Helper()
 	}
 	if assert.Lessf(t, e1, e2, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Negative asserts that the specified element is negative
+//
+//    assert.Negative(t, -1)
+//    assert.Negative(t, -1.23)
+func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Negative(t, e, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Negativef asserts that the specified element is negative
+//
+//    assert.Negativef(t, -1, "error message %s", "formatted")
+//    assert.Negativef(t, -1.23, "error message %s", "formatted")
+func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Negativef(t, e, msg, args...) {
 		return
 	}
 	t.FailNow()
@@ -1513,6 +1691,34 @@ func Panicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}
 		h.Helper()
 	}
 	if assert.Panicsf(t, f, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Positive asserts that the specified element is positive
+//
+//    assert.Positive(t, 1)
+//    assert.Positive(t, 1.23)
+func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Positive(t, e, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Positivef asserts that the specified element is positive
+//
+//    assert.Positivef(t, 1, "error message %s", "formatted")
+//    assert.Positivef(t, 1.23, "error message %s", "formatted")
+func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Positivef(t, e, msg, args...) {
 		return
 	}
 	t.FailNow()

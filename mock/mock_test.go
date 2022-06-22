@@ -970,6 +970,7 @@ func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
 	var mockedService1 = new(TestExampleImplementation)
 	var mockedService2 = new(TestExampleImplementation)
 	var mockedService3 = new(TestExampleImplementation)
+	var mockedService4 = new(TestExampleImplementation) // No expectations does not cause a panic
 
 	mockedService1.On("Test_AssertExpectationsForObjects_Helper", 1).Return()
 	mockedService2.On("Test_AssertExpectationsForObjects_Helper", 2).Return()
@@ -979,8 +980,8 @@ func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
 	mockedService2.Called(2)
 	mockedService3.Called(3)
 
-	assert.True(t, AssertExpectationsForObjects(t, &mockedService1.Mock, &mockedService2.Mock, &mockedService3.Mock))
-	assert.True(t, AssertExpectationsForObjects(t, mockedService1, mockedService2, mockedService3))
+	assert.True(t, AssertExpectationsForObjects(t, &mockedService1.Mock, &mockedService2.Mock, &mockedService3.Mock, &mockedService4.Mock))
+	assert.True(t, AssertExpectationsForObjects(t, mockedService1, mockedService2, mockedService3, mockedService4))
 
 }
 
@@ -1537,6 +1538,10 @@ func (s *timer) GetTime(i int) string {
 	return s.Called(i).Get(0).(string)
 }
 
+func (s *timer) GetTimes(times []int) string {
+	return s.Called(times).Get(0).(string)
+}
+
 type tCustomLogger struct {
 	*testing.T
 	logs []string
@@ -1609,10 +1614,27 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 	m.AssertExpectations(t)
 }
 
+func TestArgumentMatcherToPrintMismatchWithReferenceType(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			matchingExp := regexp.MustCompile(
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTimes\(\[\]int\)\s+0: \[\]int\{1\}\s+The closest call I have is:\s+GetTimes\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(\[\]int=\[1\]\) not matched by func\(\[\]int\) bool`)
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(timer)
+	m.On("GetTimes", MatchedBy(func(_ []int) bool { return false })).Return("SomeTime").Once()
+
+	res := m.GetTimes([]int{1})
+	require.Equal(t, "SomeTime", res)
+	m.AssertExpectations(t)
+}
+
 func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
-			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod(int,int,int)`, `0: 1\s+1: 1\s+2: 2`, `0: 1\s+1: 1\s+2: 1`, `0: PASS:  \(int=1\) == \(int=1\)\s+1: PASS:  \(int=1\) == \(int=1\)\s+2: FAIL:  \(int=2\) != \(int=1\)`))
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod(int,int,int)`, `0: 1\s+1: 1\s+2: 2`, `0: 1\s+1: 1\s+2: 1`, `Diff: 0: PASS:  \(int=1\) == \(int=1\)\s+1: PASS:  \(int=1\) == \(int=1\)\s+2: FAIL:  \(int=2\) != \(int=1\)`))
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
@@ -1624,10 +1646,46 @@ func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
 	m.TheExampleMethod(1, 1, 2)
 }
 
+func TestClosestCallFavorsFirstMock(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -2,4 \+2,4 @@\s+\(bool\) true,\s+- \(bool\) true,\s+- \(bool\) true\s+\+ \(bool\) false,\s+\+ \(bool\) false\s+}\s+`
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod7([]bool)`, `0: \[\]bool{true, false, false}`, `0: \[\]bool{true, true, true}`, diffRegExp))
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(TestExampleImplementation)
+	m.On("TheExampleMethod7", []bool{true, true, true}).Return(nil).Once()
+	m.On("TheExampleMethod7", []bool{false, false, false}).Return(nil).Once()
+
+	m.TheExampleMethod7([]bool{true, false, false})
+}
+
+func TestClosestCallUsesRepeatabilityToFindClosest(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -1,4 \+1,4 @@\s+\(\[\]bool\) \(len=3\) {\s+- \(bool\) false,\s+- \(bool\) false,\s+\+ \(bool\) true,\s+\+ \(bool\) true,\s+\(bool\) false\s+`
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod7([]bool)`, `0: \[\]bool{true, true, false}`, `0: \[\]bool{false, false, false}`, diffRegExp))
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	m := new(TestExampleImplementation)
+	m.On("TheExampleMethod7", []bool{true, true, true}).Return(nil).Once()
+	m.On("TheExampleMethod7", []bool{false, false, false}).Return(nil).Once()
+
+	m.TheExampleMethod7([]bool{true, true, true})
+
+	// Since the first mocked call has already been used, it now has no repeatability,
+	// thus the second mock should be shown as the closest match
+	m.TheExampleMethod7([]bool{true, true, false})
+}
+
 func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
-			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "0: 1", "0: 999", `0: FAIL:  \(int=1\) != \(int=999\)`))
+			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "0: 1", "0: 999", `Diff: 0: FAIL:  \(int=1\) != \(int=999\)`))
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
@@ -1638,9 +1696,33 @@ func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
 	_ = m.GetTime(1)
 }
 
+func Test_isBetterMatchThanReturnsFalseIfCandidateCallIsNil(t *testing.T) {
+	assert.False(t, matchCandidate{}.isBetterMatchThan(matchCandidate{}))
+}
+
+func Test_isBetterMatchThanReturnsTrueIfOtherCandidateCallIsNil(t *testing.T) {
+	assert.True(t, matchCandidate{call: &Call{}}.isBetterMatchThan(matchCandidate{}))
+}
+
+func Test_isBetterMatchThanReturnsFalseIfDiffCountIsGreaterThanOther(t *testing.T) {
+	assert.False(t, matchCandidate{call: &Call{}, diffCount: 2}.isBetterMatchThan(matchCandidate{call: &Call{}, diffCount: 1}))
+}
+
+func Test_isBetterMatchThanReturnsTrueIfDiffCountIsLessThanOther(t *testing.T) {
+	assert.True(t, matchCandidate{call: &Call{}, diffCount: 1}.isBetterMatchThan(matchCandidate{call: &Call{}, diffCount: 2}))
+}
+
+func Test_isBetterMatchThanReturnsTrueIfRepeatabilityIsGreaterThanOther(t *testing.T) {
+	assert.True(t, matchCandidate{call: &Call{Repeatability: 1}, diffCount: 1}.isBetterMatchThan(matchCandidate{call: &Call{Repeatability: -1}, diffCount: 1}))
+}
+
+func Test_isBetterMatchThanReturnsFalseIfRepeatabilityIsLessThanOrEqualToOther(t *testing.T) {
+	assert.False(t, matchCandidate{call: &Call{Repeatability: 1}, diffCount: 1}.isBetterMatchThan(matchCandidate{call: &Call{Repeatability: 1}, diffCount: 1}))
+}
+
 func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
 	rMethod := regexp.QuoteMeta(method)
-	return fmt.Sprintf(`\s+mock: Unexpected Method Call\s+-*\s+%s\s+%s\s+The closest call I have is:\s+%s\s+%s\s+Diff: %s`,
+	return fmt.Sprintf(`\s+mock: Unexpected Method Call\s+-*\s+%s\s+%s\s+The closest call I have is:\s+%s\s+%s\s+%s`,
 		rMethod, calledArg, rMethod, expectedArg, diff)
 }
 
@@ -1648,3 +1730,40 @@ func unexpectedCallRegex(method, calledArg, expectedArg, diff string) string {
 func ConcurrencyTestMethod(m *Mock) {
 	m.Called()
 }
+
+func TestConcurrentArgumentRead(t *testing.T) {
+	methodUnderTest := func(c caller, u user) {
+		go u.Use(c)
+		c.Call()
+	}
+
+	c := &mockCaller{}
+	defer c.AssertExpectations(t)
+
+	u := &mockUser{}
+	defer u.AssertExpectations(t)
+
+	done := make(chan struct{})
+
+	c.On("Call").Return().Once()
+	u.On("Use", c).Return().Once().Run(func(args Arguments) { close(done) })
+
+	methodUnderTest(c, u)
+	<-done // wait until Use is called or assertions will fail
+}
+
+type caller interface {
+	Call()
+}
+
+type mockCaller struct{ Mock }
+
+func (m *mockCaller) Call() { m.Called() }
+
+type user interface {
+	Use(caller)
+}
+
+type mockUser struct{ Mock }
+
+func (m *mockUser) Use(c caller) { m.Called(c) }
