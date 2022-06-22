@@ -17,6 +17,7 @@ import (
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
+var matchTestRegex = regexp.MustCompile("^Test")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -90,12 +91,22 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 
 // Run takes a testing suite and runs all of the tests attached
 // to it.
-func Run(t *testing.T, suite TestingSuite) {
+func Run(t *testing.T, suite TestingSuite, opts ...RunOption) {
 	defer failOnPanic(t)
 
 	suite.SetT(t)
 
 	var suiteSetupDone bool
+
+	var runOpts = &runOptions{
+		testFilter: func(testName string) (bool, error) {
+			return regexp.MatchString(*matchMethod, testName)
+		},
+	}
+
+	for _, opt := range opts {
+		opt(runOpts)
+	}
 
 	var stats *SuiteInformation
 	if _, ok := suite.(WithStats); ok {
@@ -109,9 +120,13 @@ func Run(t *testing.T, suite TestingSuite) {
 	for i := 0; i < methodFinder.NumMethod(); i++ {
 		method := methodFinder.Method(i)
 
-		ok, err := methodFilter(method.Name)
+		if !matchTestRegex.MatchString(method.Name) {
+			continue
+		}
+
+		ok, err := runOpts.testFilter(method.Name)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
+			fmt.Fprintf(os.Stderr, "testify: an error during apply filter: %v", err.Error())
 			os.Exit(1)
 		}
 
@@ -184,15 +199,6 @@ func Run(t *testing.T, suite TestingSuite) {
 	}
 
 	runTests(t, tests)
-}
-
-// Filtering method according to set regular expression
-// specified command-line argument -m
-func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Test", name); !ok {
-		return false, nil
-	}
-	return regexp.MatchString(*matchMethod, name)
 }
 
 func runTests(t testing.TB, tests []testing.InternalTest) {
