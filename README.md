@@ -199,7 +199,7 @@ func TestSomethingElse2(t *testing.T) {
   testObj := new(MyMockedObject)
 
   // setup expectations with a placeholder in the argument list
-  testObj.On("DoSomething", mock.Anything).Return(true, nil)
+  mockCall := testObj.On("DoSomething", mock.Anything).Return(true, nil)
 
   // call the code we are testing
   targetFuncThatDoesSomethingWithObj(testObj)
@@ -208,7 +208,7 @@ func TestSomethingElse2(t *testing.T) {
   testObj.AssertExpectations(t)
 
   // remove the handler now so we can add another one that takes precedence
-  testObj.Unset("DoSomething", mock.Anything)
+  mockCall.Unset()
 
   // return false now instead of true
   testObj.On("DoSomething", mock.Anything).Return(false, nil)
