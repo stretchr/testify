@@ -192,7 +192,7 @@ func TestSomethingWithPlaceholder(t *testing.T) {
 }
 
 // TestSomethingElse2 is a third example that shows how you can use
-// the Off method to cleanup handlers and then add new ones.
+// the Unset method to cleanup handlers and then add new ones.
 func TestSomethingElse2(t *testing.T) {
 
   // create an instance of our test object
