@@ -202,6 +202,8 @@ func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 // Unset removes a mock handler from being called.
 //    test.On("func", mock.Anything).Unset()
 func (c *Call) Unset() *Call {
+	var unlockOnce sync.Once
+
 	for _, arg := range c.Arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
 			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
@@ -209,7 +211,7 @@ func (c *Call) Unset() *Call {
 	}
 
 	c.lock()
-	c.Parent.mutex.Lock()
+	defer unlockOnce.Do(c.unlock)
 
 	foundMatchingCall := false
 
@@ -219,14 +221,14 @@ func (c *Call) Unset() *Call {
 			if diffCount == 0 {
 				foundMatchingCall = true
 				// Remove from ExpectedCalls
+				fmt.Println("expectedCalls unset")
 				c.Parent.ExpectedCalls = append(c.Parent.ExpectedCalls[:i], c.Parent.ExpectedCalls[i+1:]...)
 			}
 		}
 	}
 
-	c.Parent.mutex.Unlock()
-	c.unlock()
 	if !foundMatchingCall {
+		unlockOnce.Do(c.unlock)
 		c.Parent.fail("\n\nmock: Could not find expected call\n-----------------------------\n\n%s\n\n",
 			callString(c.Method, c.Arguments, true),
 		)
@@ -294,6 +296,7 @@ func (m *Mock) Test(t TestingT) {
 // In case that a test was defined, it uses the test APIs for failing a test,
 // otherwise it uses panic.
 func (m *Mock) fail(format string, args ...interface{}) {
+	fmt.Println("hello")
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 

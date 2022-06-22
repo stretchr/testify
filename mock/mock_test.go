@@ -516,12 +516,37 @@ func Test_Mock_Chained_UnsetOnlyUnsetsLastCall(t *testing.T) {
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod2",
 			Arguments:       []interface{}{2, 2},
-			ReturnArguments: []interface{}{0},
+			ReturnArguments: []interface{}{},
 			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+4)},
 		},
 	}
 	assert.Equal(t, 2, len(expectedCalls))
 	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	mock1 := mockedService.
+		On("TheExampleMethod1", 1, 1).
+		Return(1)
+
+	assert.Equal(t, 1, mockedService.ExpectedCalls)
+	mock1.Unset()
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+
+	defer func() {
+		if r := recover(); r != nil {
+			matchingExp := regexp.MustCompile(
+				`.*Could not find expected call.*`)
+			assert.Regexp(t, matchingExp, r)
+		}
+	}()
+
+	mock1.Unset()
+
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
 }
 
 func Test_Mock_Return(t *testing.T) {
