@@ -221,7 +221,6 @@ func (c *Call) Unset() *Call {
 			if diffCount == 0 {
 				foundMatchingCall = true
 				// Remove from ExpectedCalls
-				fmt.Println("expectedCalls unset")
 				c.Parent.ExpectedCalls = append(c.Parent.ExpectedCalls[:i], c.Parent.ExpectedCalls[i+1:]...)
 			}
 		}
@@ -296,7 +295,6 @@ func (m *Mock) Test(t TestingT) {
 // In case that a test was defined, it uses the test APIs for failing a test,
 // otherwise it uses panic.
 func (m *Mock) fail(format string, args ...interface{}) {
-	fmt.Println("hello")
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
