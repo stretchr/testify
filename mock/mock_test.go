@@ -532,19 +532,13 @@ func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
 		On("TheExampleMethod1", 1, 1).
 		Return(1)
 
-	assert.Equal(t, 1, mockedService.ExpectedCalls)
+	assert.Equal(t, 1, len(mockedService.ExpectedCalls))
 	mock1.Unset()
 	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
 
-	defer func() {
-		if r := recover(); r != nil {
-			matchingExp := regexp.MustCompile(
-				`.*Could not find expected call.*`)
-			assert.Regexp(t, matchingExp, r)
-		}
-	}()
-
-	mock1.Unset()
+	assert.Panics(t, func() {
+		mock1.Unset()
+	})
 
 	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
 }
