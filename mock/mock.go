@@ -289,11 +289,11 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
-// Off removes a mock handler from being called. You must pass the same exact
+// Unset removes a mock handler from being called. You must pass the same exact
 // arguments that were called in the original .On call.
 //
-//     Mock.Off("MyMethod", arg1, arg2)
-func (m *Mock) Off(methodName string, arguments ...interface{}) *Mock {
+//     Mock.Unset("MyMethod", arg1, arg2)
+func (m *Mock) Unset(methodName string, arguments ...interface{}) *Mock {
 	for _, arg := range arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
 			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
