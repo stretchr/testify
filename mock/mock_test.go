@@ -462,7 +462,7 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	})
 }
 
-func Test_Mock_Off(t *testing.T) {
+func Test_Mock_Unset(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -475,7 +475,7 @@ func Test_Mock_Off(t *testing.T) {
 	require.Equal(t, foundCall, call)
 
 	mockedService.
-		Off("TheExampleMethodFuncType", "argA")
+		Unset("TheExampleMethodFuncType", "argA")
 
 	found, foundCall = mockedService.findExpectedCall("TheExampleMethodFuncType", "argA")
 	require.Equal(t, -1, found)
@@ -489,7 +489,7 @@ func Test_Mock_Off(t *testing.T) {
 	})
 }
 
-func Test_Mock_Chained_Off(t *testing.T) {
+func Test_Mock_Chained_Unset(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -503,8 +503,8 @@ func Test_Mock_Chained_Off(t *testing.T) {
 		Return(nil)
 
 	mockedService.
-		Off("TheExampleMethod2", 2, 2).
-		Off("TheExampleMethod3", 3, 3, 3)
+		Unset("TheExampleMethod2", 2, 2).
+		Unset("TheExampleMethod3", 3, 3, 3)
 
 	expectedCalls := []*Call{
 		{
