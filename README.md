@@ -208,7 +208,7 @@ func TestSomethingElse2(t *testing.T) {
   testObj.AssertExpectations(t)
 
   // remove the handler now so we can add another one that takes precedence
-  testObj.Off("DoSomething", mock.Anything)
+  testObj.Unset("DoSomething", mock.Anything)
 
   // return false now instead of true
   testObj.On("DoSomething", mock.Anything).Return(false, nil)
