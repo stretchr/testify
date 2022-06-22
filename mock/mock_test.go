@@ -468,14 +468,13 @@ func Test_Mock_Unset(t *testing.T) {
 
 	call := mockedService.
 		On("TheExampleMethodFuncType", "argA").
-		Return(nil)
+		Return("blah")
 
 	found, foundCall := mockedService.findExpectedCall("TheExampleMethodFuncType", "argA")
 	require.NotEqual(t, -1, found)
 	require.Equal(t, foundCall, call)
 
-	mockedService.
-		Unset("TheExampleMethodFuncType", "argA")
+	call.Unset()
 
 	found, foundCall = mockedService.findExpectedCall("TheExampleMethodFuncType", "argA")
 	require.Equal(t, -1, found)
@@ -489,7 +488,9 @@ func Test_Mock_Unset(t *testing.T) {
 	})
 }
 
-func Test_Mock_Chained_Unset(t *testing.T) {
+// Since every time you call On it creates a new object
+// the last time you call Unset it will only unset the last call
+func Test_Mock_Chained_UnsetOnlyUnsetsLastCall(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -500,11 +501,8 @@ func Test_Mock_Chained_Unset(t *testing.T) {
 		Return(0).
 		On("TheExampleMethod2", 2, 2).
 		On("TheExampleMethod3", 3, 3, 3).
-		Return(nil)
-
-	mockedService.
-		Unset("TheExampleMethod2", 2, 2).
-		Unset("TheExampleMethod3", 3, 3, 3)
+		Return(nil).
+		Unset()
 
 	expectedCalls := []*Call{
 		{
@@ -514,9 +512,18 @@ func Test_Mock_Chained_Unset(t *testing.T) {
 			ReturnArguments: []interface{}{0},
 			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+2)},
 		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod2",
+			Arguments:       []interface{}{2, 2},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+4)},
+		},
 	}
+	assert.Equal(t, 2, len(expectedCalls))
 	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
 }
+
 func Test_Mock_Return(t *testing.T) {
 
 	// make a test impl object

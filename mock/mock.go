@@ -199,6 +199,42 @@ func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
 
+// Unset removes a mock handler from being called.
+//    test.On("func", mock.Anything).Unset()
+func (c *Call) Unset() *Call {
+	for _, arg := range c.Arguments {
+		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
+			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
+		}
+	}
+
+	c.lock()
+	c.Parent.mutex.Lock()
+
+	foundMatchingCall := false
+
+	for i, call := range c.Parent.ExpectedCalls {
+		if call.Method == c.Method {
+			_, diffCount := call.Arguments.Diff(c.Arguments)
+			if diffCount == 0 {
+				foundMatchingCall = true
+				// Remove from ExpectedCalls
+				c.Parent.ExpectedCalls = append(c.Parent.ExpectedCalls[:i], c.Parent.ExpectedCalls[i+1:]...)
+			}
+		}
+	}
+
+	c.Parent.mutex.Unlock()
+	c.unlock()
+	if !foundMatchingCall {
+		c.Parent.fail("\n\nmock: Could not find expected call\n-----------------------------\n\n%s\n\n",
+			callString(c.Method, c.Arguments, true),
+		)
+	}
+
+	return c
+}
+
 // Mock is the workhorse used to track activity on another object.
 // For an example of its usage, refer to the "Example Usage" section at the top
 // of this document.
@@ -287,42 +323,6 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	c := newCall(m, methodName, assert.CallerInfo(), arguments...)
 	m.ExpectedCalls = append(m.ExpectedCalls, c)
 	return c
-}
-
-// Unset removes a mock handler from being called. You must pass the same exact
-// arguments that were called in the original .On call.
-//
-//     Mock.Unset("MyMethod", arg1, arg2)
-func (m *Mock) Unset(methodName string, arguments ...interface{}) *Mock {
-	for _, arg := range arguments {
-		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
-			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
-		}
-	}
-
-	m.mutex.Lock()
-
-	foundMatchingCall := false
-
-	for i, call := range m.ExpectedCalls {
-		if call.Method == methodName {
-			_, diffCount := call.Arguments.Diff(arguments)
-			if diffCount == 0 {
-				foundMatchingCall = true
-				// Remove from ExpectedCalls
-				m.ExpectedCalls = append(m.ExpectedCalls[:i], m.ExpectedCalls[i+1:]...)
-			}
-		}
-	}
-
-	m.mutex.Unlock()
-	if !foundMatchingCall {
-		m.fail("\n\nmock: Could not find expected call\n-----------------------------\n\n%s\n\n",
-			callString(methodName, arguments, true),
-		)
-	}
-
-	return m
 }
 
 // /*
