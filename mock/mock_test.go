@@ -462,6 +462,87 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	})
 }
 
+func Test_Mock_Unset(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	call := mockedService.
+		On("TheExampleMethodFuncType", "argA").
+		Return("blah")
+
+	found, foundCall := mockedService.findExpectedCall("TheExampleMethodFuncType", "argA")
+	require.NotEqual(t, -1, found)
+	require.Equal(t, foundCall, call)
+
+	call.Unset()
+
+	found, foundCall = mockedService.findExpectedCall("TheExampleMethodFuncType", "argA")
+	require.Equal(t, -1, found)
+
+	var expectedCall *Call
+	require.Equal(t, expectedCall, foundCall)
+
+	fn := func(string) error { return nil }
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodFuncType(fn)
+	})
+}
+
+// Since every time you call On it creates a new object
+// the last time you call Unset it will only unset the last call
+func Test_Mock_Chained_UnsetOnlyUnsetsLastCall(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, _, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod1", 1, 1).
+		Return(0).
+		On("TheExampleMethod2", 2, 2).
+		On("TheExampleMethod3", 3, 3, 3).
+		Return(nil).
+		Unset()
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{1, 1},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod2",
+			Arguments:       []interface{}{2, 2},
+			ReturnArguments: []interface{}{},
+			callerInfo:      []string{fmt.Sprintf("mock_test.go:%d", line+4)},
+		},
+	}
+	assert.Equal(t, 2, len(expectedCalls))
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	mock1 := mockedService.
+		On("TheExampleMethod1", 1, 1).
+		Return(1)
+
+	assert.Equal(t, 1, len(mockedService.ExpectedCalls))
+	mock1.Unset()
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+
+	assert.Panics(t, func() {
+		mock1.Unset()
+	})
+
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+}
+
 func Test_Mock_Return(t *testing.T) {
 
 	// make a test impl object

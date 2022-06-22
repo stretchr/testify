@@ -199,6 +199,43 @@ func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
 
+// Unset removes a mock handler from being called.
+//    test.On("func", mock.Anything).Unset()
+func (c *Call) Unset() *Call {
+	var unlockOnce sync.Once
+
+	for _, arg := range c.Arguments {
+		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
+			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
+		}
+	}
+
+	c.lock()
+	defer unlockOnce.Do(c.unlock)
+
+	foundMatchingCall := false
+
+	for i, call := range c.Parent.ExpectedCalls {
+		if call.Method == c.Method {
+			_, diffCount := call.Arguments.Diff(c.Arguments)
+			if diffCount == 0 {
+				foundMatchingCall = true
+				// Remove from ExpectedCalls
+				c.Parent.ExpectedCalls = append(c.Parent.ExpectedCalls[:i], c.Parent.ExpectedCalls[i+1:]...)
+			}
+		}
+	}
+
+	if !foundMatchingCall {
+		unlockOnce.Do(c.unlock)
+		c.Parent.fail("\n\nmock: Could not find expected call\n-----------------------------\n\n%s\n\n",
+			callString(c.Method, c.Arguments, true),
+		)
+	}
+
+	return c
+}
+
 // Mock is the workhorse used to track activity on another object.
 // For an example of its usage, refer to the "Example Usage" section at the top
 // of this document.
