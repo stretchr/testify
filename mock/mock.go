@@ -312,9 +312,6 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 		}
 	}
 
-	// Since we start mocks with the .On() function, m.mutex should be reset
-	m.mutex = sync.Mutex{}
-
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	c := newCall(m, methodName, assert.CallerInfo(), arguments...)
