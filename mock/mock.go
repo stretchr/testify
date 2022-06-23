@@ -255,7 +255,7 @@ type Mock struct {
 	// this data completely allowing you to do whatever you like with it.
 	testData objx.Map
 
-	mutex *sync.Mutex
+	mutex sync.Mutex
 }
 
 // String provides a %v format string for Mock.
@@ -282,10 +282,6 @@ func (m *Mock) TestData() objx.Map {
 
 // Test sets the test struct variable of the mock object
 func (m *Mock) Test(t TestingT) {
-	if m.mutex == nil {
-		m.mutex = &sync.Mutex{}
-	}
-
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.test = t
@@ -317,7 +313,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	}
 
 	// Since we start mocks with the .On() function, m.mutex should be reset
-	m.mutex = &sync.Mutex{}
+	m.mutex = sync.Mutex{}
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -544,9 +540,6 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 func (m *Mock) AssertExpectations(t TestingT) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
-	}
-	if m.mutex == nil {
-		m.mutex = &sync.Mutex{}
 	}
 
 	m.mutex.Lock()
