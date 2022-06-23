@@ -233,6 +233,32 @@ func Test_Mock_On_WithIntArgMatcher(t *testing.T) {
 	})
 }
 
+func Test_Mock_On_WithArgMatcherThatPanics(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.On("TheExampleMethod2", MatchedBy(func(_ interface{}) bool {
+		panic("try to lock mockedService")
+	})).Return()
+
+	defer func() {
+		assertedExpectations := make(chan struct{})
+		go func() {
+			tt := new(testing.T)
+			mockedService.AssertExpectations(tt)
+			close(assertedExpectations)
+		}()
+		select {
+		case <-assertedExpectations:
+		case <-time.After(time.Second):
+			t.Fatal("AssertExpectations() deadlocked, did the panic leave mockedService locked?")
+		}
+	}()
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethod2(false)
+	})
+}
+
 func TestMock_WithTest(t *testing.T) {
 	var (
 		mockedService TestExampleImplementation
