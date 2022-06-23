@@ -521,7 +521,7 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 	for _, obj := range testObjects {
 		if m, ok := obj.(*Mock); ok {
 			t.Logf("Deprecated mock.AssertExpectationsForObjects(myMock.Mock) use mock.AssertExpectationsForObjects(myMock)")
-			obj = &m
+			obj = m
 		}
 		m := obj.(assertExpectationser)
 		if !m.AssertExpectations(t) {
