@@ -519,7 +519,7 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 		h.Helper()
 	}
 	for _, obj := range testObjects {
-		if m, ok := obj.(Mock); ok {
+		if m, ok := obj.(*Mock); ok {
 			t.Logf("Deprecated mock.AssertExpectationsForObjects(myMock.Mock) use mock.AssertExpectationsForObjects(myMock)")
 			obj = &m
 		}
