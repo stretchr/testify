@@ -1350,6 +1350,18 @@ func TestWithinDuration(t *testing.T) {
 	False(t, WithinDuration(mockT, b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
 }
 
+func TestWithinTimes(t *testing.T) {
+	mockT := new(testing.T)
+
+	before := time.Now()
+	now := time.Now()
+	after := time.Now()
+
+	True(t, WithinTimes(mockT, before, now, after), "Actual was not in range")
+	False(t, WithinTimes(mockT, now.Add(-2*time.Second), now, now.Add(-time.Second)), "Actual was not in range")
+	False(t, WithinTimes(mockT, now.Add(time.Second), now, now.Add(2*time.Second)), "Actual was not in range")
+}
+
 func TestInDelta(t *testing.T) {
 	mockT := new(testing.T)
 
