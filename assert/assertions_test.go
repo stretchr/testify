@@ -1352,7 +1352,7 @@ func TestWithinRange(t *testing.T) {
 	s := n.Add(-time.Second)
 	e := n.Add(time.Second)
 
-	True(t, WithinRange(mockT, n, n, n), "Exact same expected, start, and end values return true")
+	True(t, WithinRange(mockT, n, n, n), "Exact same actual, start, and end values return true")
 
 	True(t, WithinRange(mockT, n, s, e), "Time in range is within the time range")
 	True(t, WithinRange(mockT, s, s, e), "The start time is within the time range")

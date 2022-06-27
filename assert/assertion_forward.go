@@ -1464,21 +1464,21 @@ func (a *Assertions) WithinDurationf(expected time.Time, actual time.Time, delta
 // WithinRange asserts that a time is within a time range (inclusive).
 //
 //   a.WithinRange(time.Now(), time.Now(), time.Now())
-func (a *Assertions) WithinRange(expected time.Time, start time.Time, end time.Time, msgAndArgs ...interface{}) bool {
+func (a *Assertions) WithinRange(actual time.Time, start time.Time, end time.Time, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return WithinRange(a.t, expected, start, end, msgAndArgs...)
+	return WithinRange(a.t, actual, start, end, msgAndArgs...)
 }
 
 // WithinRangef asserts that a time is within a time range (inclusive).
 //
 //   a.WithinRangef(time.Now(), time.Now(), time.Now(), "error message %s", "formatted")
-func (a *Assertions) WithinRangef(expected time.Time, start time.Time, end time.Time, msg string, args ...interface{}) bool {
+func (a *Assertions) WithinRangef(actual time.Time, start time.Time, end time.Time, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
 	}
-	return WithinRangef(a.t, expected, start, end, msg, args...)
+	return WithinRangef(a.t, actual, start, end, msg, args...)
 }
 
 // YAMLEq asserts that two YAML strings are equivalent.
