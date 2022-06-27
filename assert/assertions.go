@@ -1111,7 +1111,7 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 
 // WithinRange asserts that a time is within a time range (inclusive).
 //
-//   assert.WithinRange(t, time.Now(), time.Now(), time.Now())
+//   assert.WithinRange(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second))
 func WithinRange(t TestingT, actual, start, end time.Time, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
