@@ -1118,7 +1118,7 @@ func WithinRange(t TestingT, actual, start, end time.Time, msgAndArgs ...interfa
 	}
 
 	if end.Before(start) {
-		return Fail(t, "start should be before end", msgAndArgs...)
+		return Fail(t, "Start should be before end", msgAndArgs...)
 	}
 
 	if actual.Before(start) {
