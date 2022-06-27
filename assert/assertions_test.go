@@ -1345,23 +1345,23 @@ func TestWithinDuration(t *testing.T) {
 	False(t, WithinDuration(mockT, b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
 }
 
-func TestWithinTimeRange(t *testing.T) {
+func TestWithinRange(t *testing.T) {
 
 	mockT := new(testing.T)
 	n := time.Now()
 	s := n.Add(-time.Second)
 	e := n.Add(time.Second)
 
-	True(t, WithinTimeRange(mockT, n, n, n), "Exact same expected, start, and end values return true")
+	True(t, WithinRange(mockT, n, n, n), "Exact same expected, start, and end values return true")
 
-	True(t, WithinTimeRange(mockT, n, s, e), "Time in range is within the time range")
-	True(t, WithinTimeRange(mockT, s, s, e), "The start time is within the time range")
-	True(t, WithinTimeRange(mockT, e, s, e), "The end time is within the time range")
+	True(t, WithinRange(mockT, n, s, e), "Time in range is within the time range")
+	True(t, WithinRange(mockT, s, s, e), "The start time is within the time range")
+	True(t, WithinRange(mockT, e, s, e), "The end time is within the time range")
 
-	False(t, WithinTimeRange(mockT, s.Add(-time.Nanosecond), s, e, "Just before the start time is not within the time range"))
-	False(t, WithinTimeRange(mockT, e.Add(time.Nanosecond), s, e, "Just after the end time is not within the time range"))
+	False(t, WithinRange(mockT, s.Add(-time.Nanosecond), s, e, "Just before the start time is not within the time range"))
+	False(t, WithinRange(mockT, e.Add(time.Nanosecond), s, e, "Just after the end time is not within the time range"))
 
-	False(t, WithinTimeRange(mockT, n, e, s, "Just after the end time is not within the time range"))
+	False(t, WithinRange(mockT, n, e, s, "Just after the end time is not within the time range"))
 }
 
 func TestInDelta(t *testing.T) {
