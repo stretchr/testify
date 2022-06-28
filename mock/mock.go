@@ -70,6 +70,9 @@ type Call struct {
 	//  if the PanicMsg is set to a non nil string the function call will panic
 	// irrespective of other settings
 	PanicMsg *string
+
+	// Calls which must be satisfied before this call can be
+	requires []*Call
 }
 
 func newCall(parent *Mock, methodName string, callerInfo []string, methodArguments ...interface{}) *Call {
@@ -233,6 +236,27 @@ func (c *Call) Unset() *Call {
 		)
 	}
 
+	return c
+}
+
+// NotBefore indicates that the mock should only be called after the referenced
+// calls have been called as expected. The referenced calls may be from the
+// same mock instance and/or other mock instances.
+//
+//     Mock.On("Do").Return(nil).Notbefore(
+//         Mock.On("Init").Return(nil)
+//     )
+func (c *Call) NotBefore(calls ...*Call) *Call {
+	c.lock()
+	defer c.unlock()
+
+	for _, call := range calls {
+		if call.Parent == nil {
+			panic("not before calls must be created with Mock.On()")
+		}
+	}
+
+	c.requires = append(c.requires, calls...)
 	return c
 }
 
@@ -462,6 +486,25 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		}
 	}
 
+	for _, requirement := range call.requires {
+		if satisfied, _ := requirement.Parent.checkExpectation(requirement); !satisfied {
+			m.mutex.Unlock()
+			m.fail("mock: Unexpected Method Call\n-----------------------------\n\n%s\n\nMust not be called before%s:\n\n%s",
+				callString(call.Method, call.Arguments, true),
+				func() (s string) {
+					if requirement.totalCalls > 0 {
+						s = " another call of"
+					}
+					if call.Parent != requirement.Parent {
+						s += " method from another mock instance"
+					}
+					return
+				}(),
+				callString(requirement.Method, requirement.Arguments, true),
+			)
+		}
+	}
+
 	if call.Repeatability == 1 {
 		call.Repeatability = -1
 	} else if call.Repeatability > 1 {
@@ -541,32 +584,33 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	var somethingMissing bool
 	var failedExpectations int
 
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
 	for _, expectedCall := range expectedCalls {
-		if !expectedCall.optional && !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0 {
-			somethingMissing = true
+		satisfied, reason := m.checkExpectation(expectedCall)
+		if !satisfied {
 			failedExpectations++
-			t.Logf("FAIL:\t%s(%s)\n\t\tat: %s", expectedCall.Method, expectedCall.Arguments.String(), expectedCall.callerInfo)
-		} else {
-			if expectedCall.Repeatability > 0 {
-				somethingMissing = true
-				failedExpectations++
-				t.Logf("FAIL:\t%s(%s)\n\t\tat: %s", expectedCall.Method, expectedCall.Arguments.String(), expectedCall.callerInfo)
-			} else {
-				t.Logf("PASS:\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
-			}
 		}
+		t.Logf(reason)
 	}
 
-	if somethingMissing {
+	if failedExpectations != 0 {
 		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
 	}
 
-	return !somethingMissing
+	return failedExpectations == 0
+}
+
+func (m *Mock) checkExpectation(call *Call) (bool, string) {
+	if !call.optional && !m.methodWasCalled(call.Method, call.Arguments) && call.totalCalls == 0 {
+		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+	}
+	if call.Repeatability > 0 {
+		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+	}
+	return true, fmt.Sprintf("PASS:\t%s(%s)", call.Method, call.Arguments.String())
 }
 
 // AssertNumberOfCalls asserts that the method was called expectedCalls times.
