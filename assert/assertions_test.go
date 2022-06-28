@@ -685,11 +685,27 @@ func TestSubsetNotSubset(t *testing.T) {
 		{[]int{1, 2, 3}, []int{1, 2}, true, "[1, 2, 3] contains [1, 2]"},
 		{[]int{1, 2, 3}, []int{1, 2, 3}, true, "[1, 2, 3] contains [1, 2, 3"},
 		{[]string{"hello", "world"}, []string{"hello"}, true, "[\"hello\", \"world\"] contains [\"hello\"]"},
+		{map[string]string{
+			"a": "x",
+			"c": "z",
+			"b": "y",
+		}, map[string]string{
+			"a": "x",
+			"b": "y",
+		}, true, `{ "a": "x", "b": "y", "c": "z"} contains { "a": "x", "b": "y"}`},
 
 		// cases that are expected not to contain
 		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, "[\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]"},
 		{[]int{1, 2, 3}, []int{4, 5}, false, "[1, 2, 3] does not contain [4, 5"},
 		{[]int{1, 2, 3}, []int{1, 5}, false, "[1, 2, 3] does not contain [1, 5]"},
+		{map[string]string{
+			"a": "x",
+			"c": "z",
+			"b": "y",
+		}, map[string]string{
+			"a": "x",
+			"b": "z",
+		}, false, `{ "a": "x", "b": "y", "c": "z"} does not contain { "a": "x", "b": "z"}`},
 	}
 
 	for _, c := range cases {
