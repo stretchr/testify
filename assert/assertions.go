@@ -1110,6 +1110,27 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 	return true
 }
 
+// WithinRange asserts that a time is within a time range (inclusive).
+//
+//   assert.WithinRange(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second))
+func WithinRange(t TestingT, actual, start, end time.Time, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if end.Before(start) {
+		return Fail(t, "Start should be before end", msgAndArgs...)
+	}
+
+	if actual.Before(start) {
+		return Fail(t, fmt.Sprintf("Time %v expected to be in time range %v to %v, but is before the range", actual, start, end), msgAndArgs...)
+	} else if actual.After(end) {
+		return Fail(t, fmt.Sprintf("Time %v expected to be in time range %v to %v, but is after the range", actual, start, end), msgAndArgs...)
+	}
+
+	return true
+}
+
 func toFloat(x interface{}) (float64, bool) {
 	var xf float64
 	xok := true
