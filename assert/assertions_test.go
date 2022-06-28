@@ -592,6 +592,7 @@ func TestContainsNotContains(t *testing.T) {
 		{"j", "k"},
 	}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
+	var zeroMap map[interface{}]interface{}
 
 	cases := []struct {
 		expected interface{}
@@ -606,6 +607,7 @@ func TestContainsNotContains(t *testing.T) {
 		{complexList, &A{"g", "e"}, false},
 		{simpleMap, "Foo", true},
 		{simpleMap, "Bar", false},
+		{zeroMap, "Bar", false},
 	}
 
 	for _, c := range cases {
@@ -652,6 +654,22 @@ func TestContainsFailMessage(t *testing.T) {
 	}
 }
 
+func TestContainsNotContainsOnNilValue(t *testing.T) {
+	mockT := new(mockTestingT)
+
+	Contains(mockT, nil, "key")
+	expectedFail := "<nil> could not be applied builtin len()"
+	actualFail := mockT.errorString()
+	if !strings.Contains(actualFail, expectedFail) {
+		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
+	}
+
+	NotContains(mockT, nil, "key")
+	if !strings.Contains(actualFail, expectedFail) {
+		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
+	}
+}
+
 func TestSubsetNotSubset(t *testing.T) {
 
 	// MTestCase adds a custom message to the case
@@ -667,11 +685,27 @@ func TestSubsetNotSubset(t *testing.T) {
 		{[]int{1, 2, 3}, []int{1, 2}, true, "[1, 2, 3] contains [1, 2]"},
 		{[]int{1, 2, 3}, []int{1, 2, 3}, true, "[1, 2, 3] contains [1, 2, 3"},
 		{[]string{"hello", "world"}, []string{"hello"}, true, "[\"hello\", \"world\"] contains [\"hello\"]"},
+		{map[string]string{
+			"a": "x",
+			"c": "z",
+			"b": "y",
+		}, map[string]string{
+			"a": "x",
+			"b": "y",
+		}, true, `{ "a": "x", "b": "y", "c": "z"} contains { "a": "x", "b": "y"}`},
 
 		// cases that are expected not to contain
 		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, "[\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]"},
 		{[]int{1, 2, 3}, []int{4, 5}, false, "[1, 2, 3] does not contain [4, 5"},
 		{[]int{1, 2, 3}, []int{1, 5}, false, "[1, 2, 3] does not contain [1, 5]"},
+		{map[string]string{
+			"a": "x",
+			"c": "z",
+			"b": "y",
+		}, map[string]string{
+			"a": "x",
+			"b": "z",
+		}, false, `{ "a": "x", "b": "y", "c": "z"} does not contain { "a": "x", "b": "z"}`},
 	}
 
 	for _, c := range cases {
@@ -714,53 +748,53 @@ func TestNotSubsetNil(t *testing.T) {
 	}
 }
 
-func Test_includeElement(t *testing.T) {
+func Test_containsElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
-	ok, found := includeElement("Hello World", "World")
+	ok, found := containsElement("Hello World", "World")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list1, "Foo")
+	ok, found = containsElement(list1, "Foo")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list1, "Bar")
+	ok, found = containsElement(list1, "Bar")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list2, 1)
+	ok, found = containsElement(list2, 1)
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list2, 2)
+	ok, found = containsElement(list2, 2)
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(list1, "Foo!")
+	ok, found = containsElement(list1, "Foo!")
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(list2, 3)
+	ok, found = containsElement(list2, 3)
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(list2, "1")
+	ok, found = containsElement(list2, "1")
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(simpleMap, "Foo")
+	ok, found = containsElement(simpleMap, "Foo")
 	True(t, ok)
 	True(t, found)
 
-	ok, found = includeElement(simpleMap, "Bar")
+	ok, found = containsElement(simpleMap, "Bar")
 	True(t, ok)
 	False(t, found)
 
-	ok, found = includeElement(1433, "1")
+	ok, found = containsElement(1433, "1")
 	False(t, ok)
 	False(t, found)
 }
@@ -905,10 +939,18 @@ func TestCondition(t *testing.T) {
 
 func TestDidPanic(t *testing.T) {
 
-	if funcDidPanic, _, _ := didPanic(func() {
-		panic("Panic!")
-	}); !funcDidPanic {
-		t.Error("didPanic should return true")
+	const panicMsg = "Panic!"
+
+	if funcDidPanic, msg, _ := didPanic(func() {
+		panic(panicMsg)
+	}); !funcDidPanic || msg != panicMsg {
+		t.Error("didPanic should return true, panicMsg")
+	}
+
+	if funcDidPanic, msg, _ := didPanic(func() {
+		panic(nil)
+	}); !funcDidPanic || msg != nil {
+		t.Error("didPanic should return true, nil")
 	}
 
 	if funcDidPanic, _, _ := didPanic(func() {
@@ -941,6 +983,12 @@ func TestPanicsWithValue(t *testing.T) {
 
 	if !PanicsWithValue(mockT, "Panic!", func() {
 		panic("Panic!")
+	}) {
+		t.Error("PanicsWithValue should return true")
+	}
+
+	if !PanicsWithValue(mockT, nil, func() {
+		panic(nil)
 	}) {
 		t.Error("PanicsWithValue should return true")
 	}
@@ -1113,6 +1161,7 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty(new(time.Time)))
 	True(t, isEmpty(time.Time{}))
 	True(t, isEmpty(make(chan struct{})))
+	True(t, isEmpty([1]int{}))
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
 	False(t, isEmpty([]string{"something"}))
@@ -1120,7 +1169,7 @@ func Test_isEmpty(t *testing.T) {
 	False(t, isEmpty(true))
 	False(t, isEmpty(map[string]string{"Hello": "World"}))
 	False(t, isEmpty(chWithValue))
-
+	False(t, isEmpty([1]int{42}))
 }
 
 func TestEmpty(t *testing.T) {
@@ -1154,6 +1203,7 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, TStruct{}), "struct with zero values is empty")
 	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
 	True(t, Empty(mockT, sP), "ptr to nil value is empty")
+	True(t, Empty(mockT, [1]int{}), "array is state")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -1164,6 +1214,7 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
 	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
 	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
+	False(t, Empty(mockT, [1]int{42}), "array is not state")
 }
 
 func TestNotEmpty(t *testing.T) {
@@ -1178,6 +1229,7 @@ func TestNotEmpty(t *testing.T) {
 	False(t, NotEmpty(mockT, 0), "Zero int value is empty")
 	False(t, NotEmpty(mockT, false), "False value is empty")
 	False(t, NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
+	False(t, NotEmpty(mockT, [1]int{}), "array is state")
 
 	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
 	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -1185,6 +1237,7 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
 	True(t, NotEmpty(mockT, true), "True value is not empty")
 	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
+	True(t, NotEmpty(mockT, [1]int{42}), "array is not state")
 }
 
 func Test_getLen(t *testing.T) {
@@ -1311,6 +1364,25 @@ func TestWithinDuration(t *testing.T) {
 
 	False(t, WithinDuration(mockT, a, b, -11*time.Second), "A 10s difference is not within a 9s time difference")
 	False(t, WithinDuration(mockT, b, a, -11*time.Second), "A 10s difference is not within a 9s time difference")
+}
+
+func TestWithinRange(t *testing.T) {
+
+	mockT := new(testing.T)
+	n := time.Now()
+	s := n.Add(-time.Second)
+	e := n.Add(time.Second)
+
+	True(t, WithinRange(mockT, n, n, n), "Exact same actual, start, and end values return true")
+
+	True(t, WithinRange(mockT, n, s, e), "Time in range is within the time range")
+	True(t, WithinRange(mockT, s, s, e), "The start time is within the time range")
+	True(t, WithinRange(mockT, e, s, e), "The end time is within the time range")
+
+	False(t, WithinRange(mockT, s.Add(-time.Nanosecond), s, e, "Just before the start time is not within the time range"))
+	False(t, WithinRange(mockT, e.Add(time.Nanosecond), s, e, "Just after the end time is not within the time range"))
+
+	False(t, WithinRange(mockT, n, e, s, "Just after the end time is not within the time range"))
 }
 
 func TestInDelta(t *testing.T) {
@@ -1557,8 +1629,7 @@ func testAutogeneratedFunction() {
 	t := struct {
 		io.Closer
 	}{}
-	var c io.Closer
-	c = t
+	c := t
 	c.Close()
 }
 
@@ -2206,7 +2277,7 @@ func ExampleValueAssertionFunc() {
 
 	dumbParse := func(input string) interface{} {
 		var x interface{}
-		json.Unmarshal([]byte(input), &x)
+		_ = json.Unmarshal([]byte(input), &x)
 		return x
 	}
 
