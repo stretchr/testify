@@ -909,10 +909,15 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 			// type checking
-			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
+			if reflect.TypeOf(actual) == nil {
+				if expected != AnythingOfTypeArgument("<nil>") {
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type <nil> - %s\n", output, i, expected, actualFmt)
+				}
+			} else if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
 				// not match
 				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).String(), actualFmt)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*IsTypeArgument)(nil)) {
 			t := expected.(*IsTypeArgument).t

@@ -1613,6 +1613,50 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 
 }
 
+func Test_Arguments_Diff__WithAnythingOfTypeArgument_NilType(t *testing.T) {
+
+	var args = Arguments([]interface{}{AnythingOfType("<nil>")})
+	var count int
+	_, count = args.Diff([]interface{}{nil})
+
+	assert.Zero(t, count)
+
+}
+
+func Test_Arguments_Diff__WithAnythingOfTypeArgument_NilType_Failing(t *testing.T) {
+
+	var args = Arguments([]interface{}{AnythingOfType("string")})
+	var count int
+	var diff string
+	diff, count = args.Diff([]interface{}{nil})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, "type string != type <nil> - (<nil>=<nil>)")
+
+}
+
+func Test_Arguments_Diff__WithAnythingOfTypeArgument_NilValue(t *testing.T) {
+
+	var args = Arguments([]interface{}{AnythingOfType("*string")})
+	var count int
+	_, count = args.Diff([]interface{}{(*string)(nil)})
+
+	assert.Zero(t, count)
+
+}
+
+func Test_Arguments_Diff__WithAnythingOfTypeArgument_NilValue_Failing(t *testing.T) {
+
+	var args = Arguments([]interface{}{AnythingOfType("*int")})
+	var count int
+	var diff string
+	diff, count = args.Diff([]interface{}{(*string)(nil)})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, "type *int != type *string - (*string=<nil>)")
+
+}
+
 func Test_Arguments_Diff_WithIsTypeArgument(t *testing.T) {
 	var args = Arguments([]interface{}{"string", IsType(0), true})
 	var count int
