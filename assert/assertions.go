@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -144,7 +145,8 @@ func CallerInfo() []string {
 		if len(parts) > 1 {
 			dir := parts[len(parts)-2]
 			if (dir != "assert" && dir != "mock" && dir != "require") || file == "mock_test.go" {
-				callers = append(callers, fmt.Sprintf("%s:%d", file, line))
+				path, _ := filepath.Abs(file)
+				callers = append(callers, fmt.Sprintf("%s:%d", path, line))
 			}
 		}
 
