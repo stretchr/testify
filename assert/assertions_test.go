@@ -655,29 +655,26 @@ func TestEqualFormatting(t *testing.T) {
 }
 
 func TestFormatUnequalValues(t *testing.T) {
-	expected, actual := formatUnequalValues("foo", "bar")
-	Equal(t, `"foo"`, expected, "value should not include type")
-	Equal(t, `"bar"`, actual, "value should not include type")
-
-	expected, actual = formatUnequalValues(123, 123)
-	Equal(t, `123`, expected, "value should not include type")
-	Equal(t, `123`, actual, "value should not include type")
-
-	expected, actual = formatUnequalValues(int64(123), int32(123))
-	Equal(t, `int64(123)`, expected, "value should include type")
-	Equal(t, `int32(123)`, actual, "value should include type")
-
-	expected, actual = formatUnequalValues(int64(123), nil)
-	Equal(t, `int64(123)`, expected, "value should include type")
-	Equal(t, `<nil>(<nil>)`, actual, "value should include type")
-
 	type testStructType struct {
 		Val string
 	}
-
-	expected, actual = formatUnequalValues(&testStructType{Val: "test"}, &testStructType{Val: "test"})
-	Equal(t, `&assert.testStructType{Val:"test"}`, expected, "value should not include type annotation")
-	Equal(t, `&assert.testStructType{Val:"test"}`, actual, "value should not include type annotation")
+	for _, currCase := range []struct {
+		unequalExpected  interface{}
+		unequalActual    interface{}
+		expectedExpected string
+		expectedActual   string
+		testName         string
+	}{
+		{"foo", "bar", `"foo"`, `"bar"`, "value should not include type"},
+		{123, 123, `123`, `123`, "value should not include type"},
+		{int64(123), int32(123), `int64(123)`, `int32(123)`, "value should include type"},
+		{int64(123), nil, `int64(123)`, `<nil>(<nil>)`, "value should include type"},
+		{&testStructType{Val: "test"}, &testStructType{Val: "test"}, `&assert.testStructType{Val:"test"}`, `&assert.testStructType{Val:"test"}`, "value should not include type annotation"},
+	} {
+		expected, actual := formatUnequalValues(currCase.unequalExpected, currCase.unequalActual)
+		Equal(t, currCase.expectedExpected, expected, currCase.testName)
+		Equal(t, currCase.expectedActual, actual, currCase.testName)
+	}
 }
 
 func TestNotNil(t *testing.T) {
