@@ -670,6 +670,11 @@ func TestFormatUnequalValues(t *testing.T) {
 		{int64(123), int32(123), `int64(123)`, `int32(123)`, "value should include type"},
 		{int64(123), nil, `int64(123)`, `<nil>(<nil>)`, "value should include type"},
 		{&testStructType{Val: "test"}, &testStructType{Val: "test"}, `&assert.testStructType{Val:"test"}`, `&assert.testStructType{Val:"test"}`, "value should not include type annotation"},
+		{uint(123), uint(124), `123`, `124`, "uint should print clean"},
+		{uint8(123), uint8(124), `123`, `124`, "uint8 should print clean"},
+		{uint16(123), uint16(124), `123`, `124`, "uint16 should print clean"},
+		{uint32(123), uint32(124), `123`, `124`, "uint32 should print clean"},
+		{uint64(123), uint64(124), `123`, `124`, "uint64 should print clean"},
 	} {
 		expected, actual := formatUnequalValues(currCase.unequalExpected, currCase.unequalActual)
 		Equal(t, currCase.expectedExpected, expected, currCase.testName)
