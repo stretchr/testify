@@ -187,7 +187,7 @@ func TestIsNonDecreasing(t *testing.T) {
 
 func TestOrderingMsgAndArgsForwarding(t *testing.T) {
 	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
-	expectedOutput := "format this c001\n"
+	expectedOutput := "format this c001"
 	collection := []int{1, 2, 1}
 	funcs := []func(t TestingT){
 		func(t TestingT) { IsIncreasing(t, collection, msgAndArgs...) },
