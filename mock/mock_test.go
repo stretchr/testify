@@ -1223,6 +1223,10 @@ func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
 
 	assert.True(t, AssertExpectationsForObjects(t, &mockedService1.Mock, &mockedService2.Mock, &mockedService3.Mock, &mockedService4.Mock))
 	assert.True(t, AssertExpectationsForObjects(t, mockedService1, mockedService2, mockedService3, mockedService4))
+	// The following is a third way of calling AssertExpectationsForObjects
+	// which at least one user did and which historically works:
+	// https://github.com/stretchr/testify/issues/1227
+	assert.True(t, AssertExpectationsForObjects(t, mockedService1.Mock, mockedService2.Mock, mockedService3.Mock, mockedService4.Mock))
 
 }
 
