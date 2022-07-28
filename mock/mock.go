@@ -217,7 +217,7 @@ func (c *Call) Unset() *Call {
 	defer unlockOnce.Do(c.unlock)
 
 	foundMatchingCall := false
-	
+
 	tmp := make([]*Call, 0)
 	for _, call := range c.Parent.ExpectedCalls {
 		if call.Method == c.Method {
