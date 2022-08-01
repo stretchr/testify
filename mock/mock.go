@@ -220,14 +220,17 @@ func (c *Call) Unset() *Call {
 
 	tmp := make([]*Call, 0)
 	for _, call := range c.Parent.ExpectedCalls {
-		if call.Method == c.Method {
-			_, diffCount := call.Arguments.Diff(c.Arguments)
-			if diffCount == 0 {
-				foundMatchingCall = true
-			} else {
-				tmp = append(tmp, call)
-			}
+		if call.Method != c.Method {
+			tmp = append(tmp, call)
+			continue
 		}
+
+		_, diffCount := call.Arguments.Diff(c.Arguments)
+		if diffCount > 0 {
+			tmp = append(tmp, call)
+			continue
+		}
+		foundMatchingCall = true
 	}
 	c.Parent.ExpectedCalls = tmp
 
