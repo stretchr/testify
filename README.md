@@ -311,6 +311,11 @@ To install Testify, use `go get`:
 
     go get github.com/stretchr/testify
 
+For Go versions 1.19 and above, you will need to use `go install`:
+
+    go install github.com/stretchr/testify@latest
+
+
 This will then make the following packages available to you:
 
     github.com/stretchr/testify/assert
