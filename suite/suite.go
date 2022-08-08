@@ -17,6 +17,7 @@ import (
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
+var testCount = flag.Uint("testify.c", 1, "run tests and benchmarks `n` times without repeating SetupSuite")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -135,47 +136,10 @@ func Run(t *testing.T, suite TestingSuite) {
 			suiteSetupDone = true
 		}
 
-		test := testing.InternalTest{
-			Name: method.Name,
-			F: func(t *testing.T) {
-				parentT := suite.T()
-				suite.SetT(t)
-				defer recoverAndFailOnPanic(t)
-				defer func() {
-					r := recover()
-
-					if stats != nil {
-						passed := !t.Failed() && r == nil
-						stats.end(method.Name, passed)
-					}
-
-					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(suiteName, method.Name)
-					}
-
-					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-						tearDownTestSuite.TearDownTest()
-					}
-
-					suite.SetT(parentT)
-					failOnPanic(t, r)
-				}()
-
-				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-					setupTestSuite.SetupTest()
-				}
-				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-				}
-
-				if stats != nil {
-					stats.start(method.Name)
-				}
-
-				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
-			},
+		for i := uint(0); i < *testCount; i++ {
+			test := newInternalTest(method, suiteName, suite, stats)
+			tests = append(tests, test)
 		}
-		tests = append(tests, test)
 	}
 	if suiteSetupDone {
 		defer func() {
@@ -223,4 +187,48 @@ func runTests(t testing.TB, tests []testing.InternalTest) {
 
 type runner interface {
 	Run(name string, f func(t *testing.T)) bool
+}
+
+func newInternalTest(method reflect.Method, suiteName string, suite TestingSuite, stats *SuiteInformation) testing.InternalTest {
+	methodFinder := reflect.TypeOf(suite)
+	return testing.InternalTest{
+		Name: method.Name,
+		F: func(t *testing.T) {
+			parentT := suite.T()
+			suite.SetT(t)
+			defer recoverAndFailOnPanic(t)
+			defer func() {
+				r := recover()
+
+				if stats != nil {
+					passed := !t.Failed() && r == nil
+					stats.end(method.Name, passed)
+				}
+
+				if afterTestSuite, ok := suite.(AfterTest); ok {
+					afterTestSuite.AfterTest(suiteName, method.Name)
+				}
+
+				if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+					tearDownTestSuite.TearDownTest()
+				}
+
+				suite.SetT(parentT)
+				failOnPanic(t, r)
+			}()
+
+			if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+				setupTestSuite.SetupTest()
+			}
+			if beforeTestSuite, ok := suite.(BeforeTest); ok {
+				beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+			}
+
+			if stats != nil {
+				stats.start(method.Name)
+			}
+
+			method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+		},
+	}
 }
