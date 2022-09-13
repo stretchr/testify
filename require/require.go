@@ -364,6 +364,80 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	t.FailNow()
 }
 
+// EventuallyWithT asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick. In contrast to Eventually,
+// it supplies a CollectT to the condition function, so that the condition
+// function can use the CollectT to call other assertions.
+// The supplied CollectT collects all errors from one tick (if there are any).
+// If the condition is not met before waitFor, the collected errors of
+// the last tick are copied to t.
+//
+// 	falseThenTrue := func(falses int) func() bool {
+// 		count := 0
+// 		return func() bool {
+// 			if count < falses {
+// 				count++
+// 				return false
+// 			}
+// 			return true
+// 		}
+// 	}
+// 	f := falseThenTrue(5)
+// 	assert.EventuallyWithT(t, func(mockT *assert.CollectT) (success bool) {
+// 		defer func() {
+// 			r := recover()
+// 			success = (r == nil)
+// 		}()
+// 		assert.True(mockT, f())
+// 		return
+// 	}, 50*time.Millisecond, 10*time.Millisecond)
+func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT) bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.EventuallyWithT(t, condition, waitFor, tick, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// EventuallyWithTf asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick. In contrast to Eventually,
+// it supplies a CollectT to the condition function, so that the condition
+// function can use the CollectT to call other assertions.
+// The supplied CollectT collects all errors from one tick (if there are any).
+// If the condition is not met before waitFor, the collected errors of
+// the last tick are copied to t.
+//
+// 	falseThenTrue := func(falses int) func() bool {
+// 		count := 0
+// 		return func() bool {
+// 			if count < falses {
+// 				count++
+// 				return false
+// 			}
+// 			return true
+// 		}
+// 	}
+// 	f := falseThenTrue(5)
+// 	assert.EventuallyWithTf(t, func(mockT *assert.CollectT) (success bool, "error message %s", "formatted") {
+// 		defer func() {
+// 			r := recover()
+// 			success = (r == nil)
+// 		}()
+// 		assert.True(mockT, f())
+// 		return
+// 	}, 50*time.Millisecond, 10*time.Millisecond)
+func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT) bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.EventuallyWithTf(t, condition, waitFor, tick, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Eventuallyf asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //

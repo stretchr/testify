@@ -155,6 +155,40 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 	return Eventually(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
 }
 
+// EventuallyWithTf asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick. In contrast to Eventually,
+// it supplies a CollectT to the condition function, so that the condition
+// function can use the CollectT to call other assertions.
+// The supplied CollectT collects all errors from one tick (if there are any).
+// If the condition is not met before waitFor, the collected errors of
+// the last tick are copied to t.
+//
+// 	falseThenTrue := func(falses int) func() bool {
+// 		count := 0
+// 		return func() bool {
+// 			if count < falses {
+// 				count++
+// 				return false
+// 			}
+// 			return true
+// 		}
+// 	}
+// 	f := falseThenTrue(5)
+// 	assert.EventuallyWithTf(t, func(mockT *assert.CollectT) (success bool, "error message %s", "formatted") {
+// 		defer func() {
+// 			r := recover()
+// 			success = (r == nil)
+// 		}()
+// 		assert.True(mockT, f())
+// 		return
+// 	}, 50*time.Millisecond, 10*time.Millisecond)
+func EventuallyWithTf(t TestingT, condition func(collect *CollectT) bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return EventuallyWithT(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
+}
+
 // Exactlyf asserts that two objects are equal in value and type.
 //
 //    assert.Exactlyf(t, int32(123), int64(123), "error message %s", "formatted")
