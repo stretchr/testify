@@ -1395,6 +1395,20 @@ func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 
 }
 
+func Test_Mock_AssertAtMostNumberOfCalls(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertAtMostNumberOfCalls", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+	assert.True(t, mockedService.AssertAtMostNumberOfCalls(t, "Test_Mock_AssertAtMostNumberOfCalls", 1))
+
+	mockedService.Called(1, 2, 3)
+	assert.True(t, mockedService.AssertAtMostNumberOfCalls(t, "Test_Mock_AssertAtMostNumberOfCalls", 2))
+	assert.True(t, mockedService.AssertAtMostNumberOfCalls(t, "Test_Mock_AssertAtMostNumberOfCalls", 3))
+}
+
 func Test_Mock_AssertCalled(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
