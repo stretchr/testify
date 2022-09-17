@@ -158,7 +158,9 @@ func TestSomething(t *testing.T) {
   testObj := new(MyMockedObject)
 
   // setup expectations
-  testObj.On("DoSomething", 123).Return(true, nil)
+  testObj.On("DoSomething", 123).Return(func(args Arguments) Arguments {
+		return []interface{}{true, nil}
+  })
 
   // call the code we are testing
   targetFuncThatDoesSomethingWithObj(testObj)
@@ -180,8 +182,10 @@ func TestSomethingWithPlaceholder(t *testing.T) {
   testObj := new(MyMockedObject)
 
   // setup expectations with a placeholder in the argument list
-  testObj.On("DoSomething", mock.Anything).Return(true, nil)
-
+  testObj.On("DoSomething", mock.Anything).Return(func(args Arguments) Arguments {
+		return []interface{}{true, nil}
+  })
+  
   // call the code we are testing
   targetFuncThatDoesSomethingWithObj(testObj)
 
@@ -199,7 +203,9 @@ func TestSomethingElse2(t *testing.T) {
   testObj := new(MyMockedObject)
 
   // setup expectations with a placeholder in the argument list
-  mockCall := testObj.On("DoSomething", mock.Anything).Return(true, nil)
+  mockCall := testObj.On("DoSomething", mock.Anything).Return(func(args Arguments) Arguments {
+		return []interface{}{true, nil}
+  })
 
   // call the code we are testing
   targetFuncThatDoesSomethingWithObj(testObj)
@@ -211,7 +217,9 @@ func TestSomethingElse2(t *testing.T) {
   mockCall.Unset()
 
   // return false now instead of true
-  testObj.On("DoSomething", mock.Anything).Return(false, nil)
+  testObj.On("DoSomething", mock.Anything).Return(func(args Arguments) Arguments {
+		return []interface{}{false, nil}
+  })
 
   testObj.AssertExpectations(t)
 }
