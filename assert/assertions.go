@@ -1456,40 +1456,40 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 	return true
 }
 
-// ErrorContainsAll provides an ErrorAssertionFunc that asserts that a function returned an error (i.e. not `nil`)
+// ErrorContainsAllAssertion provides an ErrorAssertionFunc that asserts that a function returned an error (i.e. not `nil`)
 // and that the error contains all of the specified substrings in the order they are provided.
 // This is particularly useful for table driven tests where this provides an error assertion compatible with NoError.
 // If further combined with a mock, it allows to check that respective errors are wrapped in the correct order.
 //
-//   err := SomeFunction()
-//   assertion := assert.ErrorContainsAll(expectedWrappingErrorSubString, expectedWrappedErrorSubString)
-//   assertion(t, err)
+//  err := SomeFunction()
+//  assertion := assert.ErrorContainsAllAssertion(expectedWrappingErrorSubString, expectedWrappedErrorSubString)
+//  assertion(t, err)
 //
-//   err := SomeFunction()
-//   assertion := assert.ErrorContainsAll(expectedErrorSubString)
-//   assertion(t, err)
+//  err := SomeFunction()
+//  assertion := assert.ErrorContainsAllAssertion(expectedErrorSubString)
+//  assertion(t, err)
 //
-//   tests := []struct {
-//     input      int
-//     assertion  assert.ErrorAssertionFunc
-//   }{
-//     {
-//       name:       "OK",
-//       input:      1,
-//     	 assertion:  assert.NoError,
-//     },
-//     {
-//       name:       "FAIL",
-//       input:      -1,
-//       assertion:  assert.ErrorContainsAll(expectedWrappingErrorSubString, expectedWrappedErrorSubString),
-//     },
-//   }
-//   for _, tt := range tests {
-//     t.Run(tt.name, func(t *testing.T) {
-//       tt.assertion(t, SomeFunction(tt.input))
-//     }
-//   }
-func ErrorContainsAll(contains ...string) ErrorAssertionFunc {
+//  tests := []struct {
+//    input      int
+//    assertion  assert.ErrorAssertionFunc
+//  }{
+//    {
+//      name:       "OK",
+//      input:      1,
+//    	 assertion:  assert.NoError,
+//    },
+//    {
+//      name:       "FAIL",
+//      input:      -1,
+//      assertion:  assert.ErrorContainsAllAssertion(expectedWrappingErrorSubString, expectedWrappedErrorSubString),
+//    },
+//  }
+//  for _, tt := range tests {
+//    t.Run(tt.name, func(t *testing.T) {
+//      tt.assertion(t, SomeFunction(tt.input))
+//    }
+//  }
+func ErrorContainsAllAssertion(contains ...string) ErrorAssertionFunc {
 	return func(t TestingT, theError error, msgAndArgs ...interface{}) bool {
 		if !Error(t, theError, msgAndArgs...) {
 			return false

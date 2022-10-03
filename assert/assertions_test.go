@@ -1145,34 +1145,34 @@ func TestErrorContains(t *testing.T) {
 		"ErrorContains should return true")
 }
 
-func TestErrorContainsAll(t *testing.T) {
+func TestErrorContainsAllAssertion(t *testing.T) {
 	mockT := new(testing.T)
 
 	var err error
-	False(t, ErrorContainsAll("some error")(mockT, err),
-		"result of ErrorContainsAll should return false for nil argument")
+	False(t, ErrorContainsAllAssertion("some error")(mockT, err),
+		"result of ErrorContainsAllAssertion should return false for nil argument")
 
 	err = errors.New("some error: another error: yet another failure")
-	True(t, ErrorContainsAll("some error", "another error", "yet another failure")(mockT, err),
-		"result of ErrorContainsAll should return true")
-	True(t, ErrorContainsAll("some error", "yet another failure")(mockT, err),
-		"result of ErrorContainsAll should return true")
-	True(t, ErrorContainsAll("yet another failure")(mockT, err),
-		"result of ErrorContainsAll should return true")
-	True(t, ErrorContainsAll("")(mockT, err),
-		"result of ErrorContainsAll should return true on empty substring")
-	True(t, ErrorContainsAll()(mockT, err),
-		"result of ErrorContainsAll should return true when no substrings were provided")
-	False(t, ErrorContainsAll("another error", "some error", "yet another failure")(mockT, err),
-		"result of ErrorContainsAll should return false if sequence of errors is reversed")
-	False(t, ErrorContainsAll("some error", "error that does not exist")(mockT, err),
-		"result of ErrorContainsAll should return false if error does not contain one of the substrings")
-	False(t, ErrorContainsAll("error that does not exist")(mockT, err),
-		"result of ErrorContainsAll should return false if error does not contain the only provided substring")
+	True(t, ErrorContainsAllAssertion("some error", "another error", "yet another failure")(mockT, err),
+		"result of ErrorContainsAllAssertion should return true")
+	True(t, ErrorContainsAllAssertion("some error", "yet another failure")(mockT, err),
+		"result of ErrorContainsAllAssertion should return true")
+	True(t, ErrorContainsAllAssertion("yet another failure")(mockT, err),
+		"result of ErrorContainsAllAssertion should return true")
+	True(t, ErrorContainsAllAssertion("")(mockT, err),
+		"result of ErrorContainsAllAssertion should return true on empty substring")
+	True(t, ErrorContainsAllAssertion()(mockT, err),
+		"result of ErrorContainsAllAssertion should return true when no substrings were provided")
+	False(t, ErrorContainsAllAssertion("another error", "some error", "yet another failure")(mockT, err),
+		"result of ErrorContainsAllAssertion should return false if sequence of errors is reversed")
+	False(t, ErrorContainsAllAssertion("some error", "error that does not exist")(mockT, err),
+		"result of ErrorContainsAllAssertion should return false if error does not contain one of the substrings")
+	False(t, ErrorContainsAllAssertion("error that does not exist")(mockT, err),
+		"result of ErrorContainsAllAssertion should return false if error does not contain the only provided substring")
 
 	err = errors.New("SomeErrorAnotherErrorYetAnotherFailure")
-	True(t, ErrorContainsAll("SomeError", "AnotherError", "YetAnotherFailure")(mockT, err),
-		"result of ErrorContainsAll should return true even if texts are glued together")
+	True(t, ErrorContainsAllAssertion("SomeError", "AnotherError", "YetAnotherFailure")(mockT, err),
+		"result of ErrorContainsAllAssertion should return true even if texts are glued together")
 }
 
 func Test_isEmpty(t *testing.T) {
