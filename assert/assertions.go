@@ -1461,9 +1461,14 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 // This is particularly useful for table driven tests where this provides an error assertion compatible with NoError.
 // If further combined with a mock, it allows to check that respective errors are wrapped in the correct order.
 //
+//   err := SomeFunction()
 //   assertion := assert.ErrorContainsAll(expectedWrappingErrorSubString, expectedWrappedErrorSubString)
 //   assertion(t, err)
-//  
+//
+//   err := SomeFunction()
+//   assertion := assert.ErrorContainsAll(expectedErrorSubString)
+//   assertion(t, err)
+//
 //   tests := []struct {
 //     input      int
 //     assertion  assert.ErrorAssertionFunc
