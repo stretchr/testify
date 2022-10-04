@@ -1456,6 +1456,62 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 	return true
 }
 
+// ErrorContainsAllAssertion provides an ErrorAssertionFunc that asserts that a function returned an error (i.e. not `nil`)
+// and that the error contains all of the specified substrings in the order they are provided.
+// This is particularly useful for table driven tests where this provides an error assertion compatible with NoError.
+// If further combined with a mock, it allows to check that respective errors are wrapped in the correct order.
+//
+//  err := SomeFunction()
+//  assertion := assert.ErrorContainsAllAssertion(expectedWrappingErrorSubString, expectedWrappedErrorSubString)
+//  assertion(t, err)
+//
+//  err := SomeFunction()
+//  assertion := assert.ErrorContainsAllAssertion(expectedErrorSubString)
+//  assertion(t, err)
+//
+//  tests := []struct {
+//    input      int
+//    assertion  assert.ErrorAssertionFunc
+//  }{
+//    {
+//      name:       "OK",
+//      input:      1,
+//    	 assertion:  assert.NoError,
+//    },
+//    {
+//      name:       "FAIL",
+//      input:      -1,
+//      assertion:  assert.ErrorContainsAllAssertion(expectedWrappingErrorSubString, expectedWrappedErrorSubString),
+//    },
+//  }
+//  for _, tt := range tests {
+//    t.Run(tt.name, func(t *testing.T) {
+//      tt.assertion(t, SomeFunction(tt.input))
+//    }
+//  }
+func ErrorContainsAllAssertion(contains ...string) ErrorAssertionFunc {
+	return func(t TestingT, theError error, msgAndArgs ...interface{}) bool {
+		if !Error(t, theError, msgAndArgs...) {
+			return false
+		}
+
+		actual := theError.Error()
+		actualFragment := actual
+		for i, errText := range contains {
+			errTextAt := strings.Index(actualFragment, errText)
+			if errTextAt < 0 {
+				if i == 0 {
+					return Fail(t, fmt.Sprintf("Error %#v does not contain %#v", actual, errText), msgAndArgs...)
+				}
+				return Fail(t, fmt.Sprintf("Error %#v does not contain %#v after %#v", actual, errText, contains[i-1]), msgAndArgs...)
+			}
+			actualFragment = actualFragment[errTextAt+len(errText):]
+		}
+
+		return true
+	}
+}
+
 // matchRegexp return true if a specified regexp matches a string.
 func matchRegexp(rx interface{}, str interface{}) bool {
 
