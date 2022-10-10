@@ -14,6 +14,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert/equal"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -923,7 +924,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		} else {
 			// normal checking
 
-			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+			if equal.ObjectsAreEqual(expected, Anything) || equal.ObjectsAreEqual(actual, Anything) || equal.ObjectsAreEqual(actual, expected) {
 				// match
 				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 			} else {

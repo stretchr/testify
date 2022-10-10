@@ -20,6 +20,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
+	"github.com/stretchr/testify/assert/equal"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -52,49 +53,6 @@ type Comparison func() (success bool)
 /*
 	Helper functions
 */
-
-// ObjectsAreEqual determines if two objects are considered equal.
-//
-// This function does no assertion of any kind.
-func ObjectsAreEqual(expected, actual interface{}) bool {
-	if expected == nil || actual == nil {
-		return expected == actual
-	}
-
-	exp, ok := expected.([]byte)
-	if !ok {
-		return reflect.DeepEqual(expected, actual)
-	}
-
-	act, ok := actual.([]byte)
-	if !ok {
-		return false
-	}
-	if exp == nil || act == nil {
-		return exp == nil && act == nil
-	}
-	return bytes.Equal(exp, act)
-}
-
-// ObjectsAreEqualValues gets whether two objects are equal, or if their
-// values are equal.
-func ObjectsAreEqualValues(expected, actual interface{}) bool {
-	if ObjectsAreEqual(expected, actual) {
-		return true
-	}
-
-	actualType := reflect.TypeOf(actual)
-	if actualType == nil {
-		return false
-	}
-	expectedValue := reflect.ValueOf(expected)
-	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
-		// Attempt comparison after type conversion
-		return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
-	}
-
-	return false
-}
 
 /* CallerInfo is necessary because the assert functions use the testing object
 internally, causing it to print the file:line of the assert method, rather than where
@@ -319,11 +277,28 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 		h.Helper()
 	}
 
-	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
+	if !equal.ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
 		return Fail(t, fmt.Sprintf("Object expected to be of type %v, but was %v", reflect.TypeOf(expectedType), reflect.TypeOf(object)), msgAndArgs...)
 	}
 
 	return true
+}
+
+// ObjectsAreEqual determines if two objects are considered equal.
+//
+// Deprecated: Use equal.ObjectsAreEqual, which does the exact same thing,
+// but is clearer that it does no assertions of any kind.
+func ObjectsAreEqual(expected, actual interface{}) bool {
+	return equal.ObjectsAreEqual(expected, actual)
+}
+
+// ObjectsAreEqualValues gets whether two objects are equal, or if their
+// values are equal.
+
+// Deprecated: Use equal.ObjectsAreEqualValues, which does the exact same thing,
+// but is clearer that it does no assertions of any kind.
+func ObjectsAreEqualValues(expected, actual interface{}) bool {
+	return equal.ObjectsAreEqualValues(expected, actual)
 }
 
 // Equal asserts that two objects are equal.
@@ -342,7 +317,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 			expected, actual, err), msgAndArgs...)
 	}
 
-	if !ObjectsAreEqual(expected, actual) {
+	if !equal.ObjectsAreEqual(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
@@ -463,7 +438,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 		h.Helper()
 	}
 
-	if !ObjectsAreEqualValues(expected, actual) {
+	if !equal.ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
@@ -694,7 +669,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 			expected, actual, err), msgAndArgs...)
 	}
 
-	if ObjectsAreEqual(expected, actual) {
+	if equal.ObjectsAreEqual(expected, actual) {
 		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
 	}
 
@@ -710,7 +685,7 @@ func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...inte
 		h.Helper()
 	}
 
-	if ObjectsAreEqualValues(expected, actual) {
+	if equal.ObjectsAreEqualValues(expected, actual) {
 		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
 	}
 
@@ -744,7 +719,7 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 	if listKind == reflect.Map {
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
-			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
+			if equal.ObjectsAreEqual(mapKeys[i].Interface(), element) {
 				return true, true
 			}
 		}
@@ -752,7 +727,7 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
-		if ObjectsAreEqual(listValue.Index(i).Interface(), element) {
+		if equal.ObjectsAreEqual(listValue.Index(i).Interface(), element) {
 			return true, true
 		}
 	}
@@ -845,7 +820,7 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 			subsetElement := subsetValue.MapIndex(subsetKey).Interface()
 			listElement := listValue.MapIndex(subsetKey).Interface()
 
-			if !ObjectsAreEqual(subsetElement, listElement) {
+			if !equal.ObjectsAreEqual(subsetElement, listElement) {
 				return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, subsetElement), msgAndArgs...)
 			}
 		}
@@ -906,7 +881,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 			subsetElement := subsetValue.MapIndex(subsetKey).Interface()
 			listElement := listValue.MapIndex(subsetKey).Interface()
 
-			if !ObjectsAreEqual(subsetElement, listElement) {
+			if !equal.ObjectsAreEqual(subsetElement, listElement) {
 				return true
 			}
 		}
@@ -983,7 +958,7 @@ func diffLists(listA, listB interface{}) (extraA, extraB []interface{}) {
 			if visited[j] {
 				continue
 			}
-			if ObjectsAreEqual(bValue.Index(j).Interface(), element) {
+			if equal.ObjectsAreEqual(bValue.Index(j).Interface(), element) {
 				visited[j] = true
 				found = true
 				break
