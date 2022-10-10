@@ -6,10 +6,11 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -1262,6 +1263,50 @@ func (a *Assertions) NotZerof(i interface{}, msg string, args ...interface{}) {
 		h.Helper()
 	}
 	NotZerof(a.t, i, msg, args...)
+}
+
+// ObjectsAreEqual determines if two objects are considered equal.
+//
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqual(expected interface{}, actual interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	ObjectsAreEqual(a.t, expected, actual)
+}
+
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqualValues(expected interface{}, actual interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	ObjectsAreEqualValues(a.t, expected, actual)
+}
+
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqualValuesf(expected interface{}, actual interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	ObjectsAreEqualValuesf(a.t, expected, actual)
+}
+
+// ObjectsAreEqualf determines if two objects are considered equal.
+//
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqualf(expected interface{}, actual interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	ObjectsAreEqualf(a.t, expected, actual)
 }
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.

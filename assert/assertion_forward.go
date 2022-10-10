@@ -1263,6 +1263,50 @@ func (a *Assertions) NotZerof(i interface{}, msg string, args ...interface{}) bo
 	return NotZerof(a.t, i, msg, args...)
 }
 
+// ObjectsAreEqual determines if two objects are considered equal.
+//
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqual(expected interface{}, actual interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ObjectsAreEqual(a.t, expected, actual)
+}
+
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqualValues(expected interface{}, actual interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ObjectsAreEqualValues(a.t, expected, actual)
+}
+
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqualValuesf(expected interface{}, actual interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ObjectsAreEqualValuesf(a.t, expected, actual)
+}
+
+// ObjectsAreEqualf determines if two objects are considered equal.
+//
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func (a *Assertions) ObjectsAreEqualf(expected interface{}, actual interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ObjectsAreEqualf(a.t, expected, actual)
+}
+
 // Panics asserts that the code inside the specified PanicTestFunc panics.
 //
 //   a.Panics(func(){ GoCrazy() })

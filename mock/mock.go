@@ -14,7 +14,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/assert/equal"
+	"github.com/stretchr/testify/internal/equal"
 )
 
 // TestingT is an interface wrapper around *testing.T

@@ -637,6 +637,28 @@ func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) bool {
 	return NotZero(t, i, append([]interface{}{msg}, args...)...)
 }
 
+// ObjectsAreEqualf determines if two objects are considered equal.
+//
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func ObjectsAreEqualf(t TestingT, expected interface{}, actual interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return ObjectsAreEqual(t, expected, actual)
+}
+
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func ObjectsAreEqualValuesf(t TestingT, expected interface{}, actual interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return ObjectsAreEqualValues(t, expected, actual)
+}
+
 // Panicsf asserts that the code inside the specified PanicTestFunc panics.
 //
 //   assert.Panicsf(t, func(){ GoCrazy() }, "error message %s", "formatted")

@@ -6,10 +6,11 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -1607,6 +1608,62 @@ func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 		h.Helper()
 	}
 	if assert.NotZerof(t, i, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// ObjectsAreEqual determines if two objects are considered equal.
+//
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func ObjectsAreEqual(t TestingT, expected interface{}, actual interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsAreEqual(t, expected, actual) {
+		return
+	}
+	t.FailNow()
+}
+
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func ObjectsAreEqualValues(t TestingT, expected interface{}, actual interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsAreEqualValues(t, expected, actual) {
+		return
+	}
+	t.FailNow()
+}
+
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func ObjectsAreEqualValuesf(t TestingT, expected interface{}, actual interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsAreEqualValuesf(t, expected, actual) {
+		return
+	}
+	t.FailNow()
+}
+
+// ObjectsAreEqualf determines if two objects are considered equal.
+//
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func ObjectsAreEqualf(t TestingT, expected interface{}, actual interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsAreEqualf(t, expected, actual) {
 		return
 	}
 	t.FailNow()

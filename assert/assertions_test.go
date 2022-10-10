@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert/equal"
+	"github.com/stretchr/testify/internal/equal"
 )
 
 var (

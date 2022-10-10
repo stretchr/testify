@@ -20,7 +20,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
-	"github.com/stretchr/testify/assert/equal"
+	"github.com/stretchr/testify/internal/equal"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -286,18 +286,20 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 
 // ObjectsAreEqual determines if two objects are considered equal.
 //
-// Deprecated: Use equal.ObjectsAreEqual, which does the exact same thing,
-// but is clearer that it does no assertions of any kind.
-func ObjectsAreEqual(expected, actual interface{}) bool {
+// Deprecated: Use Equal(expected, actual interface{})
+// Note this method did no assertions, whereas Equal does,
+// so may require some code changes.
+func ObjectsAreEqual(t TestingT, expected, actual interface{}) bool {
 	return equal.ObjectsAreEqual(expected, actual)
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
 // values are equal.
 
-// Deprecated: Use equal.ObjectsAreEqualValues, which does the exact same thing,
-// but is clearer that it does no assertions of any kind.
-func ObjectsAreEqualValues(expected, actual interface{}) bool {
+// Deprecated: Use EqualValues(expected, actual interface{})
+// Note this method did no assertions, whereas EqualValues does,
+// so may require some code changes.
+func ObjectsAreEqualValues(t TestingT, expected, actual interface{}) bool {
 	return equal.ObjectsAreEqualValues(expected, actual)
 }
 
