@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"reflect"
@@ -1865,17 +1866,31 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	var expectedYAMLAsInterface, actualYAMLAsInterface interface{}
+	var expectedYAMLAsInterface, actualYAMLAsInterface []interface{}
 
-	if err := yaml.Unmarshal([]byte(expected), &expectedYAMLAsInterface); err != nil {
+	if err := yamlUnmarshalAllDocuments(strings.NewReader(expected), &expectedYAMLAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid yaml.\nYAML parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
-	if err := yaml.Unmarshal([]byte(actual), &actualYAMLAsInterface); err != nil {
+	if err := yamlUnmarshalAllDocuments(strings.NewReader(actual), &actualYAMLAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid yaml.\nYAML error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
 
 	return Equal(t, expectedYAMLAsInterface, actualYAMLAsInterface, msgAndArgs...)
+}
+
+func yamlUnmarshalAllDocuments(in io.Reader, out *[]interface{}) error {
+	decoder := yaml.NewDecoder(in)
+	for {
+		var document interface{}
+		if err := decoder.Decode(&document); err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
+			return err
+		}
+		*out = append(*out, document)
+	}
 }
 
 func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
