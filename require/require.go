@@ -368,30 +368,21 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 // periodically checking target function each tick. In contrast to Eventually,
 // it supplies a CollectT to the condition function, so that the condition
 // function can use the CollectT to call other assertions.
+// The condition is considered "met" if no errors are raised in a tick.
 // The supplied CollectT collects all errors from one tick (if there are any).
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
-// 	falseThenTrue := func(falses int) func() bool {
-// 		count := 0
-// 		return func() bool {
-// 			if count < falses {
-// 				count++
-// 				return false
-// 			}
-// 			return true
-// 		}
-// 	}
-// 	f := falseThenTrue(5)
-// 	assert.EventuallyWithT(t, func(mockT *assert.CollectT) (success bool) {
-// 		defer func() {
-// 			r := recover()
-// 			success = (r == nil)
-// 		}()
-// 		assert.True(mockT, f())
-// 		return
-// 	}, 50*time.Millisecond, 10*time.Millisecond)
-func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT) bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	require.EventuallyWithT(t, func(c *assert.CollectT) {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
+func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -405,30 +396,21 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT) bool, 
 // periodically checking target function each tick. In contrast to Eventually,
 // it supplies a CollectT to the condition function, so that the condition
 // function can use the CollectT to call other assertions.
+// The condition is considered "met" if no errors are raised in a tick.
 // The supplied CollectT collects all errors from one tick (if there are any).
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
-// 	falseThenTrue := func(falses int) func() bool {
-// 		count := 0
-// 		return func() bool {
-// 			if count < falses {
-// 				count++
-// 				return false
-// 			}
-// 			return true
-// 		}
-// 	}
-// 	f := falseThenTrue(5)
-// 	assert.EventuallyWithTf(t, func(mockT *assert.CollectT) (success bool, "error message %s", "formatted") {
-// 		defer func() {
-// 			r := recover()
-// 			success = (r == nil)
-// 		}()
-// 		assert.True(mockT, f())
-// 		return
-// 	}, 50*time.Millisecond, 10*time.Millisecond)
-func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT) bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	require.EventuallyWithTf(t, func(c *assert.CollectT) {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still: %v", externalState)
+func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
