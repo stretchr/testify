@@ -1778,6 +1778,9 @@ func (c *CollectT) Reset() {
 
 // Copy copies the collected errors to the supplied t.
 func (c *CollectT) Copy(t TestingT) {
+	if tt, ok := t.(tHelper); ok {
+		tt.Helper()
+	}
 	for _, err := range c.errors {
 		t.Errorf("%v", err)
 	}
