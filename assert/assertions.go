@@ -475,7 +475,7 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 func truncatingFormat(data interface{}, printValueOfBasicTypes bool) string {
 	value := fmt.Sprintf("%#v", data)
 
-	if printValueOfBasicTypes && reflect.ValueOf(data).Kind() == reflect.Pointer {
+	if printValueOfBasicTypes && reflect.ValueOf(data).Kind() == reflect.Ptr {
 		v := reflect.ValueOf(data).Elem()
 		for _, t := range basicTypes {
 			if v.Kind() == t {
