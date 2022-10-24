@@ -482,8 +482,8 @@ func truncatingFormat(data interface{}, printValueOfBasicTypes bool) string {
 				break
 			}
 		}
-	} 
-	
+	}
+
 	if value == "" {
 		value = fmt.Sprintf("%#v", data)
 	}
