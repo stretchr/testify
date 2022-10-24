@@ -2431,8 +2431,8 @@ func TestEventuallyTrue(t *testing.T) {
 func TestEventuallyWithTFalse(t *testing.T) {
 	mockT := new(CollectT)
 
-	condition := func(collect *CollectT) bool {
-		return True(collect, false)
+	condition := func(collect *CollectT) {
+		True(collect, false)
 	}
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
@@ -2443,17 +2443,11 @@ func TestEventuallyWithTTrue(t *testing.T) {
 	mockT := new(CollectT)
 
 	state := 0
-	condition := func(collect *CollectT) bool {
+	condition := func(collect *CollectT) {
 		defer func() {
 			state += 1
 		}()
-
-		if state == 2 {
-			True(collect, true)
-			return true
-		}
-
-		return True(collect, false)
+		True(collect, state == 2)
 	}
 
 	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
