@@ -473,8 +473,7 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 // The `printValueOfBasicTypes` flag controls whether or not to print the underlying
 // value of pointers of basic types in addition to the pointer address.
 func truncatingFormat(data interface{}, printValueOfBasicTypes bool) string {
-	value := fmt.Sprintf("%#v", data)
-
+	var value string
 	if printValueOfBasicTypes && reflect.ValueOf(data).Kind() == reflect.Ptr {
 		v := reflect.ValueOf(data).Elem()
 		for _, t := range basicTypes {
@@ -483,6 +482,10 @@ func truncatingFormat(data interface{}, printValueOfBasicTypes bool) string {
 				break
 			}
 		}
+	} 
+	
+	if value == "" {
+		value = fmt.Sprintf("%#v", data)
 	}
 
 	max := bufio.MaxScanTokenSize - 100 // Give us some space the type info too if needed.
