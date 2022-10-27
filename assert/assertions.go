@@ -843,7 +843,13 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 		for i := 0; i < len(subsetKeys); i++ {
 			subsetKey := subsetKeys[i]
 			subsetElement := subsetValue.MapIndex(subsetKey).Interface()
-			listElement := listValue.MapIndex(subsetKey).Interface()
+			listValue := listValue.MapIndex(subsetKey)
+
+			if !listValue.IsValid() {
+				return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, subsetElement), msgAndArgs...)
+			}
+
+			listElement := listValue.Interface()
 
 			if !ObjectsAreEqual(subsetElement, listElement) {
 				return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, subsetElement), msgAndArgs...)
@@ -904,7 +910,13 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		for i := 0; i < len(subsetKeys); i++ {
 			subsetKey := subsetKeys[i]
 			subsetElement := subsetValue.MapIndex(subsetKey).Interface()
-			listElement := listValue.MapIndex(subsetKey).Interface()
+			listValue := listValue.MapIndex(subsetKey)
+
+			if !listValue.IsValid() {
+				return true
+			}
+
+			listElement := listValue.Interface()
 
 			if !ObjectsAreEqual(subsetElement, listElement) {
 				return true

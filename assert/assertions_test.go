@@ -706,6 +706,14 @@ func TestSubsetNotSubset(t *testing.T) {
 			"a": "x",
 			"b": "z",
 		}, false, `{ "a": "x", "b": "y", "c": "z"} does not contain { "a": "x", "b": "z"}`},
+		{map[string]string{
+			"a": "a",
+			"b": "b",
+		}, map[string]string{
+			"c": "c",
+			"b": "b",
+			"a": "a",
+		}, false, `{ "a": "a", "b": "b"} does not contain { "a": "a","b": "b", "c": "c"}`},
 	}
 
 	for _, c := range cases {
