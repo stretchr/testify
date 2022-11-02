@@ -617,3 +617,39 @@ func (s *FailfastSuite) Test_B_Passes() {
 	s.call("Test B Passes")
 	s.Require().True(true)
 }
+
+type subtestPanicSuite struct {
+	Suite
+	inTeardownTest bool
+	inTeardown     bool
+}
+
+func (s *subtestPanicSuite) TearDownSuite() {
+	s.inTeardown = true
+}
+
+func (s *subtestPanicSuite) TearDownTest() {
+	s.inTeardownTest = true
+}
+
+func (s *subtestPanicSuite) TestSubtestPanic() {
+	s.Run("subtest", func() {
+		panic("panic")
+	})
+}
+
+func TestSubtestPanic(t *testing.T) {
+	suite := new(subtestPanicSuite)
+	ok := testing.RunTests(
+		allTestsFilter,
+		[]testing.InternalTest{{
+			Name: "TestSubtestPanic",
+			F: func(t *testing.T) {
+				Run(t, suite)
+			},
+		}},
+	)
+	assert.False(t, ok)
+	assert.True(t, suite.inTeardownTest)
+	assert.True(t, suite.inTeardown)
+}

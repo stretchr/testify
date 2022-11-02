@@ -108,6 +108,7 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 	}()
 
 	return oldT.Run(name, func(t *testing.T) {
+		defer recoverAndFailOnPanic(t)
 		suite.SetT(t)
 		subtest()
 	})
