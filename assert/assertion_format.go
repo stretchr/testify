@@ -145,7 +145,9 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 }
 
 // Eventuallyf asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// periodically checking target function each tick. The target function
+// is checked once immediately before Eventuallyf starts its periodic
+// checks.
 //
 //    assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {

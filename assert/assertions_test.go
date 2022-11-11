@@ -2428,6 +2428,25 @@ func TestEventuallyTrue(t *testing.T) {
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+func TestEventuallyTrueImmediately(t *testing.T) {
+	condition := func() bool {
+		return true
+	}
+
+	c := make(chan struct{})
+
+	go func() {
+		Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond)
+		close(c)
+	}()
+
+	select {
+	case <-c:
+	case <-time.After(20 * time.Millisecond):
+		FailNow(t, `waited too long`)
+	}
+}
+
 func TestNeverFalse(t *testing.T) {
 	condition := func() bool {
 		return false
@@ -2451,9 +2470,14 @@ func TestNeverTrue(t *testing.T) {
 
 func TestEventuallyIssue805(t *testing.T) {
 	mockT := new(testing.T)
+	returnVal := false
 
 	NotPanics(t, func() {
-		condition := func() bool { <-time.After(time.Millisecond); return true }
+		condition := func() bool {
+			<-time.After(time.Millisecond)
+			defer func() { returnVal = true }()
+			return returnVal
+		}
 		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
 	})
 }

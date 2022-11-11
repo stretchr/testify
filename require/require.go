@@ -351,7 +351,9 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 }
 
 // Eventually asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// periodically checking target function each tick. The target function
+// is checked once immediately before Eventually starts its periodic
+// checks.
 //
 //    assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
@@ -365,7 +367,9 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 }
 
 // Eventuallyf asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// periodically checking target function each tick. The target function
+// is checked once immediately before Eventuallyf starts its periodic
+// checks.
 //
 //    assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
