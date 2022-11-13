@@ -99,7 +99,7 @@ func (c *Call) unlock() {
 
 // Return specifies the return arguments for the expectation.
 //
-//    Mock.On("DoSomething").Return(errors.New("failed"))
+//	Mock.On("DoSomething").Return(errors.New("failed"))
 func (c *Call) Return(returnArguments ...interface{}) *Call {
 	c.lock()
 	defer c.unlock()
@@ -111,7 +111,7 @@ func (c *Call) Return(returnArguments ...interface{}) *Call {
 
 // Panic specifies if the functon call should fail and the panic message
 //
-//    Mock.On("DoSomething").Panic("test panic")
+//	Mock.On("DoSomething").Panic("test panic")
 func (c *Call) Panic(msg string) *Call {
 	c.lock()
 	defer c.unlock()
@@ -123,14 +123,14 @@ func (c *Call) Panic(msg string) *Call {
 
 // Once indicates that that the mock should only return the value once.
 //
-//    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Once()
+//	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Once()
 func (c *Call) Once() *Call {
 	return c.Times(1)
 }
 
 // Twice indicates that that the mock should only return the value twice.
 //
-//    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Twice()
+//	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Twice()
 func (c *Call) Twice() *Call {
 	return c.Times(2)
 }
@@ -138,7 +138,7 @@ func (c *Call) Twice() *Call {
 // Times indicates that that the mock should only return the indicated number
 // of times.
 //
-//    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
+//	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (c *Call) Times(i int) *Call {
 	c.lock()
 	defer c.unlock()
@@ -149,7 +149,7 @@ func (c *Call) Times(i int) *Call {
 // WaitUntil sets the channel that will block the mock's return until its closed
 // or a message is received.
 //
-//    Mock.On("MyMethod", arg1, arg2).WaitUntil(time.After(time.Second))
+//	Mock.On("MyMethod", arg1, arg2).WaitUntil(time.After(time.Second))
 func (c *Call) WaitUntil(w <-chan time.Time) *Call {
 	c.lock()
 	defer c.unlock()
@@ -159,7 +159,7 @@ func (c *Call) WaitUntil(w <-chan time.Time) *Call {
 
 // After sets how long to block until the call returns
 //
-//    Mock.On("MyMethod", arg1, arg2).After(time.Second)
+//	Mock.On("MyMethod", arg1, arg2).After(time.Second)
 func (c *Call) After(d time.Duration) *Call {
 	c.lock()
 	defer c.unlock()
@@ -171,10 +171,10 @@ func (c *Call) After(d time.Duration) *Call {
 // mocking a method (such as an unmarshaler) that takes a pointer to a struct and
 // sets properties in such struct
 //
-//    Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}")).Return().Run(func(args Arguments) {
-//    	arg := args.Get(0).(*map[string]interface{})
-//    	arg["foo"] = "bar"
-//    })
+//	Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}")).Return().Run(func(args Arguments) {
+//		arg := args.Get(0).(*map[string]interface{})
+//		arg["foo"] = "bar"
+//	})
 func (c *Call) Run(fn func(args Arguments)) *Call {
 	c.lock()
 	defer c.unlock()
@@ -194,16 +194,18 @@ func (c *Call) Maybe() *Call {
 // On chains a new expectation description onto the mocked interface. This
 // allows syntax like.
 //
-//    Mock.
-//       On("MyMethod", 1).Return(nil).
-//       On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
+//	Mock.
+//	   On("MyMethod", 1).Return(nil).
+//	   On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
+//
 //go:noinline
 func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
 
 // Unset removes a mock handler from being called.
-//    test.On("func", mock.Anything).Unset()
+//
+//	test.On("func", mock.Anything).Unset()
 func (c *Call) Unset() *Call {
 	var unlockOnce sync.Once
 
@@ -243,9 +245,9 @@ func (c *Call) Unset() *Call {
 // calls have been called as expected. The referenced calls may be from the
 // same mock instance and/or other mock instances.
 //
-//     Mock.On("Do").Return(nil).Notbefore(
-//         Mock.On("Init").Return(nil)
-//     )
+//	Mock.On("Do").Return(nil).Notbefore(
+//	    Mock.On("Init").Return(nil)
+//	)
 func (c *Call) NotBefore(calls ...*Call) *Call {
 	c.lock()
 	defer c.unlock()
@@ -328,7 +330,7 @@ func (m *Mock) fail(format string, args ...interface{}) {
 // On starts a description of an expectation of the specified method
 // being called.
 //
-//     Mock.On("MyMethod", arg1, arg2)
+//	Mock.On("MyMethod", arg1, arg2)
 func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	for _, arg := range arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
@@ -752,6 +754,7 @@ type AnythingOfTypeArgument string
 // name of the type to check for.  Used in Diff and Assert.
 //
 // For example:
+//
 //	Assert(t, AnythingOfType("string"), AnythingOfType("int"))
 func AnythingOfType(t string) AnythingOfTypeArgument {
 	return AnythingOfTypeArgument(t)
