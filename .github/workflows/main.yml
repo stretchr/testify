@@ -19,19 +19,19 @@ jobs:
         run: |
           go mod tidy
           (cd _codegen && go mod tidy)
-          git --no-pager diff && [[ -z $(git status -s -uno) ]]
+          git --no-pager diff && [[ -z $(git status -s) ]]
       - name: Check go generate
         # Don't run on 1.18 as that generates differently formatted code.
         if: matrix.go_version != '1.18'
         run: |
           go generate ./...
-          git --no-pager diff && [[ -z $(git status -s -uno) ]]
+          git --no-pager diff && [[ -z $(git status -s) ]]
       - name: Check gofmt
         # Don't run on 1.18 as that generates differently formatted code.
         if: matrix.go_version != '1.18'
         run: |
           gofmt -w .
-          git --no-pager diff && [[ -z $(git status -s -uno) ]]
+          git --no-pager diff && [[ -z $(git status -s) ]]
       - name: Check go vet
         run: go vet ./...
       - name: Check go test
