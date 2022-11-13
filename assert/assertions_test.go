@@ -2453,7 +2453,7 @@ func TestEventuallyIssue805(t *testing.T) {
 	mockT := new(testing.T)
 
 	NotPanics(t, func() {
-		condition := func() bool { <-time.After(time.Millisecond); return true }
+		condition := func() bool { <-time.After(time.Millisecond * 2); return true }
 		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
 	})
 }
