@@ -151,14 +151,16 @@ type SuiteTester struct {
 	Suite
 
 	// Keep counts of how many times each method is run.
-	SetupSuiteRunCount    int
-	TearDownSuiteRunCount int
-	SetupTestRunCount     int
-	TearDownTestRunCount  int
-	TestOneRunCount       int
-	TestTwoRunCount       int
-	TestSubtestRunCount   int
-	NonTestMethodRunCount int
+	SetupSuiteRunCount      int
+	TearDownSuiteRunCount   int
+	SetupTestRunCount       int
+	TearDownTestRunCount    int
+	TestOneRunCount         int
+	TestTwoRunCount         int
+	TestSubtestRunCount     int
+	NonTestMethodRunCount   int
+	SetupSubTestRunCount    int
+	TearDownSubTestRunCount int
 
 	SuiteNameBefore []string
 	TestNameBefore  []string
@@ -255,6 +257,14 @@ func (suite *SuiteTester) TestSubtest() {
 	}
 }
 
+func (suite *SuiteTester) TearDownSubTest() {
+	suite.TearDownSubTestRunCount++
+}
+
+func (suite *SuiteTester) SetupSubTest() {
+	suite.SetupSubTestRunCount++
+}
+
 type SuiteSkipTester struct {
 	// Include our basic suite logic.
 	Suite
@@ -335,6 +345,9 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, suiteTester.TestOneRunCount, 1)
 	assert.Equal(t, suiteTester.TestTwoRunCount, 1)
 	assert.Equal(t, suiteTester.TestSubtestRunCount, 1)
+
+	assert.Equal(t, suiteTester.TearDownSubTestRunCount, 2)
+	assert.Equal(t, suiteTester.SetupSubTestRunCount, 2)
 
 	// Methods that don't match the test method identifier shouldn't
 	// have been run at all.
