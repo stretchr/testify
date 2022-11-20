@@ -56,17 +56,18 @@ type Comparison func() (success bool)
 // ObjectsAreEqual determines if two objects are considered equal.
 //
 // This function does no assertion of any kind.
-func ObjectsAreEqual(expected, actual interface{}) bool {
-	if expected == nil || actual == nil {
-		return expected == actual
+func ObjectsAreEqual[T any](expected, actual T) bool {
+	anyExp, anyAct := any(expected), any(actual)
+	if anyExp == nil || anyAct == nil {
+		return anyExp == anyAct
 	}
 
-	exp, ok := expected.([]byte)
+	exp, ok := anyExp.([]byte)
 	if !ok {
 		return reflect.DeepEqual(expected, actual)
 	}
 
-	act, ok := actual.([]byte)
+	act, ok := anyAct.([]byte)
 	if !ok {
 		return false
 	}
@@ -333,7 +334,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+func Equal[T any](t TestingT, expected, actual T, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -344,14 +345,13 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 
 	if !ObjectsAreEqual(expected, actual) {
 		diff := diff(expected, actual)
-		expected, actual = formatUnequalValues(expected, actual)
+		expectedMsg, actualMsg := formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+			"actual  : %s%s", expectedMsg, actualMsg, diff), msgAndArgs...)
 	}
 
 	return true
-
 }
 
 // validateEqualArgs checks whether provided arguments can be safely used in the
@@ -429,13 +429,13 @@ func samePointers(first, second interface{}) bool {
 // If the values are not of like type, the returned strings will be prefixed
 // with the type name, and the value will be enclosed in parenthesis similar
 // to a type conversion in the Go grammar.
-func formatUnequalValues(expected, actual interface{}) (e string, a string) {
+func formatUnequalValues[T any](expected, actual T) (e string, a string) {
 	if reflect.TypeOf(expected) != reflect.TypeOf(actual) {
 		return fmt.Sprintf("%T(%s)", expected, truncatingFormat(expected)),
 			fmt.Sprintf("%T(%s)", actual, truncatingFormat(actual))
 	}
-	switch expected.(type) {
-	case time.Duration:
+	castedExpected := any(expected) // REQUIRES TESTING
+	if _, ok := castedExpected.(time.Duration); ok {
 		return fmt.Sprintf("%v", expected), fmt.Sprintf("%v", actual)
 	}
 	return truncatingFormat(expected), truncatingFormat(actual)
@@ -465,33 +465,25 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 
 	if !ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
-		expected, actual = formatUnequalValues(expected, actual)
+		expectedMsg, actualMsg := formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+			"actual  : %s%s", expectedMsg, actualMsg, diff), msgAndArgs...)
 	}
 
 	return true
 
 }
 
-// Exactly asserts that two objects are equal in value and type.
+// Exactly asserts that two objects of the exact same type are equal in value.
 //
 //    assert.Exactly(t, int32(123), int64(123))
-func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+func Exactly[T any](t TestingT, expected, actual T, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
-	aType := reflect.TypeOf(expected)
-	bType := reflect.TypeOf(actual)
-
-	if aType != bType {
-		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
-	}
-
 	return Equal(t, expected, actual, msgAndArgs...)
-
 }
 
 // NotNil asserts that the specified object is not nil.
@@ -630,6 +622,7 @@ func getLen(x interface{}) (ok bool, length int) {
 	return true, v.Len()
 }
 
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -685,7 +678,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
-func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+func NotEqual[T any](t TestingT, expected, actual T, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -1167,58 +1160,25 @@ func WithinRange(t TestingT, actual, start, end time.Time, msgAndArgs ...interfa
 	return true
 }
 
-func toFloat(x interface{}) (float64, bool) {
-	var xf float64
-	xok := true
-
-	switch xn := x.(type) {
-	case uint:
-		xf = float64(xn)
-	case uint8:
-		xf = float64(xn)
-	case uint16:
-		xf = float64(xn)
-	case uint32:
-		xf = float64(xn)
-	case uint64:
-		xf = float64(xn)
-	case int:
-		xf = float64(xn)
-	case int8:
-		xf = float64(xn)
-	case int16:
-		xf = float64(xn)
-	case int32:
-		xf = float64(xn)
-	case int64:
-		xf = float64(xn)
-	case float32:
-		xf = float64(xn)
-	case float64:
-		xf = xn
-	case time.Duration:
-		xf = float64(xn)
-	default:
-		xok = false
-	}
-
-	return xf, xok
+type ConvertibleToFloat64 interface {
+	uint | uint8 | uint16 | uint32 | uint64 | int | int8 | int16 | int32 | int64 | float32 | float64 | time.Duration
 }
+
+func toFloat[T ConvertibleToFloat64](x T) float64 {
+	return float64(x)
+}
+
 
 // InDelta asserts that the two numerals are within delta of each other.
 //
-// 	 assert.InDelta(t, math.Pi, 22/7.0, 0.01)
-func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+//	assert.InDelta(t, math.Pi, 22/7.0, 0.01)
+func InDelta[T ConvertibleToFloat64](t TestingT, expected, actual T, delta float64, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
-	af, aok := toFloat(expected)
-	bf, bok := toFloat(actual)
-
-	if !aok || !bok {
-		return Fail(t, "Parameters must be numerical", msgAndArgs...)
-	}
+	af := toFloat(expected)
+	bf := toFloat(actual)
 
 	if math.IsNaN(af) && math.IsNaN(bf) {
 		return true
@@ -1241,21 +1201,17 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 }
 
 // InDeltaSlice is the same as InDelta, except it compares two slices.
-func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+func InDeltaSlice[T ConvertibleToFloat64](t TestingT, expected []T, actual []T, delta float64, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if expected == nil || actual == nil ||
-		reflect.TypeOf(actual).Kind() != reflect.Slice ||
-		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, "Parameters must be slice", msgAndArgs...)
+
+	if len(actual) != len(expected) {
+		return Fail(t, "Parameters must be slices of the same length", msgAndArgs...)
 	}
 
-	actualSlice := reflect.ValueOf(actual)
-	expectedSlice := reflect.ValueOf(expected)
-
-	for i := 0; i < actualSlice.Len(); i++ {
-		result := InDelta(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta, msgAndArgs...)
+	for i := 0; i < len(actual); i++ {
+		result := InDelta(t, actual[i], expected[i], delta, msgAndArgs...)
 		if !result {
 			return result
 		}
@@ -1265,39 +1221,27 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 }
 
 // InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
-func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
+func InDeltaMapValues[K comparable, V ConvertibleToFloat64](t TestingT, expected, actual map[K]V, delta float64, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if expected == nil || actual == nil ||
-		reflect.TypeOf(actual).Kind() != reflect.Map ||
-		reflect.TypeOf(expected).Kind() != reflect.Map {
-		return Fail(t, "Arguments must be maps", msgAndArgs...)
-	}
 
-	expectedMap := reflect.ValueOf(expected)
-	actualMap := reflect.ValueOf(actual)
-
-	if expectedMap.Len() != actualMap.Len() {
+	if len(expected) != len(actual) {
 		return Fail(t, "Arguments must have the same number of keys", msgAndArgs...)
 	}
 
-	for _, k := range expectedMap.MapKeys() {
-		ev := expectedMap.MapIndex(k)
-		av := actualMap.MapIndex(k)
+	for ek, ev := range expected {
 
-		if !ev.IsValid() {
-			return Fail(t, fmt.Sprintf("missing key %q in expected map", k), msgAndArgs...)
-		}
+		av, valid := actual[ek]
 
-		if !av.IsValid() {
-			return Fail(t, fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
+		if !valid {
+			return Fail(t, fmt.Sprintf("missing key %q in actual map", ek), msgAndArgs...)
 		}
 
 		if !InDelta(
 			t,
-			ev.Interface(),
-			av.Interface(),
+			ev,
+			av,
 			delta,
 			msgAndArgs...,
 		) {
@@ -1308,12 +1252,10 @@ func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, m
 	return true
 }
 
-func calcRelativeError(expected, actual interface{}) (float64, error) {
-	af, aok := toFloat(expected)
-	bf, bok := toFloat(actual)
-	if !aok || !bok {
-		return 0, fmt.Errorf("Parameters must be numerical")
-	}
+func calcRelativeError[T ConvertibleToFloat64](expected, actual T) (float64, error) {
+	af := toFloat(expected)
+	bf := toFloat(actual)
+
 	if math.IsNaN(af) && math.IsNaN(bf) {
 		return 0, nil
 	}
@@ -1331,7 +1273,7 @@ func calcRelativeError(expected, actual interface{}) (float64, error) {
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon
-func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+func InEpsilon[T ConvertibleToFloat64](t TestingT, expected, actual T, epsilon float64, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -1351,21 +1293,17 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 }
 
 // InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
-func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+func InEpsilonSlice[T ConvertibleToFloat64](t TestingT, expected []T, actual []T, epsilon float64, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if expected == nil || actual == nil ||
-		reflect.TypeOf(actual).Kind() != reflect.Slice ||
-		reflect.TypeOf(expected).Kind() != reflect.Slice {
-		return Fail(t, "Parameters must be slice", msgAndArgs...)
+
+	if len(actual) != len(expected) {
+		return Fail(t, "Parameters must be slices of the same length", msgAndArgs...)
 	}
 
-	actualSlice := reflect.ValueOf(actual)
-	expectedSlice := reflect.ValueOf(expected)
-
-	for i := 0; i < actualSlice.Len(); i++ {
-		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon)
+	for i := 0; i < len(actual); i++ {
+		result := InEpsilon(t, actual[i], expected[i], epsilon)
 		if !result {
 			return result
 		}
@@ -1456,11 +1394,11 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 	return true
 }
 
-// matchRegexp return true if a specified regexp matches a string.
-func matchRegexp(rx interface{}, str interface{}) bool {
+// match return true if a specified regexp matches a string.
+func matchRegexp[regexT *regexp.Regexp | string](rx regexT, str string) bool {
 
 	var r *regexp.Regexp
-	if rr, ok := rx.(*regexp.Regexp); ok {
+	if rr, ok := any(rx).(*regexp.Regexp); ok {
 		r = rr
 	} else {
 		r = regexp.MustCompile(fmt.Sprint(rx))
@@ -1474,7 +1412,7 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 //
 //  assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
 //  assert.Regexp(t, "start...$", "it's not starting")
-func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
+func Regexp[regexT *regexp.Regexp | string](t TestingT, rx regexT, str string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -1492,7 +1430,7 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 //
 //  assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //  assert.NotRegexp(t, "^start", "it's not starting")
-func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
+func NotRegexp[regexT *regexp.Regexp | string](t TestingT, rx regexT, str string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -1507,22 +1445,26 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 }
 
 // Zero asserts that i is the zero value for its type.
-func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
+func Zero[T any](t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if i != nil && !reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
+
+	var zeroVal T
+	if !reflect.DeepEqual(i, zeroVal) {
 		return Fail(t, fmt.Sprintf("Should be zero, but was %v", i), msgAndArgs...)
 	}
 	return true
 }
 
 // NotZero asserts that i is not the zero value for its type.
-func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
+func NotZero[T any](t TestingT, i T, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
+	var zeroVal T
+	
+	if reflect.DeepEqual(i, zeroVal) {
 		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
 	}
 	return true

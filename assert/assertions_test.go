@@ -2227,7 +2227,7 @@ func ExampleComparisonAssertionFunc() {
 		expect    int
 		assertion ComparisonAssertionFunc
 	}{
-		{"2+2=4", args{2, 2}, 4, Equal},
+		{"2+2=4", args{2, 2}, 4, Equal[int]},
 		{"2+2!=5", args{2, 2}, 5, NotEqual},
 		{"2+3==5", args{2, 3}, 5, Exactly},
 	}

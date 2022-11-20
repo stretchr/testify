@@ -424,16 +424,12 @@ func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	return compareTwoValues(t, e, zero.Interface(), []CompareType{compareLess}, "\"%v\" is not negative", msgAndArgs...)
 }
 
-func compareTwoValues(t TestingT, e1 interface{}, e2 interface{}, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
+func compareTwoValues[K any] (t TestingT, e1 K, e2 K, allowedComparesResults []CompareType, failMessage string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
 	e1Kind := reflect.ValueOf(e1).Kind()
-	e2Kind := reflect.ValueOf(e2).Kind()
-	if e1Kind != e2Kind {
-		return Fail(t, "Elements should be the same type", msgAndArgs...)
-	}
 
 	compareResult, isComparable := compare(e1, e2, e1Kind)
 	if !isComparable {
