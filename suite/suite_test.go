@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"flag"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -429,7 +429,7 @@ func (sc *StdoutCapture) StopCapture() (string, error) {
 	}
 	os.Stdout.Close()
 	os.Stdout = sc.oldStdout
-	bytes, err := ioutil.ReadAll(sc.readPipe)
+	bytes, err := io.ReadAll(sc.readPipe)
 	if err != nil {
 		return "", err
 	}
