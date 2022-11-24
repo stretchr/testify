@@ -929,10 +929,11 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 
 }
 
-// Subset asserts that the specified list(array, slice...) contains all
-// elements given in the specified subset(array, slice...).
+// Subset asserts that the specified list(array, slice...) or map contains all
+// elements given in the specified subset list(array, slice...) or map.
 //
-//	assert.Subset(t, [1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]")
+//	assert.Subset(t, [1, 2, 3], [1, 2])
+//	assert.Subset(t, {"x": 1, "y": 2}, {"x": 1})
 func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -985,10 +986,12 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	return true
 }
 
-// NotSubset asserts that the specified list(array, slice...) contains not all
-// elements given in the specified subset(array, slice...).
+// NotSubset asserts that the specified list(array, slice...) or map does NOT
+// contain all elements given in the specified subset list(array, slice...) or
+// map.
 //
-//	assert.NotSubset(t, [1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]")
+//	assert.NotSubset(t, [1, 3, 4], [1, 2])
+//	assert.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
 func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
