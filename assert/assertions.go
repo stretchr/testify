@@ -34,6 +34,10 @@ type TestingT interface {
 // for table driven tests.
 type ComparisonAssertionFunc func(TestingT, interface{}, interface{}, ...interface{}) bool
 
+// TypedComparisonAssertionFunc is a common function prototype when comparing two values of the same
+// specified type. Can be useful for table driven tests.
+type TypedComparisonAssertionFunc[T any] func(TestingT, T, T, ...interface{}) bool
+
 // ValueAssertionFunc is a common function prototype when validating a single value.  Can be useful
 // for table driven tests.
 type ValueAssertionFunc func(TestingT, interface{}, ...interface{}) bool

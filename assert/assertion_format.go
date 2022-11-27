@@ -8,6 +8,7 @@ package assert
 import (
 	http "net/http"
 	url "net/url"
+	"regexp"
 	time "time"
 )
 
@@ -598,7 +599,7 @@ func NotPanicsf(t TestingT, f PanicTestFunc, msg string, args ...interface{}) bo
 //
 //  assert.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
 //  assert.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
-func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) bool {
+func NotRegexpf[regexT *regexp.Regexp | string](t TestingT, rx regexT, str string, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -685,7 +686,7 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 //
 //  assert.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
 //  assert.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
-func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) bool {
+func Regexpf[regexT *regexp.Regexp | string](t TestingT, rx regexT, str string, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
