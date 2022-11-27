@@ -1388,12 +1388,11 @@ func TestWithinRange(t *testing.T) {
 func TestInDelta(t *testing.T) {
 	mockT := new(testing.T)
 
-	True(t, InDelta(mockT, 1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
-	True(t, InDelta(mockT, 1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
+	True(t, InDelta(mockT, 1.001, 1.0, 0.01), "|1.001 - 1| <= 0.01")
+	True(t, InDelta(mockT, 1.0, 1.001, 0.01), "|1 - 1.001| <= 0.01")
 	True(t, InDelta(mockT, 1, 2, 1), "|1 - 2| <= 1")
 	False(t, InDelta(mockT, 1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
 	False(t, InDelta(mockT, 2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
-	False(t, InDelta(mockT, "", nil, 1), "Expected non numerals to fail")
 	False(t, InDelta(mockT, 42, math.NaN(), 0.01), "Expected NaN for actual to fail")
 	False(t, InDelta(mockT, math.NaN(), 42, 0.01), "Expected NaN for expected to fail")
 	True(t, InDelta(mockT, math.NaN(), math.NaN(), 0.01), "Expected NaN for both to pass")
@@ -2227,7 +2226,7 @@ func ExampleComparisonAssertionFunc() {
 		expect    int
 		assertion ComparisonAssertionFunc
 	}{
-		{"2+2=4", args{2, 2}, 4, Equal[int]},
+		{"2+2=4", args{2, 2}, 4, Equal[any]},
 		{"2+2!=5", args{2, 2}, 5, NotEqual},
 		{"2+3==5", args{2, 3}, 5, Exactly},
 	}
@@ -2252,11 +2251,11 @@ func TestComparisonAssertionFunc(t *testing.T) {
 	}{
 		{"implements", (*iface)(nil), t, Implements},
 		{"isType", (*testing.T)(nil), t, IsType},
-		{"equal", t, t, Equal},
+		{"equal", t, t, Equal[any]},
 		{"equalValues", t, t, EqualValues},
 		{"notEqualValues", t, nil, NotEqualValues},
-		{"exactly", t, t, Exactly},
-		{"notEqual", t, nil, NotEqual},
+		{"exactly", t, t, Exactly[any]},
+		{"notEqual", t, nil, NotEqual[any]},
 		{"notContains", []int{1, 2, 3}, 4, NotContains},
 		{"subset", []int{1, 2, 3, 4}, []int{2, 3}, Subset},
 		{"notSubset", []int{1, 2, 3, 4}, []int{0, 3}, NotSubset},
