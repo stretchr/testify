@@ -76,6 +76,47 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	return bytes.Equal(exp, act)
 }
 
+// ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two structs are considered equal.
+// If the two objects are not of the same type, or if either of them are not a struct, they are not considered equal.
+//
+// This function does no assertion of any kind.
+func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
+	if expected == nil || actual == nil {
+		return expected == actual
+	}
+
+	expectedType := reflect.TypeOf(expected)
+	actualType := reflect.TypeOf(actual)
+
+	if expectedType != actualType {
+		return false
+	}
+
+	if expectedType.Kind() != reflect.Struct || actualType.Kind() != reflect.Struct {
+		return false
+	}
+
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+
+	for i := 0; i < expectedType.NumField(); i++ {
+		field := expectedType.Field(i)
+		if field.IsExported() {
+			var equal bool
+			if field.Type.Kind() == reflect.Struct {
+				equal = ObjectsExportedFieldsAreEqual(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
+			} else {
+				equal = ObjectsAreEqualValues(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
+			}
+
+			if !equal {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
 // values are equal.
 func ObjectsAreEqualValues(expected, actual interface{}) bool {
@@ -351,7 +392,6 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 	}
 
 	return true
-
 }
 
 // validateEqualArgs checks whether provided arguments can be safely used in the
@@ -472,7 +512,42 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 	}
 
 	return true
+}
 
+// EqualExportedValues asserts that the types of two objects are equal and their public
+// fields are also equal. This is useful for comparing structs that have private fields
+// that could potentially differ.
+//
+//	assert.EqualValues(t, uint32(123), int32(123))
+func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	aType := reflect.TypeOf(expected)
+	bType := reflect.TypeOf(actual)
+
+	if aType != bType {
+		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
+	}
+
+	if aType.Kind() != reflect.Struct {
+		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", aType.Kind(), reflect.Struct), msgAndArgs...)
+	}
+
+	if bType.Kind() != reflect.Struct {
+		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
+	}
+
+	if !ObjectsExportedFieldsAreEqual(expected, actual) {
+		diff := diff(expected, actual)
+		expected, actual = formatUnequalValues(expected, actual)
+		return Fail(t, fmt.Sprintf("Not equal (comparing only exported fields): \n"+
+			"expected: %s\n"+
+			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+	}
+
+	return true
 }
 
 // Exactly asserts that two objects are equal in value and type.

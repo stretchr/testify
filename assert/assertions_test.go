@@ -148,6 +148,51 @@ func TestObjectsAreEqual(t *testing.T) {
 
 }
 
+func TestObjectsExportedFieldsAreEqual(t *testing.T) {
+	type Nested struct {
+		Exported    interface{}
+		notExported interface{}
+	}
+
+	type S struct {
+		Exported1    interface{}
+		Exported2    Nested
+		notExported1 interface{}
+		notExported2 Nested
+	}
+
+	type S2 struct {
+		foo interface{}
+	}
+
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, 3}, 4, Nested{5, 6}}, true},
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, 3}, "a", Nested{5, 6}}, true},
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, 3}, 4, Nested{5, "a"}}, true},
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, 3}, 4, Nested{"a", "a"}}, true},
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, "a"}, 4, Nested{5, 6}}, true},
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{"a", Nested{2, 3}, 4, Nested{5, 6}}, false},
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{"a", 3}, 4, Nested{5, 6}}, false},
+		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S2{1}, false},
+		{1, S{1, Nested{2, 3}, 4, Nested{5, 6}}, false},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("ObjectsExportedFieldsAreEqual(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := ObjectsExportedFieldsAreEqual(c.expected, c.actual)
+
+			if res != c.result {
+				t.Errorf("ObjectsExportedFieldsAreEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+
+		})
+	}
+}
+
 func TestImplements(t *testing.T) {
 
 	mockT := new(testing.T)
