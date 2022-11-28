@@ -518,7 +518,12 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 // fields are also equal. This is useful for comparing structs that have private fields
 // that could potentially differ.
 //
-//	assert.EqualValues(t, uint32(123), int32(123))
+//	 type S struct {
+//		Exported     	int
+//		notExported   	int
+//	 }
+//	 assert.EqualExportedValues(t, S{1, 2}, S{1, 3}) => true
+//	 assert.EqualExportedValues(t, S{1, 2}, S{2, 3}) => false
 func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
