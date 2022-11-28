@@ -518,6 +518,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 // fields are also equal. This is useful for comparing structs that have private fields
 // that could potentially differ.
 //
+//
 //	 type S struct {
 //		Exported     	int
 //		notExported   	int
