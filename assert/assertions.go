@@ -723,7 +723,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 }
 
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// a slice or a channel or a map with len == 0.
 //
 //	if assert.NotEmpty(t, obj) {
 //	  assert.Equal(t, "two", obj[1])
