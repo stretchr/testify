@@ -51,7 +51,7 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 }
 
 // Emptyf asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// a slice or a channel or map with len == 0.
 //
 //	assert.Emptyf(t, obj, "error message %s", "formatted")
 func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) bool {
@@ -569,7 +569,7 @@ func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, a
 }
 
 // NotEmptyf asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// a slice or a channel or map with len == 0.
 //
 //	if assert.NotEmptyf(t, obj, "error message %s", "formatted") {
 //	  assert.Equal(t, "two", obj[1])
