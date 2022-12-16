@@ -706,7 +706,7 @@ func isEmpty(object interface{}) bool {
 }
 
 // Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// a slice or a channel or a map with len == 0.
 //
 //	assert.Empty(t, obj)
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
