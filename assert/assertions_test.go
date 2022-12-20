@@ -148,6 +148,14 @@ func TestObjectsAreEqual(t *testing.T) {
 
 }
 
+func TestObjectsAreEqualValues_WhenConvertSliceToArrayPtr_NeverPanics(t *testing.T) {
+	arrayPtr := new([3]int)
+	slice := make([]int, 0, 3)
+	if ObjectsAreEqualValues(slice, arrayPtr) {
+		t.Fail()
+	}
+}
+
 func TestImplements(t *testing.T) {
 
 	mockT := new(testing.T)
