@@ -218,16 +218,21 @@ func (c *Call) Unset() *Call {
 
 	foundMatchingCall := false
 
-	for i, call := range c.Parent.ExpectedCalls {
-		if call.Method == c.Method {
-			_, diffCount := call.Arguments.Diff(c.Arguments)
-			if diffCount == 0 {
-				foundMatchingCall = true
-				// Remove from ExpectedCalls
-				c.Parent.ExpectedCalls = append(c.Parent.ExpectedCalls[:i], c.Parent.ExpectedCalls[i+1:]...)
-			}
+	tmp := make([]*Call, 0)
+	for _, call := range c.Parent.ExpectedCalls {
+		if call.Method != c.Method {
+			tmp = append(tmp, call)
+			continue
 		}
+
+		_, diffCount := call.Arguments.Diff(c.Arguments)
+		if diffCount > 0 {
+			tmp = append(tmp, call)
+			continue
+		}
+		foundMatchingCall = true
 	}
+	c.Parent.ExpectedCalls = tmp
 
 	if !foundMatchingCall {
 		unlockOnce.Do(c.unlock)
