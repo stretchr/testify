@@ -355,7 +355,9 @@ func TestStringEqual(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "hi, \nmy name is", equalGot: "what,\nmy name is", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"hi, \\\\nmy name is\"\n\\s+actual\\s+: \"what,\\\\nmy name is\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1,2 \\+1,2 @@\n\\s+-hi, \n\\s+\\+what,\n\\s+my name is"},
+		{equalWant: "hi, \nmy name is",
+			equalGot: "what,\nmy name is",
+			want:     "\\tassertions\\.go:\\d+: \\n\\t\\t\\tError Trace:\\t\\n\\t\\t\\tError:\\s+\\t\\x1b\\[31;1mNot equal: \\n\\t\\t\\t\\s+\\t\\x1b\\[32mexpected: \\\"hi, \\\\nmy name is\\\"\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31mactual  : \\\"what,\\\\nmy name is\\\"\\x1b\\[0m\\n\\t\\t\\t\\s+\\t\\n\\t\\t\\t\\s+\\tDiff:\\n\\t\\t\\t\\s+\\t\\x1b\\[32m--- Expected\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\++ Actual\\n\\t\\t\\t\\s+\\t\\x1b\\[0m@@ \\x1b\\[32m-1,2\\x1b\\[0m \\x1b\\[31m\\+1,2\\x1b\\[0m @@\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-hi, \\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\+what,\\n\\t\\t\\t\\s+\\t\\x1b\\[0m my name is\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\n\\t\\t\\tMessages:\\s+\\t\\x1b\\[33m\\x1b\\[0m\\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -370,10 +372,10 @@ func TestEqualFormatting(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "want", equalGot: "got", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+hello, world!\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{123}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+123\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{struct{ a string }{"hello"}}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+{a:hello}\n"},
+		{equalWant: "want", equalGot: "got", want: "\\tassertions\\.go:\\d+: \\n\\t\\t\\tError Trace:\\t\\n\\t\\t\\tError:\\s+\\t\\x1b\\[31;1mNot equal: \\n\\t\\t\\t\\s+\\t\\x1b\\[32mexpected: \\\"want\\\"\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31mactual\\s+: \\\"got\\\"\\x1b\\[0m\\n\\t\\t\\t\\s+\\t\\n\\t\\t\\t\\s+\\tDiff:\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-+ Expected\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\++ Actual\\n\\t\\t\\t\\s+\\t\\x1b\\[0m@@ \\x1b\\[32m-1\\x1b\\[0m \\x1b\\[31m\\+1\\x1b\\[0m @@\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-want\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\+got\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[0m\\n\\t\\t\\tMessages:\\s+\\t\\x1b\\[33m\\x1b\\[0m\\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\\tassertions\\.go:\\d+: \\n\\t\\t\\tError Trace:\\t\\n\\t\\t\\tError:\\s+\\t\\x1b\\[31;1mNot equal: \\n\\t\\t\\t\\s+\\t\\x1b\\[32mexpected: \\\"want\\\"\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31mactual\\s+: \\\"got\\\"\\x1b\\[0m\\n\\t\\t\\t\\s+\\t\\n\\t\\t\\t\\s+\\tDiff:\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-+ Expected\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\++ Actual\\n\\t\\t\\t\\s+\\t\\x1b\\[0m@@ \\x1b\\[32m-1\\x1b\\[0m \\x1b\\[31m\\+1\\x1b\\[0m @@\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-want\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\+got\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[0m\\n\\t\\t\\tMessages:\\s+\\t\\x1b\\[33mhello, world!\\x1b\\[0m\\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{123}, want: "\\tassertions\\.go:\\d+: \\n\\t\\t\\tError Trace:\\t\\n\\t\\t\\tError:\\s+\\t\\x1b\\[31;1mNot equal: \\n\\t\\t\\t\\s+\\t\\x1b\\[32mexpected: \\\"want\\\"\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31mactual\\s+: \\\"got\\\"\\x1b\\[0m\\n\\t\\t\\t\\s+\\t\\n\\t\\t\\t\\s+\\tDiff:\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-+ Expected\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\++ Actual\\n\\t\\t\\t\\s+\\t\\x1b\\[0m@@ \\x1b\\[32m-1\\x1b\\[0m \\x1b\\[31m\\+1\\x1b\\[0m @@\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-want\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\+got\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[0m\\n\\t\\t\\tMessages:\\s+\\t\\x1b\\[33m123\\x1b\\[0m\\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{struct{ a string }{"hello"}}, want: "\\tassertions\\.go:\\d+: \\n\\t\\t\\tError Trace:\\t\\n\\t\\t\\tError:\\s+\\t\\x1b\\[31;1mNot equal: \\n\\t\\t\\t\\s+\\t\\x1b\\[32mexpected: \\\"want\\\"\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31mactual\\s+: \\\"got\\\"\\x1b\\[0m\\n\\t\\t\\t\\s+\\t\\n\\t\\t\\t\\s+\\tDiff:\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-+ Expected\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\++ Actual\\n\\t\\t\\t\\s+\\t\\x1b\\[0m@@ \\x1b\\[32m-1\\x1b\\[0m \\x1b\\[31m\\+1\\x1b\\[0m @@\\n\\t\\t\\t\\s+\\t\\x1b\\[32m-want\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[31m\\+got\\n\\t\\t\\t\\s+\\t\\x1b\\[0m\\x1b\\[0m\\n\\t\\t\\tMessages:\\s+\\t\\x1b\\[33m\\{a:hello\\}\\x1b\\[0m\\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -1953,78 +1955,28 @@ func (d *diffTestingStruct) String() string {
 }
 
 func TestDiff(t *testing.T) {
-	expected := `
-
-Diff:
---- Expected
-+++ Actual
-@@ -1,3 +1,3 @@
- (struct { foo string }) {
-- foo: (string) (len=5) "hello"
-+ foo: (string) (len=3) "bar"
- }
-`
+	expected := "\n\nDiff:\n\x1b[32m--- Expected\n\x1b[0m\x1b[31m+++ Actual\n\x1b[0m@@ \x1b[32m-1,3\x1b[0m \x1b[31m+1,3\x1b[0m @@\n (struct { foo string }) {\n\x1b[32m- foo: (string) (len=5) \"hello\"\n\x1b[0m\x1b[31m+ foo: (string) (len=3) \"bar\"\n\x1b[0m }\n"
 	actual := diff(
 		struct{ foo string }{"hello"},
 		struct{ foo string }{"bar"},
 	)
 	Equal(t, expected, actual)
 
-	expected = `
-
-Diff:
---- Expected
-+++ Actual
-@@ -2,5 +2,5 @@
-  (int) 1,
-- (int) 2,
-  (int) 3,
-- (int) 4
-+ (int) 5,
-+ (int) 7
- }
-`
+	expected = "\n\nDiff:\n\x1b[32m--- Expected\n\x1b[0m\x1b[31m+++ Actual\n\x1b[0m@@ \x1b[32m-2,5\x1b[0m \x1b[31m+2,5\x1b[0m @@\n  (int) 1,\n\x1b[32m- (int) 2,\n\x1b[0m  (int) 3,\n\x1b[32m- (int) 4\n\x1b[0m\x1b[31m+ (int) 5,\n\x1b[0m\x1b[31m+ (int) 7\n\x1b[0m }\n"
 	actual = diff(
 		[]int{1, 2, 3, 4},
 		[]int{1, 3, 5, 7},
 	)
 	Equal(t, expected, actual)
 
-	expected = `
-
-Diff:
---- Expected
-+++ Actual
-@@ -2,4 +2,4 @@
-  (int) 1,
-- (int) 2,
-- (int) 3
-+ (int) 3,
-+ (int) 5
- }
-`
+	expected = "\n\nDiff:\n\x1b[32m--- Expected\n\x1b[0m\x1b[31m+++ Actual\n\x1b[0m@@ \x1b[32m-2,4\x1b[0m \x1b[31m+2,4\x1b[0m @@\n  (int) 1,\n\x1b[32m- (int) 2,\n\x1b[0m\x1b[32m- (int) 3\n\x1b[0m\x1b[31m+ (int) 3,\n\x1b[0m\x1b[31m+ (int) 5\n\x1b[0m }\n"
 	actual = diff(
 		[]int{1, 2, 3, 4}[0:3],
 		[]int{1, 3, 5, 7}[0:3],
 	)
 	Equal(t, expected, actual)
 
-	expected = `
-
-Diff:
---- Expected
-+++ Actual
-@@ -1,6 +1,6 @@
- (map[string]int) (len=4) {
-- (string) (len=4) "four": (int) 4,
-+ (string) (len=4) "five": (int) 5,
-  (string) (len=3) "one": (int) 1,
-- (string) (len=5) "three": (int) 3,
-- (string) (len=3) "two": (int) 2
-+ (string) (len=5) "seven": (int) 7,
-+ (string) (len=5) "three": (int) 3
- }
-`
+	expected = "\n\nDiff:\n\x1b[32m--- Expected\n\x1b[0m\x1b[31m+++ Actual\n\x1b[0m@@ \x1b[32m-1,6\x1b[0m \x1b[31m+1,6\x1b[0m @@\n (map[string]int) (len=4) {\n\x1b[32m- (string) (len=4) \"four\": (int) 4,\n\x1b[0m\x1b[31m+ (string) (len=4) \"five\": (int) 5,\n\x1b[0m  (string) (len=3) \"one\": (int) 1,\n\x1b[32m- (string) (len=5) \"three\": (int) 3,\n\x1b[0m\x1b[32m- (string) (len=3) \"two\": (int) 2\n\x1b[0m\x1b[31m+ (string) (len=5) \"seven\": (int) 7,\n\x1b[0m\x1b[31m+ (string) (len=5) \"three\": (int) 3\n\x1b[0m }\n"
 
 	actual = diff(
 		map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
@@ -2032,17 +1984,7 @@ Diff:
 	)
 	Equal(t, expected, actual)
 
-	expected = `
-
-Diff:
---- Expected
-+++ Actual
-@@ -1,3 +1,3 @@
- (*errors.errorString)({
-- s: (string) (len=19) "some expected error"
-+ s: (string) (len=12) "actual error"
- })
-`
+	expected = "\n\nDiff:\n\x1b[32m--- Expected\n\x1b[0m\x1b[31m+++ Actual\n\x1b[0m@@ \x1b[32m-1,3\x1b[0m \x1b[31m+1,3\x1b[0m @@\n (*errors.errorString)({\n\x1b[32m- s: (string) (len=19) \"some expected error\"\n\x1b[0m\x1b[31m+ s: (string) (len=12) \"actual error\"\n\x1b[0m })\n"
 
 	actual = diff(
 		errors.New("some expected error"),
@@ -2050,17 +1992,7 @@ Diff:
 	)
 	Equal(t, expected, actual)
 
-	expected = `
-
-Diff:
---- Expected
-+++ Actual
-@@ -2,3 +2,3 @@
-  A: (string) (len=11) "some string",
-- B: (int) 10
-+ B: (int) 15
- }
-`
+	expected = "\n\nDiff:\n\x1b[32m--- Expected\n\x1b[0m\x1b[31m+++ Actual\n\x1b[0m@@ \x1b[32m-2,3\x1b[0m \x1b[31m+2,3\x1b[0m @@\n  A: (string) (len=11) \"some string\",\n\x1b[32m- B: (int) 10\n\x1b[0m\x1b[31m+ B: (int) 15\n\x1b[0m }\n"
 
 	actual = diff(
 		diffTestingStruct{A: "some string", B: 10},
@@ -2068,16 +2000,7 @@ Diff:
 	)
 	Equal(t, expected, actual)
 
-	expected = `
-
-Diff:
---- Expected
-+++ Actual
-@@ -1,2 +1,2 @@
--(time.Time) 2020-09-24 00:00:00 +0000 UTC
-+(time.Time) 2020-09-25 00:00:00 +0000 UTC
- 
-`
+	expected = "\n\nDiff:\n\x1b[32m--- Expected\n\x1b[0m\x1b[31m+++ Actual\n\x1b[0m@@ \x1b[32m-1,2\x1b[0m \x1b[31m+1,2\x1b[0m @@\n\x1b[32m-(time.Time) 2020-09-24 00:00:00 +0000 UTC\n\x1b[0m\x1b[31m+(time.Time) 2020-09-25 00:00:00 +0000 UTC\n\x1b[0m \n"
 
 	actual = diff(
 		time.Date(2020, 9, 24, 0, 0, 0, 0, time.UTC),
@@ -2091,7 +2014,7 @@ func TestTimeEqualityErrorFormatting(t *testing.T) {
 
 	Equal(mockT, time.Second*2, time.Millisecond)
 
-	expectedErr := "\\s+Error Trace:\\s+Error:\\s+Not equal:\\s+\n\\s+expected: 2s\n\\s+actual\\s+: 1ms\n"
+	expectedErr := `\n\tError Trace:\t\n\tError:\s+\t\x1b\[31;1mNot equal: \n\t\s+\t\x1b\[32mexpected: 2s\n\t\s+\t\x1b\[0m\x1b\[31mactual\s+: 1ms\x1b\[0m\x1b\[0m\n\tMessages:\s+\t\x1b\[33m\x1b\[0m\n`
 	Regexp(t, regexp.MustCompile(expectedErr), mockT.errorString())
 }
 

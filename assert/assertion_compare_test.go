@@ -432,7 +432,7 @@ func Test_containsValue(t *testing.T) {
 
 func TestComparingMsgAndArgsForwarding(t *testing.T) {
 	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
-	expectedOutput := "format this c001\n"
+	expectedOutput := "format this c001"
 	funcs := []func(t TestingT){
 		func(t TestingT) { Greater(t, 1, 2, msgAndArgs...) },
 		func(t TestingT) { GreaterOrEqual(t, 1, 2, msgAndArgs...) },
