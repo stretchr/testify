@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 var (
@@ -2601,5 +2602,12 @@ func TestErrorAs(t *testing.T) {
 				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
 			}
 		})
+	}
+}
+
+func TestIsNil(t *testing.T) {
+	var n unsafe.Pointer = nil
+	if !isNil(n) {
+		t.Fatal("fail")
 	}
 }
