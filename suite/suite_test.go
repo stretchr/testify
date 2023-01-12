@@ -617,3 +617,15 @@ func (s *FailfastSuite) Test_B_Passes() {
 	s.call("Test B Passes")
 	s.Require().True(true)
 }
+
+type ParamSuite struct {
+	Suite
+}
+
+func (s *ParamSuite) TestWithT(t *testing.T) {
+	s.Equal(s.T(), t)
+}
+
+func TestParamSuite(t *testing.T) {
+	Run(t, new(ParamSuite))
+}

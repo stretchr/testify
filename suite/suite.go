@@ -194,7 +194,11 @@ func Run(t *testing.T, suite TestingSuite) {
 					stats.start(method.Name)
 				}
 
-				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+				if method.Func.Type().NumIn() == 2 {
+					method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
+				} else {
+					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+				}
 			},
 		}
 		tests = append(tests, test)
