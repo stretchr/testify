@@ -668,13 +668,18 @@ func IsType(t interface{}) *IsTypeArgument {
 // FunctionalOptionsArgument is a struct that contains the type and value of an functional option argument
 // for use when type checking.
 type FunctionalOptionsArgument struct {
-	name  string
 	value interface{}
 }
 
 // String returns the string representation of FunctionalOptionsArgument
 func (f *FunctionalOptionsArgument) String() string {
-	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", f.name, 1)
+	var name string
+	tValue := reflect.ValueOf(f.value)
+	if tValue.Len() > 0 {
+		name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+	}
+
+	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", name, 1)
 }
 
 // FunctionalOptions returns an FunctionalOptionsArgument object containing the functional option type
@@ -682,9 +687,8 @@ func (f *FunctionalOptionsArgument) String() string {
 //
 // For example:
 // Assert(t, FunctionalOptions("[]foo.FunctionalOption", foo.Opt1(), foo.Opt2()))
-func FunctionalOptions(name string, value ...interface{}) *FunctionalOptionsArgument {
+func FunctionalOptions(value ...interface{}) *FunctionalOptionsArgument {
 	return &FunctionalOptionsArgument{
-		name:  name,
 		value: value,
 	}
 }
@@ -829,10 +833,16 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*FunctionalOptionsArgument)(nil)) {
-			name := expected.(*FunctionalOptionsArgument).name
 			t := expected.(*FunctionalOptionsArgument).value
+
+			var name string
+			tValue := reflect.ValueOf(t)
+			if tValue.Len() > 0 {
+				name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+			}
+
 			tName := reflect.TypeOf(t).Name()
-			if name != reflect.TypeOf(actual).String() {
+			if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
 			} else {
