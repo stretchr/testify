@@ -11,6 +11,17 @@ import (
 	time "time"
 )
 
+// Capf asserts that the specified object has specific capacity.
+// Capf also fails if the object has a type that cap() not accept.
+//
+//    assert.Capf(t, myChan, 3, "error message %s", "formatted")
+func Capf(t TestingT, object interface{}, capacity int, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Cap(t, object, capacity, append([]interface{}{msg}, args...)...)
+}
+
 // Conditionf uses a Comparison to assert a complex condition.
 func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {

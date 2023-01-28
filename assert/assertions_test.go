@@ -1348,6 +1348,57 @@ func TestLen(t *testing.T) {
 	}
 }
 
+func TestCap(t *testing.T) {
+	mockT := new(testing.T)
+
+	False(t, Cap(mockT, nil, 0), "nil does not have capacity")
+	False(t, Cap(mockT, 0, 0), "int does not have capacity")
+	False(t, Cap(mockT, true, 0), "true does not have capacity")
+	False(t, Cap(mockT, false, 0), "false does not have capacity")
+	False(t, Cap(mockT, "ABC", 0), "String does not have capacity")
+	False(t, Cap(mockT, 'A', 0), "Rune does not have capacity")
+	False(t, Cap(mockT, struct{}{}, 0), "Struct does not have capacity")
+	False(t, Cap(mockT, map[int]int{}, 0), "Map does not have capacity")
+
+	cases := []struct {
+		v interface{}
+		c int
+	}{
+		{[]int{1, 2, 3}, 3},
+		{[...]int{1, 2, 3}, 3},
+
+		{[]int{}, 0},
+		{make(chan int), 0},
+		{make(chan int, 5), 5},
+
+		{[]int(nil), 0},
+		{(chan int)(nil), 0},
+	}
+
+	for _, c := range cases {
+		True(t, Cap(mockT, c.v, c.c), "%#v have capacity for %d items", c.v, c.c)
+	}
+
+	cases = []struct {
+		v interface{}
+		c int
+	}{
+		{[]int{1, 2, 3}, 4},
+		{[...]int{1, 2, 3}, 4},
+
+		{[]int{}, 1},
+		{make(chan int), 1},
+		{make(chan int, 5), 3},
+
+		{[]int(nil), 1},
+		{(chan int)(nil), 1},
+	}
+
+	for _, c := range cases {
+		False(t, Len(mockT, c.v, c.c), "%#v have capacity for %d items", c.v, c.c)
+	}
+}
+
 func TestWithinDuration(t *testing.T) {
 
 	mockT := new(testing.T)

@@ -647,6 +647,37 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 	return true
 }
 
+// getCap try to get capacity of object.
+// return (false, 0) if impossible.
+func getCap(x interface{}) (ok bool, capacity int) {
+	v := reflect.ValueOf(x)
+	defer func() {
+		if e := recover(); e != nil {
+			ok = false
+		}
+	}()
+	return true, v.Cap()
+}
+
+// Cap asserts that the specified object has specific capacity.
+// Cap also fails if the object has a type that cap() not accept.
+//
+//    assert.Cap(t, myChan, 3)
+func Cap(t TestingT, object interface{}, capacity int, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	ok, c := getCap(object)
+	if !ok {
+		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin cap()", object), msgAndArgs...)
+	}
+
+	if c != capacity {
+		return Fail(t, fmt.Sprintf("\"%s\" should have %d capacity for item(s), but has %d", object, capacity, c), msgAndArgs...)
+	}
+	return true
+}
+
 // True asserts that the specified value is true.
 //
 //    assert.True(t, myBool)
