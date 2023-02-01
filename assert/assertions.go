@@ -45,6 +45,10 @@ type BoolAssertionFunc func(TestingT, bool, ...interface{}) bool
 // for table driven tests.
 type ErrorAssertionFunc func(TestingT, error, ...interface{}) bool
 
+// PanicAssertionFunc is a common function prototype when validating a panic value.  Can be useful
+// for table driven tests.
+type PanicAssertionFunc func(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool
+
 // Comparison is a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 

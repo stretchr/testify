@@ -2789,6 +2789,42 @@ func TestErrorAssertionFunc(t *testing.T) {
 	}
 }
 
+func ExamplePanicAssertionFunc() {
+	t := &testing.T{} // provided by test
+
+	tests := []struct {
+		name      string
+		panicFn   func()
+		assertion PanicAssertionFunc
+	}{
+		{"with panic", func() { panic(nil) }, Panics},
+		{"without panic", func() {}, NotPanics},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.assertion(t, tt.panicFn)
+		})
+	}
+}
+
+func TestPanicAssertionFunc(t *testing.T) {
+	tests := []struct {
+		name      string
+		panicFn   func()
+		assertion PanicAssertionFunc
+	}{
+		{"not panic", func() {}, NotPanics},
+		{"panic", func() { panic(nil) }, Panics},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.assertion(t, tt.panicFn)
+		})
+	}
+}
+
 func TestEventuallyFalse(t *testing.T) {
 	mockT := new(testing.T)
 
