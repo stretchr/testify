@@ -768,7 +768,7 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 // name of the type to check for.
 //
 // Example:
-//  Assert(t, AnythingOfType[string](), AnythingOfType[int]())
+//  Assert(t, AnythingOfTypeT[string](), AnythingOfTypeT[int]())
 func AnythingOfTypeT[T any]() AnythingOfTypeArgument {
 	var t T
 	return AnythingOfType(reflect.TypeOf(t).String())
