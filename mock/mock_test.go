@@ -113,7 +113,7 @@ func (m *MockTestingT) Errorf(string, ...interface{}) {
 // the execution stops.
 // When expecting this method, the call that invokes it should use the following code:
 //
-//     assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
+//	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
 func (m *MockTestingT) FailNow() {
 	m.failNowCount++
 
@@ -481,6 +481,25 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
 	assert.Equal(t, 1, len(c.Arguments))
 	assert.Equal(t, AnythingOfType("mock.ExampleFuncType"), c.Arguments[0])
+
+	fn := func(string) error { return nil }
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodFuncType(fn)
+	})
+}
+
+func Test_Mock_On_WithFuncTypeTArg(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethodFuncType", AnythingOfTypeT[ExampleFuncType]()).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, 1, len(c.Arguments))
+	assert.Equal(t, AnythingOfTypeT[ExampleFuncType](), c.Arguments[0])
 
 	fn := func(string) error { return nil }
 	assert.NotPanics(t, func() {
@@ -1599,7 +1618,7 @@ func Test_Mock_AssertOptional(t *testing.T) {
 }
 
 /*
-	Arguments helper methods
+Arguments helper methods
 */
 func Test_Arguments_Get(t *testing.T) {
 
