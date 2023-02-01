@@ -113,7 +113,7 @@ func (m *MockTestingT) Errorf(string, ...interface{}) {
 // the execution stops.
 // When expecting this method, the call that invokes it should use the following code:
 //
-//	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
+//     assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
 func (m *MockTestingT) FailNow() {
 	m.failNowCount++
 
@@ -505,7 +505,7 @@ func Test_Mock_On_WithFuncTypeTArg(t *testing.T) {
 	assert.NotPanics(t, func() {
 		mockedService.TheExampleMethodFuncType(fn)
 	})
-}
+}	
 
 func Test_Mock_Unset(t *testing.T) {
 	// make a test impl object
@@ -1618,7 +1618,7 @@ func Test_Mock_AssertOptional(t *testing.T) {
 }
 
 /*
-Arguments helper methods
+	Arguments helper methods
 */
 func Test_Arguments_Get(t *testing.T) {
 
