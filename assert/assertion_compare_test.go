@@ -22,6 +22,7 @@ func TestCompare(t *testing.T) {
 	type customFloat32 float32
 	type customFloat64 float64
 	type customString string
+	type customUintptr uintptr
 	for _, currCase := range []struct {
 		less    interface{}
 		greater interface{}
@@ -52,6 +53,8 @@ func TestCompare(t *testing.T) {
 		{less: customFloat32(1.23), greater: customFloat32(2.23), cType: "float32"},
 		{less: float64(1.23), greater: float64(2.34), cType: "float64"},
 		{less: customFloat64(1.23), greater: customFloat64(2.34), cType: "float64"},
+		{less: uintptr(1), greater: uintptr(2), cType: "uintptr"},
+		{less: customUintptr(1), greater: customUintptr(2), cType: "uint64"},
 	} {
 		resLess, isComparable := compare(currCase.less, currCase.greater, reflect.ValueOf(currCase.less).Kind())
 		if !isComparable {
@@ -148,6 +151,7 @@ func TestGreater(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"1" is not greater than "2"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"1.23" is not greater than "2.34"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than "2.34"`},
+		{less: uintptr(1), greater: uintptr(2), msg: `"1" is not greater than "2"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Greater(out, currCase.less, currCase.greater))
@@ -189,6 +193,7 @@ func TestGreaterOrEqual(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"1" is not greater than or equal to "2"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"1.23" is not greater than or equal to "2.34"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than or equal to "2.34"`},
+		{less: uintptr(1), greater: uintptr(2), msg: `"1" is not greater than or equal to "2"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
@@ -230,6 +235,7 @@ func TestLess(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"2" is not less than "1"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"2.34" is not less than "1.23"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than "1.23"`},
+		{less: uintptr(1), greater: uintptr(2), msg: `"2" is not less than "1"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Less(out, currCase.greater, currCase.less))
@@ -271,6 +277,7 @@ func TestLessOrEqual(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"2" is not less than or equal to "1"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"2.34" is not less than or equal to "1.23"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than or equal to "1.23"`},
+		{less: uintptr(1), greater: uintptr(2), msg: `"2" is not less than or equal to "1"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, LessOrEqual(out, currCase.greater, currCase.less))
