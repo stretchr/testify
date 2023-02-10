@@ -2042,7 +2042,7 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
 		"expected: %q\n"+
-		"in chain: %s", target, chain,
+		"in chain: %s", reflect.TypeOf(target), chain,
 	), msgAndArgs...)
 }
 
