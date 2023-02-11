@@ -901,7 +901,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expected = args[i]
 		}
 
-		equal, elementOutput := compareElements(expected, actual, i)
+		equal, elementOutput := compareElements(expected, actual, i, false)
 		output += elementOutput
 		if !equal {
 			differences++
@@ -915,7 +915,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 	return output, differences
 }
 
-func compareElements(expected, actual interface{}, i int) (bool, string) {
+func compareElements(expected, actual interface{}, i int, isRecursive bool) (bool, string) {
 	var expectedFmt, actualFmt string
 	if m, ok := expected.(missing); ok {
 		expectedFmt = m.String()
@@ -959,7 +959,7 @@ func compareElements(expected, actual interface{}, i int) (bool, string) {
 		} else {
 			return true, ""
 		}
-	} else if ev, av := reflect.ValueOf(expected), reflect.ValueOf(actual); ev.Kind() == reflect.Slice && av.Kind() == reflect.Slice {
+	} else if ev, av := reflect.ValueOf(expected), reflect.ValueOf(actual); ev.Kind() == reflect.Slice && av.Kind() == reflect.Slice && !isRecursive {
 		// Unroll slices to check for Anything / AnythingOFType
 
 		if ev.Len() != av.Len() {
@@ -967,7 +967,7 @@ func compareElements(expected, actual interface{}, i int) (bool, string) {
 		}
 
 		for e := 0; e < ev.Len(); e++ {
-			equal, _ := compareElements(ev.Index(e).Interface(), av.Index(e).Interface(), i)
+			equal, _ := compareElements(ev.Index(e).Interface(), av.Index(e).Interface(), i, true)
 			if !equal {
 				return false, fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, actualFmt, expectedFmt)
 			}
