@@ -1997,7 +1997,7 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 		expectedText = target.Error()
 	}
 
-	chain := buildErrorChainString(err)
+	chain := buildErrorChainString(err, false)
 
 	return Fail(t, fmt.Sprintf("Target error should be in err chain:\n"+
 		"expected: %q\n"+
@@ -2020,7 +2020,7 @@ func NotErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 		expectedText = target.Error()
 	}
 
-	chain := buildErrorChainString(err)
+	chain := buildErrorChainString(err, false)
 
 	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
 		"found: %q\n"+
@@ -2038,24 +2038,50 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 		return true
 	}
 
-	chain := buildErrorChainString(err)
+	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
-		"expected: %q\n"+
-		"in chain: %s", reflect.TypeOf(target), chain,
+		"expected: %T\n"+
+		"in chain: %s", target, chain,
 	), msgAndArgs...)
 }
 
-func buildErrorChainString(err error) string {
+func unwrapAll(err error) (errs []error) {
+	errs = append(errs, err)
+	for {
+		switch x := err.(type) {
+		case interface{ Unwrap() error }:
+			err = x.Unwrap()
+			if err == nil {
+				return
+			}
+			errs = append(errs, err)
+		case interface{ Unwrap() []error }:
+			for _, err := range x.Unwrap() {
+				errs = append(errs, unwrapAll(err)...)
+			}
+			return
+		default:
+			return
+		}
+	}
+}
+
+func buildErrorChainString(err error, withType bool) string {
 	if err == nil {
 		return ""
 	}
 
-	e := errors.Unwrap(err)
-	chain := fmt.Sprintf("%q", err.Error())
-	for e != nil {
-		chain += fmt.Sprintf("\n\t%q", e.Error())
-		e = errors.Unwrap(e)
+	var chain string
+	errs := unwrapAll(err)
+	for i := range errs {
+		if i != 0 {
+			chain += "\n\t"
+		}
+		chain += fmt.Sprintf("%q", errs[i].Error())
+		if withType {
+			chain += fmt.Sprintf(" (%T)", errs[i])
+		}
 	}
 	return chain
 }
