@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 	"unsafe"
+
+	"github.com/stretchr/testify/internal/check"
 )
 
 var (
@@ -99,54 +101,6 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 
 // AssertionTesterNonConformingObject is an object that does not conform to the AssertionTesterInterface interface
 type AssertionTesterNonConformingObject struct {
-}
-
-func TestObjectsAreEqual(t *testing.T) {
-	cases := []struct {
-		expected interface{}
-		actual   interface{}
-		result   bool
-	}{
-		// cases that are expected to be equal
-		{"Hello World", "Hello World", true},
-		{123, 123, true},
-		{123.5, 123.5, true},
-		{[]byte("Hello World"), []byte("Hello World"), true},
-		{nil, nil, true},
-
-		// cases that are expected not to be equal
-		{map[int]int{5: 10}, map[int]int{10: 20}, false},
-		{'x', "x", false},
-		{"x", 'x', false},
-		{0, 0.1, false},
-		{0.1, 0, false},
-		{time.Now, time.Now, false},
-		{func() {}, func() {}, false},
-		{uint32(10), int32(10), false},
-	}
-
-	for _, c := range cases {
-		t.Run(fmt.Sprintf("ObjectsAreEqual(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			res := ObjectsAreEqual(c.expected, c.actual)
-
-			if res != c.result {
-				t.Errorf("ObjectsAreEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
-			}
-
-		})
-	}
-
-	// Cases where type differ but values are equal
-	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
-		t.Error("ObjectsAreEqualValues should return true")
-	}
-	if ObjectsAreEqualValues(0, nil) {
-		t.Fail()
-	}
-	if ObjectsAreEqualValues(nil, 0) {
-		t.Fail()
-	}
-
 }
 
 func TestImplements(t *testing.T) {
@@ -841,90 +795,6 @@ func TestElementsMatch(t *testing.T) {
 	}
 }
 
-func TestDiffLists(t *testing.T) {
-	tests := []struct {
-		name   string
-		listA  interface{}
-		listB  interface{}
-		extraA []interface{}
-		extraB []interface{}
-	}{
-		{
-			name:   "equal empty",
-			listA:  []string{},
-			listB:  []string{},
-			extraA: nil,
-			extraB: nil,
-		},
-		{
-			name:   "equal same order",
-			listA:  []string{"hello", "world"},
-			listB:  []string{"hello", "world"},
-			extraA: nil,
-			extraB: nil,
-		},
-		{
-			name:   "equal different order",
-			listA:  []string{"hello", "world"},
-			listB:  []string{"world", "hello"},
-			extraA: nil,
-			extraB: nil,
-		},
-		{
-			name:   "extra A",
-			listA:  []string{"hello", "hello", "world"},
-			listB:  []string{"hello", "world"},
-			extraA: []interface{}{"hello"},
-			extraB: nil,
-		},
-		{
-			name:   "extra A twice",
-			listA:  []string{"hello", "hello", "hello", "world"},
-			listB:  []string{"hello", "world"},
-			extraA: []interface{}{"hello", "hello"},
-			extraB: nil,
-		},
-		{
-			name:   "extra B",
-			listA:  []string{"hello", "world"},
-			listB:  []string{"hello", "hello", "world"},
-			extraA: nil,
-			extraB: []interface{}{"hello"},
-		},
-		{
-			name:   "extra B twice",
-			listA:  []string{"hello", "world"},
-			listB:  []string{"hello", "hello", "world", "hello"},
-			extraA: nil,
-			extraB: []interface{}{"hello", "hello"},
-		},
-		{
-			name:   "integers 1",
-			listA:  []int{1, 2, 3, 4, 5},
-			listB:  []int{5, 4, 3, 2, 1},
-			extraA: nil,
-			extraB: nil,
-		},
-		{
-			name:   "integers 2",
-			listA:  []int{1, 2, 1, 2, 1},
-			listB:  []int{2, 1, 2, 1, 2},
-			extraA: []interface{}{1},
-			extraB: []interface{}{2},
-		},
-	}
-	for _, test := range tests {
-		test := test
-		t.Run(test.name, func(t *testing.T) {
-			actualExtraA, actualExtraB := diffLists(test.listA, test.listB)
-			Equal(t, test.extraA, actualExtraA, "extra A does not match for listA=%v listB=%v",
-				test.listA, test.listB)
-			Equal(t, test.extraB, actualExtraB, "extra B does not match for listA=%v listB=%v",
-				test.listA, test.listB)
-		})
-	}
-}
-
 func TestCondition(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -1144,33 +1014,6 @@ func TestErrorContains(t *testing.T) {
 		"ErrorContains should return true")
 	True(t, ErrorContains(mockT, err, "another error"),
 		"ErrorContains should return true")
-}
-
-func Test_isEmpty(t *testing.T) {
-
-	chWithValue := make(chan struct{}, 1)
-	chWithValue <- struct{}{}
-
-	True(t, isEmpty(""))
-	True(t, isEmpty(nil))
-	True(t, isEmpty([]string{}))
-	True(t, isEmpty(0))
-	True(t, isEmpty(int32(0)))
-	True(t, isEmpty(int64(0)))
-	True(t, isEmpty(false))
-	True(t, isEmpty(map[string]string{}))
-	True(t, isEmpty(new(time.Time)))
-	True(t, isEmpty(time.Time{}))
-	True(t, isEmpty(make(chan struct{})))
-	True(t, isEmpty([1]int{}))
-	False(t, isEmpty("something"))
-	False(t, isEmpty(errors.New("something")))
-	False(t, isEmpty([]string{"something"}))
-	False(t, isEmpty(1))
-	False(t, isEmpty(true))
-	False(t, isEmpty(map[string]string{"Hello": "World"}))
-	False(t, isEmpty(chWithValue))
-	False(t, isEmpty([1]int{42}))
 }
 
 func TestEmpty(t *testing.T) {
@@ -2184,7 +2027,7 @@ func TestBytesEqual(t *testing.T) {
 		{nil, make([]byte, 0)},
 	}
 	for i, c := range cases {
-		Equal(t, reflect.DeepEqual(c.a, c.b), ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
+		Equal(t, reflect.DeepEqual(c.a, c.b), check.ObjectsAreEqual(c.a, c.b), "case %d failed", i+1)
 	}
 }
 

@@ -1705,6 +1705,26 @@ func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
 	assert.Contains(t, diff, `string != type int - (int=123)`)
 }
 
+func Test_Arguments_Diff_WithAnyOrder(t *testing.T) {
+	args := Arguments([]interface{}{ElementsMatch([]int{1, 2, 3})})
+	_, count := args.Diff([]interface{}{[]int{2, 1, 3}})
+	assert.Equal(t, 0, count)
+}
+
+func Test_Arguments_Diff_WithAnyOrder_Failing(t *testing.T) {
+	args := Arguments([]interface{}{ElementsMatch([]int{1, 2, 3})})
+	s, count := args.Diff([]interface{}{[]int{1, 2, 4}})
+	assert.Equal(t, 1, count)
+	assert.Equal(t, "\n\t0: FAIL:  ([]int=[1 2 4]) not matched by (elements of []int=[1 2 3])\n", s)
+}
+
+func Test_Arguments_Diff_WithAnyOrder_WrongType(t *testing.T) {
+	args := Arguments([]interface{}{ElementsMatch([]string{"a", "b"})})
+	s, count := args.Diff([]interface{}{1})
+	assert.Equal(t, 1, count)
+	assert.Equal(t, "\n\t0: FAIL:  (int=1) not matched by (elements of []string=[a b])\n", s)
+}
+
 func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 	matchFn := func(a int) bool {
 		return a == 123
@@ -1916,7 +1936,7 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(
-				`\s+mock: Unexpected Method Call\s+-*\s+GetTime\(int\)\s+0: 1\s+The closest call I have is:\s+GetTime\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(int=1\) not matched by func\(int\) bool`)
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTime\(int\)\s+0: 1\s+The closest call I have is:\s+GetTime\(mock.matchedByFn\)\s+0: mock.matchedByFn\{.*?\}\s+Diff:.*\(int=1\) not matched by func\(int\) bool`)
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
@@ -1933,7 +1953,7 @@ func TestArgumentMatcherToPrintMismatchWithReferenceType(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(
-				`\s+mock: Unexpected Method Call\s+-*\s+GetTimes\(\[\]int\)\s+0: \[\]int\{1\}\s+The closest call I have is:\s+GetTimes\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(\[\]int=\[1\]\) not matched by func\(\[\]int\) bool`)
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTimes\(\[\]int\)\s+0: \[\]int\{1\}\s+The closest call I have is:\s+GetTimes\(mock.matchedByFn\)\s+0: mock.matchedByFn\{.*?\}\s+Diff:.*\(\[\]int=\[1\]\) not matched by func\(\[\]int\) bool`)
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()

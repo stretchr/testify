@@ -14,6 +14,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/internal/check"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -780,14 +781,19 @@ func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: t}
 }
 
-// argumentMatcher performs custom argument matching, returning whether or
+type argumentMatcher interface {
+	Matches(interface{}) bool
+	String() string
+}
+
+// matchedByFn performs custom argument matching, returning whether or
 // not the argument is matched by the expectation fixture function.
-type argumentMatcher struct {
+type matchedByFn struct {
 	// fn is a function which accepts one argument, and returns a bool.
 	fn reflect.Value
 }
 
-func (f argumentMatcher) Matches(argument interface{}) bool {
+func (f matchedByFn) Matches(argument interface{}) bool {
 	expectType := f.fn.Type().In(0)
 	expectTypeNilSupported := false
 	switch expectType.Kind() {
@@ -813,7 +819,7 @@ func (f argumentMatcher) Matches(argument interface{}) bool {
 	return false
 }
 
-func (f argumentMatcher) String() string {
+func (f matchedByFn) String() string {
 	return fmt.Sprintf("func(%s) bool", f.fn.Type().In(0).String())
 }
 
@@ -841,7 +847,30 @@ func MatchedBy(fn interface{}) argumentMatcher {
 		panic(fmt.Sprintf("assert: arguments: %s does not return a bool", fn))
 	}
 
-	return argumentMatcher{fn: reflect.ValueOf(fn)}
+	return matchedByFn{fn: reflect.ValueOf(fn)}
+}
+
+type elementsMatch struct {
+	list interface{}
+}
+
+// ElementsMatch matches if the passed array or slice's elements match the
+// elements in list.
+//
+// Example:
+// m.On("Do", ElementsMatch([]int{5, 6, 7, 8})).Return()
+func ElementsMatch(list interface{}) argumentMatcher {
+	return elementsMatch{
+		list: list,
+	}
+}
+
+func (e elementsMatch) Matches(list interface{}) bool {
+	return check.ElementsMatch(e.list, list) == nil
+}
+
+func (e elementsMatch) String() string {
+	return fmt.Sprintf("(elements of %[1]T=%[1]v)", e.list)
 }
 
 // Get Returns the argument at the specified index.
@@ -929,7 +958,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		} else {
 			// normal checking
 
-			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+			if check.ObjectsAreEqual(expected, Anything) || check.ObjectsAreEqual(actual, Anything) || check.ObjectsAreEqual(actual, expected) {
 				// match
 				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 			} else {
