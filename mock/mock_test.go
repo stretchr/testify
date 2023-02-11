@@ -113,7 +113,7 @@ func (m *MockTestingT) Errorf(string, ...interface{}) {
 // the execution stops.
 // When expecting this method, the call that invokes it should use the following code:
 //
-//     assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
+//	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
 func (m *MockTestingT) FailNow() {
 	m.failNowCount++
 
@@ -1599,7 +1599,7 @@ func Test_Mock_AssertOptional(t *testing.T) {
 }
 
 /*
-	Arguments helper methods
+Arguments helper methods
 */
 func Test_Arguments_Get(t *testing.T) {
 
@@ -2065,6 +2065,21 @@ func TestConcurrentArgumentRead(t *testing.T) {
 
 	methodUnderTest(c, u)
 	<-done // wait until Use is called or assertions will fail
+}
+
+func TestAnythingInSlices(t *testing.T) {
+	m := &TestExampleImplementation{}
+
+	m.On("TheExampleMethodVariadic", []interface{}{1, Anything, 3, Anything, 5}).Return(nil)
+	var err error
+
+	assert.NotPanics(t, func() {
+		err = m.TheExampleMethodVariadic(1, 2, 3, 4, 5)
+	})
+
+	assert.NoError(t, err)
+	m.AssertExpectations(t)
+	m.AssertCalled(t, "TheExampleMethodVaridic", Anything, 2, Anything, 4, Anything)
 }
 
 type caller interface {
