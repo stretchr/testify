@@ -816,49 +816,44 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 		return true // we consider nil to be equal to the nil set
 	}
 
-	defer func() {
-		if e := recover(); e != nil {
-			ok = false
-		}
-	}()
-
 	listKind := reflect.TypeOf(list).Kind()
-	subsetKind := reflect.TypeOf(subset).Kind()
-
 	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
+	subsetKind := reflect.TypeOf(subset).Kind()
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
-	subsetValue := reflect.ValueOf(subset)
 	if subsetKind == reflect.Map && listKind == reflect.Map {
-		listValue := reflect.ValueOf(list)
-		subsetKeys := subsetValue.MapKeys()
+		subsetMap := reflect.ValueOf(subset)
+		actualMap := reflect.ValueOf(list)
 
-		for i := 0; i < len(subsetKeys); i++ {
-			subsetKey := subsetKeys[i]
-			subsetElement := subsetValue.MapIndex(subsetKey).Interface()
-			listElement := listValue.MapIndex(subsetKey).Interface()
+		for _, k := range subsetMap.MapKeys() {
+			ev := subsetMap.MapIndex(k)
+			av := actualMap.MapIndex(k)
 
-			if !ObjectsAreEqual(subsetElement, listElement) {
-				return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, subsetElement), msgAndArgs...)
+			if !av.IsValid() {
+				return Fail(t, fmt.Sprintf("%#v does not contain %#v", list, subset), msgAndArgs...)
+			}
+			if !ObjectsAreEqual(ev.Interface(), av.Interface()) {
+				return Fail(t, fmt.Sprintf("%#v does not contain %#v", list, subset), msgAndArgs...)
 			}
 		}
 
 		return true
 	}
 
-	for i := 0; i < subsetValue.Len(); i++ {
-		element := subsetValue.Index(i).Interface()
+	subsetList := reflect.ValueOf(subset)
+	for i := 0; i < subsetList.Len(); i++ {
+		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
 		if !ok {
-			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("%#v could not be applied builtin len()", list), msgAndArgs...)
 		}
 		if !found {
-			return Fail(t, fmt.Sprintf("\"%s\" does not contain \"%s\"", list, element), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("%#v does not contain %#v", list, element), msgAndArgs...)
 		}
 	}
 
@@ -877,34 +872,28 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		return Fail(t, "nil is the empty set which is a subset of every set", msgAndArgs...)
 	}
 
-	defer func() {
-		if e := recover(); e != nil {
-			ok = false
-		}
-	}()
-
 	listKind := reflect.TypeOf(list).Kind()
-	subsetKind := reflect.TypeOf(subset).Kind()
-
 	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
+	subsetKind := reflect.TypeOf(subset).Kind()
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
-	subsetValue := reflect.ValueOf(subset)
 	if subsetKind == reflect.Map && listKind == reflect.Map {
-		listValue := reflect.ValueOf(list)
-		subsetKeys := subsetValue.MapKeys()
+		subsetMap := reflect.ValueOf(subset)
+		actualMap := reflect.ValueOf(list)
 
-		for i := 0; i < len(subsetKeys); i++ {
-			subsetKey := subsetKeys[i]
-			subsetElement := subsetValue.MapIndex(subsetKey).Interface()
-			listElement := listValue.MapIndex(subsetKey).Interface()
+		for _, k := range subsetMap.MapKeys() {
+			ev := subsetMap.MapIndex(k)
+			av := actualMap.MapIndex(k)
 
-			if !ObjectsAreEqual(subsetElement, listElement) {
+			if !av.IsValid() {
+				return true
+			}
+			if !ObjectsAreEqual(ev.Interface(), av.Interface()) {
 				return true
 			}
 		}
@@ -912,8 +901,9 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
 	}
 
-	for i := 0; i < subsetValue.Len(); i++ {
-		element := subsetValue.Index(i).Interface()
+	subsetList := reflect.ValueOf(subset)
+	for i := 0; i < subsetList.Len(); i++ {
+		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
 		if !ok {
 			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)

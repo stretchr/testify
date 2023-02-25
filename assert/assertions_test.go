@@ -672,20 +672,18 @@ func TestContainsNotContainsOnNilValue(t *testing.T) {
 }
 
 func TestSubsetNotSubset(t *testing.T) {
-
-	// MTestCase adds a custom message to the case
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
-		result   bool
-		message  string
+		list    interface{}
+		subset  interface{}
+		result  bool
+		message string
 	}{
 		// cases that are expected to contain
-		{[]int{1, 2, 3}, nil, true, "given subset is nil"},
-		{[]int{1, 2, 3}, []int{}, true, "any set contains the nil set"},
-		{[]int{1, 2, 3}, []int{1, 2}, true, "[1, 2, 3] contains [1, 2]"},
-		{[]int{1, 2, 3}, []int{1, 2, 3}, true, "[1, 2, 3] contains [1, 2, 3"},
-		{[]string{"hello", "world"}, []string{"hello"}, true, "[\"hello\", \"world\"] contains [\"hello\"]"},
+		{[]int{1, 2, 3}, nil, true, `nil is the empty set which is a subset of every set`},
+		{[]int{1, 2, 3}, []int{}, true, `[] is a subset of ['\x01' '\x02' '\x03']`},
+		{[]int{1, 2, 3}, []int{1, 2}, true, `['\x01' '\x02'] is a subset of ['\x01' '\x02' '\x03']`},
+		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `['\x01' '\x02' '\x03'] is a subset of ['\x01' '\x02' '\x03']`},
+		{[]string{"hello", "world"}, []string{"hello"}, true, `["hello"] is a subset of ["hello" "world"]`},
 		{map[string]string{
 			"a": "x",
 			"c": "z",
@@ -693,12 +691,12 @@ func TestSubsetNotSubset(t *testing.T) {
 		}, map[string]string{
 			"a": "x",
 			"b": "y",
-		}, true, `{ "a": "x", "b": "y", "c": "z"} contains { "a": "x", "b": "y"}`},
+		}, true, `map["a":"x" "b":"y"] is a subset of map["a":"x" "b":"y" "c":"z"]`},
 
 		// cases that are expected not to contain
-		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, "[\"hello\", \"world\"] does not contain [\"hello\", \"testify\"]"},
-		{[]int{1, 2, 3}, []int{4, 5}, false, "[1, 2, 3] does not contain [4, 5"},
-		{[]int{1, 2, 3}, []int{1, 5}, false, "[1, 2, 3] does not contain [1, 5]"},
+		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, `[]string{"hello", "world"} does not contain "testify"`},
+		{[]int{1, 2, 3}, []int{4, 5}, false, `[]int{1, 2, 3} does not contain 4`},
+		{[]int{1, 2, 3}, []int{1, 5}, false, `[]int{1, 2, 3} does not contain 5`},
 		{map[string]string{
 			"a": "x",
 			"c": "z",
@@ -706,35 +704,51 @@ func TestSubsetNotSubset(t *testing.T) {
 		}, map[string]string{
 			"a": "x",
 			"b": "z",
-		}, false, `{ "a": "x", "b": "y", "c": "z"} does not contain { "a": "x", "b": "z"}`},
+		}, false, `map[string]string{"a":"x", "b":"y", "c":"z"} does not contain map[string]string{"a":"x", "b":"z"}`},
+		{map[string]string{
+			"a": "x",
+			"b": "y",
+		}, map[string]string{
+			"a": "x",
+			"b": "y",
+			"c": "z",
+		}, false, `map[string]string{"a":"x", "b":"y"} does not contain map[string]string{"a":"x", "b":"y", "c":"z"}`},
 	}
 
 	for _, c := range cases {
 		t.Run("SubSet: "+c.message, func(t *testing.T) {
 
-			mockT := new(testing.T)
-			res := Subset(mockT, c.expected, c.actual)
+			mockT := new(mockTestingT)
+			res := Subset(mockT, c.list, c.subset)
 
 			if res != c.result {
-				if res {
-					t.Errorf("Subset should return true: %s", c.message)
-				} else {
-					t.Errorf("Subset should return false: %s", c.message)
+				t.Errorf("Subset should return %t: %s", c.result, c.message)
+			}
+			if !c.result {
+				expectedFail := c.message
+				actualFail := mockT.errorString()
+				if !strings.Contains(actualFail, expectedFail) {
+					t.Log(actualFail)
+					t.Errorf("Subset failure should contain %q but was %q", expectedFail, actualFail)
 				}
 			}
 		})
 	}
 	for _, c := range cases {
 		t.Run("NotSubSet: "+c.message, func(t *testing.T) {
-			mockT := new(testing.T)
-			res := NotSubset(mockT, c.expected, c.actual)
+			mockT := new(mockTestingT)
+			res := NotSubset(mockT, c.list, c.subset)
 
 			// NotSubset should match the inverse of Subset. If it doesn't, something is wrong
-			if res == Subset(mockT, c.expected, c.actual) {
-				if res {
-					t.Errorf("NotSubset should return true: %s", c.message)
-				} else {
-					t.Errorf("NotSubset should return false: %s", c.message)
+			if res == Subset(mockT, c.list, c.subset) {
+				t.Errorf("NotSubset should return %t: %s", !c.result, c.message)
+			}
+			if c.result {
+				expectedFail := c.message
+				actualFail := mockT.errorString()
+				if !strings.Contains(actualFail, expectedFail) {
+					t.Log(actualFail)
+					t.Errorf("NotSubset failure should contain %q but was %q", expectedFail, actualFail)
 				}
 			}
 		})
