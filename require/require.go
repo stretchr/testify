@@ -1655,6 +1655,36 @@ func PanicsWithErrorf(t TestingT, errString string, f assert.PanicTestFunc, msg 
 	t.FailNow()
 }
 
+// PanicsWithErrorIs asserts that the code inside the specified PanicTestFunc
+// panics, and that the recovered panic value is an error that satisfies the
+// errors.Is() method
+//
+//   require.PanicsWithErrorIs(t, expectedError, func(){ GoCrazy() })
+func PanicsWithErrorIs(t TestingT, expectedError error, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.PanicsWithErrorIs(t, expectedError, f, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// PanicsWithErrorIsf asserts that the code inside the specified PanicTestFunc
+// panics, and that the recovered panic value is an error that satisfies the
+// errors.Is() method
+//
+//   require.PanicsWithErrorIsf(t, expectedError, func(){ GoCrazy() }, "error message %s", "formatted")
+func PanicsWithErrorIsf(t TestingT, expectedError error, f assert.PanicTestFunc, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.PanicsWithErrorIsf(t, expectedError, f, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // PanicsWithValue asserts that the code inside the specified PanicTestFunc panics, and that
 // the recovered panic value equals the expected panic value.
 //

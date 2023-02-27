@@ -1297,6 +1297,30 @@ func (a *Assertions) PanicsWithErrorf(errString string, f PanicTestFunc, msg str
 	return PanicsWithErrorf(a.t, errString, f, msg, args...)
 }
 
+// PanicsWithErrorIs asserts that the code inside the specified PanicTestFunc
+// panics, and that the recovered panic value is an error that satisfies the
+// errors.Is() method
+//
+//   a.PanicsWithErrorIs(expectedError, func(){ GoCrazy() })
+func (a *Assertions) PanicsWithErrorIs(expectedError error, f PanicTestFunc, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return PanicsWithErrorIs(a.t, expectedError, f, msgAndArgs...)
+}
+
+// PanicsWithErrorIsf asserts that the code inside the specified PanicTestFunc
+// panics, and that the recovered panic value is an error that satisfies the
+// errors.Is() method
+//
+//   a.PanicsWithErrorIsf(expectedError, func(){ GoCrazy() }, "error message %s", "formatted")
+func (a *Assertions) PanicsWithErrorIsf(expectedError error, f PanicTestFunc, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return PanicsWithErrorIsf(a.t, expectedError, f, msg, args...)
+}
+
 // PanicsWithValue asserts that the code inside the specified PanicTestFunc panics, and that
 // the recovered panic value equals the expected panic value.
 //
