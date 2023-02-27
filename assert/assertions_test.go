@@ -1048,6 +1048,36 @@ func TestPanicsWithError(t *testing.T) {
 	}
 }
 
+func TestPanicsWithErrorIs(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	expectedError := errors.New("expected error")
+	anotherError := errors.New("not expected error")
+
+	if !PanicsWithErrorIs(mockT, expectedError, func() {
+		panic(expectedError)
+	}) {
+		t.Error("PanicsWithErrorIs should return true")
+	}
+
+	if !PanicsWithErrorIs(mockT, expectedError, func() {
+		panic(fmt.Errorf("Wrapped Error %w", expectedError))
+	}) {
+		t.Error("PanicsWithErrorIs should return true")
+	}
+
+	if PanicsWithErrorIs(mockT, expectedError, func() {
+	}) {
+		t.Error("PanicsWithErrorIs should return false")
+	}
+
+	if PanicsWithErrorIs(mockT, expectedError, func() {
+	}) {
+		t.Error(anotherError)
+	}
+}
+
 func TestNotPanics(t *testing.T) {
 
 	mockT := new(testing.T)
