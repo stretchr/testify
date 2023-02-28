@@ -1403,12 +1403,11 @@ func TestWithinRange(t *testing.T) {
 func TestInDelta(t *testing.T) {
 	mockT := new(testing.T)
 
-	True(t, InDelta(mockT, 1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
-	True(t, InDelta(mockT, 1, 1.001, 0.01), "|1 - 1.001| <= 0.01")
+	True(t, InDelta(mockT, 1.001, 1.0, 0.01), "|1.001 - 1| <= 0.01")
+	True(t, InDelta(mockT, 1.0, 1.001, 0.01), "|1 - 1.001| <= 0.01")
 	True(t, InDelta(mockT, 1, 2, 1), "|1 - 2| <= 1")
 	False(t, InDelta(mockT, 1, 2, 0.5), "Expected |1 - 2| <= 0.5 to fail")
 	False(t, InDelta(mockT, 2, 1, 0.5), "Expected |2 - 1| <= 0.5 to fail")
-	False(t, InDelta(mockT, "", nil, 1), "Expected non numerals to fail")
 	False(t, InDelta(mockT, 42, math.NaN(), 0.01), "Expected NaN for actual to fail")
 	False(t, InDelta(mockT, math.NaN(), 42, 0.01), "Expected NaN for expected to fail")
 	True(t, InDelta(mockT, math.NaN(), math.NaN(), 0.01), "Expected NaN for both to pass")
@@ -1455,8 +1454,6 @@ func TestInDeltaSlice(t *testing.T) {
 		[]float64{1, math.NaN(), 2},
 		[]float64{0, math.NaN(), 3},
 		0.1), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
-
-	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
 func TestInDeltaMapValues(t *testing.T) {
@@ -2240,11 +2237,11 @@ func ExampleComparisonAssertionFunc() {
 		name      string
 		args      args
 		expect    int
-		assertion ComparisonAssertionFunc
+		assertion TypedComparisonAssertionFunc[int]
 	}{
-		{"2+2=4", args{2, 2}, 4, Equal},
-		{"2+2!=5", args{2, 2}, 5, NotEqual},
-		{"2+3==5", args{2, 3}, 5, Exactly},
+		{"2+2=4", args{2, 2}, 4, Equal[int]},
+		{"2+2!=5", args{2, 2}, 5, NotEqual[int]},
+		{"2+3==5", args{2, 3}, 5, Exactly[int]},
 	}
 
 	for _, tt := range tests {
@@ -2261,26 +2258,40 @@ func TestComparisonAssertionFunc(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		expect    interface{}
-		got       interface{}
-		assertion ComparisonAssertionFunc
+		expect    any
+		got       any
+		assertion TypedComparisonAssertionFunc[any]
 	}{
 		{"implements", (*iface)(nil), t, Implements},
 		{"isType", (*testing.T)(nil), t, IsType},
-		{"equal", t, t, Equal},
+		{"equal", t, t, Equal[any]},
 		{"equalValues", t, t, EqualValues},
 		{"notEqualValues", t, nil, NotEqualValues},
-		{"exactly", t, t, Exactly},
-		{"notEqual", t, nil, NotEqual},
+		{"exactly", t, t, Exactly[any]},
+		{"notEqual", t, nil, NotEqual[any]},
 		{"notContains", []int{1, 2, 3}, 4, NotContains},
 		{"subset", []int{1, 2, 3, 4}, []int{2, 3}, Subset},
 		{"notSubset", []int{1, 2, 3, 4}, []int{0, 3}, NotSubset},
 		{"elementsMatch", []byte("abc"), []byte("bac"), ElementsMatch},
-		{"regexp", "^t.*y$", "testify", Regexp},
-		{"notRegexp", "^t.*y$", "Testify", NotRegexp},
 	}
 
 	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.assertion(t, tt.expect, tt.got)
+		})
+	}
+
+	regexp_tests := []struct {
+		name      string
+		expect    string
+		got       string
+		assertion TypedComparisonAssertionFunc[string]
+	}{
+		{"regexp", "^t.*y$", "testify", Regexp[string]},
+		{"notRegexp", "^t.*y$", "Testify", NotRegexp[string]},
+	}
+
+	for _, tt := range regexp_tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.assertion(t, tt.expect, tt.got)
 		})
