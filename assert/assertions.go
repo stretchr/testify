@@ -1037,6 +1037,13 @@ func didPanic(f PanicTestFunc) (didPanic bool, message interface{}, stack string
 		if didPanic {
 			stack = string(debug.Stack())
 		}
+		// Go 1.21 introduces runtime.PanicNilError on panic(nil),
+		// so maintain the same logic going forward (https://github.com/golang/go/issues/25448).
+		if err, ok := message.(error); ok {
+			if err.Error() == "panic called with nil argument" {
+				message = nil
+			}
+		}
 	}()
 
 	// call the target function
