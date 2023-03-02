@@ -638,11 +638,11 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 	}
 	ok, l := getLen(object)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%#v\" could not be applied", object), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("\"%v\" could not be applied builtin len()", object), msgAndArgs...)
 	}
 
 	if l != length {
-		return Fail(t, fmt.Sprintf("\"%#v\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("\"%v\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
 	}
 	return true
 }
@@ -874,12 +874,12 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 
 	listKind := reflect.TypeOf(list).Kind()
 	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", list, listKind), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
 	subsetKind := reflect.TypeOf(subset).Kind()
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
 	if subsetKind == reflect.Map && listKind == reflect.Map {
@@ -898,7 +898,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 			}
 		}
 
-		return Fail(t, fmt.Sprintf("%#v is a subset of %#v", subset, list), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
 	}
 
 	subsetList := reflect.ValueOf(subset)
@@ -906,14 +906,14 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
 		if !ok {
-			return Fail(t, fmt.Sprintf("\"%#v\" could not be applied builtin len()", list), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
 		}
 		if !found {
 			return true
 		}
 	}
 
-	return Fail(t, fmt.Sprintf("%#v is a subset of %#v", subset, list), msgAndArgs...)
+	return Fail(t, fmt.Sprintf("%q is a subset of %q", subset, list), msgAndArgs...)
 }
 
 // ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
@@ -946,7 +946,7 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 func isList(t TestingT, list interface{}, msgAndArgs ...interface{}) (ok bool) {
 	kind := reflect.TypeOf(list).Kind()
 	if kind != reflect.Array && kind != reflect.Slice {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s, expecting array or slice", list, kind),
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s, expecting array or slice", list, kind),
 			msgAndArgs...)
 	}
 	return true
