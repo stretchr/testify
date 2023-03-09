@@ -598,8 +598,8 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 		satisfied, reason := m.checkExpectation(expectedCall)
 		if !satisfied {
 			failedExpectations++
+			t.Logf(reason)
 		}
-		t.Logf(reason)
 	}
 
 	if failedExpectations != 0 {
