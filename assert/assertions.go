@@ -1331,8 +1331,15 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 		return Fail(t, err.Error(), msgAndArgs...)
 	}
 	if actualEpsilon > epsilon {
-		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
-			"        < %#v (actual)", epsilon, actualEpsilon), msgAndArgs...)
+		diff := diff(expected, actual)
+		expected, actual = formatUnequalValues(expected, actual)
+		return Fail(t, fmt.Sprintf(
+			"Relative error is too high: %#v (expected)\n"+
+				"        < %#v (actual)\n"+
+				"Values:\n"+
+				"    expected: %s\n"+
+				"    actual  : %s%s",
+			epsilon, actualEpsilon, expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
