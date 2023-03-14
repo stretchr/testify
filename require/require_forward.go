@@ -156,6 +156,40 @@ func (a *Assertions) EqualErrorf(theError error, errString string, msg string, a
 	EqualErrorf(a.t, theError, errString, msg, args...)
 }
 
+// EqualExportedValues asserts that the types of two objects are equal and their public
+// fields are also equal. This is useful for comparing structs that have private fields
+// that could potentially differ.
+//
+// 	 type S struct {
+// 		Exported     	int
+// 		notExported   	int
+// 	 }
+// 	 a.EqualExportedValues(S{1, 2}, S{1, 3}) => true
+// 	 a.EqualExportedValues(S{1, 2}, S{2, 3}) => false
+func (a *Assertions) EqualExportedValues(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	EqualExportedValues(a.t, expected, actual, msgAndArgs...)
+}
+
+// EqualExportedValuesf asserts that the types of two objects are equal and their public
+// fields are also equal. This is useful for comparing structs that have private fields
+// that could potentially differ.
+//
+// 	 type S struct {
+// 		Exported     	int
+// 		notExported   	int
+// 	 }
+// 	 a.EqualExportedValuesf(S{1, 2}, S{1, 3}, "error message %s", "formatted") => true
+// 	 a.EqualExportedValuesf(S{1, 2}, S{2, 3}, "error message %s", "formatted") => false
+func (a *Assertions) EqualExportedValuesf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	EqualExportedValuesf(a.t, expected, actual, msg, args...)
+}
+
 // EqualValues asserts that two objects are equal or convertable to the same types
 // and equal.
 //
