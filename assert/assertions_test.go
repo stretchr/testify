@@ -9,6 +9,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -688,15 +689,31 @@ func TestContainsNotContains(t *testing.T) {
 	}
 }
 
-func TestContainsFailMessage(t *testing.T) {
-
+func TestContainsNotContainsFailMessage(t *testing.T) {
 	mockT := new(mockTestingT)
 
-	Contains(mockT, "Hello World", errors.New("Hello"))
-	expectedFail := "\"Hello World\" does not contain &errors.errorString{s:\"Hello\"}"
-	actualFail := mockT.errorString()
-	if !strings.Contains(actualFail, expectedFail) {
-		t.Errorf("Contains failure should include %q but was %q", expectedFail, actualFail)
+	cases := []struct {
+		assertion func(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool
+		container interface{}
+		instance  interface{}
+		expected  string
+	}{
+		{
+			assertion: Contains,
+			container: "Hello World",
+			instance:  errors.New("Hello"),
+			expected:  "\"Hello World\" does not contain &errors.errorString{s:\"Hello\"}",
+		},
+	}
+	for _, c := range cases {
+		name := filepath.Base(runtime.FuncForPC(reflect.ValueOf(c.assertion).Pointer()).Name())
+		t.Run(fmt.Sprintf("%v(%T, %T)", name, c.container, c.instance), func(t *testing.T) {
+			c.assertion(mockT, "Hello World", errors.New("Hello"))
+			actualFail := mockT.errorString()
+			if !strings.Contains(actualFail, c.expected) {
+				t.Errorf("Contains failure should include %q but was %q", c.expected, actualFail)
+			}
+		})
 	}
 }
 
