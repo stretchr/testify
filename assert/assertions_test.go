@@ -692,6 +692,10 @@ func TestContainsNotContains(t *testing.T) {
 func TestContainsNotContainsFailMessage(t *testing.T) {
 	mockT := new(mockTestingT)
 
+	type nonContainer struct {
+		Value string
+	}
+
 	cases := []struct {
 		assertion func(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool
 		container interface{}
@@ -704,11 +708,35 @@ func TestContainsNotContainsFailMessage(t *testing.T) {
 			instance:  errors.New("Hello"),
 			expected:  "\"Hello World\" does not contain &errors.errorString{s:\"Hello\"}",
 		},
+		{
+			assertion: Contains,
+			container: map[string]int{"one": 1},
+			instance:  "two",
+			expected:  "map[string]int{\"one\":1} does not contain \"two\"\n",
+		},
+		{
+			assertion: NotContains,
+			container: map[string]int{"one": 1},
+			instance:  "one",
+			expected:  "map[string]int{\"one\":1} should not contain \"one\"",
+		},
+		{
+			assertion: Contains,
+			container: nonContainer{Value: "Hello"},
+			instance:  "Hello",
+			expected:  "assert.nonContainer{Value:\"Hello\"} could not be applied builtin len()\n",
+		},
+		{
+			assertion: NotContains,
+			container: nonContainer{Value: "Hello"},
+			instance:  "Hello",
+			expected:  "assert.nonContainer{Value:\"Hello\"} could not be applied builtin len()\n",
+		},
 	}
 	for _, c := range cases {
 		name := filepath.Base(runtime.FuncForPC(reflect.ValueOf(c.assertion).Pointer()).Name())
 		t.Run(fmt.Sprintf("%v(%T, %T)", name, c.container, c.instance), func(t *testing.T) {
-			c.assertion(mockT, "Hello World", errors.New("Hello"))
+			c.assertion(mockT, c.container, c.instance)
 			actualFail := mockT.errorString()
 			if !strings.Contains(actualFail, c.expected) {
 				t.Errorf("Contains failure should include %q but was %q", c.expected, actualFail)
