@@ -9,6 +9,8 @@ if [[ -z "$(go env GOMOD)" ]]; then
 fi
 
 go generate ./...
+echo "git diff"
+git diff
 if [ -n "$(git diff)" ]; then
   echo "Go generate had not been run"
   git diff
