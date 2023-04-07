@@ -60,19 +60,42 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
-	exp, ok := expected.([]byte)
-	if !ok {
+	switch exp := expected.(type) {
+	case []byte:
+		act, ok := actual.([]byte)
+		if !ok {
+			return false
+		}
+		if exp == nil || act == nil {
+			return exp == nil && act == nil
+		}
+		return bytes.Equal(exp, act)
+	case time.Time:
+		act, ok := actual.(time.Time)
+		if !ok {
+			return false
+		}
+		return exp.Equal(act)
+	case *time.Time:
+		act, ok := actual.(*time.Time)
+		if !ok {
+			return false
+		}
+		if exp == nil || act == nil {
+			return exp == nil && act == nil
+		}
+		return exp.Equal(*act)
+	default:
+		if reflect.TypeOf(expected) == reflect.TypeOf(actual) {
+			v := reflect.ValueOf(expected)
+			k := v.Kind()
+			if k == reflect.Struct || (k == reflect.Pointer && v.Elem().Kind() == reflect.Struct) {
+				// TODO
+				return false
+			}
+		}
 		return reflect.DeepEqual(expected, actual)
 	}
-
-	act, ok := actual.([]byte)
-	if !ok {
-		return false
-	}
-	if exp == nil || act == nil {
-		return exp == nil && act == nil
-	}
-	return bytes.Equal(exp, act)
 }
 
 // ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two structs are considered equal.
@@ -101,17 +124,59 @@ func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 	for i := 0; i < expectedType.NumField(); i++ {
 		field := expectedType.Field(i)
 		isExported := field.PkgPath == "" // should use field.IsExported() but it's not available in Go 1.16.5
-		if isExported {
-			var equal bool
-			if field.Type.Kind() == reflect.Struct {
-				equal = ObjectsExportedFieldsAreEqual(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
-			} else {
-				equal = ObjectsAreEqualValues(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
-			}
+		if !isExported {
+			continue
+		}
 
-			if !equal {
-				return false
+		expFieldVal := expectedValue.Field(i)
+		actFieldVal := actualValue.Field(i)
+
+		var equal bool
+		switch field.Type.Kind() {
+		case reflect.Struct:
+			// Handle time.Time comparison.
+			exp := expFieldVal.Interface()
+			act := actFieldVal.Interface()
+			switch exp.(type) {
+			case time.Time:
+				expT := exp.(time.Time)
+				actT, ok := act.(time.Time)
+				if !ok {
+					return false
+				}
+				equal = expT.Equal(actT)
+			case *time.Time:
+				expT := exp.(*time.Time)
+				actT, ok := act.(*time.Time)
+				if !ok {
+					return false
+				}
+				if expT == nil || actT == nil {
+					equal = expT == nil && actT == nil
+				} else {
+					equal = expT.Equal(*actT)
+				}
+			default:
+				equal = ObjectsExportedFieldsAreEqual(exp, act)
 			}
+		case reflect.Pointer:
+			// Handle struct pointers.
+			if expFieldVal.Elem().Kind() == reflect.Struct {
+				if expFieldVal.IsNil() || actFieldVal.IsNil() {
+					equal = expFieldVal.IsNil() && actFieldVal.IsNil()
+				} else {
+					equal = ObjectsExportedFieldsAreEqual(expFieldVal.Elem().Interface(), actFieldVal.Elem().Interface())
+				}
+				break
+			}
+			// Not a struct pointer, fallthrough to default case.
+			fallthrough
+		default:
+			equal = ObjectsAreEqualValues(expFieldVal.Interface(), actFieldVal.Interface())
+		}
+
+		if !equal {
+			return false
 		}
 	}
 	return true
