@@ -102,18 +102,6 @@ type AssertionTesterNonConformingObject struct {
 }
 
 func TestObjectsAreEqual(t *testing.T) {
-	type Nested struct {
-		S string
-		P *time.Time
-	}
-	type S struct {
-		S      string
-		I      int
-		T      time.Time
-		P      *time.Time
-		Nested Nested
-	}
-
 	t1 := time.Date(2023, time.April, 7, 12, 56, 32, 0, time.UTC)
 	t2 := time.Date(2023, time.April, 7, 7, 56, 32, 0, time.FixedZone("UTC-5", -5*60*60))
 
@@ -131,11 +119,6 @@ func TestObjectsAreEqual(t *testing.T) {
 		{time.Time{}, time.Time{}, true},
 		{t1, t2, true},
 		{&t1, &t2, true},
-		{
-			S{"Hello World", 123, t1, &t1, Nested{"x", &t1}},
-			S{"Hello World", 123, t2, &t2, Nested{"x", &t2}},
-			true,
-		},
 		{nil, nil, true},
 
 		// cases that are expected not to be equal
@@ -192,6 +175,10 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		foo interface{}
 	}
 
+	s := Nested{Exported: "a"}
+	t1 := time.Date(2023, time.April, 7, 12, 56, 32, 0, time.UTC)
+	t2 := time.Date(2023, time.April, 7, 7, 56, 32, 0, time.FixedZone("UTC-5", -5*60*60))
+
 	cases := []struct {
 		expected interface{}
 		actual   interface{}
@@ -202,10 +189,15 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, 3}, 4, Nested{5, "a"}}, true},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, 3}, 4, Nested{"a", "a"}}, true},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, "a"}, 4, Nested{5, 6}}, true},
+		{S{1, Nested{2, S{Exported1: "a"}}, 4, Nested{5, 6}}, S{1, Nested{2, S{Exported1: "a"}}, 4, Nested{5, 6}}, true},
+		{S{1, Nested{2, &s}, 4, Nested{5, s}}, S{1, Nested{2, &s}, 4, Nested{5, s}}, true},
+		{S{t1, Nested{2, t1}, 4, Nested{&t1, 6}}, S{t2, Nested{2, t2}, 4, Nested{&t2, 6}}, true},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{"a", Nested{2, 3}, 4, Nested{5, 6}}, false},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{"a", 3}, 4, Nested{5, 6}}, false},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S2{1}, false},
 		{1, S{1, Nested{2, 3}, 4, Nested{5, 6}}, false},
+		{S{Exported1: &t1}, S{Exported1: nil}, false},
+		{S{Exported1: t1}, S{Exported1: t1.Add(time.Microsecond)}, false},
 	}
 
 	for _, c := range cases {
