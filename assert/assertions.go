@@ -548,7 +548,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 
 // EqualExportedValues asserts that the types of two objects are equal and their public
 // fields are also equal. This is useful for comparing structs that have private fields
-// that could potentially differ.
+// that could potentially differ. Types of time.Time are compared using time.Time.Equal.
 //
 //	 type S struct {
 //		Exported     	int
