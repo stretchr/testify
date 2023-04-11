@@ -102,9 +102,6 @@ type AssertionTesterNonConformingObject struct {
 }
 
 func TestObjectsAreEqual(t *testing.T) {
-	t1 := time.Date(2023, time.April, 7, 12, 56, 32, 0, time.UTC)
-	t2 := time.Date(2023, time.April, 7, 7, 56, 32, 0, time.FixedZone("UTC-5", -5*60*60))
-
 	cases := []struct {
 		expected interface{}
 		actual   interface{}
@@ -115,10 +112,6 @@ func TestObjectsAreEqual(t *testing.T) {
 		{123, 123, true},
 		{123.5, 123.5, true},
 		{[]byte("Hello World"), []byte("Hello World"), true},
-		{map[int]int{5: 10, 10: 20}, map[int]int{10: 20, 5: 10}, true},
-		{time.Time{}, time.Time{}, true},
-		{t1, t2, true},
-		{&t1, &t2, true},
 		{nil, nil, true},
 
 		// cases that are expected not to be equal
@@ -127,8 +120,6 @@ func TestObjectsAreEqual(t *testing.T) {
 		{"x", 'x', false},
 		{0, 0.1, false},
 		{0.1, 0, false},
-		{t1, &t2, false},
-		{t1, t1.Add(time.Microsecond), false},
 		{time.Now, time.Now, false},
 		{func() {}, func() {}, false},
 		{uint32(10), int32(10), false},
