@@ -102,11 +102,20 @@ func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 		field := expectedType.Field(i)
 		isExported := field.PkgPath == "" // should use field.IsExported() but it's not available in Go 1.16.5
 		if isExported {
+			expectedField := expectedValue.Field(i)
+			actualField := actualValue.Field(i)
+
 			var equal bool
-			if field.Type.Kind() == reflect.Struct {
-				equal = ObjectsExportedFieldsAreEqual(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
-			} else {
-				equal = ObjectsAreEqualValues(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
+			switch field.Type.Kind() {
+			case reflect.Struct:
+				equal = ObjectsExportedFieldsAreEqual(expectedField.Interface(), actualField.Interface())
+			case reflect.Ptr:
+				if expectedField.IsNil() || actualField.IsNil() {
+					return expectedField == actualField
+				}
+				equal = ObjectsExportedFieldsAreEqual(expectedField.Elem().Interface(), actualField.Elem().Interface())
+			default:
+				equal = ObjectsAreEqualValues(expectedField.Interface(), actualField.Interface())
 			}
 
 			if !equal {

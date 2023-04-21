@@ -166,6 +166,10 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		foo interface{}
 	}
 
+	type S3 struct {
+		ExportedPointer *Nested
+	}
+
 	cases := []struct {
 		expected interface{}
 		actual   interface{}
@@ -180,6 +184,11 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{"a", 3}, 4, Nested{5, 6}}, false},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S2{1}, false},
 		{1, S{1, Nested{2, 3}, 4, Nested{5, 6}}, false},
+		{S3{&Nested{2, 3}}, S3{&Nested{2, 3}}, true},
+		{S3{&Nested{2, 3}}, S3{&Nested{2, 4}}, true},
+		{S3{&Nested{2, 3}}, S3{&Nested{"a", 3}}, false},
+		{S3{&Nested{2, 3}}, S3{}, false},
+		{S3{}, S3{}, true},
 	}
 
 	for _, c := range cases {
