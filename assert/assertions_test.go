@@ -167,8 +167,11 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 	}
 
 	type S3 struct {
-		ExportedPointer *Nested
+		Exported1 *Nested
+		Exported2 *Nested
 	}
+
+	intValue := 1
 
 	cases := []struct {
 		expected interface{}
@@ -182,13 +185,21 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, "a"}, 4, Nested{5, 6}}, true},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{"a", Nested{2, 3}, 4, Nested{5, 6}}, false},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{"a", 3}, 4, Nested{5, 6}}, false},
+
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S2{1}, false},
 		{1, S{1, Nested{2, 3}, 4, Nested{5, 6}}, false},
-		{S3{&Nested{2, 3}}, S3{&Nested{2, 3}}, true},
-		{S3{&Nested{2, 3}}, S3{&Nested{2, 4}}, true},
-		{S3{&Nested{2, 3}}, S3{&Nested{"a", 3}}, false},
-		{S3{&Nested{2, 3}}, S3{}, false},
+
+		{S3{&Nested{1, 2}, &Nested{3, 4}}, S3{&Nested{1, 2}, &Nested{3, 4}}, true},
+		{S3{nil, &Nested{3, 4}}, S3{nil, &Nested{3, 4}}, true},
+		{S3{&Nested{1, 2}, &Nested{3, 4}}, S3{&Nested{1, 2}, &Nested{3, "b"}}, true},
+		{S3{&Nested{1, 2}, &Nested{3, 4}}, S3{&Nested{1, "a"}, &Nested{3, "b"}}, true},
+		{S3{&Nested{1, 2}, &Nested{3, 4}}, S3{&Nested{"a", 2}, &Nested{3, 4}}, false},
+		{S3{&Nested{1, 2}, &Nested{3, 4}}, S3{}, false},
 		{S3{}, S3{}, true},
+
+		{Nested{&intValue, 2}, Nested{&intValue, 2}, true},
+		{Nested{&Nested{1, 2}, 3}, Nested{&Nested{1, "b"}, 3}, true},
+		{Nested{&Nested{1, 2}, 3}, Nested{nil, 3}, false},
 	}
 
 	for _, c := range cases {

@@ -86,44 +86,45 @@ func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 
 	expectedType := reflect.TypeOf(expected)
 	actualType := reflect.TypeOf(actual)
-
 	if expectedType != actualType {
 		return false
 	}
 
-	if expectedType.Kind() != reflect.Struct || actualType.Kind() != reflect.Struct {
+	expectedKind := expectedType.Kind()
+	actualKind := actualType.Kind()
+	if expectedKind != actualKind {
 		return false
 	}
 
 	expectedValue := reflect.ValueOf(expected)
 	actualValue := reflect.ValueOf(actual)
 
-	for i := 0; i < expectedType.NumField(); i++ {
-		field := expectedType.Field(i)
-		isExported := field.PkgPath == "" // should use field.IsExported() but it's not available in Go 1.16.5
-		if isExported {
-			expectedField := expectedValue.Field(i)
-			actualField := actualValue.Field(i)
-
-			var equal bool
-			switch field.Type.Kind() {
-			case reflect.Struct:
-				equal = ObjectsExportedFieldsAreEqual(expectedField.Interface(), actualField.Interface())
-			case reflect.Ptr:
-				if expectedField.IsNil() || actualField.IsNil() {
-					return expectedField == actualField
+	switch expectedKind {
+	case reflect.Struct:
+		for i := 0; i < expectedType.NumField(); i++ {
+			field := expectedType.Field(i)
+			isExported := field.PkgPath == "" // should use field.IsExported() but it's not available in Go 1.16.5
+			if isExported {
+				expectedField := expectedValue.Field(i)
+				actualField := actualValue.Field(i)
+				equal := ObjectsExportedFieldsAreEqual(expectedField.Interface(), actualField.Interface())
+				if !equal {
+					return false
 				}
-				equal = ObjectsExportedFieldsAreEqual(expectedField.Elem().Interface(), actualField.Elem().Interface())
-			default:
-				equal = ObjectsAreEqualValues(expectedField.Interface(), actualField.Interface())
-			}
-
-			if !equal {
-				return false
 			}
 		}
+		return true
+
+	case reflect.Interface, reflect.Ptr:
+		if expectedValue.IsNil() || actualValue.IsNil() {
+			return ObjectsAreEqualValues(expectedValue.Interface(), actualValue.Interface())
+		} else {
+			return ObjectsExportedFieldsAreEqual(expectedValue.Elem().Interface(), actualValue.Elem().Interface())
+		}
+
+	default:
+		return ObjectsAreEqualValues(expectedValue.Interface(), actualValue.Interface())
 	}
-	return true
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
