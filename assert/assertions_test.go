@@ -171,6 +171,10 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		Exported2 *Nested
 	}
 
+	type S4 struct {
+		Exported1 []*Nested
+	}
+
 	intValue := 1
 
 	cases := []struct {
@@ -185,7 +189,6 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, "a"}, 4, Nested{5, 6}}, true},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{"a", Nested{2, 3}, 4, Nested{5, 6}}, false},
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{"a", 3}, 4, Nested{5, 6}}, false},
-
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S2{1}, false},
 		{1, S{1, Nested{2, 3}, 4, Nested{5, 6}}, false},
 
@@ -196,6 +199,10 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{S3{&Nested{1, 2}, &Nested{3, 4}}, S3{&Nested{"a", 2}, &Nested{3, 4}}, false},
 		{S3{&Nested{1, 2}, &Nested{3, 4}}, S3{}, false},
 		{S3{}, S3{}, true},
+
+		{S4{[]*Nested{{1, 2}}}, S4{[]*Nested{{1, 2}}}, true},
+		{S4{[]*Nested{{1, 2}}}, S4{[]*Nested{{1, 3}}}, true},
+		{S4{[]*Nested{{1, 2}, {3, 4}}}, S4{[]*Nested{{1, "a"}, {3, "b"}}}, true},
 
 		{Nested{&intValue, 2}, Nested{&intValue, 2}, true},
 		{Nested{&Nested{1, 2}, 3}, Nested{&Nested{1, "b"}, 3}, true},

@@ -80,7 +80,7 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 //
 // This function does no assertion of any kind.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
-	if expected == nil || actual == nil {
+	if isNil(expected) || isNil(actual) {
 		return expected == actual
 	}
 
@@ -105,10 +105,9 @@ func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 			field := expectedType.Field(i)
 			isExported := field.PkgPath == "" // should use field.IsExported() but it's not available in Go 1.16.5
 			if isExported {
-				expectedField := expectedValue.Field(i)
-				actualField := actualValue.Field(i)
-				equal := ObjectsExportedFieldsAreEqual(expectedField.Interface(), actualField.Interface())
-				if !equal {
+				expectedElem := expectedValue.Field(i).Interface()
+				actualElem := actualValue.Field(i).Interface()
+				if !ObjectsExportedFieldsAreEqual(expectedElem, actualElem) {
 					return false
 				}
 			}
@@ -116,11 +115,23 @@ func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 		return true
 
 	case reflect.Interface, reflect.Ptr:
-		if expectedValue.IsNil() || actualValue.IsNil() {
-			return ObjectsAreEqualValues(expectedValue.Interface(), actualValue.Interface())
-		} else {
-			return ObjectsExportedFieldsAreEqual(expectedValue.Elem().Interface(), actualValue.Elem().Interface())
+		expectedElem := expectedValue.Elem().Interface()
+		actualElem := actualValue.Elem().Interface()
+		return ObjectsExportedFieldsAreEqual(expectedElem, actualElem)
+
+	case reflect.Array, reflect.Slice:
+		expectedLen := expectedValue.Len()
+		if expectedLen != actualValue.Len() {
+			return false
 		}
+		for i := 0; i < expectedLen; i++ {
+			expectedElem := expectedValue.Index(i).Elem().Interface()
+			actualElem := actualValue.Index(i).Elem().Interface()
+			if !ObjectsExportedFieldsAreEqual(expectedElem, actualElem) {
+				return false
+			}
+		}
+		return true
 
 	default:
 		return ObjectsAreEqualValues(expectedValue.Interface(), actualValue.Interface())
