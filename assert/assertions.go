@@ -75,46 +75,65 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	return bytes.Equal(exp, act)
 }
 
+// copyExportedFields iterates downward through nested data structures and creates a copy
+// that only contains the exported struct fields.
+func copyExportedFields(expected interface{}) interface{} {
+	if isNil(expected) {
+		return expected
+	}
+
+	expectedType := reflect.TypeOf(expected)
+	expectedKind := expectedType.Kind()
+	expectedValue := reflect.ValueOf(expected)
+
+	switch expectedKind {
+	case reflect.Struct:
+		result := reflect.New(expectedType).Elem()
+		for i := 0; i < expectedType.NumField(); i++ {
+			field := expectedType.Field(i)
+			isExported := field.PkgPath == "" // should use field.IsExported() but it's not available in Go 1.16.5
+			if isExported {
+				fieldValue := expectedValue.Field(i)
+				if isNil(fieldValue) || isNil(fieldValue.Interface()) {
+					continue
+				}
+				newValue := copyExportedFields(fieldValue.Interface())
+				result.Field(i).Set(reflect.ValueOf(newValue))
+			}
+		}
+		return result.Interface()
+
+	case reflect.Ptr:
+		result := reflect.New(expectedType.Elem())
+		unexportedRemoved := copyExportedFields(expectedValue.Elem().Interface())
+		result.Elem().Set(reflect.ValueOf(unexportedRemoved))
+		return result.Interface()
+
+	case reflect.Array, reflect.Slice:
+		result := reflect.MakeSlice(expectedType, expectedValue.Len(), expectedValue.Len())
+		for i := 0; i < expectedValue.Len(); i++ {
+			index := expectedValue.Index(i)
+			if isNil(index) {
+				continue
+			}
+			unexportedRemoved := copyExportedFields(index.Interface())
+			result.Index(i).Set(reflect.ValueOf(unexportedRemoved))
+		}
+		return result.Interface()
+
+	default:
+		return expected
+	}
+}
+
 // ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two structs are considered equal.
 // If the two objects are not of the same type, or if either of them are not a struct, they are not considered equal.
 //
 // This function does no assertion of any kind.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
-	if expected == nil || actual == nil {
-		return expected == actual
-	}
-
-	expectedType := reflect.TypeOf(expected)
-	actualType := reflect.TypeOf(actual)
-
-	if expectedType != actualType {
-		return false
-	}
-
-	if expectedType.Kind() != reflect.Struct || actualType.Kind() != reflect.Struct {
-		return false
-	}
-
-	expectedValue := reflect.ValueOf(expected)
-	actualValue := reflect.ValueOf(actual)
-
-	for i := 0; i < expectedType.NumField(); i++ {
-		field := expectedType.Field(i)
-		isExported := field.PkgPath == "" // should use field.IsExported() but it's not available in Go 1.16.5
-		if isExported {
-			var equal bool
-			if field.Type.Kind() == reflect.Struct {
-				equal = ObjectsExportedFieldsAreEqual(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
-			} else {
-				equal = ObjectsAreEqualValues(expectedValue.Field(i).Interface(), actualValue.Field(i).Interface())
-			}
-
-			if !equal {
-				return false
-			}
-		}
-	}
-	return true
+	expectedCleaned := copyExportedFields(expected)
+	actualCleaned := copyExportedFields(actual)
+	return ObjectsAreEqualValues(expectedCleaned, actualCleaned)
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
@@ -544,6 +563,9 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 	if bType.Kind() != reflect.Struct {
 		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
 	}
+
+	expected = copyExportedFields(expected)
+	actual = copyExportedFields(actual)
 
 	if !ObjectsExportedFieldsAreEqual(expected, actual) {
 		diff := diff(expected, actual)
