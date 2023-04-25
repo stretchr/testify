@@ -1847,6 +1847,41 @@ func Test_MockReturnAndCalledConcurrent(t *testing.T) {
 	wg.Wait()
 }
 
+// Test to validate fix for racy concurrent value access in MethodCalled()
+func Test_MockRunAndCalledConcurrent(t *testing.T) {
+	type argType struct {
+		Value int
+	}
+
+	arg := argType{}
+
+	iterations := 1000
+	m := &Mock{}
+	call := m.On("ConcurrencyTestMethod", Anything)
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		for i := 0; i < iterations; i++ {
+			call.Run(func(args Arguments) {
+				u := args.Get(2).(*argType)
+				// u.mu.Lock()
+				u.Value = 2
+				// u.mu.Unlock()
+			})
+		}
+		wg.Done()
+	}()
+	go func() {
+		for i := 0; i < iterations; i++ {
+			m.Called(arg)
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+}
+
 type timer struct{ Mock }
 
 func (s *timer) GetTime(i int) string {
