@@ -126,7 +126,7 @@ func copyExportedFields(expected interface{}) interface{} {
 	}
 }
 
-// ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two structs are considered equal.
+// ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two structs are considered equal. This comparison of only exported fields is applied recursively to nested structs.
 // If the two objects are not of the same type, or if either of them are not a struct, they are not considered equal.
 //
 // This function does no assertion of any kind.
