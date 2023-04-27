@@ -567,7 +567,7 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 	expected = copyExportedFields(expected)
 	actual = copyExportedFields(actual)
 
-	if !ObjectsExportedFieldsAreEqual(expected, actual) {
+	if !ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal (comparing only exported fields): \n"+
