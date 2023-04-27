@@ -201,20 +201,6 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 
 		})
 	}
-
-	t.Run("recursion", func(t *testing.T) {
-		type R struct {
-			Recurse *R
-		}
-
-		r := R{}
-		r.Recurse = &r
-
-		res := ObjectsExportedFieldsAreEqual(r, r)
-		if res != true {
-			t.Errorf("ObjectsExportedFieldsAreEqual(%#v, %#v) should return %#v", r, r, true)
-		}
-	})
 }
 
 func TestImplements(t *testing.T) {

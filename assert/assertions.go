@@ -77,7 +77,8 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 
 // ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two structs are considered equal.
 // If the two objects are not of the same type, or if either of them are not a struct, they are not considered equal.
-// If the structs happen to be time.Time, then they're compared using time.Time.Equal.
+// If the structs happen to be time.Time, then they're compared using time.Time.Equal. Recursive data structures are not
+// supported.
 //
 // This function does no assertion of any kind.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
@@ -549,6 +550,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 // EqualExportedValues asserts that the types of two objects are equal and their public
 // fields are also equal. This is useful for comparing structs that have private fields
 // that could potentially differ. Types of time.Time are compared using time.Time.Equal.
+// Recursive data structures are not supported and may result in an infinite loop.
 //
 //	 type S struct {
 //		Exported     	int

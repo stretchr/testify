@@ -93,6 +93,7 @@ func EqualErrorf(t TestingT, theError error, errString string, msg string, args 
 // EqualExportedValuesf asserts that the types of two objects are equal and their public
 // fields are also equal. This is useful for comparing structs that have private fields
 // that could potentially differ. Types of time.Time are compared using time.Time.Equal.
+// Recursive data structures are not supported and may result in an infinite loop.
 //
 // 	 type S struct {
 // 		Exported     	int
