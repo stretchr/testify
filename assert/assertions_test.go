@@ -219,6 +219,32 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{Nested{&intValue, 2}, Nested{&intValue, 2}, true},
 		{Nested{&Nested{1, 2}, 3}, Nested{&Nested{1, "b"}, 3}, true},
 		{Nested{&Nested{1, 2}, 3}, Nested{nil, 3}, false},
+
+		{
+			Nested{map[interface{}]*Nested{nil: nil}, 2},
+			Nested{map[interface{}]*Nested{nil: nil}, 2},
+			true,
+		},
+		{
+			Nested{map[interface{}]*Nested{"a": nil}, 2},
+			Nested{map[interface{}]*Nested{"a": nil}, 2},
+			true,
+		},
+		{
+			Nested{map[interface{}]*Nested{"a": nil}, 2},
+			Nested{map[interface{}]*Nested{"a": {1, 2}}, 2},
+			false,
+		},
+		{
+			Nested{map[interface{}]Nested{"a": {1, 2}, "b": {3, 4}}, 2},
+			Nested{map[interface{}]Nested{"a": {1, 5}, "b": {3, 7}}, 2},
+			true,
+		},
+		{
+			Nested{map[interface{}]Nested{"a": {1, 2}, "b": {3, 4}}, 2},
+			Nested{map[interface{}]Nested{"a": {2, 2}, "b": {3, 4}}, 2},
+			false,
+		},
 	}
 
 	for _, c := range cases {

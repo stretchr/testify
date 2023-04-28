@@ -121,6 +121,15 @@ func copyExportedFields(expected interface{}) interface{} {
 		}
 		return result.Interface()
 
+	case reflect.Map:
+		result := reflect.MakeMap(expectedType)
+		for _, k := range expectedValue.MapKeys() {
+			index := expectedValue.MapIndex(k)
+			unexportedRemoved := copyExportedFields(index.Interface())
+			result.SetMapIndex(k, reflect.ValueOf(unexportedRemoved))
+		}
+		return result.Interface()
+
 	default:
 		return expected
 	}
@@ -128,7 +137,7 @@ func copyExportedFields(expected interface{}) interface{} {
 
 // ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two objects are
 // considered equal. This comparison of only exported fields is applied recursively to nested data
-// structures (excluding maps).
+// structures.
 //
 // This function does no assertion of any kind.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
