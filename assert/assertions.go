@@ -877,10 +877,10 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 
 	ok, found := containsElement(s, contains)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", s), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%#v could not be applied builtin len()", s), msgAndArgs...)
 	}
 	if found {
-		return Fail(t, fmt.Sprintf("\"%s\" should not contain \"%s\"", s, contains), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%#v should not contain %#v", s, contains), msgAndArgs...)
 	}
 
 	return true
