@@ -488,6 +488,25 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	})
 }
 
+func Test_Mock_On_WithFuncTypeTArg(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethodFuncType", AnythingOfTypeT[ExampleFuncType]()).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, 1, len(c.Arguments))
+	assert.Equal(t, AnythingOfTypeT[ExampleFuncType](), c.Arguments[0])
+
+	fn := func(string) error { return nil }
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodFuncType(fn)
+	})
+}	
+
 func Test_Mock_Unset(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)

@@ -763,6 +763,17 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 	return AnythingOfTypeArgument(t)
 }
 
+// AnythingOfTypeT wraps around AnythingOfType. It infers the string for the type T
+// and returns an AnythingOfTypeArgument object containing the
+// name of the type to check for.
+//
+// Example:
+//  Assert(t, AnythingOfTypeT[string](), AnythingOfTypeT[int]())
+func AnythingOfTypeT[T any]() AnythingOfTypeArgument {
+	var t T
+	return AnythingOfType(reflect.TypeOf(t).String())
+}
+
 // IsTypeArgument is a struct that contains the type of an argument
 // for use when type checking.  This is an alternative to AnythingOfType.
 // Used in Diff and Assert.
