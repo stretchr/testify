@@ -391,12 +391,12 @@ func TestLenWrapper(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
-	assert.False(mockAssert.Len(nil, 0), "nil does not have length")
+	assert.False(mockAssert.Len(0, nil), "nil does not have length")
 	assert.False(mockAssert.Len(0, 0), "int does not have length")
-	assert.False(mockAssert.Len(true, 0), "true does not have length")
-	assert.False(mockAssert.Len(false, 0), "false does not have length")
+	assert.False(mockAssert.Len(0, true), "true does not have length")
+	assert.False(mockAssert.Len(0, false), "false does not have length")
 	assert.False(mockAssert.Len('A', 0), "Rune does not have length")
-	assert.False(mockAssert.Len(struct{}{}, 0), "Struct does not have length")
+	assert.False(mockAssert.Len(0, struct{}{}), "Struct does not have length")
 
 	ch := make(chan int, 5)
 	ch <- 1
@@ -423,7 +423,7 @@ func TestLenWrapper(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		assert.True(mockAssert.Len(c.v, c.l), "%#v have %d items", c.v, c.l)
+		assert.True(mockAssert.Len(c.l, c.v), "%#v have %d items", c.v, c.l)
 	}
 }
 
