@@ -1827,6 +1827,89 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	}
 }
 
+// CollectT implements the TestingT interface and collects all errors.
+type CollectT struct {
+	errors []error
+}
+
+// Errorf collects the error.
+func (c *CollectT) Errorf(format string, args ...interface{}) {
+	c.errors = append(c.errors, fmt.Errorf(format, args...))
+}
+
+// FailNow panics.
+func (c *CollectT) FailNow() {
+	panic("Assertion failed")
+}
+
+// Reset clears the collected errors.
+func (c *CollectT) Reset() {
+	c.errors = nil
+}
+
+// Copy copies the collected errors to the supplied t.
+func (c *CollectT) Copy(t TestingT) {
+	if tt, ok := t.(tHelper); ok {
+		tt.Helper()
+	}
+	for _, err := range c.errors {
+		t.Errorf("%v", err)
+	}
+}
+
+// EventuallyWithT asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick. In contrast to Eventually,
+// it supplies a CollectT to the condition function, so that the condition
+// function can use the CollectT to call other assertions.
+// The condition is considered "met" if no errors are raised in a tick.
+// The supplied CollectT collects all errors from one tick (if there are any).
+// If the condition is not met before waitFor, the collected errors of
+// the last tick are copied to t.
+//
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
+func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	collect := new(CollectT)
+	ch := make(chan bool, 1)
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
+
+	ticker := time.NewTicker(tick)
+	defer ticker.Stop()
+
+	for tick := ticker.C; ; {
+		select {
+		case <-timer.C:
+			collect.Copy(t)
+			return Fail(t, "Condition never satisfied", msgAndArgs...)
+		case <-tick:
+			tick = nil
+			collect.Reset()
+			go func() {
+				condition(collect)
+				ch <- len(collect.errors) == 0
+			}()
+		case v := <-ch:
+			if v {
+				return true
+			}
+			tick = ticker.C
+		}
+	}
+}
+
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
