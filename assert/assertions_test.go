@@ -190,7 +190,7 @@ type S6 struct {
 	unexported string
 }
 
-func TestObjectsExportedFieldsAreEqual(t *testing.T) {
+func TestEqualExportedValues(t *testing.T) {
 
 	intValue := 1
 
@@ -225,6 +225,8 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{Nested{&intValue, 2}, Nested{&intValue, 2}, true},
 		{Nested{&Nested{1, 2}, 3}, Nested{&Nested{1, "b"}, 3}, true},
 		{Nested{&Nested{1, 2}, 3}, Nested{nil, 3}, false},
+		{&Nested{1, 2}, &Nested{1, "b"}, true},
+		{&Nested{1, 2}, &Nested{"a", 2}, false},
 
 		{
 			Nested{map[interface{}]*Nested{nil: nil}, 2},
@@ -254,11 +256,12 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		t.Run(fmt.Sprintf("ObjectsExportedFieldsAreEqual(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
-			res := ObjectsExportedFieldsAreEqual(c.expected, c.actual)
+		t.Run(fmt.Sprintf("EqualExportedValues(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			mockT := new(testing.T)
+			res := EqualExportedValues(mockT, c.expected, c.actual)
 
 			if res != c.result {
-				t.Errorf("ObjectsExportedFieldsAreEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+				t.Errorf("EqualExportedValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 			}
 
 		})
@@ -348,7 +351,7 @@ func TestCopyExportedFields(t *testing.T) {
 	}
 }
 
-func TestEqualExportedValues(t *testing.T) {
+func TestEqualExportedValuesDiffs(t *testing.T) {
 	cases := []struct {
 		value1        interface{}
 		value2        interface{}
