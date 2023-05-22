@@ -449,6 +449,22 @@ func TestImplements(t *testing.T) {
 
 }
 
+func TestNotImplements(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
+		t.Error("NotImplements method should return true: AssertionTesterNonConformingObject does not implement AssertionTesterInterface")
+	}
+	if NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
+		t.Error("NotImplements method should return false: AssertionTesterConformingObject implements AssertionTesterInterface")
+	}
+	if NotImplements(mockT, (*AssertionTesterInterface)(nil), nil) {
+		t.Error("NotImplements method should return false: nil can't be checked to be implementing AssertionTesterInterface or not")
+	}
+
+}
+
 func TestIsType(t *testing.T) {
 
 	mockT := new(testing.T)

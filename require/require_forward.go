@@ -1219,6 +1219,26 @@ func (a *Assertions) NotErrorIsf(err error, target error, msg string, args ...in
 	NotErrorIsf(a.t, err, target, msg, args...)
 }
 
+// NotImplements asserts that an object does not implement the specified interface.
+//
+//	a.NotImplements((*MyInterface)(nil), new(MyObject))
+func (a *Assertions) NotImplements(interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotImplements(a.t, interfaceObject, object, msgAndArgs...)
+}
+
+// NotImplementsf asserts that an object does not implement the specified interface.
+//
+//	a.NotImplementsf((*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
+func (a *Assertions) NotImplementsf(interfaceObject interface{}, object interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotImplementsf(a.t, interfaceObject, object, msg, args...)
+}
+
 // NotNil asserts that the specified object is not nil.
 //
 //	a.NotNil(err)
