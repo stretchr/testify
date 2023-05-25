@@ -1624,9 +1624,7 @@ func TestIsArgsEqual(t *testing.T) {
 	assert.False(t, isArgsEqual(expected, args))
 
 	var arr = make([]interface{}, 6)
-	for i := 0; i < len(expected); i++ {
-		arr[i] = expected[i]
-	}
+	copy(arr, expected)
 	assert.True(t, isArgsEqual(expected, arr))
 }
 
@@ -1939,20 +1937,20 @@ func TestLoggingAssertExpectations(t *testing.T) {
 	AssertExpectationsForObjects(tcl, m, new(TestExampleImplementation))
 
 	require.Equal(t, 1, len(tcl.errs))
-	assert.Regexp(t, regexp.MustCompile("(?s)FAIL: 0 out of 1 expectation\\(s\\) were met.*The code you are testing needs to make 1 more call\\(s\\).*"), tcl.errs[0])
+	assert.Regexp(t, regexp.MustCompile(`(?s)FAIL: 0 out of 1 expectation\(s\) were met.*The code you are testing needs to make 1 more call\(s\).*`), tcl.errs[0])
 	require.Equal(t, 2, len(tcl.logs))
-	assert.Regexp(t, regexp.MustCompile("(?s)FAIL:\tGetTime\\(int\\).*"), tcl.logs[0])
+	assert.Regexp(t, regexp.MustCompile(`(?s)FAIL:\tGetTime\(int\).*`), tcl.logs[0])
 	require.Equal(t, "Expectations didn't match for Mock: *mock.timer", tcl.logs[1])
 }
 
 func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 	waitDuration := 1
-	total, waitMs := 5, time.Millisecond*time.Duration(waitDuration)
+	total, wait := 5, time.Millisecond*time.Duration(waitDuration)
 	aTimer := new(timer)
 	for i := 0; i < total; i++ {
-		aTimer.On("GetTime", i).After(waitMs).Return(fmt.Sprintf("Time%d", i)).Once()
+		aTimer.On("GetTime", i).After(wait).Return(fmt.Sprintf("Time%d", i)).Once()
 	}
-	time.Sleep(waitMs)
+	time.Sleep(wait)
 	start := time.Now()
 	var results []string
 
@@ -1962,7 +1960,7 @@ func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 
 	end := time.Now()
 	elapsedTime := end.Sub(start)
-	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be atleast greater than %v", elapsedTime, waitMs))
+	assert.True(t, elapsedTime > wait, fmt.Sprintf("Total elapsed time:%v should be atleast greater than %v", elapsedTime, wait))
 	assert.Equal(t, total, len(results))
 	for i := range results {
 		assert.Equal(t, fmt.Sprintf("Time%d", i), results[i], "Return value of method should be same")
