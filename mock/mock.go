@@ -111,7 +111,7 @@ func (c *Call) Return(returnArguments ...interface{}) *Call {
 	return c
 }
 
-// Panic specifies if the functon call should fail and the panic message
+// Panic specifies if the function call should fail and the panic message
 //
 //	Mock.On("DoSomething").Panic("test panic")
 func (c *Call) Panic(msg string) *Call {
@@ -123,21 +123,21 @@ func (c *Call) Panic(msg string) *Call {
 	return c
 }
 
-// Once indicates that that the mock should only return the value once.
+// Once indicates that the mock should only return the value once.
 //
 //	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Once()
 func (c *Call) Once() *Call {
 	return c.Times(1)
 }
 
-// Twice indicates that that the mock should only return the value twice.
+// Twice indicates that the mock should only return the value twice.
 //
 //	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Twice()
 func (c *Call) Twice() *Call {
 	return c.Times(2)
 }
 
-// Times indicates that that the mock should only return the indicated number
+// Times indicates that the mock should only return the indicated number
 // of times.
 //
 //	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
@@ -474,7 +474,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	found, call := m.findExpectedCall(methodName, arguments...)
 
 	if found < 0 {
-		// expected call found but it has already been called with repeatable times
+		// expected call found, but it has already been called with repeatable times
 		if call != nil {
 			m.mutex.Unlock()
 			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
@@ -563,7 +563,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	Assertions
 */
 
-type assertExpectationser interface {
+type assertExpectationiser interface {
 	AssertExpectations(TestingT) bool
 }
 
@@ -580,7 +580,7 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 			t.Logf("Deprecated mock.AssertExpectationsForObjects(myMock.Mock) use mock.AssertExpectationsForObjects(myMock)")
 			obj = m
 		}
-		m := obj.(assertExpectationser)
+		m := obj.(assertExpectationiser)
 		if !m.AssertExpectations(t) {
 			t.Logf("Expectations didn't match for Mock: %+v", reflect.TypeOf(m))
 			return false
