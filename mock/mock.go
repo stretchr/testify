@@ -360,7 +360,9 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
 	var expectedCall *Call
 
-	for i, call := range m.ExpectedCalls {
+	for i := range m.ExpectedCalls {
+		i := len(m.ExpectedCalls) - i - 1 // iterate backwards
+		call := m.ExpectedCalls[i]
 		if call.Method == method {
 			_, diffCount := call.Arguments.Diff(arguments)
 			if diffCount == 0 {
@@ -405,7 +407,9 @@ func (c matchCandidate) isBetterMatchThan(other matchCandidate) bool {
 func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
 	var bestMatch matchCandidate
 
-	for _, call := range m.expectedCalls() {
+	for i := range m.expectedCalls() {
+		i := len(m.ExpectedCalls) - i - 1 // iterate backwards
+		call := m.ExpectedCalls[i]
 		if call.Method == method {
 
 			errInfo, tempDiffCount := call.Arguments.Diff(arguments)
