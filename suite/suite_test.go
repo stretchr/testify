@@ -162,6 +162,9 @@ type SuiteTester struct {
 	SetupSubTestRunCount    int
 	TearDownSubTestRunCount int
 
+	SetupSubTestNames    []string
+	TearDownSubTestNames []string
+
 	SuiteNameBefore []string
 	TestNameBefore  []string
 
@@ -170,6 +173,8 @@ type SuiteTester struct {
 
 	TimeBefore []time.Time
 	TimeAfter  []time.Time
+
+	SuiteT *testing.T
 }
 
 // The SetupSuite method will be run by testify once, at the very
@@ -245,23 +250,25 @@ func (suite *SuiteTester) TestSubtest() {
 		{"first"},
 		{"second"},
 	} {
-		suiteT := suite.T()
+		suite.SuiteT = suite.T()
 		suite.Run(t.testName, func() {
 			// We should get a different *testing.T for subtests, so that
 			// go test recognizes them as proper subtests for output formatting
 			// and running individual subtests
 			subTestT := suite.T()
-			suite.NotEqual(subTestT, suiteT)
+			suite.NotEqual(subTestT, suite.SuiteT)
 		})
-		suite.Equal(suiteT, suite.T())
+		suite.Equal(suite.SuiteT, suite.T())
 	}
 }
 
 func (suite *SuiteTester) TearDownSubTest() {
+	suite.TearDownSubTestNames = append(suite.TearDownSubTestNames, suite.T().Name())
 	suite.TearDownSubTestRunCount++
 }
 
 func (suite *SuiteTester) SetupSubTest() {
+	suite.SetupSubTestNames = append(suite.SetupSubTestNames, suite.T().Name())
 	suite.SetupSubTestRunCount++
 }
 
@@ -318,6 +325,12 @@ func TestRunSuite(t *testing.T) {
 	assert.Contains(t, suiteTester.TestNameBefore, "TestTwo")
 	assert.Contains(t, suiteTester.TestNameBefore, "TestSkip")
 	assert.Contains(t, suiteTester.TestNameBefore, "TestSubtest")
+
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuite/TestSubtest/first")
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuite/TestSubtest/second")
+
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuite/TestSubtest/first")
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuite/TestSubtest/second")
 
 	for _, suiteName := range suiteTester.SuiteNameAfter {
 		assert.Equal(t, "SuiteTester", suiteName)
