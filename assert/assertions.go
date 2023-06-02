@@ -1873,23 +1873,18 @@ func (c *CollectT) Errorf(format string, args ...interface{}) {
 }
 
 // FailNow panics.
-func (c *CollectT) FailNow() {
+func (*CollectT) FailNow() {
 	panic("Assertion failed")
 }
 
-// Reset clears the collected errors.
-func (c *CollectT) Reset() {
-	c.errors = nil
+// Deprecated: That was a method for internal usage that should not have been published. Now just panics.
+func (*CollectT) Reset() {
+	panic("Reset() is deprecated")
 }
 
-// Copy copies the collected errors to the supplied t.
-func (c *CollectT) Copy(t TestingT) {
-	if tt, ok := t.(tHelper); ok {
-		tt.Helper()
-	}
-	for _, err := range c.errors {
-		t.Errorf("%v", err)
-	}
+// Deprecated: That was a method for internal usage that should not have been published. Now just panics.
+func (*CollectT) Copy(TestingT) {
+	panic("Copy() is deprecated")
 }
 
 // EventuallyWithT asserts that given condition will be met in waitFor time,
@@ -1915,8 +1910,8 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		h.Helper()
 	}
 
-	collect := new(CollectT)
-	ch := make(chan bool, 1)
+	var lastFinishedTickErrs []error
+	ch := make(chan []error, 1)
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -1927,19 +1922,23 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			collect.Copy(t)
+			for _, err := range lastFinishedTickErrs {
+				t.Errorf("%v", err)
+			}
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
 		case <-tick:
 			tick = nil
-			collect.Reset()
 			go func() {
+				collect := new(CollectT)
 				condition(collect)
-				ch <- len(collect.errors) == 0
+				ch <- collect.errors
 			}()
-		case v := <-ch:
-			if v {
+		case errs := <-ch:
+			if len(errs) == 0 {
 				return true
 			}
+			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
+			lastFinishedTickErrs = errs
 			tick = ticker.C
 		}
 	}
