@@ -3,6 +3,7 @@ package assert
 import (
 	"bufio"
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -2146,6 +2147,46 @@ func TestNoDirExists(t *testing.T) {
 	if len(errs) > 0 {
 		t.Fatal("could not clean up temporary files")
 	}
+}
+
+func TestBytesEqualFile(t *testing.T) {
+	mockT := new(testing.T)
+
+	tmpFile, err := os.CreateTemp(t.TempDir(), "bytes_equal_file")
+	if err != nil {
+		t.Fatal("could not create temp file, err:", err)
+	}
+	_, err = tmpFile.Write([]byte("foo"))
+	if err != nil {
+		t.Fatal("could not write to temp file, err:", err)
+	}
+
+	True(t, BytesEqualFile(mockT, tmpFile.Name(), []byte("foo")))
+	False(t, BytesEqualFile(mockT, tmpFile.Name(), []byte("bar")))
+}
+
+func TestBytesEqualFileFast(t *testing.T) {
+	mockT := new(testing.T)
+
+	tmpFile, err := os.CreateTemp(t.TempDir(), "bytes_equal_file")
+	if err != nil {
+		t.Fatal("could not create temp file, err:", err)
+	}
+
+	// Generate 8kB of random data to exceed the buffer size of 4kB in BytesEqualFileFast.
+	expectedContent := make([]byte, 8*1024)
+	_, err = rand.Read(expectedContent)
+	if err != nil {
+		t.Fatal("could not generate random data, err:", err)
+	}
+
+	_, err = tmpFile.Write(expectedContent)
+	if err != nil {
+		t.Fatal("could not write to temp file, err:", err)
+	}
+
+	True(t, BytesEqualFileFast(mockT, tmpFile.Name(), expectedContent))
+	False(t, BytesEqualFileFast(mockT, tmpFile.Name(), expectedContent[:3*1024]))
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {

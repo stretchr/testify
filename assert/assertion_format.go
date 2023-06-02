@@ -11,6 +11,25 @@ import (
 	time "time"
 )
 
+// BytesEqualFilef asserts that the contents of a file are equal to the contents of a byte slice reading the whole file
+// into memory and displaying a complete diff if they are not equal.
+func BytesEqualFilef(t TestingT, expectedFilePath string, actualBytes []byte, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return BytesEqualFile(t, expectedFilePath, actualBytes, append([]interface{}{msg}, args...)...)
+}
+
+// BytesEqualFileFastf asserts that the contents of a file are equal to the contents of a byte slice not reading the
+// whole file into memory. It won't display a complete diff if they are not equal as it fail as soon as it finds a
+// difference.
+func BytesEqualFileFastf(t TestingT, expectedFilePath string, actualBytes []byte, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return BytesEqualFileFast(t, expectedFilePath, actualBytes, append([]interface{}{msg}, args...)...)
+}
+
 // Conditionf uses a Comparison to assert a complex condition.
 func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {

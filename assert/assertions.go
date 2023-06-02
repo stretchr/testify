@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"reflect"
@@ -1702,6 +1703,64 @@ func NoDirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 		return true
 	}
 	return Fail(t, fmt.Sprintf("directory %q exists", path), msgAndArgs...)
+}
+
+// BytesEqualFile asserts that the contents of a file are equal to the contents of a byte slice reading the whole file
+// into memory and displaying a complete diff if they are not equal.
+func BytesEqualFile(t TestingT, expectedFilePath string, actualBytes []byte, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if !FileExists(t, expectedFilePath) {
+		return Fail(t, fmt.Sprintf("The expected file %q does not exist", expectedFilePath), msgAndArgs...)
+	}
+	expected, err := os.ReadFile(expectedFilePath)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("Error reading the expected file %q: %s", expectedFilePath, err), msgAndArgs...)
+	}
+	if !Equal(t, expected, actualBytes) {
+		return Fail(t, fmt.Sprintf("The contents of file %q are not equal to the expected contents", expectedFilePath), msgAndArgs...)
+	}
+	return true
+}
+
+// BytesEqualFileFast asserts that the contents of a file are equal to the contents of a byte slice not reading the
+// whole file into memory. It won't display a complete diff if they are not equal as it fail as soon as it finds a
+// difference.
+func BytesEqualFileFast(t TestingT, expectedFilePath string, actualBytes []byte, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if !FileExists(t, expectedFilePath) {
+		return Fail(t, fmt.Sprintf("The expected file %q does not exist", expectedFilePath), msgAndArgs...)
+	}
+	expectedFile, err := os.Open(expectedFilePath)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("Error opening the expected file %q: %s", expectedFilePath, err), msgAndArgs...)
+	}
+	defer expectedFile.Close()
+
+	actualBytesReader := bytes.NewReader(actualBytes)
+	const chunkSize = 4096
+	expectedChunk := make([]byte, chunkSize)
+	actualChunk := make([]byte, chunkSize)
+	for {
+		expectedBytesRead, err := expectedFile.Read(expectedChunk)
+		if err != nil && err != io.EOF {
+			return Fail(t, fmt.Sprintf("Error reading the expected file %q: %s", expectedFilePath, err), msgAndArgs...)
+		}
+		actualBytesRead, err := actualBytesReader.Read(actualChunk)
+		if err != nil && err != io.EOF {
+			return Fail(t, fmt.Sprintf("Error reading the actual bytes: %s", err), msgAndArgs...)
+		}
+		if expectedBytesRead != actualBytesRead || !bytes.Equal(expectedChunk[:expectedBytesRead], actualChunk[:actualBytesRead]) {
+			return Fail(t, fmt.Sprintf("The contents of file %q are not equal to the expected contents", expectedFilePath), msgAndArgs...)
+		}
+		if err == io.EOF {
+			break
+		}
+	}
+	return true
 }
 
 // JSONEq asserts that two JSON strings are equivalent.

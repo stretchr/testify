@@ -12,6 +12,44 @@ import (
 	time "time"
 )
 
+// BytesEqualFile asserts that the contents of a file are equal to the contents of a byte slice reading the whole file
+// into memory and displaying a complete diff if they are not equal.
+func (a *Assertions) BytesEqualFile(expectedFilePath string, actualBytes []byte, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	BytesEqualFile(a.t, expectedFilePath, actualBytes, msgAndArgs...)
+}
+
+// BytesEqualFileFast asserts that the contents of a file are equal to the contents of a byte slice not reading the
+// whole file into memory. It won't display a complete diff if they are not equal as it fail as soon as it finds a
+// difference.
+func (a *Assertions) BytesEqualFileFast(expectedFilePath string, actualBytes []byte, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	BytesEqualFileFast(a.t, expectedFilePath, actualBytes, msgAndArgs...)
+}
+
+// BytesEqualFileFastf asserts that the contents of a file are equal to the contents of a byte slice not reading the
+// whole file into memory. It won't display a complete diff if they are not equal as it fail as soon as it finds a
+// difference.
+func (a *Assertions) BytesEqualFileFastf(expectedFilePath string, actualBytes []byte, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	BytesEqualFileFastf(a.t, expectedFilePath, actualBytes, msg, args...)
+}
+
+// BytesEqualFilef asserts that the contents of a file are equal to the contents of a byte slice reading the whole file
+// into memory and displaying a complete diff if they are not equal.
+func (a *Assertions) BytesEqualFilef(expectedFilePath string, actualBytes []byte, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	BytesEqualFilef(a.t, expectedFilePath, actualBytes, msg, args...)
+}
+
 // Condition uses a Comparison to assert a complex condition.
 func (a *Assertions) Condition(comp assert.Comparison, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {

@@ -12,6 +12,56 @@ import (
 	time "time"
 )
 
+// BytesEqualFile asserts that the contents of a file are equal to the contents of a byte slice reading the whole file
+// into memory and displaying a complete diff if they are not equal.
+func BytesEqualFile(t TestingT, expectedFilePath string, actualBytes []byte, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.BytesEqualFile(t, expectedFilePath, actualBytes, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// BytesEqualFileFast asserts that the contents of a file are equal to the contents of a byte slice not reading the
+// whole file into memory. It won't display a complete diff if they are not equal as it fail as soon as it finds a
+// difference.
+func BytesEqualFileFast(t TestingT, expectedFilePath string, actualBytes []byte, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.BytesEqualFileFast(t, expectedFilePath, actualBytes, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// BytesEqualFileFastf asserts that the contents of a file are equal to the contents of a byte slice not reading the
+// whole file into memory. It won't display a complete diff if they are not equal as it fail as soon as it finds a
+// difference.
+func BytesEqualFileFastf(t TestingT, expectedFilePath string, actualBytes []byte, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.BytesEqualFileFastf(t, expectedFilePath, actualBytes, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// BytesEqualFilef asserts that the contents of a file are equal to the contents of a byte slice reading the whole file
+// into memory and displaying a complete diff if they are not equal.
+func BytesEqualFilef(t TestingT, expectedFilePath string, actualBytes []byte, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.BytesEqualFilef(t, expectedFilePath, actualBytes, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp assert.Comparison, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
