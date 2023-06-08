@@ -1345,7 +1345,15 @@ func PanicsWithError(t TestingT, errString string, f PanicTestFunc, msgAndArgs .
 	}
 	panicErr, ok := panicValue.(error)
 	if !ok || panicErr.Error() != errString {
-		return Fail(t, fmt.Sprintf("func %#v should panic with error message:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, errString, panicValue, panickedStack), msgAndArgs...)
+		errorMsg := ""
+		if ok {
+			errorMsg = fmt.Sprintf("\tError message:\t%#v\n", panicErr.Error())
+		}
+		msg := fmt.Sprintf(
+			"func %#v should panic with error message:\t%#v\n\tPanic value:\t%#v\n%s\tPanic stack:\t%s",
+			f, errString, panicValue, errorMsg, panickedStack,
+		)
+		return Fail(t, msg, msgAndArgs...)
 	}
 
 	return true
