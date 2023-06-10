@@ -1739,6 +1739,28 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument(t *testing.T) {
 
 }
 
+func Test_Arguments_Diff_WithAnythingOfTypeArgument_MapInterface(t *testing.T) {
+
+	var args = Arguments([]interface{}{AnythingOfType("*map[string]interface{}")})
+	var count int
+	param := make(map[string]interface{})
+	_, count = args.Diff([]interface{}{&param})
+
+	assert.Equal(t, 0, count)
+
+}
+
+func Test_Arguments_Diff_WithAnythingOfTypeArgument_MapStruct(t *testing.T) {
+
+	var args = Arguments([]interface{}{AnythingOfType("*map[string]struct{}")})
+	var count int
+	param := make(map[string]struct{})
+	_, count = args.Diff([]interface{}{&param})
+
+	assert.Equal(t, 0, count)
+
+}
+
 func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 
 	var args = Arguments([]interface{}{"string", AnythingOfType("string"), true})

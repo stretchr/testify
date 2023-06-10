@@ -967,7 +967,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			switch expected := expected.(type) {
 			case anythingOfTypeArgument:
 				// type checking
-				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
+				if reflect.TypeOf(actual).Name() != string(expected) && strings.ReplaceAll(reflect.TypeOf(actual).String(), " ", "") != strings.ReplaceAll(string(expected), " ", "") {
 					// not match
 					differences++
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
