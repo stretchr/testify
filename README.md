@@ -104,6 +104,8 @@ func TestSomething(t *testing.T) {
 ---------------------------------------------------------------------------------------------
 
 The `require` package provides same global functions as the `assert` package, but instead of returning a boolean result they terminate current test.
+These functions must be called from the goroutine running the test or benchmark function, not from other goroutines created during the test.
+Otherwise race conditions may occur.
 
 See [t.FailNow](http://golang.org/pkg/testing/#T.FailNow) for details.
 
