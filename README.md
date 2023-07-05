@@ -16,14 +16,14 @@ Features include:
 Get started:
 
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
-  * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
-  * Check out the API Documentation http://godoc.org/github.com/stretchr/testify
-  * To make your testing life easier, check out our other project, [gorc](http://github.com/stretchr/gorc)
-  * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
+  * For an introduction to writing test code in Go, see https://go.dev/doc/code#Testing
+  * Check out the API Documentation https://pkg.go.dev/github.com/stretchr/testify
+  * To make your testing life easier, check out our other project, [gorc](https://github.com/stretchr/gorc)
+  * A little about [Test-Driven Development (TDD)](https://en.wikipedia.org/wiki/Test-driven_development)
 
 
 
-[`assert`](http://godoc.org/github.com/stretchr/testify/assert "API documentation") package
+[`assert`](https://pkg.go.dev/github.com/stretchr/testify/assert "API documentation") package
 -------------------------------------------------------------------------------------------
 
 The `assert` package provides some helpful methods that allow you to write better test code in Go.
@@ -100,19 +100,21 @@ func TestSomething(t *testing.T) {
 }
 ```
 
-[`require`](http://godoc.org/github.com/stretchr/testify/require "API documentation") package
+[`require`](https://pkg.go.dev/github.com/stretchr/testify/require "API documentation") package
 ---------------------------------------------------------------------------------------------
 
 The `require` package provides same global functions as the `assert` package, but instead of returning a boolean result they terminate current test.
+These functions must be called from the goroutine running the test or benchmark function, not from other goroutines created during the test.
+Otherwise race conditions may occur.
 
-See [t.FailNow](http://golang.org/pkg/testing/#T.FailNow) for details.
+See [t.FailNow](https://pkg.go.dev/testing#T.FailNow) for details.
 
-[`mock`](http://godoc.org/github.com/stretchr/testify/mock "API documentation") package
+[`mock`](https://pkg.go.dev/github.com/stretchr/testify/mock "API documentation") package
 ----------------------------------------------------------------------------------------
 
 The `mock` package provides a mechanism for easily writing mock objects that can be used in place of real objects when writing test code.
 
-An example test function that tests a piece of code that relies on an external object `testObj`, can setup expectations (testify) and assert that they indeed happened:
+An example test function that tests a piece of code that relies on an external object `testObj`, can set up expectations (testify) and assert that they indeed happened:
 
 ```go
 package yours
@@ -217,14 +219,14 @@ func TestSomethingElse2(t *testing.T) {
 }
 ```
 
-For more information on how to write mock code, check out the [API documentation for the `mock` package](http://godoc.org/github.com/stretchr/testify/mock).
+For more information on how to write mock code, check out the [API documentation for the `mock` package](https://pkg.go.dev/github.com/stretchr/testify/mock).
 
 You can use the [mockery tool](https://vektra.github.io/mockery/latest/) to autogenerate the mock code against an interface as well, making using mocks much quicker.
 
-[`suite`](http://godoc.org/github.com/stretchr/testify/suite "API documentation") package
+[`suite`](https://pkg.go.dev/github.com/stretchr/testify/suite "API documentation") package
 -----------------------------------------------------------------------------------------
 
-The `suite` package provides functionality that you might be used to from more common object oriented languages.  With it, you can build a testing suite as a struct, build setup/teardown methods and testing methods on your struct, and run them with 'go test' as per normal.
+The `suite` package provides functionality that you might be used to from more common object-oriented languages.  With it, you can build a testing suite as a struct, build setup/teardown methods and testing methods on your struct, and run them with 'go test' as per normal.
 
 An example suite is shown below:
 
@@ -265,7 +267,7 @@ func TestExampleTestSuite(t *testing.T) {
 
 For a more complete example, using all of the functionality provided by the suite package, look at our [example testing suite](https://github.com/stretchr/testify/blob/master/suite/suite_test.go)
 
-For more information on writing suites, check out the [API documentation for the `suite` package](http://godoc.org/github.com/stretchr/testify/suite).
+For more information on writing suites, check out the [API documentation for the `suite` package](https://pkg.go.dev/github.com/stretchr/testify/suite).
 
 `Suite` object has assertion methods:
 
@@ -348,7 +350,7 @@ To update Testify to the latest version, use `go get -u github.com/stretchr/test
 Supported go versions
 ==================
 
-We currently support the most recent major Go versions from 1.13 onward.
+We currently support the most recent major Go versions from 1.19 onward.
 
 ------
 

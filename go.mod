@@ -1,6 +1,8 @@
 module github.com/stretchr/testify
 
-go 1.13
+// This should match the minimum supported version that is tested in
+// .github/workflows/main.yml
+go 1.19
 
 require (
 	github.com/davecgh/go-spew v1.1.1
