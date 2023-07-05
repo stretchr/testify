@@ -219,7 +219,7 @@ func TestSomethingElse2(t *testing.T) {
 
 For more information on how to write mock code, check out the [API documentation for the `mock` package](http://godoc.org/github.com/stretchr/testify/mock).
 
-You can use the [mockery tool](https://vektra.github.io/mockery/) to autogenerate the mock code against an interface as well, making using mocks much quicker.
+You can use the [mockery tool](https://vektra.github.io/mockery/latest/) to autogenerate the mock code against an interface as well, making using mocks much quicker.
 
 [`suite`](http://godoc.org/github.com/stretchr/testify/suite "API documentation") package
 -----------------------------------------------------------------------------------------
