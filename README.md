@@ -114,7 +114,7 @@ See [t.FailNow](http://golang.org/pkg/testing/#T.FailNow) for details.
 
 The `mock` package provides a mechanism for easily writing mock objects that can be used in place of real objects when writing test code.
 
-An example test function that tests a piece of code that relies on an external object `testObj`, can setup expectations (testify) and assert that they indeed happened:
+An example test function that tests a piece of code that relies on an external object `testObj`, can set up expectations (testify) and assert that they indeed happened:
 
 ```go
 package yours
@@ -226,7 +226,7 @@ You can use the [mockery tool](http://github.com/vektra/mockery) to autogenerate
 [`suite`](http://godoc.org/github.com/stretchr/testify/suite "API documentation") package
 -----------------------------------------------------------------------------------------
 
-The `suite` package provides functionality that you might be used to from more common object oriented languages.  With it, you can build a testing suite as a struct, build setup/teardown methods and testing methods on your struct, and run them with 'go test' as per normal.
+The `suite` package provides functionality that you might be used to from more common object-oriented languages.  With it, you can build a testing suite as a struct, build setup/teardown methods and testing methods on your struct, and run them with 'go test' as per normal.
 
 An example suite is shown below:
 

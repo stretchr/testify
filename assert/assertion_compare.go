@@ -312,7 +312,7 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 				break
 			}
 
-			// time.Time can compared!
+			// time.Time can be compared!
 			timeObj1, ok := obj1.(time.Time)
 			if !ok {
 				timeObj1 = obj1Value.Convert(timeType).Interface().(time.Time)
