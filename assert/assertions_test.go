@@ -1428,7 +1428,7 @@ func TestError(t *testing.T) {
 	True(t, Error(mockT, err), "Error with error should return True")
 
 	// go vet check
-	True(t, Errorf(mockT, err, "example with %s", "formatted message"), "Errorf with error should rturn True")
+	True(t, Errorf(mockT, err, "example with %s", "formatted message"), "Errorf with error should return True")
 
 	// returning an empty error interface
 	err = func() error {
@@ -1907,12 +1907,12 @@ func TestInEpsilonSlice(t *testing.T) {
 	True(t, InEpsilonSlice(mockT,
 		[]float64{2.2, math.NaN(), 2.0},
 		[]float64{2.1, math.NaN(), 2.1},
-		0.06), "{2.2, NaN, 2.0} is element-wise close to {2.1, NaN, 2.1} in espilon=0.06")
+		0.06), "{2.2, NaN, 2.0} is element-wise close to {2.1, NaN, 2.1} in epsilon=0.06")
 
 	False(t, InEpsilonSlice(mockT,
 		[]float64{2.2, 2.0},
 		[]float64{2.1, 2.1},
-		0.04), "{2.2, 2.0} is not element-wise close to {2.1, 2.1} in espilon=0.04")
+		0.04), "{2.2, 2.0} is not element-wise close to {2.1, 2.1} in epsilon=0.04")
 
 	False(t, InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }

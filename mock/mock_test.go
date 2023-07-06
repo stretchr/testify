@@ -1962,7 +1962,7 @@ func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 
 	end := time.Now()
 	elapsedTime := end.Sub(start)
-	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be atleast greater than %v", elapsedTime, waitMs))
+	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be at least greater than %v", elapsedTime, waitMs))
 	assert.Equal(t, total, len(results))
 	for i := range results {
 		assert.Equal(t, fmt.Sprintf("Time%d", i), results[i], "Return value of method should be same")

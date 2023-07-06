@@ -523,7 +523,7 @@ func truncatingFormat(data interface{}) string {
 	return value
 }
 
-// EqualValues asserts that two objects are equal or convertable to the same types
+// EqualValues asserts that two objects are equal or convertible to the same types
 // and equal.
 //
 //	assert.EqualValues(t, uint32(123), int32(123))

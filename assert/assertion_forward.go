@@ -189,7 +189,7 @@ func (a *Assertions) EqualExportedValuesf(expected interface{}, actual interface
 	return EqualExportedValuesf(a.t, expected, actual, msg, args...)
 }
 
-// EqualValues asserts that two objects are equal or convertable to the same types
+// EqualValues asserts that two objects are equal or convertible to the same types
 // and equal.
 //
 //	a.EqualValues(uint32(123), int32(123))
@@ -200,7 +200,7 @@ func (a *Assertions) EqualValues(expected interface{}, actual interface{}, msgAn
 	return EqualValues(a.t, expected, actual, msgAndArgs...)
 }
 
-// EqualValuesf asserts that two objects are equal or convertable to the same types
+// EqualValuesf asserts that two objects are equal or convertible to the same types
 // and equal.
 //
 //	a.EqualValuesf(uint32(123), int32(123), "error message %s", "formatted")
