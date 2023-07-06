@@ -505,7 +505,7 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 	}
 	switch expected.(type) {
 	case time.Duration, uint, uint8, uint16, uint32, uint64:
-		return fmt.Sprintf("%v", expected), fmt.Sprintf("%v", actual)
+		return fmt.Sprint(expected), fmt.Sprint(actual)
 	}
 	return truncatingFormat(expected), truncatingFormat(actual)
 }
