@@ -3,10 +3,12 @@ package suite
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"reflect"
 	"regexp"
 	"runtime/debug"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -17,6 +19,7 @@ import (
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
+var shuffle = flag.String("testify.shuffle", "off", "randomize the execution order of tests")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -198,6 +201,22 @@ func Run(t *testing.T, suite TestingSuite) {
 			},
 		}
 		tests = append(tests, test)
+	}
+	if *shuffle != "off" {
+		var n int64
+		var err error
+		if *shuffle == "on" {
+			n = time.Now().UnixNano()
+		} else {
+			n, err = strconv.ParseInt(*shuffle, 10, 64)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, `testing: -shuffle should be "off", "on", or a valid integer:`, err)
+				return
+			}
+		}
+		fmt.Println("-testify.shuffle", n)
+		rng := rand.New(rand.NewSource(n))
+		rng.Shuffle(len(tests), func(i, j int) { tests[i], tests[j] = tests[j], tests[i] })
 	}
 	if suiteSetupDone {
 		defer func() {

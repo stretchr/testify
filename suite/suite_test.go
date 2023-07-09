@@ -617,3 +617,47 @@ func (s *FailfastSuite) Test_B_Passes() {
 	s.call("Test B Passes")
 	s.Require().True(true)
 }
+
+type ShuffleOrderSuite struct {
+	Suite
+	callOrder []string
+}
+
+func (s *ShuffleOrderSuite) call(method string) {
+	s.callOrder = append(s.callOrder, method)
+}
+
+func TestSuiteShuffleOrder(t *testing.T) {
+	Run(t, new(ShuffleOrderSuite))
+}
+
+func TestShuffleOrderSuiteShuffleOn(t *testing.T) {
+	// To test this with testify.shuffle on we launch it in its own process
+	cmd := exec.Command("go", "test", "-v", "-race", "-run", "TestSuiteShuffleOrder", "-testify.shuffle", "2")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	t.Logf("Running %s", strings.Join(cmd.Args, " "))
+	err := cmd.Run()
+	t.Log(out.String())
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func (s *ShuffleOrderSuite) TearDownSuite() {
+	shuffle := flag.Lookup("testify.shuffle").Value.(flag.Getter).Get().(string)
+	if shuffle == "off" {
+		assert.Equal(s.T(), "Test A;Test B", strings.Join(s.callOrder, ";"))
+	} else {
+		assert.Equal(s.T(), "Test B;Test A", strings.Join(s.callOrder, ";"))
+	}
+}
+
+func (s *ShuffleOrderSuite) Test_A() {
+	s.call("Test A")
+}
+
+func (s *ShuffleOrderSuite) Test_B() {
+	s.call("Test B")
+}
