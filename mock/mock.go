@@ -786,7 +786,7 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 // for use when type checking.  This is an alternative to AnythingOfType.
 // Used in Diff and Assert.
 type IsTypeArgument struct {
-	t interface{}
+	t reflect.Type
 }
 
 // IsType returns an IsTypeArgument object containing the type to check for.
@@ -796,7 +796,7 @@ type IsTypeArgument struct {
 // For example:
 // Assert(t, IsType(""), IsType(0))
 func IsType(t interface{}) *IsTypeArgument {
-	return &IsTypeArgument{t: t}
+	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
 
 // FunctionalOptionsArgument is a struct that contains the type and value of an functional option argument
@@ -970,10 +970,10 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 				}
 			case *IsTypeArgument:
-				t := expected.t
-				if reflect.TypeOf(t) != reflect.TypeOf(actual) {
+				actualT := reflect.TypeOf(actual)
+				if actualT != expected.t {
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected.t.Name(), actualT.Name(), actualFmt)
 				}
 			case *FunctionalOptionsArgument:
 				t := expected.value
