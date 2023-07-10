@@ -2794,14 +2794,20 @@ func TestNeverFalse(t *testing.T) {
 	True(t, Never(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+// TestNeverTrue checks Never with a condition that returns true on second call.
 func TestNeverTrue(t *testing.T) {
 	mockT := new(testing.T)
-	state := 0
+
+	// A list of values returned by condition.
+	// Channel protects against concurrent access.
+	returns := make(chan bool, 2)
+	returns <- false
+	returns <- true
+	defer close(returns)
+
+	// Will return true on second call.
 	condition := func() bool {
-		defer func() {
-			state = state + 1
-		}()
-		return state == 2
+		return <-returns
 	}
 
 	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
