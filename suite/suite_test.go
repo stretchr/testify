@@ -631,9 +631,11 @@ func TestSuiteShuffleOrder(t *testing.T) {
 	Run(t, new(ShuffleOrderSuite))
 }
 
+// TestShuffleOrderSuiteShuffleOn relies on the algorithm used by package math/rand.
+// If that algorithm changes the seed value may have to be adapted.
 func TestShuffleOrderSuiteShuffleOn(t *testing.T) {
 	// To test this with testify.shuffle on we launch it in its own process
-	cmd := exec.Command("go", "test", "-v", "-race", "-run", "TestSuiteShuffleOrder", "-testify.shuffle", "2")
+	cmd := exec.Command("go", "test", "-v", "-run", "TestSuiteShuffleOrder", "-testify.shuffle", "2")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	t.Logf("Running %s", strings.Join(cmd.Args, " "))
