@@ -952,7 +952,12 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 						actualFmt = fmt.Sprintf("panic in argument matcher: %v", r)
 					}
 				}()
-				matches = matcher.Matches(actual)
+				if actualMatcher, isMatcher := actual.(argumentMatcher); isMatcher {
+
+					matches = matcher == actualMatcher
+				} else {
+					matches = matcher.Matches(actual)
+				}
 			}()
 			if matches {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
