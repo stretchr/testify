@@ -12,6 +12,8 @@ import (
 	time "time"
 )
 
+var _ assert.TestingT // in case no function required assert package
+
 // Condition uses a Comparison to assert a complex condition.
 func (a *Assertions) Condition(comp assert.Comparison, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
