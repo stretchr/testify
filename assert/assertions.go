@@ -1835,6 +1835,10 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
+	if condition() {
+		return true
+	}
+
 	ch := make(chan bool, 1)
 
 	timer := time.NewTimer(waitFor)
@@ -1913,6 +1917,13 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	}
 
 	collect := new(CollectT)
+
+	condition(collect)
+	if len(collect.errors) == 0 {
+		return true
+	}
+	collect.Reset()
+
 	ch := make(chan bool, 1)
 
 	timer := time.NewTimer(waitFor)
