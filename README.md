@@ -159,7 +159,7 @@ func TestSomething(t *testing.T) {
   // create an instance of our test object
   testObj := new(MyMockedObject)
 
-  // setup expectations
+  // set up expectations
   testObj.On("DoSomething", 123).Return(true, nil)
 
   // call the code we are testing
@@ -181,7 +181,7 @@ func TestSomethingWithPlaceholder(t *testing.T) {
   // create an instance of our test object
   testObj := new(MyMockedObject)
 
-  // setup expectations with a placeholder in the argument list
+  // set up expectations with a placeholder in the argument list
   testObj.On("DoSomething", mock.Anything).Return(true, nil)
 
   // call the code we are testing
@@ -200,7 +200,7 @@ func TestSomethingElse2(t *testing.T) {
   // create an instance of our test object
   testObj := new(MyMockedObject)
 
-  // setup expectations with a placeholder in the argument list
+  // set up expectations with a placeholder in the argument list
   mockCall := testObj.On("DoSomething", mock.Anything).Return(true, nil)
 
   // call the code we are testing
