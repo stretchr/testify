@@ -19,6 +19,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
+	"github.com/stretchr/testify/internal/check"
 	"gopkg.in/yaml.v3"
 )
 
@@ -54,116 +55,28 @@ type Comparison func() (success bool)
 
 // ObjectsAreEqual determines if two objects are considered equal.
 //
-// This function does no assertion of any kind.
+// Deprecated: This function does no assertion of any kind. Use Equal instead.
 func ObjectsAreEqual(expected, actual interface{}) bool {
-	if expected == nil || actual == nil {
-		return expected == actual
-	}
-
-	exp, ok := expected.([]byte)
-	if !ok {
-		return reflect.DeepEqual(expected, actual)
-	}
-
-	act, ok := actual.([]byte)
-	if !ok {
-		return false
-	}
-	if exp == nil || act == nil {
-		return exp == nil && act == nil
-	}
-	return bytes.Equal(exp, act)
-}
-
-// copyExportedFields iterates downward through nested data structures and creates a copy
-// that only contains the exported struct fields.
-func copyExportedFields(expected interface{}) interface{} {
-	if isNil(expected) {
-		return expected
-	}
-
-	expectedType := reflect.TypeOf(expected)
-	expectedKind := expectedType.Kind()
-	expectedValue := reflect.ValueOf(expected)
-
-	switch expectedKind {
-	case reflect.Struct:
-		result := reflect.New(expectedType).Elem()
-		for i := 0; i < expectedType.NumField(); i++ {
-			field := expectedType.Field(i)
-			isExported := field.IsExported()
-			if isExported {
-				fieldValue := expectedValue.Field(i)
-				if isNil(fieldValue) || isNil(fieldValue.Interface()) {
-					continue
-				}
-				newValue := copyExportedFields(fieldValue.Interface())
-				result.Field(i).Set(reflect.ValueOf(newValue))
-			}
-		}
-		return result.Interface()
-
-	case reflect.Ptr:
-		result := reflect.New(expectedType.Elem())
-		unexportedRemoved := copyExportedFields(expectedValue.Elem().Interface())
-		result.Elem().Set(reflect.ValueOf(unexportedRemoved))
-		return result.Interface()
-
-	case reflect.Array, reflect.Slice:
-		result := reflect.MakeSlice(expectedType, expectedValue.Len(), expectedValue.Len())
-		for i := 0; i < expectedValue.Len(); i++ {
-			index := expectedValue.Index(i)
-			if isNil(index) {
-				continue
-			}
-			unexportedRemoved := copyExportedFields(index.Interface())
-			result.Index(i).Set(reflect.ValueOf(unexportedRemoved))
-		}
-		return result.Interface()
-
-	case reflect.Map:
-		result := reflect.MakeMap(expectedType)
-		for _, k := range expectedValue.MapKeys() {
-			index := expectedValue.MapIndex(k)
-			unexportedRemoved := copyExportedFields(index.Interface())
-			result.SetMapIndex(k, reflect.ValueOf(unexportedRemoved))
-		}
-		return result.Interface()
-
-	default:
-		return expected
-	}
+	return check.ObjectsAreEqual(expected, actual)
 }
 
 // ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two objects are
 // considered equal. This comparison of only exported fields is applied recursively to nested data
 // structures.
 //
-// This function does no assertion of any kind.
+// Deprecated: This function does no assertion of any kind. Use
+// EqualExportedValues instead.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
-	expectedCleaned := copyExportedFields(expected)
-	actualCleaned := copyExportedFields(actual)
-	return ObjectsAreEqualValues(expectedCleaned, actualCleaned)
+	return check.ObjectsExportedFieldsAreEqual(expected, actual)
 }
 
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
 // values are equal.
+//
+// Deprecated: This function does no assertion of any kind. Use EqualValues
+// instead.
 func ObjectsAreEqualValues(expected, actual interface{}) bool {
-	if ObjectsAreEqual(expected, actual) {
-		return true
-	}
-
-	actualType := reflect.TypeOf(actual)
-	if actualType == nil {
-		return false
-	}
-	expectedValue := reflect.ValueOf(expected)
-	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
-		// Attempt comparison after type conversion
-		return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
-	}
-
-	return false
+	return check.ObjectsAreEqualValues(expected, actual)
 }
 
 /* CallerInfo is necessary because the assert functions use the testing object
@@ -388,7 +301,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 		h.Helper()
 	}
 
-	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
+	if !check.ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
 		return Fail(t, fmt.Sprintf("Object expected to be of type %v, but was %v", reflect.TypeOf(expectedType), reflect.TypeOf(object)), msgAndArgs...)
 	}
 
@@ -411,7 +324,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 			expected, actual, err), msgAndArgs...)
 	}
 
-	if !ObjectsAreEqual(expected, actual) {
+	if !check.ObjectsAreEqual(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
@@ -532,7 +445,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 		h.Helper()
 	}
 
-	if !ObjectsAreEqualValues(expected, actual) {
+	if !check.ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
@@ -574,10 +487,10 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
 	}
 
-	expected = copyExportedFields(expected)
-	actual = copyExportedFields(actual)
+	expected = check.CopyExportedFields(expected)
+	actual = check.CopyExportedFields(actual)
 
-	if !ObjectsAreEqualValues(expected, actual) {
+	if !check.ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal (comparing only exported fields): \n"+
@@ -611,7 +524,7 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 //
 //	assert.NotNil(t, err)
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
-	if !isNil(object) {
+	if !check.IsNil(object) {
 		return true
 	}
 	if h, ok := t.(tHelper); ok {
@@ -620,44 +533,11 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
 }
 
-// containsKind checks if a specified kind in the slice of kinds.
-func containsKind(kinds []reflect.Kind, kind reflect.Kind) bool {
-	for i := 0; i < len(kinds); i++ {
-		if kind == kinds[i] {
-			return true
-		}
-	}
-
-	return false
-}
-
-// isNil checks if a specified object is nil or not, without Failing.
-func isNil(object interface{}) bool {
-	if object == nil {
-		return true
-	}
-
-	value := reflect.ValueOf(object)
-	kind := value.Kind()
-	isNilableKind := containsKind(
-		[]reflect.Kind{
-			reflect.Chan, reflect.Func,
-			reflect.Interface, reflect.Map,
-			reflect.Ptr, reflect.Slice, reflect.UnsafePointer},
-		kind)
-
-	if isNilableKind && value.IsNil() {
-		return true
-	}
-
-	return false
-}
-
 // Nil asserts that the specified object is nil.
 //
 //	assert.Nil(t, err)
 func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
-	if isNil(object) {
+	if check.IsNil(object) {
 		return true
 	}
 	if h, ok := t.(tHelper); ok {
@@ -807,7 +687,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 			expected, actual, err), msgAndArgs...)
 	}
 
-	if ObjectsAreEqual(expected, actual) {
+	if check.ObjectsAreEqual(expected, actual) {
 		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
 	}
 
@@ -823,7 +703,7 @@ func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...inte
 		h.Helper()
 	}
 
-	if ObjectsAreEqualValues(expected, actual) {
+	if check.ObjectsAreEqualValues(expected, actual) {
 		return Fail(t, fmt.Sprintf("Should not be: %#v\n", actual), msgAndArgs...)
 	}
 
@@ -857,7 +737,7 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 	if listKind == reflect.Map {
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
-			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
+			if check.ObjectsAreEqual(mapKeys[i].Interface(), element) {
 				return true, true
 			}
 		}
@@ -865,7 +745,7 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
-		if ObjectsAreEqual(listValue.Index(i).Interface(), element) {
+		if check.ObjectsAreEqual(listValue.Index(i).Interface(), element) {
 			return true, true
 		}
 	}
@@ -952,7 +832,7 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 			if !av.IsValid() {
 				return Fail(t, fmt.Sprintf("%#v does not contain %#v", list, subset), msgAndArgs...)
 			}
-			if !ObjectsAreEqual(ev.Interface(), av.Interface()) {
+			if !check.ObjectsAreEqual(ev.Interface(), av.Interface()) {
 				return Fail(t, fmt.Sprintf("%#v does not contain %#v", list, subset), msgAndArgs...)
 			}
 		}
@@ -1008,7 +888,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 			if !av.IsValid() {
 				return true
 			}
-			if !ObjectsAreEqual(ev.Interface(), av.Interface()) {
+			if !check.ObjectsAreEqual(ev.Interface(), av.Interface()) {
 				return true
 			}
 		}
@@ -1086,7 +966,7 @@ func diffLists(listA, listB interface{}) (extraA, extraB []interface{}) {
 			if visited[j] {
 				continue
 			}
-			if ObjectsAreEqual(bValue.Index(j).Interface(), element) {
+			if check.ObjectsAreEqual(bValue.Index(j).Interface(), element) {
 				visited[j] = true
 				found = true
 				break

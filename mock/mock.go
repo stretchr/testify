@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/objx"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/internal/check"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -989,7 +990,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		} else {
 			// normal checking
 
-			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+			if check.ObjectsAreEqual(expected, Anything) || check.ObjectsAreEqual(actual, Anything) || check.ObjectsAreEqual(actual, expected) {
 				// match
 				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 			} else {
@@ -1174,7 +1175,7 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	for i := 0; i < actualOpts.Len(); i++ {
 		actualNames = append(actualNames, funcName(actualOpts.Index(i).Interface()))
 	}
-	if !assert.ObjectsAreEqual(expectedNames, actualNames) {
+	if !check.ObjectsAreEqual(expectedNames, actualNames) {
 		expectedFmt = fmt.Sprintf("%v", expectedNames)
 		actualFmt = fmt.Sprintf("%v", actualNames)
 		return
@@ -1209,7 +1210,7 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 		reflect.ValueOf(actualOpt).Call(actualValues)
 
 		for i := 0; i < ot.NumIn(); i++ {
-			if !assert.ObjectsAreEqual(expectedValues[i].Interface(), actualValues[i].Interface()) {
+			if !check.ObjectsAreEqual(expectedValues[i].Interface(), actualValues[i].Interface()) {
 				expectedFmt = fmt.Sprintf("%s %+v", expectedNames[i], expectedValues[i].Interface())
 				actualFmt = fmt.Sprintf("%s %+v", expectedNames[i], actualValues[i].Interface())
 				return
