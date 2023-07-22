@@ -3030,6 +3030,42 @@ func TestEventuallyTimeout(t *testing.T) {
 	})
 }
 
+func TestEventuallySucceedQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func() bool { <-time.After(time.Millisecond); return true }
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		True(t, Eventually(mockT, condition, 1000*time.Millisecond, 100*time.Millisecond))
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(10 * time.Millisecond):
+		Fail(t, `condition not satisfied quickly enough`)
+	}
+}
+
+func TestEventuallyWithTSucceedQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func(t *CollectT) { <-time.After(time.Millisecond) }
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		True(t, EventuallyWithT(mockT, condition, 1000*time.Millisecond, 100*time.Millisecond))
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(10 * time.Millisecond):
+		Fail(t, `condition not satisfied quickly enough`)
+	}
+}
+
 func Test_validateEqualArgs(t *testing.T) {
 	if validateEqualArgs(func() {}, func() {}) == nil {
 		t.Error("non-nil functions should error")
