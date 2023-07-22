@@ -1835,11 +1835,8 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
-	if condition() {
-		return true
-	}
-
 	ch := make(chan bool, 1)
+	checkCond := func() { ch <- condition() }
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -1847,18 +1844,23 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
-		case <-tick:
-			tick = nil
-			go func() { ch <- condition() }()
+		case <-tickC:
+			tickC = nil
+			go checkCond()
 		case v := <-ch:
 			if v {
 				return true
 			}
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
@@ -1916,15 +1918,13 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		h.Helper()
 	}
 
+	ch := make(chan bool, 1)
 	collect := new(CollectT)
 
-	condition(collect)
-	if len(collect.errors) == 0 {
-		return true
+	checkCond := func() {
+		condition(collect)
+		ch <- len(collect.errors) == 0
 	}
-	collect.Reset()
-
-	ch := make(chan bool, 1)
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -1932,23 +1932,25 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			collect.Copy(t)
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
-		case <-tick:
-			tick = nil
+		case <-tickC:
+			tickC = nil
 			collect.Reset()
-			go func() {
-				condition(collect)
-				ch <- len(collect.errors) == 0
-			}()
+			go checkCond()
 		case v := <-ch:
 			if v {
 				return true
 			}
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
