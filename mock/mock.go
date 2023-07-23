@@ -44,13 +44,10 @@ type Call struct {
 	Arguments Arguments
 
 	// Holds the arguments that should be returned when
-	// this method is called.  If the first and only value is
-	// function which takes and returns Arguments, that will be invoked
-	// on each call of the mock to determine what to return.
+	// this method is called.
 	ReturnArguments Arguments
 
-	// if Run() was given a function which returns arguments, we'll call that whenever
-	// this call is invoked and use its return values as the arguments to return.
+	//TODO add docstring and make public
 	returnFunc func(args Arguments) Arguments
 
 	// Holds the caller info for the On() call
@@ -925,8 +922,8 @@ func (f *FunctionalOptionsArgument) String() string {
 //
 // For example:
 //
-//	args.Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
-func FunctionalOptions(values ...interface{}) *FunctionalOptionsArgument {
+//	Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
+func FunctionalOptions(value ...interface{}) *FunctionalOptionsArgument {
 	return &FunctionalOptionsArgument{
 		values: values,
 	}
