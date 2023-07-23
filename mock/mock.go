@@ -819,11 +819,12 @@ func (f *FunctionalOptionsArgument) String() string {
 	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", name, 1)
 }
 
-// FunctionalOptions returns an FunctionalOptionsArgument object containing the functional option type
-// and the values to check of
+// FunctionalOptions returns an [FunctionalOptionsArgument] object containing
+// the expected functional-options to check for.
 //
 // For example:
-// Assert(t, FunctionalOptions("[]foo.FunctionalOption", foo.Opt1(), foo.Opt2()))
+//
+//	Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
 func FunctionalOptions(value ...interface{}) *FunctionalOptionsArgument {
 	return &FunctionalOptionsArgument{
 		value: value,
