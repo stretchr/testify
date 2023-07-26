@@ -2951,13 +2951,13 @@ func (ctt *captureTestingT) Errorf(format string, args ...interface{}) {
 	ctt.msg = fmt.Sprintf(format, args...)
 }
 
-func checkResultAndErrMsg(t *testing.T, expectedRes, res bool, expectedErrMsg, rawErrOutput string) {
+func (ctt *captureTestingT) checkResultAndErrMsg(t *testing.T, expectedRes, res bool, expectedErrMsg string) {
 	t.Helper()
 	if res != expectedRes {
 		t.Errorf("Should return %t", expectedRes)
 		return
 	}
-	contents := parseLabeledOutput(rawErrOutput)
+	contents := parseLabeledOutput(ctt.msg)
 	if res == true {
 		if contents != nil {
 			t.Errorf("Should not log an error")
@@ -2965,7 +2965,7 @@ func checkResultAndErrMsg(t *testing.T, expectedRes, res bool, expectedErrMsg, r
 		return
 	}
 	if contents == nil {
-		t.Errorf("Should log an error. Log output: %v", rawErrOutput)
+		t.Errorf("Should log an error. Log output: %v", ctt.msg)
 		return
 	}
 	for _, content := range contents {
@@ -3040,7 +3040,7 @@ func TestErrorIs(t *testing.T) {
 		mockT := new(captureTestingT)
 		t.Run(fmt.Sprintf("ErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
 			res := ErrorIs(mockT, tt.err, tt.target)
-			checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg, mockT.msg)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
 	}
 }
@@ -3103,7 +3103,7 @@ func TestNotErrorIs(t *testing.T) {
 		mockT := new(captureTestingT)
 		t.Run(fmt.Sprintf("NotErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
 			res := NotErrorIs(mockT, tt.err, tt.target)
-			checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg, mockT.msg)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
 	}
 }
