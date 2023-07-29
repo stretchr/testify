@@ -184,6 +184,11 @@ type S6 struct {
 	unexported string
 }
 
+type S7 struct {
+	Exported   Nested
+	unexported Nested
+}
+
 func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 
 	intValue := 1
@@ -401,6 +406,72 @@ func TestEqualExportedValues(t *testing.T) {
 	            	-   Exported: (int) 3,
 	            	+   Exported: (int) 2,
 	            	    notExported: (interface {}) <nil>`,
+		},
+		{
+			value1: S7{
+				Nested{[2]int{1, 2}, [2]int{1, 2}},
+				Nested{[2]int{1, 2}, [2]int{3, 4}},
+			},
+			value2: S7{
+				Nested{[3]int{1, 2, 3}, [2]int{3, 4}},
+				Nested{[2]int{5, 6}, [2]int{7, 8}},
+			},
+			expectedEqual: false,
+			expectedFail: `
+	            	Diff:
+	            	--- Expected
+	            	+++ Actual
+	            	@@ -2,5 +2,6 @@
+	            	  Exported: (assert.Nested) {
+	            	-  Exported: ([2]int) (len=2) {
+	            	+  Exported: ([3]int) (len=3) {
+	            	    (int) 1,
+	            	-   (int) 2
+	            	+   (int) 2,
+	            	+   (int) 3
+	            	   },`,
+		},
+		{
+			value1: S7{
+				Nested{[2]int{1, 2}, [2]int{1, 2}},
+				Nested{[2]int{1, 2}, [2]int{3, 4}},
+			},
+			value2: S7{
+				Nested{[2]int{1, 3}, [2]int{3, 4}},
+				Nested{[2]int{5, 6}, [2]int{7, 8}},
+			},
+			expectedEqual: false,
+			expectedFail: `
+	            	Diff:
+	            	--- Expected
+	            	+++ Actual
+	            	@@ -4,3 +4,3 @@
+	            	    (int) 1,
+	            	-   (int) 2
+	            	+   (int) 3
+	            	   },`,
+		},
+		{
+			value1: S7{
+				Nested{[2]interface{}{nil, 2}, [2]int{1, 2}},
+				Nested{[2]int{1, 2}, [2]int{3, 4}},
+			},
+			value2: S7{
+				Nested{[2]interface{}{nil, 2}, [2]int{3, 4}},
+				Nested{[2]int{5, 6}, [2]int{7, 8}},
+			},
+			expectedEqual: true,
+		},
+		{
+			value1: S7{
+				Nested{[2]int{1, 2}, [2]int{1, 2}},
+				Nested{[2]int{1, 2}, [2]int{3, 4}},
+			},
+			value2: S7{
+				Nested{[2]int{1, 2}, [2]int{3, 4}},
+				Nested{[2]int{5, 6}, [2]int{7, 8}},
+			},
+			expectedEqual: true,
 		},
 	}
 
