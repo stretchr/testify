@@ -760,18 +760,26 @@ const (
 	Anything = "mock.Anything"
 )
 
-// AnythingOfTypeArgument is a string that contains the type of an argument
+// AnythingOfTypeArgument contains the type of an argument
 // for use when type checking.  Used in Diff and Assert.
-type AnythingOfTypeArgument string
+//
+// Deprecated: this is an implementation detail that must not be used. Use [AnythingOfType] instead.
+type AnythingOfTypeArgument = anythingOfTypeArgument
 
-// AnythingOfType returns an AnythingOfTypeArgument object containing the
-// name of the type to check for.  Used in Diff and Assert.
+// anythingOfTypeArgument is a string that contains the type of an argument
+// for use when type checking.  Used in Diff and Assert.
+type anythingOfTypeArgument string
+
+// AnythingOfType returns a special value containing the
+// name of the type to check for. The type name will be matched against the type name returned by [reflect.Type.String].
+//
+// Used in Diff and Assert.
 //
 // For example:
 //
 //	Assert(t, AnythingOfType("string"), AnythingOfType("int"))
 func AnythingOfType(t string) AnythingOfTypeArgument {
-	return AnythingOfTypeArgument(t)
+	return anythingOfTypeArgument(t)
 }
 
 // IsTypeArgument is a struct that contains the type of an argument
@@ -952,9 +960,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
-		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
+		} else if reflect.TypeOf(expected) == reflect.TypeOf((*anythingOfTypeArgument)(nil)).Elem() {
 			// type checking
-			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
+			if reflect.TypeOf(actual).Name() != string(expected.(anythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(anythingOfTypeArgument)) {
 				// not match
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
