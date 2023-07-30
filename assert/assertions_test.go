@@ -712,6 +712,61 @@ func TestNil(t *testing.T) {
 
 }
 
+func TestNotZeroThenSetZero(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	cases := []struct {
+		beforeValue string
+		result      bool
+		afterValue  interface{}
+	}{
+		{"", false, ""},
+		{"hello", true, ""},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("NotZeroThenSetZero(%#v)", c.beforeValue), func(t *testing.T) {
+			valueToBeChanged := c.beforeValue
+			res := NotZeroThenSetZero(mockT, &valueToBeChanged)
+			if res != c.result {
+				t.Errorf("NotZeroThenSetZero(%#v) should return %#v", valueToBeChanged, c.result)
+			}
+			if valueToBeChanged != c.afterValue {
+				t.Errorf("Value should be changed to %#v, instead was %#v", c.afterValue, valueToBeChanged)
+			}
+		})
+	}
+}
+
+func TestNotNilThenSetNil(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	a := "hello"
+	cases := []struct {
+		beforeValue *string
+		result      bool
+		afterValue  *string
+	}{
+		{nil, false, nil},
+		{&a, true, nil},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("NotNilThenSetNil(%#v)", c.beforeValue), func(t *testing.T) {
+			valueToBeChanged := c.beforeValue
+			res := NotNilThenSetNil(mockT, &valueToBeChanged)
+			if res != c.result {
+				t.Errorf("NotNilThenSetNil(%#v) should return %#v", valueToBeChanged, c.result)
+			}
+			if valueToBeChanged != c.afterValue {
+				t.Errorf("Value should be changed to %#v, instead was %#v", c.afterValue, valueToBeChanged)
+			}
+		})
+	}
+}
+
 func TestTrue(t *testing.T) {
 
 	mockT := new(testing.T)

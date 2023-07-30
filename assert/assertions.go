@@ -620,6 +620,39 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
 }
 
+// NotNilThenSetNil asserts that the specified object is not zero and then sets it to zero.
+//
+//	assert.NotZeroThenSetZero(t, &x)
+func NotZeroThenSetZero[X any](t TestingT, x *X) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if ok := NotZero(t, *x); !ok {
+		return false
+	}
+
+	var zeroValue X
+	*x = zeroValue
+	return true
+}
+
+// NotNilThenSetNil asserts that the specified pointer is not nil and then sets it to nil.
+//
+//	assert.NotNilThenSetNil(t, &x)
+func NotNilThenSetNil[X any](t TestingT, x **X) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if ok := NotNil(t, *x); !ok {
+		return false
+	}
+
+	*x = nil
+	return true
+}
+
 // containsKind checks if a specified kind in the slice of kinds.
 func containsKind(kinds []reflect.Kind, kind reflect.Kind) bool {
 	for i := 0; i < len(kinds); i++ {
