@@ -2763,8 +2763,13 @@ func TestEventuallyTrue(t *testing.T) {
 func TestEventuallyWithTFalse(t *testing.T) {
 	mockT := new(CollectT)
 
+	var calledOnce bool
 	condition := func(collect *CollectT) {
+		if calledOnce {
+			time.Sleep(time.Second)
+		}
 		True(collect, false)
+		calledOnce = true
 	}
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))

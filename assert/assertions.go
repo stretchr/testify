@@ -1921,13 +1921,22 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
+	var lastErrors []error
+
+	copyErrors := func(t TestingT) {
+		for _, err := range lastErrors {
+			t.Errorf("%v", err)
+		}
+	}
+
 	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			collect.Copy(t)
+			copyErrors(t)
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
 		case <-tick:
 			tick = nil
+			lastErrors = collect.errors
 			collect.Reset()
 			go func() {
 				condition(collect)
