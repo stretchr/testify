@@ -736,9 +736,7 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 func getLen(x interface{}) (ok bool, length int) {
 	v := reflect.ValueOf(x)
 	defer func() {
-		if e := recover(); e != nil {
-			ok = false
-		}
+		ok = recover() == nil
 	}()
 	return true, v.Len()
 }
