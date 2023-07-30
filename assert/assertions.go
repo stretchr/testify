@@ -1879,6 +1879,7 @@ func (c *CollectT) Reset() {
 	c.errors = nil
 }
 
+// Deprecated: Copy should not be used.
 // Copy copies the collected errors to the supplied t.
 func (c *CollectT) Copy(t TestingT) {
 	if tt, ok := t.(tHelper); ok {
