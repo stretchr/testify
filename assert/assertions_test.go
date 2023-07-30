@@ -712,39 +712,37 @@ func TestNil(t *testing.T) {
 
 }
 
+func assertValuesChanged(t *testing.T, res, result, valueToBeChanged, afterValue any) {
+	if res != result {
+		t.Errorf("NotZeroThenSetZero(%#v) should return %#v", valueToBeChanged, result)
+	}
+	if valueToBeChanged != afterValue {
+		t.Errorf("Value should be changed to %#v, instead was %#v", afterValue, valueToBeChanged)
+	}
+}
+
 func TestNotZeroThenSetZero(t *testing.T) {
 
 	mockT := new(testing.T)
 
-	cases := []struct {
+	valueCases := []struct {
 		beforeValue string
 		result      bool
-		afterValue  interface{}
+		afterValue  string
 	}{
 		{"", false, ""},
 		{"hello", true, ""},
 	}
 
-	for _, c := range cases {
+	for _, c := range valueCases {
 		t.Run(fmt.Sprintf("NotZeroThenSetZero(%#v)", c.beforeValue), func(t *testing.T) {
-			valueToBeChanged := c.beforeValue
-			res := NotZeroThenSetZero(mockT, &valueToBeChanged)
-			if res != c.result {
-				t.Errorf("NotZeroThenSetZero(%#v) should return %#v", valueToBeChanged, c.result)
-			}
-			if valueToBeChanged != c.afterValue {
-				t.Errorf("Value should be changed to %#v, instead was %#v", c.afterValue, valueToBeChanged)
-			}
+			res := NotZeroThenSetZero(mockT, &c.beforeValue)
+			assertValuesChanged(t, res, c.result, c.beforeValue, c.afterValue)
 		})
 	}
-}
-
-func TestNotNilThenSetNil(t *testing.T) {
-
-	mockT := new(testing.T)
 
 	a := "hello"
-	cases := []struct {
+	pointerCases := []struct {
 		beforeValue *string
 		result      bool
 		afterValue  *string
@@ -753,16 +751,10 @@ func TestNotNilThenSetNil(t *testing.T) {
 		{&a, true, nil},
 	}
 
-	for _, c := range cases {
-		t.Run(fmt.Sprintf("NotNilThenSetNil(%#v)", c.beforeValue), func(t *testing.T) {
-			valueToBeChanged := c.beforeValue
-			res := NotNilThenSetNil(mockT, &valueToBeChanged)
-			if res != c.result {
-				t.Errorf("NotNilThenSetNil(%#v) should return %#v", valueToBeChanged, c.result)
-			}
-			if valueToBeChanged != c.afterValue {
-				t.Errorf("Value should be changed to %#v, instead was %#v", c.afterValue, valueToBeChanged)
-			}
+	for _, c := range pointerCases {
+		t.Run(fmt.Sprintf("NotZeroThenSetZero(%#v)", c.beforeValue), func(t *testing.T) {
+			res := NotZeroThenSetZero(mockT, &c.beforeValue)
+			assertValuesChanged(t, res, c.result, c.beforeValue, c.afterValue)
 		})
 	}
 }

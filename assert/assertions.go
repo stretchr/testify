@@ -628,28 +628,12 @@ func NotZeroThenSetZero[X any](t TestingT, x *X) bool {
 		h.Helper()
 	}
 
-	if ok := NotZero(t, *x); !ok {
+	if !NotZero(t, *x) {
 		return false
 	}
 
 	var zeroValue X
 	*x = zeroValue
-	return true
-}
-
-// NotNilThenSetNil asserts that the specified pointer is not nil and then sets it to nil.
-//
-//	assert.NotNilThenSetNil(t, &x)
-func NotNilThenSetNil[X any](t TestingT, x **X) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-
-	if ok := NotNil(t, *x); !ok {
-		return false
-	}
-
-	*x = nil
 	return true
 }
 
