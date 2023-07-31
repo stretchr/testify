@@ -2908,6 +2908,8 @@ func Test_truncatingFormat(t *testing.T) {
 	}
 }
 
+// parseLabeledOutput does the inverse of labeledOutput - it takes a formatted
+// output string and turns it back into a slice of labeledContent.
 func parseLabeledOutput(output string) []labeledContent {
 	labelPattern := regexp.MustCompile(`^\t([^\t]*): *\t(.*)$`)
 	contentPattern := regexp.MustCompile(`^\t *\t(.*)$`)
@@ -3037,8 +3039,8 @@ func TestErrorIs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		mockT := new(captureTestingT)
 		t.Run(fmt.Sprintf("ErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			mockT := new(captureTestingT)
 			res := ErrorIs(mockT, tt.err, tt.target)
 			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
@@ -3100,8 +3102,8 @@ func TestNotErrorIs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		mockT := new(captureTestingT)
 		t.Run(fmt.Sprintf("NotErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			mockT := new(captureTestingT)
 			res := NotErrorIs(mockT, tt.err, tt.target)
 			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
