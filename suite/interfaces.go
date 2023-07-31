@@ -7,6 +7,7 @@ import "testing"
 type TestingSuite interface {
 	T() *testing.T
 	SetT(*testing.T)
+	SetS(suite TestingSuite)
 }
 
 // SetupAllSuite has a SetupSuite method, which will run before the
@@ -43,4 +44,23 @@ type BeforeTest interface {
 // finishes and receives the suite and test names as input
 type AfterTest interface {
 	AfterTest(suiteName, testName string)
+}
+
+// WithStats implements HandleStats, a function that will be executed
+// when a test suite is finished. The stats contain information about
+// the execution of that suite and its tests.
+type WithStats interface {
+	HandleStats(suiteName string, stats *SuiteInformation)
+}
+
+// SetupSubTest has a SetupSubTest method, which will run before each
+// subtest in the suite.
+type SetupSubTest interface {
+	SetupSubTest()
+}
+
+// TearDownSubTest has a TearDownSubTest method, which will run after
+// each subtest in the suite have been run.
+type TearDownSubTest interface {
+	TearDownSubTest()
 }

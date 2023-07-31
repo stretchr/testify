@@ -19,6 +19,10 @@ func httpError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
+func httpStatusCode(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusSwitchingProtocols)
+}
+
 func TestHTTPSuccess(t *testing.T) {
 	assert := New(t)
 
@@ -33,6 +37,10 @@ func TestHTTPSuccess(t *testing.T) {
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPSuccess(mockT3, httpError, "GET", "/", nil), false)
 	assert.True(mockT3.Failed())
+
+	mockT4 := new(testing.T)
+	assert.Equal(HTTPSuccess(mockT4, httpStatusCode, "GET", "/", nil), false)
+	assert.True(mockT4.Failed())
 }
 
 func TestHTTPRedirect(t *testing.T) {
@@ -49,6 +57,10 @@ func TestHTTPRedirect(t *testing.T) {
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPRedirect(mockT3, httpError, "GET", "/", nil), false)
 	assert.True(mockT3.Failed())
+
+	mockT4 := new(testing.T)
+	assert.Equal(HTTPRedirect(mockT4, httpStatusCode, "GET", "/", nil), false)
+	assert.True(mockT4.Failed())
 }
 
 func TestHTTPError(t *testing.T) {
@@ -65,6 +77,30 @@ func TestHTTPError(t *testing.T) {
 	mockT3 := new(testing.T)
 	assert.Equal(HTTPError(mockT3, httpError, "GET", "/", nil), true)
 	assert.False(mockT3.Failed())
+
+	mockT4 := new(testing.T)
+	assert.Equal(HTTPError(mockT4, httpStatusCode, "GET", "/", nil), false)
+	assert.True(mockT4.Failed())
+}
+
+func TestHTTPStatusCode(t *testing.T) {
+	assert := New(t)
+
+	mockT1 := new(testing.T)
+	assert.Equal(HTTPStatusCode(mockT1, httpOK, "GET", "/", nil, http.StatusSwitchingProtocols), false)
+	assert.True(mockT1.Failed())
+
+	mockT2 := new(testing.T)
+	assert.Equal(HTTPStatusCode(mockT2, httpRedirect, "GET", "/", nil, http.StatusSwitchingProtocols), false)
+	assert.True(mockT2.Failed())
+
+	mockT3 := new(testing.T)
+	assert.Equal(HTTPStatusCode(mockT3, httpError, "GET", "/", nil, http.StatusSwitchingProtocols), false)
+	assert.True(mockT3.Failed())
+
+	mockT4 := new(testing.T)
+	assert.Equal(HTTPStatusCode(mockT4, httpStatusCode, "GET", "/", nil, http.StatusSwitchingProtocols), true)
+	assert.False(mockT4.Failed())
 }
 
 func TestHTTPStatusesWrapper(t *testing.T) {
@@ -86,7 +122,7 @@ func TestHTTPStatusesWrapper(t *testing.T) {
 
 func httpHelloName(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
-	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
+	_, _ = w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
 }
 
 func TestHTTPRequestWithNoParams(t *testing.T) {
