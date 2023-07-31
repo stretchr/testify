@@ -19,7 +19,7 @@ import (
 )
 
 // regex for GCCGO functions
-var gccgoRE = regexp.MustCompile("\\.pN\\d+_")
+var gccgoRE = regexp.MustCompile(`\.pN\d+_`)
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -459,7 +459,7 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	// uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
 	// With GCCGO we need to remove interface information starting from pN<dd>.
 	if gccgoRE.MatchString(functionPath) {
-		functionPath = re.Split(functionPath, -1)[0]
+		functionPath = gccgoRE.Split(functionPath, -1)[0]
 	}
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
