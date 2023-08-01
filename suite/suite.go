@@ -131,7 +131,7 @@ func Run(t *testing.T, suite TestingSuite) {
 	tests := []testing.InternalTest{}
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
-	wg := &sync.WaitGroup{}
+	wg := new(sync.WaitGroup)
 
 	for i := 0; i < methodFinder.NumMethod(); i++ {
 		method := methodFinder.Method(i)
@@ -158,14 +158,14 @@ func Run(t *testing.T, suite TestingSuite) {
 			suiteSetupDone = true
 		}
 
-		wg.Add(1)
-
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
+				wg.Add(1)
+				defer wg.Done()
+
 				parentT := suite.T()
 				suite.SetT(t)
-				defer wg.Done()
 				defer recoverAndFailOnPanic(t)
 				defer func() {
 					r := recover()
