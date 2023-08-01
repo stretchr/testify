@@ -216,7 +216,7 @@ func Run(t *testing.T, suite TestingSuite) {
 		}()
 	}
 
-	go runTests(t, tests)
+	runTests(t, tests)
 
 	// Wait until all tests are finished before returning, so that the stats handling in the `defer` statement above
 	// will always return accurate results, even if the tests are running in parallel.
