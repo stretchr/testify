@@ -18,6 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// regex for GCCGO functions
+var gccgoRE = regexp.MustCompile(`\.pN\d+_`)
+
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Logf(format string, args ...interface{})
@@ -455,9 +458,8 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	// For Ex:  github_com_docker_libkv_store_mock.WatchTree.pN39_github_com_docker_libkv_store_mock.Mock
 	// uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
 	// With GCCGO we need to remove interface information starting from pN<dd>.
-	re := regexp.MustCompile("\\.pN\\d+_")
-	if re.MatchString(functionPath) {
-		functionPath = re.Split(functionPath, -1)[0]
+	if gccgoRE.MatchString(functionPath) {
+		functionPath = gccgoRE.Split(functionPath, -1)[0]
 	}
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
