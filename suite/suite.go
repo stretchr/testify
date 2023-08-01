@@ -131,6 +131,7 @@ func Run(t *testing.T, suite TestingSuite) {
 	tests := []testing.InternalTest{}
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
+	wg := &sync.WaitGroup{}
 
 	for i := 0; i < methodFinder.NumMethod(); i++ {
 		method := methodFinder.Method(i)
@@ -157,11 +158,14 @@ func Run(t *testing.T, suite TestingSuite) {
 			suiteSetupDone = true
 		}
 
+		wg.Add(1)
+
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
 				parentT := suite.T()
 				suite.SetT(t)
+				defer wg.Done()
 				defer recoverAndFailOnPanic(t)
 				defer func() {
 					r := recover()
@@ -212,7 +216,11 @@ func Run(t *testing.T, suite TestingSuite) {
 		}()
 	}
 
-	runTests(t, tests)
+	go runTests(t, tests)
+
+	// Wait until all tests are finished before returning, so that the stats handling in the `defer` statement above
+	// will always return accurate results, even if the tests are running in parallel.
+	wg.Wait()
 }
 
 // Filtering method according to set regular expression
