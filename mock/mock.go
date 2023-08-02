@@ -491,11 +491,12 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		m.mutex.Unlock()
 
 		if closestCall != nil {
-			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s",
+			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s\n\nat: %s",
 				callString(methodName, arguments, true),
 				callString(methodName, closestCall.Arguments, true),
 				diffArguments(closestCall.Arguments, arguments),
 				strings.TrimSpace(mismatch),
+				assert.CallerInfo(),
 			)
 		} else {
 			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
