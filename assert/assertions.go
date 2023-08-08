@@ -19,8 +19,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
-	"github.com/stretchr/testify/internal/check"
 	"gopkg.in/yaml.v3"
+
+	"github.com/stretchr/testify/internal/check"
 )
 
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_format.go.tmpl"
