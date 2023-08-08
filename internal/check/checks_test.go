@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 func TestObjectsAreEqual(t *testing.T) {
@@ -243,5 +244,12 @@ func TestCopyExportedFields(t *testing.T) {
 				t.Errorf("%#v, %#v should be equal", c.expected, output)
 			}
 		})
+	}
+}
+
+func TestIsNil(t *testing.T) {
+	var n unsafe.Pointer = nil
+	if !IsNil(n) {
+		t.Fatal("fail")
 	}
 }

@@ -16,7 +16,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"unsafe"
 
 	"github.com/stretchr/testify/internal/check"
 )
@@ -2697,12 +2696,5 @@ func TestErrorAs(t *testing.T) {
 				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
 			}
 		})
-	}
-}
-
-func TestIsNil(t *testing.T) {
-	var n unsafe.Pointer = nil
-	if !check.IsNil(n) {
-		t.Fatal("fail")
 	}
 }
