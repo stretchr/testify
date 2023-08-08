@@ -56,7 +56,7 @@ type Comparison func() (success bool)
 
 // ObjectsAreEqual determines if two objects are considered equal.
 //
-// Deprecated: This function does no assertion of any kind. Use Equal instead.
+// Deprecated: This function does no assertion of any kind. Use [Equal] instead.
 func ObjectsAreEqual(expected, actual interface{}) bool {
 	return check.ObjectsAreEqual(expected, actual)
 }
@@ -66,7 +66,7 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 // structures.
 //
 // Deprecated: This function does no assertion of any kind. Use
-// EqualExportedValues instead.
+// [EqualExportedValues] instead.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 	return check.ObjectsExportedFieldsAreEqual(expected, actual)
 }
@@ -74,7 +74,7 @@ func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 // ObjectsAreEqualValues gets whether two objects are equal, or if their
 // values are equal.
 //
-// Deprecated: This function does no assertion of any kind. Use EqualValues
+// Deprecated: This function does no assertion of any kind. Use [EqualValues]
 // instead.
 func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	return check.ObjectsAreEqualValues(expected, actual)
