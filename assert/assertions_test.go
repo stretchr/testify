@@ -1582,7 +1582,7 @@ func Test_getLen(t *testing.T) {
 		struct{}{},
 	}
 	for _, v := range falseCases {
-		ok, l := getLen(v)
+		l, ok := getLen(v)
 		False(t, ok, "Expected getLen fail to get length of %#v", v)
 		Equal(t, 0, l, "getLen should return 0 for %#v", v)
 	}
@@ -1611,7 +1611,7 @@ func Test_getLen(t *testing.T) {
 	}
 
 	for _, c := range trueCases {
-		ok, l := getLen(c.v)
+		l, ok := getLen(c.v)
 		True(t, ok, "Expected getLen success to get length of %#v", c.v)
 		Equal(t, c.l, l)
 	}
