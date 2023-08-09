@@ -1620,7 +1620,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	}
 
 	for i := 0; i < expectedLen; i++ {
-		if !InEpsilon(t, expectedSlice.Index(i).Interface(), actualSlice.Index(i).Interface(), epsilon, "at index %d", i) {
+		if !InEpsilon(t, expectedSlice.Index(i).Interface(), actualSlice.Index(i).Interface(), epsilon, msgAndArgs..., "at index %d", i) {
 			return false
 		}
 	}
