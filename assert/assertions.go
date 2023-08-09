@@ -1466,7 +1466,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	expectedSlice := reflect.ValueOf(expected)
 
 	for i := 0; i < actualSlice.Len(); i++ {
-		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon)
+		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon, msgAndArgs...)
 		if !result {
 			return result
 		}
