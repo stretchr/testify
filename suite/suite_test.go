@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -293,6 +294,7 @@ func (suite *SuiteSkipTester) TearDownSuite() {
 // can run our suite using the Run(*testing.T, TestingSuite) function.
 func TestRunSuite(t *testing.T) {
 	suiteTester := new(SuiteTester)
+	runCount := int(*testCount)
 	Run(t, suiteTester)
 
 	// Normally, the test would end here.  The following are simply
@@ -304,10 +306,10 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, suiteTester.SetupSuiteRunCount, 1)
 	assert.Equal(t, suiteTester.TearDownSuiteRunCount, 1)
 
-	assert.Equal(t, len(suiteTester.SuiteNameAfter), 4)
-	assert.Equal(t, len(suiteTester.SuiteNameBefore), 4)
-	assert.Equal(t, len(suiteTester.TestNameAfter), 4)
-	assert.Equal(t, len(suiteTester.TestNameBefore), 4)
+	assert.Equal(t, len(suiteTester.SuiteNameAfter), 4*runCount)
+	assert.Equal(t, len(suiteTester.SuiteNameBefore), 4*runCount)
+	assert.Equal(t, len(suiteTester.TestNameAfter), 4*runCount)
+	assert.Equal(t, len(suiteTester.TestNameBefore), 4*runCount)
 
 	assert.Contains(t, suiteTester.TestNameAfter, "TestOne")
 	assert.Contains(t, suiteTester.TestNameAfter, "TestTwo")
@@ -338,13 +340,13 @@ func TestRunSuite(t *testing.T) {
 	// There are four test methods (TestOne, TestTwo, TestSkip, and TestSubtest), so
 	// the SetupTest and TearDownTest methods (which should be run once for
 	// each test) should have been run four times.
-	assert.Equal(t, suiteTester.SetupTestRunCount, 4)
-	assert.Equal(t, suiteTester.TearDownTestRunCount, 4)
+	assert.Equal(t, suiteTester.SetupTestRunCount, 4*runCount)
+	assert.Equal(t, suiteTester.TearDownTestRunCount, 4*runCount)
 
 	// Each test should have been run once.
-	assert.Equal(t, suiteTester.TestOneRunCount, 1)
-	assert.Equal(t, suiteTester.TestTwoRunCount, 1)
-	assert.Equal(t, suiteTester.TestSubtestRunCount, 1)
+	assert.Equal(t, suiteTester.TestOneRunCount, 1*runCount)
+	assert.Equal(t, suiteTester.TestTwoRunCount, 1*runCount)
+	assert.Equal(t, suiteTester.TestSubtestRunCount, 1*runCount)
 
 	assert.Equal(t, suiteTester.TearDownSubTestRunCount, 2)
 	assert.Equal(t, suiteTester.SetupSubTestRunCount, 2)
@@ -473,7 +475,11 @@ func (s *CallOrderSuite) call(method string) {
 }
 
 func TestSuiteCallOrder(t *testing.T) {
-	Run(t, new(CallOrderSuite))
+	suite := new(CallOrderSuite)
+	Run(t, suite)
+	testCallsA := strings.Repeat("SetupTest;Test A;TearDownTest;", int(*testCount))
+	testCallsB := strings.Repeat("SetupTest;Test B;TearDownTest;", int(*testCount))
+	assert.Equal(t, fmt.Sprintf("SetupSuite;%v%vTearDownSuite", testCallsA, testCallsB), strings.Join(suite.callOrder, ";"))
 }
 func (s *CallOrderSuite) SetupSuite() {
 	s.call("SetupSuite")
@@ -481,7 +487,6 @@ func (s *CallOrderSuite) SetupSuite() {
 
 func (s *CallOrderSuite) TearDownSuite() {
 	s.call("TearDownSuite")
-	assert.Equal(s.T(), "SetupSuite;SetupTest;Test A;TearDownTest;SetupTest;Test B;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
 }
 func (s *CallOrderSuite) SetupTest() {
 	s.call("SetupTest")
@@ -577,7 +582,10 @@ func TestFailfastSuite(t *testing.T) {
 		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
 	} else {
 		// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
-		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+
+		testCallsA := strings.Repeat("SetupTest;Test A Fails;TearDownTest;", int(*testCount))
+		testCallsB := strings.Repeat("SetupTest;Test B Passes;TearDownTest;", int(*testCount))
+		assert.Equal(t, fmt.Sprintf("SetupSuite;%v%vTearDownSuite", testCallsA, testCallsB), strings.Join(s.callOrder, ";"))
 	}
 }
 func TestFailfastSuiteFailFastOn(t *testing.T) {
