@@ -2,7 +2,7 @@ name: All builds
 on: [push, pull_request]
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -12,13 +12,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v3.2.0
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go_version }}
-      - run: ./.ci.gogenerate.sh
-      - run: ./.ci.gofmt.sh
-      - run: ./.ci.govet.sh
-      - run: go test -v -race ./...
+      - name: Check go mod tidy
+        run: |
+          go mod tidy
+          (cd _codegen && go mod tidy)
+          git --no-pager diff && [[ -z $(git status -s) ]]
+      - name: Check go generate
+        run: |
+          go generate ./...
+          git --no-pager diff && [[ -z $(git status -s) ]]
+      - name: Check gofmt
+        run: |
+          gofmt -w .
+          git --no-pager diff && [[ -z $(git status -s) ]]
+      - name: Check go vet
+        run: go vet ./...
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -31,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v3.2.0
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go_version }}
       - run: go test -v -race ./...
