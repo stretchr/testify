@@ -59,7 +59,8 @@ func TestCompare(t *testing.T) {
 		}
 
 		if resLess != compareLess {
-			t.Errorf("object less should be less than greater for type " + currCase.cType)
+			t.Errorf("object less (%v) should be less than greater (%v) for type "+currCase.cType,
+				currCase.less, currCase.greater)
 		}
 
 		resGreater, isComparable := compare(currCase.greater, currCase.less, reflect.ValueOf(currCase.less).Kind())
@@ -426,5 +427,23 @@ func Test_containsValue(t *testing.T) {
 	} {
 		compareResult := containsValue(currCase.values, currCase.value)
 		Equal(t, currCase.result, compareResult)
+	}
+}
+
+func TestComparingMsgAndArgsForwarding(t *testing.T) {
+	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
+	expectedOutput := "format this c001\n"
+	funcs := []func(t TestingT){
+		func(t TestingT) { Greater(t, 1, 2, msgAndArgs...) },
+		func(t TestingT) { GreaterOrEqual(t, 1, 2, msgAndArgs...) },
+		func(t TestingT) { Less(t, 2, 1, msgAndArgs...) },
+		func(t TestingT) { LessOrEqual(t, 2, 1, msgAndArgs...) },
+		func(t TestingT) { Positive(t, 0, msgAndArgs...) },
+		func(t TestingT) { Negative(t, 0, msgAndArgs...) },
+	}
+	for _, f := range funcs {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		f(out)
+		Contains(t, out.buf.String(), expectedOutput)
 	}
 }
