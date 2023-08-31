@@ -148,6 +148,12 @@ func TestObjectsAreEqual(t *testing.T) {
 		t.Fail()
 	}
 
+	tm := time.Now()
+	tz := tm.In(time.Local)
+	if !ObjectsAreEqualValues(tm, tz) {
+		t.Error("ObjectsAreEqualValues should return true for time.Time objects with different time zones")
+	}
+
 }
 
 type Nested struct {

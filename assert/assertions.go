@@ -59,20 +59,25 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	if expected == nil || actual == nil {
 		return expected == actual
 	}
-
-	exp, ok := expected.([]byte)
-	if !ok {
+	switch exp := expected.(type) {
+	case []byte:
+		act, ok := actual.([]byte)
+		if !ok {
+			return false
+		}
+		if exp == nil || act == nil {
+			return exp == nil && act == nil
+		}
+		return bytes.Equal(exp, act)
+	case time.Time:
+		act, ok := actual.(time.Time)
+		if !ok {
+			return false
+		}
+		return exp.Equal(act)
+	default:
 		return reflect.DeepEqual(expected, actual)
 	}
-
-	act, ok := actual.([]byte)
-	if !ok {
-		return false
-	}
-	if exp == nil || act == nil {
-		return exp == nil && act == nil
-	}
-	return bytes.Equal(exp, act)
 }
 
 // copyExportedFields iterates downward through nested data structures and creates a copy
