@@ -421,7 +421,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+			"actual  : %s%s", greenColored(expected), redColored(actual), diff), msgAndArgs...)
 	}
 
 	return true
