@@ -151,14 +151,16 @@ type SuiteTester struct {
 	Suite
 
 	// Keep counts of how many times each method is run.
-	SetupSuiteRunCount    int
-	TearDownSuiteRunCount int
-	SetupTestRunCount     int
-	TearDownTestRunCount  int
-	TestOneRunCount       int
-	TestTwoRunCount       int
-	TestSubtestRunCount   int
-	NonTestMethodRunCount int
+	SetupSuiteRunCount      int
+	TearDownSuiteRunCount   int
+	SetupTestRunCount       int
+	TearDownTestRunCount    int
+	TestOneRunCount         int
+	TestTwoRunCount         int
+	TestSubtestRunCount     int
+	NonTestMethodRunCount   int
+	SetupSubTestRunCount    int
+	TearDownSubTestRunCount int
 
 	SuiteNameBefore []string
 	TestNameBefore  []string
@@ -255,6 +257,14 @@ func (suite *SuiteTester) TestSubtest() {
 	}
 }
 
+func (suite *SuiteTester) TearDownSubTest() {
+	suite.TearDownSubTestRunCount++
+}
+
+func (suite *SuiteTester) SetupSubTest() {
+	suite.SetupSubTestRunCount++
+}
+
 type SuiteSkipTester struct {
 	// Include our basic suite logic.
 	Suite
@@ -335,6 +345,9 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, suiteTester.TestOneRunCount, 1)
 	assert.Equal(t, suiteTester.TestTwoRunCount, 1)
 	assert.Equal(t, suiteTester.TestSubtestRunCount, 1)
+
+	assert.Equal(t, suiteTester.TearDownSubTestRunCount, 2)
+	assert.Equal(t, suiteTester.SetupSubTestRunCount, 2)
 
 	// Methods that don't match the test method identifier shouldn't
 	// have been run at all.
@@ -501,19 +514,36 @@ func (s *suiteWithStats) TestSomething() {
 	s.Equal(1, 1)
 }
 
+func (s *suiteWithStats) TestPanic() {
+	panic("oops")
+}
+
 func TestSuiteWithStats(t *testing.T) {
 	suiteWithStats := new(suiteWithStats)
-	Run(t, suiteWithStats)
+
+	testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: "WithStats",
+			F: func(t *testing.T) {
+				Run(t, suiteWithStats)
+			},
+		},
+	})
 
 	assert.True(t, suiteWithStats.wasCalled)
 	assert.NotZero(t, suiteWithStats.stats.Start)
 	assert.NotZero(t, suiteWithStats.stats.End)
-	assert.True(t, suiteWithStats.stats.Passed())
+	assert.False(t, suiteWithStats.stats.Passed())
 
-	testStats := suiteWithStats.stats.TestStats["TestSomething"]
-	assert.NotZero(t, testStats.Start)
-	assert.NotZero(t, testStats.End)
-	assert.True(t, testStats.Passed)
+	testStats := suiteWithStats.stats.TestStats
+
+	assert.NotZero(t, testStats["TestSomething"].Start)
+	assert.NotZero(t, testStats["TestSomething"].End)
+	assert.True(t, testStats["TestSomething"].Passed)
+
+	assert.NotZero(t, testStats["TestPanic"].Start)
+	assert.NotZero(t, testStats["TestPanic"].End)
+	assert.False(t, testStats["TestPanic"].Passed)
 }
 
 // FailfastSuite will test the behavior when running with the failfast flag

@@ -46,7 +46,7 @@ func TestIsIncreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsIncreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
@@ -91,7 +91,7 @@ func TestIsNonIncreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsNonIncreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
@@ -136,7 +136,7 @@ func TestIsDecreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsDecreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
 	}
 }
 
@@ -181,6 +181,23 @@ func TestIsNonDecreasing(t *testing.T) {
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, IsNonDecreasing(out, currCase.collection))
-		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.buf.String(), currCase.msg)
+	}
+}
+
+func TestOrderingMsgAndArgsForwarding(t *testing.T) {
+	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
+	expectedOutput := "format this c001\n"
+	collection := []int{1, 2, 1}
+	funcs := []func(t TestingT){
+		func(t TestingT) { IsIncreasing(t, collection, msgAndArgs...) },
+		func(t TestingT) { IsNonIncreasing(t, collection, msgAndArgs...) },
+		func(t TestingT) { IsDecreasing(t, collection, msgAndArgs...) },
+		func(t TestingT) { IsNonDecreasing(t, collection, msgAndArgs...) },
+	}
+	for _, f := range funcs {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		f(out)
+		Contains(t, out.buf.String(), expectedOutput)
 	}
 }

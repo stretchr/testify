@@ -297,10 +297,8 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 	return strings.Replace(f.Comment(), search, replace, -1)
 }
 
-var headerTemplate = `/*
-* CODE GENERATED AUTOMATICALLY WITH github.com/stretchr/testify/_codegen
-* THIS FILE MUST NOT BE EDITED BY HAND
-*/
+// Standard header https://go.dev/s/generatedcode.
+var headerTemplate = `// Code generated with github.com/stretchr/testify/_codegen; DO NOT EDIT.
 
 package {{.Name}}
 
