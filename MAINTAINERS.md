@@ -5,5 +5,4 @@ pull requests.
 
   * @glesica
   * @boyan-soubachov
-  * @mvdkleijn
 
