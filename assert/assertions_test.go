@@ -408,6 +408,11 @@ func TestEqualExportedValues(t *testing.T) {
 	            	+   Exported: (int) 2,
 	            	    notExported: (interface {}) <nil>`,
 		},
+		{
+			value1:        S{[2]int{1, 2}, Nested{2, 3}, 4, Nested{5, 6}},
+			value2:        S{[2]int{1, 2}, Nested{2, nil}, nil, Nested{}},
+			expectedEqual: true,
+		},
 	}
 
 	for _, c := range cases {
