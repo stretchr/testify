@@ -34,7 +34,7 @@ func TestSuiteRequireTwice(t *testing.T) {
 			},
 		}},
 	)
-	assert.Equal(t, false, ok)
+	assert.False(t, ok)
 }
 
 func (s *SuiteRequireTwice) TestRequireOne() {
@@ -213,7 +213,6 @@ func (suite *SuiteTester) TearDownTest() {
 func (suite *SuiteTester) TestOne() {
 	beforeCount := suite.TestOneRunCount
 	suite.TestOneRunCount++
-	assert.Equal(suite.T(), suite.TestOneRunCount, beforeCount+1)
 	suite.Equal(suite.TestOneRunCount, beforeCount+1)
 }
 
@@ -221,7 +220,6 @@ func (suite *SuiteTester) TestOne() {
 func (suite *SuiteTester) TestTwo() {
 	beforeCount := suite.TestTwoRunCount
 	suite.TestTwoRunCount++
-	assert.NotEqual(suite.T(), suite.TestTwoRunCount, beforeCount)
 	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
 }
 
@@ -301,13 +299,13 @@ func TestRunSuite(t *testing.T) {
 
 	// The suite was only run once, so the SetupSuite and TearDownSuite
 	// methods should have each been run only once.
-	assert.Equal(t, suiteTester.SetupSuiteRunCount, 1)
-	assert.Equal(t, suiteTester.TearDownSuiteRunCount, 1)
+	assert.Equal(t, 1, suiteTester.SetupSuiteRunCount)
+	assert.Equal(t, 1, suiteTester.TearDownSuiteRunCount)
 
-	assert.Equal(t, len(suiteTester.SuiteNameAfter), 4)
-	assert.Equal(t, len(suiteTester.SuiteNameBefore), 4)
-	assert.Equal(t, len(suiteTester.TestNameAfter), 4)
-	assert.Equal(t, len(suiteTester.TestNameBefore), 4)
+	assert.Len(t, suiteTester.SuiteNameAfter, 4)
+	assert.Len(t, suiteTester.SuiteNameBefore, 4)
+	assert.Len(t, suiteTester.TestNameAfter, 4)
+	assert.Len(t, suiteTester.TestNameBefore, 4)
 
 	assert.Contains(t, suiteTester.TestNameAfter, "TestOne")
 	assert.Contains(t, suiteTester.TestNameAfter, "TestTwo")
@@ -338,20 +336,20 @@ func TestRunSuite(t *testing.T) {
 	// There are four test methods (TestOne, TestTwo, TestSkip, and TestSubtest), so
 	// the SetupTest and TearDownTest methods (which should be run once for
 	// each test) should have been run four times.
-	assert.Equal(t, suiteTester.SetupTestRunCount, 4)
-	assert.Equal(t, suiteTester.TearDownTestRunCount, 4)
+	assert.Equal(t, 4, suiteTester.SetupTestRunCount)
+	assert.Equal(t, 4, suiteTester.TearDownTestRunCount)
 
 	// Each test should have been run once.
-	assert.Equal(t, suiteTester.TestOneRunCount, 1)
-	assert.Equal(t, suiteTester.TestTwoRunCount, 1)
-	assert.Equal(t, suiteTester.TestSubtestRunCount, 1)
+	assert.Equal(t, 1, suiteTester.TestOneRunCount)
+	assert.Equal(t, 1, suiteTester.TestTwoRunCount)
+	assert.Equal(t, 1, suiteTester.TestSubtestRunCount)
 
-	assert.Equal(t, suiteTester.TearDownSubTestRunCount, 2)
-	assert.Equal(t, suiteTester.SetupSubTestRunCount, 2)
+	assert.Equal(t, 2, suiteTester.TearDownSubTestRunCount)
+	assert.Equal(t, 2, suiteTester.SetupSubTestRunCount)
 
 	// Methods that don't match the test method identifier shouldn't
 	// have been run at all.
-	assert.Equal(t, suiteTester.NonTestMethodRunCount, 0)
+	assert.Equal(t, 0, suiteTester.NonTestMethodRunCount)
 
 	suiteSkipTester := new(SuiteSkipTester)
 	Run(t, suiteSkipTester)
@@ -359,8 +357,8 @@ func TestRunSuite(t *testing.T) {
 	// The suite was only run once, so the SetupSuite and TearDownSuite
 	// methods should have each been run only once, even though SetupSuite
 	// called Skip()
-	assert.Equal(t, suiteSkipTester.SetupSuiteRunCount, 1)
-	assert.Equal(t, suiteSkipTester.TearDownSuiteRunCount, 1)
+	assert.Equal(t, 1, suiteSkipTester.SetupSuiteRunCount)
+	assert.Equal(t, 1, suiteSkipTester.TearDownSuiteRunCount)
 
 }
 
@@ -571,7 +569,7 @@ func TestFailfastSuite(t *testing.T) {
 			},
 		}},
 	)
-	assert.Equal(t, false, ok)
+	assert.False(t, ok)
 	if failFast {
 		// Test A Fails and because we are running with failfast Test B never runs and we proceed straight to TearDownSuite
 		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
