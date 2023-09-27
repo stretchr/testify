@@ -2786,6 +2786,26 @@ func TestEventuallyWithTTrue(t *testing.T) {
 	Len(t, mockT.errors, 0)
 }
 
+func TestEventuallyWithTFailNow(t *testing.T) {
+	mockT := new(CollectT)
+
+	state := 0
+	condition := func(collect *CollectT) {
+		defer func() {
+			state += 1
+		}()
+		if state == 2 {
+			collect.Errorf("early failed")
+			collect.FailNow()
+		}
+		True(collect, state == 2)
+	}
+
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockT.errors, 2)
+	Equal(t, "early failed", mockT.errors[0].Error())
+}
+
 func TestNeverFalse(t *testing.T) {
 	condition := func() bool {
 		return false

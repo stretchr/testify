@@ -1912,6 +1912,7 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 
 	collect := new(CollectT)
 	ch := make(chan bool, 1)
+	failed := make(chan struct{}, 1)
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -1928,6 +1929,11 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			tick = nil
 			collect.Reset()
 			go func() {
+				defer func() {
+					if r := recover(); r != nil {
+						failed <- struct{}{}
+					}
+				}()
 				condition(collect)
 				ch <- len(collect.errors) == 0
 			}()
@@ -1936,6 +1942,9 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 				return true
 			}
 			tick = ticker.C
+		case <-failed:
+			collect.Copy(t)
+			return Fail(t, "Require assertion failed", msgAndArgs...)
 		}
 	}
 }
