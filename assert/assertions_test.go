@@ -2923,16 +2923,15 @@ func TestEventuallyWithTFalse(t *testing.T) {
 func TestEventuallyWithTTrue(t *testing.T) {
 	mockT := new(errorsCapturingT)
 
-	state := 0
+	counter := 0
 	condition := func(collect *CollectT) {
-		defer func() {
-			state += 1
-		}()
-		True(collect, state == 2)
+		counter += 1
+		True(collect, counter == 2)
 	}
 
 	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 0)
+	Equal(t, 2, counter, "Condition is expected to be called 2 times")
 }
 
 func TestEventuallyWithT_ConcurrencySafe(t *testing.T) {
@@ -2968,6 +2967,17 @@ func TestEventuallyWithT_ReturnsTheLatestFinishedConditionErrors(t *testing.T) {
 	mockT := new(errorsCapturingT)
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 2)
+}
+
+func TestEventuallyWithTFailNow(t *testing.T) {
+	mockT := new(CollectT)
+
+	condition := func(collect *CollectT) {
+		collect.FailNow()
+	}
+
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockT.errors, 1)
 }
 
 func TestNeverFalse(t *testing.T) {
