@@ -213,6 +213,7 @@ func (suite *SuiteTester) TearDownTest() {
 func (suite *SuiteTester) TestOne() {
 	beforeCount := suite.TestOneRunCount
 	suite.TestOneRunCount++
+	assert.Equal(suite.T(), suite.TestOneRunCount, beforeCount+1)
 	suite.Equal(suite.TestOneRunCount, beforeCount+1)
 }
 
@@ -220,6 +221,7 @@ func (suite *SuiteTester) TestOne() {
 func (suite *SuiteTester) TestTwo() {
 	beforeCount := suite.TestTwoRunCount
 	suite.TestTwoRunCount++
+	assert.NotEqual(suite.T(), suite.TestTwoRunCount, beforeCount)
 	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
 }
 
