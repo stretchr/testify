@@ -1474,9 +1474,8 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	expectedSlice := reflect.ValueOf(expected)
 	actualSlice := reflect.ValueOf(actual)
 
-	if expectedSlice.Type().Kind() != reflect.Slice ||
-		actualSlice.Type().Kind() != reflect.Slice {
-		return Fail(t, "Parameters must be slice", msgAndArgs...)
+	if expectedSlice.Type().Kind() != reflect.Slice {
+		return Fail(t, "Expected value must be slice", msgAndArgs...)
 	}
 
 	expectedLen := expectedSlice.Len()
