@@ -1479,6 +1479,10 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 		return Fail(t, "Parameters must be slice", msgAndArgs...)
 	}
 
+	if !IsType(t, expected, actual) || !Len(t, actual, expectedSlice.Len()) {
+		return false
+	}
+
 	for i := 0; i < actualSlice.Len(); i++ {
 		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon)
 		if !result {
