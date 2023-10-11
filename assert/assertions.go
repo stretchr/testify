@@ -1930,8 +1930,10 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			tick = nil
 			go func() {
 				collect := new(CollectT)
+				defer func() {
+					ch <- collect.errors
+				}()
 				condition(collect)
-				ch <- collect.errors
 			}()
 		case errs := <-ch:
 			if len(errs) == 0 {
