@@ -1705,6 +1705,33 @@ func TestLen(t *testing.T) {
 	for _, c := range cases {
 		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
 	}
+
+	formatCases := []struct {
+		in      interface{}
+		wantLen int
+		want    string
+	}{
+		{[]int{1, 2, 3}, 3, "[1 2 3]"},
+		{[...]int{1, 2, 3}, 3, "[1 2 3]"},
+		{"ABC", 3, "ABC"},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 3, "map[1:2 2:4 3:6]"},
+
+		{[]int{}, 0, "[]"},
+		{map[int]int{}, 0, "map[]"},
+
+		{[]int(nil), 0, "[]"},
+		{map[int]int(nil), 0, "map[]"},
+		{(chan int)(nil), 0, "<nil>"},
+	}
+
+	t.Run("Len() error message formatting", func(t *testing.T) {
+		for _, tt := range formatCases {
+			msgMock := new(mockTestingT)
+			Len(msgMock, tt.in, 1234567)
+			want := fmt.Sprintf(`"%s" should have 1234567 item(s), but has %d`, tt.want, tt.wantLen)
+			Contains(t, msgMock.errorString(), want)
+		}
+	})
 }
 
 func TestWithinDuration(t *testing.T) {
