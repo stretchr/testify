@@ -114,20 +114,13 @@ func copyExportedFields(expected interface{}) interface{} {
 		result.Elem().Set(reflect.ValueOf(unexportedRemoved))
 		return result.Interface()
 
-	case reflect.Array:
-		result := reflect.New(reflect.ArrayOf(expectedValue.Len(), expectedType.Elem())).Elem()
-		for i := 0; i < expectedValue.Len(); i++ {
-			index := expectedValue.Index(i)
-			if isNil(index) {
-				continue
-			}
-			unexportedRemoved := copyExportedFields(index.Interface())
-			result.Index(i).Set(reflect.ValueOf(unexportedRemoved))
+	case reflect.Array, reflect.Slice:
+		var result reflect.Value
+		if expectedKind == reflect.Array {
+			result = reflect.New(reflect.ArrayOf(expectedValue.Len(), expectedType.Elem())).Elem()
+		} else {
+			result = reflect.MakeSlice(expectedType, expectedValue.Len(), expectedValue.Len())
 		}
-		return result.Interface()
-
-	case reflect.Slice:
-		result := reflect.MakeSlice(expectedType, expectedValue.Len(), expectedValue.Len())
 		for i := 0; i < expectedValue.Len(); i++ {
 			index := expectedValue.Index(i)
 			if isNil(index) {
