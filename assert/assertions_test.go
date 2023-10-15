@@ -148,6 +148,12 @@ func TestObjectsAreEqual(t *testing.T) {
 		t.Fail()
 	}
 
+	tm := time.Now()
+	tz := tm.In(time.Local)
+	if !ObjectsAreEqualValues(tm, tz) {
+		t.Error("ObjectsAreEqualValues should return true for time.Time objects with different time zones")
+	}
+
 }
 
 type Nested struct {
@@ -2765,11 +2771,22 @@ func TestEventuallyTrue(t *testing.T) {
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+// errorsCapturingT is a mock implementation of TestingT that captures errors reported with Errorf.
+type errorsCapturingT struct {
+	errors []error
+}
+
+func (t *errorsCapturingT) Errorf(format string, args ...interface{}) {
+	t.errors = append(t.errors, fmt.Errorf(format, args...))
+}
+
+func (t *errorsCapturingT) Helper() {}
+
 func TestEventuallyWithTFalse(t *testing.T) {
-	mockT := new(CollectT)
+	mockT := new(errorsCapturingT)
 
 	condition := func(collect *CollectT) {
-		True(collect, false)
+		Fail(collect, "condition fixed failure")
 	}
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
@@ -2777,7 +2794,7 @@ func TestEventuallyWithTFalse(t *testing.T) {
 }
 
 func TestEventuallyWithTTrue(t *testing.T) {
-	mockT := new(CollectT)
+	mockT := new(errorsCapturingT)
 
 	state := 0
 	condition := func(collect *CollectT) {
@@ -2789,6 +2806,41 @@ func TestEventuallyWithTTrue(t *testing.T) {
 
 	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 0)
+}
+
+func TestEventuallyWithT_ConcurrencySafe(t *testing.T) {
+	mockT := new(errorsCapturingT)
+
+	condition := func(collect *CollectT) {
+		Fail(collect, "condition fixed failure")
+	}
+
+	// To trigger race conditions, we run EventuallyWithT with a nanosecond tick.
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Nanosecond))
+	Len(t, mockT.errors, 2)
+}
+
+func TestEventuallyWithT_ReturnsTheLatestFinishedConditionErrors(t *testing.T) {
+	// We'll use a channel to control whether a condition should sleep or not.
+	mustSleep := make(chan bool, 2)
+	mustSleep <- false
+	mustSleep <- true
+	close(mustSleep)
+
+	condition := func(collect *CollectT) {
+		if <-mustSleep {
+			// Sleep to ensure that the second condition runs longer than timeout.
+			time.Sleep(time.Second)
+			return
+		}
+
+		// The first condition will fail. We expect to get this error as a result.
+		Fail(collect, "condition fixed failure")
+	}
+
+	mockT := new(errorsCapturingT)
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockT.errors, 2)
 }
 
 func TestNeverFalse(t *testing.T) {

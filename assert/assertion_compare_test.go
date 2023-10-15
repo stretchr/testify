@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"runtime"
 	"testing"
+	"time"
 )
 
 func TestCompare(t *testing.T) {
@@ -22,6 +23,8 @@ func TestCompare(t *testing.T) {
 	type customFloat32 float32
 	type customFloat64 float64
 	type customString string
+	type customTime time.Time
+	type customBytes []byte
 	for _, currCase := range []struct {
 		less    interface{}
 		greater interface{}
@@ -52,6 +55,10 @@ func TestCompare(t *testing.T) {
 		{less: customFloat32(1.23), greater: customFloat32(2.23), cType: "float32"},
 		{less: float64(1.23), greater: float64(2.34), cType: "float64"},
 		{less: customFloat64(1.23), greater: customFloat64(2.34), cType: "float64"},
+		{less: time.Now(), greater: time.Now().Add(time.Hour), cType: "time.Time"},
+		{less: customTime(time.Now()), greater: customTime(time.Now().Add(time.Hour)), cType: "time.Time"},
+		{less: []byte{1, 1}, greater: []byte{1, 2}, cType: "[]byte"},
+		{less: customBytes([]byte{1, 1}), greater: customBytes([]byte{1, 2}), cType: "[]byte"},
 	} {
 		resLess, isComparable := compare(currCase.less, currCase.greater, reflect.ValueOf(currCase.less).Kind())
 		if !isComparable {
@@ -148,6 +155,8 @@ func TestGreater(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"1" is not greater than "2"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"1.23" is not greater than "2.34"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than "2.34"`},
+		{less: []byte{1, 1}, greater: []byte{1, 2}, msg: `"[1 1]" is not greater than "[1 2]"`},
+		{less: time.Time{}, greater: time.Time{}.Add(time.Hour), msg: `"0001-01-01 00:00:00 +0000 UTC" is not greater than "0001-01-01 01:00:00 +0000 UTC"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Greater(out, currCase.less, currCase.greater))
@@ -189,6 +198,8 @@ func TestGreaterOrEqual(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"1" is not greater than or equal to "2"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"1.23" is not greater than or equal to "2.34"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"1.23" is not greater than or equal to "2.34"`},
+		{less: []byte{1, 1}, greater: []byte{1, 2}, msg: `"[1 1]" is not greater than or equal to "[1 2]"`},
+		{less: time.Time{}, greater: time.Time{}.Add(time.Hour), msg: `"0001-01-01 00:00:00 +0000 UTC" is not greater than or equal to "0001-01-01 01:00:00 +0000 UTC"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, GreaterOrEqual(out, currCase.less, currCase.greater))
@@ -230,6 +241,8 @@ func TestLess(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"2" is not less than "1"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"2.34" is not less than "1.23"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than "1.23"`},
+		{less: []byte{1, 1}, greater: []byte{1, 2}, msg: `"[1 2]" is not less than "[1 1]"`},
+		{less: time.Time{}, greater: time.Time{}.Add(time.Hour), msg: `"0001-01-01 01:00:00 +0000 UTC" is not less than "0001-01-01 00:00:00 +0000 UTC"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, Less(out, currCase.greater, currCase.less))
@@ -271,6 +284,8 @@ func TestLessOrEqual(t *testing.T) {
 		{less: uint64(1), greater: uint64(2), msg: `"2" is not less than or equal to "1"`},
 		{less: float32(1.23), greater: float32(2.34), msg: `"2.34" is not less than or equal to "1.23"`},
 		{less: float64(1.23), greater: float64(2.34), msg: `"2.34" is not less than or equal to "1.23"`},
+		{less: []byte{1, 1}, greater: []byte{1, 2}, msg: `"[1 2]" is not less than or equal to "[1 1]"`},
+		{less: time.Time{}, greater: time.Time{}.Add(time.Hour), msg: `"0001-01-01 01:00:00 +0000 UTC" is not less than or equal to "0001-01-01 00:00:00 +0000 UTC"`},
 	} {
 		out := &outputT{buf: bytes.NewBuffer(nil)}
 		False(t, LessOrEqual(out, currCase.greater, currCase.less))
