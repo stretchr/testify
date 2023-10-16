@@ -259,14 +259,12 @@ func (suite *SuiteTester) TestSubtest() {
 
 func (suite *SuiteTester) TearDownSubTest() {
 	suite.TearDownSubTestRunCount++
-	// We should get the *testing.T for the test that is to be torn down
-	suite.Contains(suite.T().Name(), "subtest")
+	suite.Contains(suite.T().Name(), "subtest", "We should get the *testing.T for the test that is to be torn down")
 }
 
 func (suite *SuiteTester) SetupSubTest() {
 	suite.SetupSubTestRunCount++
-	// We should get the *testing.T for the test that is to be set up
-	suite.Contains(suite.T().Name(), "subtest")
+	suite.Contains(suite.T().Name(), "subtest", "We should get the *testing.T for the test that is to be set up")
 }
 
 type SuiteSkipTester struct {
