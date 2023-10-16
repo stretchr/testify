@@ -99,19 +99,15 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 	return oldT.Run(name, func(t *testing.T) {
 		suite.SetT(t)
 
-		defer func() {
-			suite.SetT(oldT)
-		}()
+		defer suite.SetT(oldT)
 
 		if setupSubTest, ok := suite.s.(SetupSubTest); ok {
 			setupSubTest.SetupSubTest()
 		}
 
-		defer func() {
-			if tearDownSubTest, ok := suite.s.(TearDownSubTest); ok {
-				tearDownSubTest.TearDownSubTest()
-			}
-		}()
+		if tearDownSubTest, ok := suite.s.(TearDownSubTest); ok {
+			defer tearDownSubTest.TearDownSubTest()
+		}
 
 		subtest()
 	})
