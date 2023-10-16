@@ -150,6 +150,8 @@ func copyExportedFields(expected interface{}) interface{} {
 // structures.
 //
 // This function does no assertion of any kind.
+//
+// Deprecated: Use [EqualExportedValues] instead.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 	expectedCleaned := copyExportedFields(expected)
 	actualCleaned := copyExportedFields(actual)
