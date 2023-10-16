@@ -481,7 +481,7 @@ func (s *CallOrderSuite) SetupSuite() {
 
 func (s *CallOrderSuite) TearDownSuite() {
 	s.call("TearDownSuite")
-	assert.Equal(s.T(), "SetupSuite;SetupTest;Test A;TearDownTest;SetupTest;Test B;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+	assert.Equal(s.T(), "SetupSuite;SetupTest;Test A;SetupSubTest;SubTest A1;TearDownSubTest;SetupSubTest;SubTest A2;TearDownSubTest;TearDownTest;SetupTest;Test B;SetupSubTest;SubTest B1;TearDownSubTest;SetupSubTest;SubTest B2;TearDownSubTest;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
 }
 func (s *CallOrderSuite) SetupTest() {
 	s.call("SetupTest")
@@ -491,12 +491,32 @@ func (s *CallOrderSuite) TearDownTest() {
 	s.call("TearDownTest")
 }
 
+func (s *CallOrderSuite) SetupSubTest() {
+	s.call("SetupSubTest")
+}
+
+func (s *CallOrderSuite) TearDownSubTest() {
+	s.call("TearDownSubTest")
+}
+
 func (s *CallOrderSuite) Test_A() {
 	s.call("Test A")
+	s.Run("SubTest A1", func() {
+		s.call("SubTest A1")
+	})
+	s.Run("SubTest A2", func() {
+		s.call("SubTest A2")
+	})
 }
 
 func (s *CallOrderSuite) Test_B() {
 	s.call("Test B")
+	s.Run("SubTest B1", func() {
+		s.call("SubTest B1")
+	})
+	s.Run("SubTest B2", func() {
+		s.call("SubTest B2")
+	})
 }
 
 type suiteWithStats struct {
