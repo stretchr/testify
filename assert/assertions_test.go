@@ -547,6 +547,11 @@ func TestNotSame(t *testing.T) {
 
 func Test_samePointers(t *testing.T) {
 	p := ptr(2)
+	c1, c2 := make(chan int), make(chan int)
+	f1, f2 := func() {}, func() {}
+	m1, m2 := map[int]int{1: 2}, map[int]int{1: 2}
+	p1, p2 := ptr(3), ptr(3)
+	s1, s2 := []int{4, 5}, []int{4, 5}
 
 	type args struct {
 		first  interface{}
@@ -580,6 +585,56 @@ func Test_samePointers(t *testing.T) {
 		{
 			name:      "array != slice",
 			args:      args{first: [2]int{1, 2}, second: []int{1, 2}},
+			assertion: False,
+		},
+		{
+			name:      "chan(1) == chan(1)",
+			args:      args{first: c1, second: c1},
+			assertion: True,
+		},
+		{
+			name:      "func(1) == func(1)",
+			args:      args{first: f1, second: f1},
+			assertion: True,
+		},
+		{
+			name:      "map(1) == map(1)",
+			args:      args{first: m1, second: m1},
+			assertion: True,
+		},
+		{
+			name:      "ptr(1) == ptr(1)",
+			args:      args{first: p1, second: p1},
+			assertion: True,
+		},
+		{
+			name:      "slice(1) == slice(1)",
+			args:      args{first: s1, second: s1},
+			assertion: True,
+		},
+		{
+			name:      "chan(1) != chan(2)",
+			args:      args{first: c1, second: c2},
+			assertion: False,
+		},
+		{
+			name:      "func(1) != func(2)",
+			args:      args{first: f1, second: f2},
+			assertion: False,
+		},
+		{
+			name:      "map(1) != map(2)",
+			args:      args{first: m1, second: m2},
+			assertion: False,
+		},
+		{
+			name:      "ptr(1) != ptr(2)",
+			args:      args{first: p1, second: p2},
+			assertion: False,
+		},
+		{
+			name:      "slice(1) != slice(2)",
+			args:      args{first: s1, second: s2},
 			assertion: False,
 		},
 	}
