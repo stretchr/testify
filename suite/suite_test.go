@@ -242,8 +242,8 @@ func (suite *SuiteTester) TestSubtest() {
 	for _, t := range []struct {
 		testName string
 	}{
-		{"first"},
-		{"second"},
+		{"first-subtest"},
+		{"second-subtest"},
 	} {
 		suiteT := suite.T()
 		suite.Run(t.testName, func() {
@@ -259,10 +259,14 @@ func (suite *SuiteTester) TestSubtest() {
 
 func (suite *SuiteTester) TearDownSubTest() {
 	suite.TearDownSubTestRunCount++
+	// We should get the *testing.T for the test that is to be torn down
+	suite.Contains(suite.T().Name(), "subtest")
 }
 
 func (suite *SuiteTester) SetupSubTest() {
 	suite.SetupSubTestRunCount++
+	// We should get the *testing.T for the test that is to be set up
+	suite.Contains(suite.T().Name(), "subtest")
 }
 
 type SuiteSkipTester struct {
