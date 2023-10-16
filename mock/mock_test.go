@@ -32,6 +32,29 @@ func (i *TestExampleImplementation) TheExampleMethod(a, b, c int) (int, error) {
 	return args.Int(0), errors.New("Whoops")
 }
 
+type options struct {
+	num int
+	str string
+}
+
+type OptionFn func(*options)
+
+func OpNum(n int) OptionFn {
+	return func(o *options) {
+		o.num = n
+	}
+}
+
+func OpStr(s string) OptionFn {
+	return func(o *options) {
+		o.str = s
+	}
+}
+func (i *TestExampleImplementation) TheExampleMethodFunctionalOptions(x string, opts ...OptionFn) error {
+	args := i.Called(x, opts)
+	return args.Error(0)
+}
+
 //go:noinline
 func (i *TestExampleImplementation) TheExampleMethod2(yesorno bool) {
 	i.Called(yesorno)
@@ -113,7 +136,7 @@ func (m *MockTestingT) Errorf(string, ...interface{}) {
 // the execution stops.
 // When expecting this method, the call that invokes it should use the following code:
 //
-//     assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
+//	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {...})
 func (m *MockTestingT) FailNow() {
 	m.failNowCount++
 
@@ -567,6 +590,80 @@ func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
 	})
 
 	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+}
+
+func Test_Mock_UnsetByOnMethodSpec(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	mock1 := mockedService.
+		On("TheExampleMethod", 1, 2, 3).
+		Return(0, nil)
+
+	assert.Equal(t, 1, len(mockedService.ExpectedCalls))
+	mock1.On("TheExampleMethod", 1, 2, 3).
+		Return(0, nil).Unset()
+
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+
+	assert.Panics(t, func() {
+		mock1.Unset()
+	})
+
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+}
+
+func Test_Mock_UnsetByOnMethodSpecAmongOthers(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	_, filename, line, _ := runtime.Caller(0)
+	mock1 := mockedService.
+		On("TheExampleMethod", 1, 2, 3).
+		Return(0, nil).
+		On("TheExampleMethodVariadic", 1, 2, 3, 4, 5).Once().
+		Return(nil)
+	mock1.
+		On("TheExampleMethodFuncType", Anything).
+		Return(nil)
+
+	assert.Equal(t, 3, len(mockedService.ExpectedCalls))
+	mock1.On("TheExampleMethod", 1, 2, 3).
+		Return(0, nil).Unset()
+
+	assert.Equal(t, 2, len(mockedService.ExpectedCalls))
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethodVariadic",
+			Repeatability:   1,
+			Arguments:       []interface{}{1, 2, 3, 4, 5},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethodFuncType",
+			Arguments:       []interface{}{Anything},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+7)},
+		},
+	}
+
+	assert.Equal(t, 2, len(mockedService.ExpectedCalls))
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_Unset_WithFuncPanics(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+	mock1 := mockedService.On("TheExampleMethod", 1)
+	mock1.Arguments = append(mock1.Arguments, func(string) error { return nil })
+
+	assert.Panics(t, func() {
+		mock1.Unset()
+	})
 }
 
 func Test_Mock_Return(t *testing.T) {
@@ -1341,6 +1438,40 @@ func Test_Mock_AssertExpectationsCustomType(t *testing.T) {
 
 }
 
+func Test_Mock_AssertExpectationsFunctionalOptionsType(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpNum(1), OpStr("foo"))).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	mockedService.TheExampleMethodFunctionalOptions("test", OpNum(1), OpStr("foo"))
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Empty(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions()).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	mockedService.TheExampleMethodFunctionalOptions("test")
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
 func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -1525,7 +1656,7 @@ func Test_Mock_AssertOptional(t *testing.T) {
 }
 
 /*
-	Arguments helper methods
+Arguments helper methods
 */
 func Test_Arguments_Get(t *testing.T) {
 
@@ -1831,7 +1962,7 @@ func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 
 	end := time.Now()
 	elapsedTime := end.Sub(start)
-	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be atleast greater than %v", elapsedTime, waitMs))
+	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be at least greater than %v", elapsedTime, waitMs))
 	assert.Equal(t, total, len(results))
 	for i := range results {
 		assert.Equal(t, fmt.Sprintf("Time%d", i), results[i], "Return value of method should be same")
