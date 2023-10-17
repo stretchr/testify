@@ -162,6 +162,9 @@ type SuiteTester struct {
 	SetupSubTestRunCount    int
 	TearDownSubTestRunCount int
 
+	SetupSubTestNames    []string
+	TearDownSubTestNames []string
+
 	SuiteNameBefore []string
 	TestNameBefore  []string
 
@@ -242,8 +245,8 @@ func (suite *SuiteTester) TestSubtest() {
 	for _, t := range []struct {
 		testName string
 	}{
-		{"first-subtest"},
-		{"second-subtest"},
+		{"first"},
+		{"second"},
 	} {
 		suiteT := suite.T()
 		suite.Run(t.testName, func() {
@@ -258,13 +261,13 @@ func (suite *SuiteTester) TestSubtest() {
 }
 
 func (suite *SuiteTester) TearDownSubTest() {
+	suite.TearDownSubTestNames = append(suite.TearDownSubTestNames, suite.T().Name())
 	suite.TearDownSubTestRunCount++
-	suite.Contains(suite.T().Name(), "subtest", "We should get the *testing.T for the test that is to be torn down")
 }
 
 func (suite *SuiteTester) SetupSubTest() {
+	suite.SetupSubTestNames = append(suite.SetupSubTestNames, suite.T().Name())
 	suite.SetupSubTestRunCount++
-	suite.Contains(suite.T().Name(), "subtest", "We should get the *testing.T for the test that is to be set up")
 }
 
 type SuiteSkipTester struct {
@@ -320,6 +323,12 @@ func TestRunSuite(t *testing.T) {
 	assert.Contains(t, suiteTester.TestNameBefore, "TestTwo")
 	assert.Contains(t, suiteTester.TestNameBefore, "TestSkip")
 	assert.Contains(t, suiteTester.TestNameBefore, "TestSubtest")
+
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuite/TestSubtest/first")
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuite/TestSubtest/second")
+
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuite/TestSubtest/first")
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuite/TestSubtest/second")
 
 	for _, suiteName := range suiteTester.SuiteNameAfter {
 		assert.Equal(t, "SuiteTester", suiteName)
