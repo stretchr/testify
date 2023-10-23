@@ -264,6 +264,18 @@ func GreaterOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, arg
 	return GreaterOrEqual(t, e1, e2, append([]interface{}{msg}, args...)...)
 }
 
+// HTTPf asserts that a specfied handler returns set of expected values given by HttpOptions.
+//
+//	assert.HTTPf(t, myHandler, "www.google.com", nil, WithCode(200), WithBody("I'm Feeling Lucky"), WithRequestHeader(http.Header{"a": []string{"b"}}, WithExpectedBody(bytes.NewBuffer("c"))), "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func HTTPf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, options ...HttpOption) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return HTTP(t, handler, method, url, values, options...)
+}
+
 // HTTPBodyContainsf asserts that a specified handler returns a
 // body that contains a string.
 //

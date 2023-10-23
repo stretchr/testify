@@ -520,6 +520,18 @@ func (a *Assertions) Greaterf(e1 interface{}, e2 interface{}, msg string, args .
 	return Greaterf(a.t, e1, e2, msg, args...)
 }
 
+// HTTP asserts that a specfied handler returns set of expected values given by HttpOptions.
+//
+//	a.HTTP(myHandler, "www.google.com", nil, WithCode(200), WithBody("I'm Feeling Lucky"), WithRequestHeader(http.Header{"a": []string{"b"}}, WithExpectedBody(bytes.NewBuffer("c"))))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) HTTP(handler http.HandlerFunc, method string, url string, values url.Values, options ...HttpOption) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return HTTP(a.t, handler, method, url, values, options...)
+}
+
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 //
@@ -666,6 +678,18 @@ func (a *Assertions) HTTPSuccessf(handler http.HandlerFunc, method string, url s
 		h.Helper()
 	}
 	return HTTPSuccessf(a.t, handler, method, url, values, msg, args...)
+}
+
+// HTTPf asserts that a specfied handler returns set of expected values given by HttpOptions.
+//
+//	a.HTTPf(myHandler, "www.google.com", nil, WithCode(200), WithBody("I'm Feeling Lucky"), WithRequestHeader(http.Header{"a": []string{"b"}}, WithExpectedBody(bytes.NewBuffer("c"))), "error message %s", "formatted")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) HTTPf(handler http.HandlerFunc, method string, url string, values url.Values, options ...HttpOption) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return HTTPf(a.t, handler, method, url, values, options...)
 }
 
 // Implements asserts that an object is implemented by the specified interface.

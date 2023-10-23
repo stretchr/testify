@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -162,4 +163,51 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method, url strin
 	}
 
 	return !contains
+}
+
+// HTTP asserts that a specfied handler returns set of expected values given by HttpOptions.
+//
+//	assert.HTTP(t, myHandler, "www.google.com", nil, WithCode(200), WithBody("I'm Feeling Lucky"), WithRequestHeader(http.Header{"a": []string{"b"}}, WithExpectedBody(bytes.NewBuffer("c"))))
+//
+// Returns whether the assertion was successful (true) or not (false).
+func HTTP(t TestingT, handler http.HandlerFunc, method, url string, values url.Values, options ...HttpOption) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	b := &builder{}
+	for _, option := range options {
+		err := option(b)
+		if err != nil {
+			Fail(t, fmt.Sprintf("Failed to build http options, got error: %s", err))
+		}
+	}
+
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(method, url, b.body)
+	if b.err == nil && err != nil {
+		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
+	} else if b.err != nil {
+		return err == b.err
+	}
+
+	req.Header = b.requestHeader
+	req.URL.RawQuery = values.Encode()
+	handler(w, req)
+	if w.Code != b.code {
+		Fail(t, fmt.Sprintf("Expected HTTP success status code for %q but received %d", url+"?"+values.Encode(), w.Code))
+		return false
+	}
+
+	if b.responseHeader != nil && !reflect.DeepEqual(w.HeaderMap, b.responseHeader) {
+		Fail(t, fmt.Sprintf("Expected HTTP header to be equal for %q but received %v", url+"?"+values.Encode(), w.HeaderMap))
+		return false
+	}
+
+	contains := strings.Contains(w.Body.String(), b.expectedBody.String())
+	if !contains {
+		Fail(t, fmt.Sprintf("Expected HTTP body to be equal for %q but received %s", url+"?"+values.Encode(), w.Body.String()))
+	}
+
+	return contains
 }
