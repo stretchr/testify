@@ -2909,7 +2909,6 @@ func Test_truncatingFormat(t *testing.T) {
 }
 
 func TestErrorIs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
 		err    error
 		target error
@@ -2925,16 +2924,19 @@ func TestErrorIs(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("ErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := ErrorIs(mockT, tt.err, tt.target)
 			if res != tt.result {
 				t.Errorf("ErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
 			}
 		})
 	}
 }
 
 func TestNotErrorIs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
 		err    error
 		target error
@@ -2950,16 +2952,19 @@ func TestNotErrorIs(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("NotErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := NotErrorIs(mockT, tt.err, tt.target)
 			if res != tt.result {
 				t.Errorf("NotErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
 			}
 		})
 	}
 }
 
 func TestErrorAs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
 		err    error
 		result bool
@@ -2972,9 +2977,38 @@ func TestErrorAs(t *testing.T) {
 		tt := tt
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := ErrorAs(mockT, tt.err, &target)
 			if res != tt.result {
-				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
+				t.Errorf("ErrorAs(%#v,%#v) should return %t", tt.err, target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
+			}
+		})
+	}
+}
+
+func TestNotErrorAs(t *testing.T) {
+	tests := []struct {
+		err    error
+		result bool
+	}{
+		{fmt.Errorf("wrap: %w", &customError{}), false},
+		{io.EOF, true},
+		{nil, true},
+	}
+	for _, tt := range tests {
+		tt := tt
+		var target *customError
+		t.Run(fmt.Sprintf("NotErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(testing.T)
+			res := NotErrorAs(mockT, tt.err, &target)
+			if res != tt.result {
+				t.Errorf("NotErrorAs(%#v,%#v) should not return %t", tt.err, target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
 			}
 		})
 	}

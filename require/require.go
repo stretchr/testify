@@ -1519,8 +1519,32 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 	t.FailNow()
 }
 
+// NotErrorAs asserts that at none of the errors in err's chain matches target.
+// This is the inverse of the ErrorAs function.
+func NotErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotErrorAs(t, err, target, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotErrorAsf asserts that at none of the errors in err's chain matches target.
+// This is the inverse of the ErrorAs function.
+func NotErrorAsf(t TestingT, err error, target interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotErrorAsf(t, err, target, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NotErrorIs asserts that at none of the errors in err's chain matches target.
-// This is a wrapper for errors.Is.
+// This is the inverse of the ErrorIs function.
 func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1532,7 +1556,7 @@ func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) 
 }
 
 // NotErrorIsf asserts that at none of the errors in err's chain matches target.
-// This is a wrapper for errors.Is.
+// This is the inverse of the ErrorIs function.
 func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
