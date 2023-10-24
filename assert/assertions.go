@@ -763,11 +763,11 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 	}
 	l, ok := getLen(object)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%#v could not be applied builtin len()", object), msgAndArgs...)
 	}
 
 	if l != length {
-		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%#v should have %d item(s), but has %d", object, length, l), msgAndArgs...)
 	}
 	return true
 }
@@ -814,7 +814,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 	}
 	if err := validateEqualArgs(expected, actual); err != nil {
 		return Fail(t, fmt.Sprintf("Invalid operation: %#v != %#v (%s)",
-			expected, actual, err), msgAndArgs...)
+			expected, actual, err.Error()), msgAndArgs...)
 	}
 
 	if ObjectsAreEqual(expected, actual) {
@@ -1031,7 +1031,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
 		if !ok {
-			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("%#v could not be applied builtin len()", list), msgAndArgs...)
 		}
 		if !found {
 			return true
