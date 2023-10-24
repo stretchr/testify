@@ -3,10 +3,12 @@ package suite
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"reflect"
 	"regexp"
 	"runtime/debug"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -17,6 +19,7 @@ import (
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
+var shuffle = flag.String("testify.shuffle", "off", "randomize the execution order of tests in testify suites, like -test.shuffle")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -199,6 +202,26 @@ func Run(t *testing.T, suite TestingSuite) {
 		}
 		tests = append(tests, test)
 	}
+
+	// implementation is similar to the implementation of -test.shuffle in package testing
+	// https://cs.opensource.google/go/go/+/refs/tags/go1.20.5:src/testing/testing.go;l=1876-1893
+	if *shuffle != "off" {
+		var n int64
+		var err error
+		if *shuffle == "on" {
+			n = time.Now().UnixNano()
+		} else {
+			n, err = strconv.ParseInt(*shuffle, 10, 64)
+			if err != nil {
+				t.Fatal(`testing: -testify.shuffle should be "off", "on", or a valid integer:`, err)
+				return
+			}
+		}
+		t.Log("-testify.shuffle", n)
+		rng := rand.New(rand.NewSource(n))
+		rng.Shuffle(len(tests), func(i, j int) { tests[i], tests[j] = tests[j], tests[i] })
+	}
+
 	if suiteSetupDone {
 		defer func() {
 			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
