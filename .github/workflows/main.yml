@@ -7,12 +7,12 @@ jobs:
     strategy:
       matrix:
         go_version:
-          - "1.19"
           - "1.20"
+          - "1.21"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@v3.2.0
+        uses: actions/setup-go@v4.1.0
         with:
           go-version: ${{ matrix.go_version }}
       - run: ./.ci.gogenerate.sh
@@ -28,10 +28,11 @@ jobs:
           - "1.18"
           - "1.19"
           - "1.20"
+          - "1.21"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@v3.2.0
+        uses: actions/setup-go@v4.1.0
         with:
           go-version: ${{ matrix.go_version }}
       - run: go test -v -race ./...

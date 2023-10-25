@@ -12,7 +12,7 @@ import (
 // an error if building a new request fails.
 func httpCode(handler http.HandlerFunc, method, url string, values url.Values) (int, error) {
 	w := httptest.NewRecorder()
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequest(method, url, http.NoBody)
 	if err != nil {
 		return -1, err
 	}
@@ -116,7 +116,7 @@ func HTTPBody(handler http.HandlerFunc, method, url string, values url.Values) s
 	if len(values) > 0 {
 		url += "?" + values.Encode()
 	}
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequest(method, url, http.NoBody)
 	if err != nil {
 		return ""
 	}
