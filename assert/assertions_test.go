@@ -3002,7 +3002,8 @@ func TestErrorIs(t *testing.T) {
 			err:    io.EOF,
 			target: io.ErrClosedPipe,
 			result: false,
-			resultErrMsg: "Target error should be in err chain:\n" +
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
 				"expected: \"io: read/write on closed pipe\"\n" +
 				"in chain: \"EOF\"\n",
 		},
@@ -3010,7 +3011,8 @@ func TestErrorIs(t *testing.T) {
 			err:    nil,
 			target: io.EOF,
 			result: false,
-			resultErrMsg: "Target error should be in err chain:\n" +
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
 				"expected: \"EOF\"\n" +
 				"in chain: \n",
 		},
@@ -3018,7 +3020,8 @@ func TestErrorIs(t *testing.T) {
 			err:    io.EOF,
 			target: nil,
 			result: false,
-			resultErrMsg: "Target error should be in err chain:\n" +
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
 				"expected: \"\"\n" +
 				"in chain: \"EOF\"\n",
 		},
@@ -3031,7 +3034,8 @@ func TestErrorIs(t *testing.T) {
 			err:    fmt.Errorf("abc: %w", errors.New("def")),
 			target: io.EOF,
 			result: false,
-			resultErrMsg: "Target error should be in err chain:\n" +
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
 				"expected: \"EOF\"\n" +
 				"in chain: \"abc: def\"\n" +
 				"\t\"def\"\n",
@@ -3058,7 +3062,8 @@ func TestNotErrorIs(t *testing.T) {
 			err:    io.EOF,
 			target: io.EOF,
 			result: false,
-			resultErrMsg: "Target error should not be in err chain:\n" +
+			resultErrMsg: "" +
+				"Target error should not be in err chain:\n" +
 				"found: \"EOF\"\n" +
 				"in chain: \"EOF\"\n",
 		},
@@ -3066,7 +3071,8 @@ func TestNotErrorIs(t *testing.T) {
 			err:    fmt.Errorf("wrap: %w", io.EOF),
 			target: io.EOF,
 			result: false,
-			resultErrMsg: "Target error should not be in err chain:\n" +
+			resultErrMsg: "" +
+				"Target error should not be in err chain:\n" +
 				"found: \"EOF\"\n" +
 				"in chain: \"wrap: EOF\"\n" +
 				"\t\"EOF\"\n",
@@ -3090,7 +3096,8 @@ func TestNotErrorIs(t *testing.T) {
 			err:    nil,
 			target: nil,
 			result: false,
-			resultErrMsg: "Target error should not be in err chain:\n" +
+			resultErrMsg: "" +
+				"Target error should not be in err chain:\n" +
 				"found: \"\"\n" +
 				"in chain: \n",
 		},
