@@ -2908,52 +2908,211 @@ func Test_truncatingFormat(t *testing.T) {
 	}
 }
 
+// parseLabeledOutput does the inverse of labeledOutput - it takes a formatted
+// output string and turns it back into a slice of labeledContent.
+func parseLabeledOutput(output string) []labeledContent {
+	labelPattern := regexp.MustCompile(`^\t([^\t]*): *\t(.*)$`)
+	contentPattern := regexp.MustCompile(`^\t *\t(.*)$`)
+	var contents []labeledContent
+	lines := strings.Split(output, "\n")
+	i := -1
+	for _, line := range lines {
+		if line == "" {
+			// skip blank lines
+			continue
+		}
+		matches := labelPattern.FindStringSubmatch(line)
+		if len(matches) == 3 {
+			// a label
+			contents = append(contents, labeledContent{
+				label:   matches[1],
+				content: matches[2] + "\n",
+			})
+			i++
+			continue
+		}
+		matches = contentPattern.FindStringSubmatch(line)
+		if len(matches) == 2 {
+			// just content
+			if i >= 0 {
+				contents[i].content += matches[1] + "\n"
+				continue
+			}
+		}
+		// Couldn't parse output
+		return nil
+	}
+	return contents
+}
+
+type captureTestingT struct {
+	msg string
+}
+
+func (ctt *captureTestingT) Errorf(format string, args ...interface{}) {
+	ctt.msg = fmt.Sprintf(format, args...)
+}
+
+func (ctt *captureTestingT) checkResultAndErrMsg(t *testing.T, expectedRes, res bool, expectedErrMsg string) {
+	t.Helper()
+	if res != expectedRes {
+		t.Errorf("Should return %t", expectedRes)
+		return
+	}
+	contents := parseLabeledOutput(ctt.msg)
+	if res == true {
+		if contents != nil {
+			t.Errorf("Should not log an error")
+		}
+		return
+	}
+	if contents == nil {
+		t.Errorf("Should log an error. Log output: %v", ctt.msg)
+		return
+	}
+	for _, content := range contents {
+		if content.label == "Error" {
+			if expectedErrMsg == content.content {
+				return
+			}
+			t.Errorf("Logged Error: %v", content.content)
+		}
+	}
+	t.Errorf("Should log Error: %v", expectedErrMsg)
+}
+
 func TestErrorIs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
-		err    error
-		target error
-		result bool
+		err          error
+		target       error
+		result       bool
+		resultErrMsg string
 	}{
-		{io.EOF, io.EOF, true},
-		{fmt.Errorf("wrap: %w", io.EOF), io.EOF, true},
-		{io.EOF, io.ErrClosedPipe, false},
-		{nil, io.EOF, false},
-		{io.EOF, nil, false},
-		{nil, nil, true},
+		{
+			err:    io.EOF,
+			target: io.EOF,
+			result: true,
+		},
+		{
+			err:    fmt.Errorf("wrap: %w", io.EOF),
+			target: io.EOF,
+			result: true,
+		},
+		{
+			err:    io.EOF,
+			target: io.ErrClosedPipe,
+			result: false,
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
+				"expected: \"io: read/write on closed pipe\"\n" +
+				"in chain: \"EOF\"\n",
+		},
+		{
+			err:    nil,
+			target: io.EOF,
+			result: false,
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
+				"expected: \"EOF\"\n" +
+				"in chain: \n",
+		},
+		{
+			err:    io.EOF,
+			target: nil,
+			result: false,
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
+				"expected: \"\"\n" +
+				"in chain: \"EOF\"\n",
+		},
+		{
+			err:    nil,
+			target: nil,
+			result: true,
+		},
+		{
+			err:    fmt.Errorf("abc: %w", errors.New("def")),
+			target: io.EOF,
+			result: false,
+			resultErrMsg: "" +
+				"Target error should be in err chain:\n" +
+				"expected: \"EOF\"\n" +
+				"in chain: \"abc: def\"\n" +
+				"\t\"def\"\n",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("ErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			mockT := new(captureTestingT)
 			res := ErrorIs(mockT, tt.err, tt.target)
-			if res != tt.result {
-				t.Errorf("ErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
-			}
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
 	}
 }
 
 func TestNotErrorIs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
-		err    error
-		target error
-		result bool
+		err          error
+		target       error
+		result       bool
+		resultErrMsg string
 	}{
-		{io.EOF, io.EOF, false},
-		{fmt.Errorf("wrap: %w", io.EOF), io.EOF, false},
-		{io.EOF, io.ErrClosedPipe, true},
-		{nil, io.EOF, true},
-		{io.EOF, nil, true},
-		{nil, nil, false},
+		{
+			err:    io.EOF,
+			target: io.EOF,
+			result: false,
+			resultErrMsg: "" +
+				"Target error should not be in err chain:\n" +
+				"found: \"EOF\"\n" +
+				"in chain: \"EOF\"\n",
+		},
+		{
+			err:    fmt.Errorf("wrap: %w", io.EOF),
+			target: io.EOF,
+			result: false,
+			resultErrMsg: "" +
+				"Target error should not be in err chain:\n" +
+				"found: \"EOF\"\n" +
+				"in chain: \"wrap: EOF\"\n" +
+				"\t\"EOF\"\n",
+		},
+		{
+			err:    io.EOF,
+			target: io.ErrClosedPipe,
+			result: true,
+		},
+		{
+			err:    nil,
+			target: io.EOF,
+			result: true,
+		},
+		{
+			err:    io.EOF,
+			target: nil,
+			result: true,
+		},
+		{
+			err:    nil,
+			target: nil,
+			result: false,
+			resultErrMsg: "" +
+				"Target error should not be in err chain:\n" +
+				"found: \"\"\n" +
+				"in chain: \n",
+		},
+		{
+			err:    fmt.Errorf("abc: %w", errors.New("def")),
+			target: io.EOF,
+			result: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("NotErrorIs(%#v,%#v)", tt.err, tt.target), func(t *testing.T) {
+			mockT := new(captureTestingT)
 			res := NotErrorIs(mockT, tt.err, tt.target)
-			if res != tt.result {
-				t.Errorf("NotErrorIs(%#v,%#v) should return %t", tt.err, tt.target, tt.result)
-			}
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
 	}
 }
