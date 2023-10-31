@@ -3143,21 +3143,24 @@ func TestErrorAs(t *testing.T) {
 		{
 			err:    io.EOF,
 			result: false,
-			resultErrMsg: "Should be in error chain:\n" +
+			resultErrMsg: "" +
+				"Should be in error chain:\n" +
 				"expected: **assert.customError\n" +
 				"in chain: \"EOF\" (*errors.errorString)\n",
 		},
 		{
 			err:    nil,
 			result: false,
-			resultErrMsg: "Should be in error chain:\n" +
+			resultErrMsg: "" +
+				"Should be in error chain:\n" +
 				"expected: **assert.customError\n" +
 				"in chain: \n",
 		},
 		{
 			err:    fmt.Errorf("abc: %w", errors.New("def")),
 			result: false,
-			resultErrMsg: "Should be in error chain:\n" +
+			resultErrMsg: "" +
+				"Should be in error chain:\n" +
 				"expected: **assert.customError\n" +
 				"in chain: \"abc: def\" (*fmt.wrapError)\n" +
 				"\t\"def\" (*errors.errorString)\n",
@@ -3165,9 +3168,9 @@ func TestErrorAs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		mockT := new(captureTestingT)
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(captureTestingT)
 			res := ErrorAs(mockT, tt.err, &target)
 			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
