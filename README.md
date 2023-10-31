@@ -309,13 +309,9 @@ func TestExampleTestSuite(t *testing.T) {
 Installation
 ============
 
-To install Testify, use `go get`:
+To install Testify, use `go install`:
 
-    go get github.com/stretchr/testify
-
-For Go versions 1.19 and above, you will need to use `go install`:
-
-    go install github.com/stretchr/testify@latest
+    go install github.com/stretchr/testify
 
 
 This will then make the following packages available to you:
