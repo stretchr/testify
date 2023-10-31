@@ -3130,78 +3130,6 @@ func TestNotErrorIs(t *testing.T) {
 	}
 }
 
-func parseLabeledOutput(output string) []labeledContent {
-	labelPattern := regexp.MustCompile(`\t([^\t]*): *\t(.*)$`)
-	contentPattern := regexp.MustCompile(`\t *\t(.*)$`)
-	var contents []labeledContent
-	lines := strings.Split(output, "\n")
-	i := -1
-	for _, line := range lines {
-		if line == "" {
-			// skip blank lines
-			continue
-		}
-		matches := labelPattern.FindStringSubmatch(line)
-		if len(matches) == 3 {
-			// a label
-			contents = append(contents, labeledContent{
-				label:   matches[1],
-				content: matches[2] + "\n",
-			})
-			i++
-			continue
-		}
-		matches = contentPattern.FindStringSubmatch(line)
-		if len(matches) == 2 {
-			// just content
-			if i >= 0 {
-				contents[i].content += matches[1] + "\n"
-				continue
-			}
-		}
-		// Couldn't parse output
-		return nil
-	}
-	return contents
-}
-
-type captureTestingT struct {
-	msg string
-}
-
-func (ctt *captureTestingT) Errorf(format string, args ...interface{}) {
-	ctt.msg = fmt.Sprintf(format, args...)
-}
-
-func checkResultAndErrMsg(t *testing.T, expectedRes, res bool, expectedErrMsg, rawErrOutput string) {
-	t.Helper()
-	if res != expectedRes {
-		t.Errorf("Should return %t", expectedRes)
-		return
-	}
-	contents := parseLabeledOutput(rawErrOutput)
-	if res == true {
-		if contents != nil {
-			t.Errorf("Should not log an error")
-		}
-		return
-	}
-	if contents == nil {
-		t.Errorf("Should log an error. Log output: %v", rawErrOutput)
-		return
-	}
-	for _, content := range contents {
-		if content.label == "Error" {
-			if expectedErrMsg == content.content {
-				return
-			}
-			t.Errorf("Logged Error: %v", content.content)
-		}
-	}
-	t.Errorf("Should log Error: %v", expectedErrMsg)
-
-}
-
 func TestErrorAs(t *testing.T) {
 	tests := []struct {
 		err          error
@@ -3241,7 +3169,7 @@ func TestErrorAs(t *testing.T) {
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
 			res := ErrorAs(mockT, tt.err, &target)
-			checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg, mockT.msg)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
 	}
 }
