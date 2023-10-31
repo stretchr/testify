@@ -3,6 +3,7 @@ package mock
 import (
 	"errors"
 	"fmt"
+	"path"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -13,8 +14,12 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
+
 	"github.com/stretchr/testify/assert"
 )
+
+// regex for GCCGO functions
+var gccgoRE = regexp.MustCompile(`\.pN\d+_`)
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -99,7 +104,7 @@ func (c *Call) unlock() {
 
 // Return specifies the return arguments for the expectation.
 //
-//    Mock.On("DoSomething").Return(errors.New("failed"))
+//	Mock.On("DoSomething").Return(errors.New("failed"))
 func (c *Call) Return(returnArguments ...interface{}) *Call {
 	c.lock()
 	defer c.unlock()
@@ -109,9 +114,9 @@ func (c *Call) Return(returnArguments ...interface{}) *Call {
 	return c
 }
 
-// Panic specifies if the functon call should fail and the panic message
+// Panic specifies if the function call should fail and the panic message
 //
-//    Mock.On("DoSomething").Panic("test panic")
+//	Mock.On("DoSomething").Panic("test panic")
 func (c *Call) Panic(msg string) *Call {
 	c.lock()
 	defer c.unlock()
@@ -121,24 +126,24 @@ func (c *Call) Panic(msg string) *Call {
 	return c
 }
 
-// Once indicates that that the mock should only return the value once.
+// Once indicates that the mock should only return the value once.
 //
-//    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Once()
+//	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Once()
 func (c *Call) Once() *Call {
 	return c.Times(1)
 }
 
-// Twice indicates that that the mock should only return the value twice.
+// Twice indicates that the mock should only return the value twice.
 //
-//    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Twice()
+//	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Twice()
 func (c *Call) Twice() *Call {
 	return c.Times(2)
 }
 
-// Times indicates that that the mock should only return the indicated number
+// Times indicates that the mock should only return the indicated number
 // of times.
 //
-//    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
+//	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (c *Call) Times(i int) *Call {
 	c.lock()
 	defer c.unlock()
@@ -149,7 +154,7 @@ func (c *Call) Times(i int) *Call {
 // WaitUntil sets the channel that will block the mock's return until its closed
 // or a message is received.
 //
-//    Mock.On("MyMethod", arg1, arg2).WaitUntil(time.After(time.Second))
+//	Mock.On("MyMethod", arg1, arg2).WaitUntil(time.After(time.Second))
 func (c *Call) WaitUntil(w <-chan time.Time) *Call {
 	c.lock()
 	defer c.unlock()
@@ -159,7 +164,7 @@ func (c *Call) WaitUntil(w <-chan time.Time) *Call {
 
 // After sets how long to block until the call returns
 //
-//    Mock.On("MyMethod", arg1, arg2).After(time.Second)
+//	Mock.On("MyMethod", arg1, arg2).After(time.Second)
 func (c *Call) After(d time.Duration) *Call {
 	c.lock()
 	defer c.unlock()
@@ -171,10 +176,10 @@ func (c *Call) After(d time.Duration) *Call {
 // mocking a method (such as an unmarshaler) that takes a pointer to a struct and
 // sets properties in such struct
 //
-//    Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}")).Return().Run(func(args Arguments) {
-//    	arg := args.Get(0).(*map[string]interface{})
-//    	arg["foo"] = "bar"
-//    })
+//	Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}")).Return().Run(func(args Arguments) {
+//		arg := args.Get(0).(*map[string]interface{})
+//		arg["foo"] = "bar"
+//	})
 func (c *Call) Run(fn func(args Arguments)) *Call {
 	c.lock()
 	defer c.unlock()
@@ -194,16 +199,18 @@ func (c *Call) Maybe() *Call {
 // On chains a new expectation description onto the mocked interface. This
 // allows syntax like.
 //
-//    Mock.
-//       On("MyMethod", 1).Return(nil).
-//       On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
+//	Mock.
+//	   On("MyMethod", 1).Return(nil).
+//	   On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
+//
 //go:noinline
 func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
 
 // Unset removes a mock handler from being called.
-//    test.On("func", mock.Anything).Unset()
+//
+//	test.On("func", mock.Anything).Unset()
 func (c *Call) Unset() *Call {
 	var unlockOnce sync.Once
 
@@ -218,16 +225,22 @@ func (c *Call) Unset() *Call {
 
 	foundMatchingCall := false
 
-	for i, call := range c.Parent.ExpectedCalls {
+	// in-place filter slice for calls to be removed - iterate from 0'th to last skipping unnecessary ones
+	var index int // write index
+	for _, call := range c.Parent.ExpectedCalls {
 		if call.Method == c.Method {
 			_, diffCount := call.Arguments.Diff(c.Arguments)
 			if diffCount == 0 {
 				foundMatchingCall = true
-				// Remove from ExpectedCalls
-				c.Parent.ExpectedCalls = append(c.Parent.ExpectedCalls[:i], c.Parent.ExpectedCalls[i+1:]...)
+				// Remove from ExpectedCalls - just skip it
+				continue
 			}
 		}
+		c.Parent.ExpectedCalls[index] = call
+		index++
 	}
+	// trim slice up to last copied index
+	c.Parent.ExpectedCalls = c.Parent.ExpectedCalls[:index]
 
 	if !foundMatchingCall {
 		unlockOnce.Do(c.unlock)
@@ -243,9 +256,9 @@ func (c *Call) Unset() *Call {
 // calls have been called as expected. The referenced calls may be from the
 // same mock instance and/or other mock instances.
 //
-//     Mock.On("Do").Return(nil).Notbefore(
-//         Mock.On("Init").Return(nil)
-//     )
+//	Mock.On("Do").Return(nil).Notbefore(
+//	    Mock.On("Init").Return(nil)
+//	)
 func (c *Call) NotBefore(calls ...*Call) *Call {
 	c.lock()
 	defer c.unlock()
@@ -328,7 +341,7 @@ func (m *Mock) fail(format string, args ...interface{}) {
 // On starts a description of an expectation of the specified method
 // being called.
 //
-//     Mock.On("MyMethod", arg1, arg2)
+//	Mock.On("MyMethod", arg1, arg2)
 func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	for _, arg := range arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
@@ -418,6 +431,10 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 	if includeArgumentValues {
 		var argVals []string
 		for argIndex, arg := range arguments {
+			if _, ok := arg.(*FunctionalOptionsArgument); ok {
+				argVals = append(argVals, fmt.Sprintf("%d: %s", argIndex, arg))
+				continue
+			}
 			argVals = append(argVals, fmt.Sprintf("%d: %#v", argIndex, arg))
 		}
 		argValsString = fmt.Sprintf("\n\t\t%s", strings.Join(argVals, "\n\t\t"))
@@ -441,9 +458,8 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	// For Ex:  github_com_docker_libkv_store_mock.WatchTree.pN39_github_com_docker_libkv_store_mock.Mock
 	// uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
 	// With GCCGO we need to remove interface information starting from pN<dd>.
-	re := regexp.MustCompile("\\.pN\\d+_")
-	if re.MatchString(functionPath) {
-		functionPath = re.Split(functionPath, -1)[0]
+	if gccgoRE.MatchString(functionPath) {
+		functionPath = gccgoRE.Split(functionPath, -1)[0]
 	}
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
@@ -460,7 +476,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	found, call := m.findExpectedCall(methodName, arguments...)
 
 	if found < 0 {
-		// expected call found but it has already been called with repeatable times
+		// expected call found, but it has already been called with repeatable times
 		if call != nil {
 			m.mutex.Unlock()
 			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
@@ -549,7 +565,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	Assertions
 */
 
-type assertExpectationser interface {
+type assertExpectationiser interface {
 	AssertExpectations(TestingT) bool
 }
 
@@ -566,7 +582,7 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 			t.Logf("Deprecated mock.AssertExpectationsForObjects(myMock.Mock) use mock.AssertExpectationsForObjects(myMock)")
 			obj = m
 		}
-		m := obj.(assertExpectationser)
+		m := obj.(assertExpectationiser)
 		if !m.AssertExpectations(t) {
 			t.Logf("Expectations didn't match for Mock: %+v", reflect.TypeOf(m))
 			return false
@@ -592,8 +608,8 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 		satisfied, reason := m.checkExpectation(expectedCall)
 		if !satisfied {
 			failedExpectations++
+			t.Logf(reason)
 		}
-		t.Logf(reason)
 	}
 
 	if failedExpectations != 0 {
@@ -744,17 +760,26 @@ const (
 	Anything = "mock.Anything"
 )
 
-// AnythingOfTypeArgument is a string that contains the type of an argument
+// AnythingOfTypeArgument contains the type of an argument
 // for use when type checking.  Used in Diff and Assert.
-type AnythingOfTypeArgument string
+//
+// Deprecated: this is an implementation detail that must not be used. Use [AnythingOfType] instead.
+type AnythingOfTypeArgument = anythingOfTypeArgument
 
-// AnythingOfType returns an AnythingOfTypeArgument object containing the
-// name of the type to check for.  Used in Diff and Assert.
+// anythingOfTypeArgument is a string that contains the type of an argument
+// for use when type checking.  Used in Diff and Assert.
+type anythingOfTypeArgument string
+
+// AnythingOfType returns a special value containing the
+// name of the type to check for. The type name will be matched against the type name returned by [reflect.Type.String].
+//
+// Used in Diff and Assert.
 //
 // For example:
+//
 //	Assert(t, AnythingOfType("string"), AnythingOfType("int"))
 func AnythingOfType(t string) AnythingOfTypeArgument {
-	return AnythingOfTypeArgument(t)
+	return anythingOfTypeArgument(t)
 }
 
 // IsTypeArgument is a struct that contains the type of an argument
@@ -772,6 +797,34 @@ type IsTypeArgument struct {
 // Assert(t, IsType(""), IsType(0))
 func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: t}
+}
+
+// FunctionalOptionsArgument is a struct that contains the type and value of an functional option argument
+// for use when type checking.
+type FunctionalOptionsArgument struct {
+	value interface{}
+}
+
+// String returns the string representation of FunctionalOptionsArgument
+func (f *FunctionalOptionsArgument) String() string {
+	var name string
+	tValue := reflect.ValueOf(f.value)
+	if tValue.Len() > 0 {
+		name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+	}
+
+	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", name, 1)
+}
+
+// FunctionalOptions returns an FunctionalOptionsArgument object containing the functional option type
+// and the values to check of
+//
+// For example:
+// Assert(t, FunctionalOptions("[]foo.FunctionalOption", foo.Opt1(), foo.Opt2()))
+func FunctionalOptions(value ...interface{}) *FunctionalOptionsArgument {
+	return &FunctionalOptionsArgument{
+		value: value,
+	}
 }
 
 // argumentMatcher performs custom argument matching, returning whether or
@@ -907,9 +960,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
-		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
+		} else if reflect.TypeOf(expected) == reflect.TypeOf((*anythingOfTypeArgument)(nil)).Elem() {
 			// type checking
-			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
+			if reflect.TypeOf(actual).Name() != string(expected.(anythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(anythingOfTypeArgument)) {
 				// not match
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
@@ -919,6 +972,29 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			if reflect.TypeOf(t) != reflect.TypeOf(actual) {
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
+			}
+		} else if reflect.TypeOf(expected) == reflect.TypeOf((*FunctionalOptionsArgument)(nil)) {
+			t := expected.(*FunctionalOptionsArgument).value
+
+			var name string
+			tValue := reflect.ValueOf(t)
+			if tValue.Len() > 0 {
+				name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+			}
+
+			tName := reflect.TypeOf(t).Name()
+			if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
+				differences++
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
+			} else {
+				if ef, af := assertOpts(t, actual); ef == "" && af == "" {
+					// match
+					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
+				} else {
+					// not match
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
+				}
 			}
 		} else {
 			// normal checking
@@ -1095,4 +1171,66 @@ var spewConfig = spew.ConfigState{
 
 type tHelper interface {
 	Helper()
+}
+
+func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
+	expectedOpts := reflect.ValueOf(expected)
+	actualOpts := reflect.ValueOf(actual)
+	var expectedNames []string
+	for i := 0; i < expectedOpts.Len(); i++ {
+		expectedNames = append(expectedNames, funcName(expectedOpts.Index(i).Interface()))
+	}
+	var actualNames []string
+	for i := 0; i < actualOpts.Len(); i++ {
+		actualNames = append(actualNames, funcName(actualOpts.Index(i).Interface()))
+	}
+	if !assert.ObjectsAreEqual(expectedNames, actualNames) {
+		expectedFmt = fmt.Sprintf("%v", expectedNames)
+		actualFmt = fmt.Sprintf("%v", actualNames)
+		return
+	}
+
+	for i := 0; i < expectedOpts.Len(); i++ {
+		expectedOpt := expectedOpts.Index(i).Interface()
+		actualOpt := actualOpts.Index(i).Interface()
+
+		expectedFunc := expectedNames[i]
+		actualFunc := actualNames[i]
+		if expectedFunc != actualFunc {
+			expectedFmt = expectedFunc
+			actualFmt = actualFunc
+			return
+		}
+
+		ot := reflect.TypeOf(expectedOpt)
+		var expectedValues []reflect.Value
+		var actualValues []reflect.Value
+		if ot.NumIn() == 0 {
+			return
+		}
+
+		for i := 0; i < ot.NumIn(); i++ {
+			vt := ot.In(i).Elem()
+			expectedValues = append(expectedValues, reflect.New(vt))
+			actualValues = append(actualValues, reflect.New(vt))
+		}
+
+		reflect.ValueOf(expectedOpt).Call(expectedValues)
+		reflect.ValueOf(actualOpt).Call(actualValues)
+
+		for i := 0; i < ot.NumIn(); i++ {
+			if !assert.ObjectsAreEqual(expectedValues[i].Interface(), actualValues[i].Interface()) {
+				expectedFmt = fmt.Sprintf("%s %+v", expectedNames[i], expectedValues[i].Interface())
+				actualFmt = fmt.Sprintf("%s %+v", expectedNames[i], actualValues[i].Interface())
+				return
+			}
+		}
+	}
+
+	return "", ""
+}
+
+func funcName(opt interface{}) string {
+	n := runtime.FuncForPC(reflect.ValueOf(opt).Pointer()).Name()
+	return strings.TrimSuffix(path.Base(n), path.Ext(n))
 }
