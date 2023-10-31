@@ -311,7 +311,7 @@ Installation
 
 To install Testify, use `go install`:
 
-    go install github.com/stretchr/testify
+    go install github.com/stretchr/testify@latest
 
 
 This will then make the following packages available to you:
