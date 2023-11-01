@@ -748,6 +748,22 @@ func (a *Assertions) InEpsilon(expected interface{}, actual interface{}, epsilon
 	return InEpsilon(a.t, expected, actual, epsilon, msgAndArgs...)
 }
 
+// InEpsilonMapValues is the same as InEpsilon, but it compares all values between two maps. Both maps must have exactly the same keys.
+func (a *Assertions) InEpsilonMapValues(expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return InEpsilonMapValues(a.t, expected, actual, epsilon, msgAndArgs...)
+}
+
+// InEpsilonMapValuesf is the same as InEpsilon, but it compares all values between two maps. Both maps must have exactly the same keys.
+func (a *Assertions) InEpsilonMapValuesf(expected interface{}, actual interface{}, epsilon float64, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return InEpsilonMapValuesf(a.t, expected, actual, epsilon, msg, args...)
+}
+
 // InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
 func (a *Assertions) InEpsilonSlice(expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
