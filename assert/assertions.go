@@ -1531,6 +1531,50 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	return true
 }
 
+// InEpsilonMapValues is the same as InEpsilon, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InEpsilonMapValues(t TestingT, expected, actual interface{}, epsilon float64, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if expected == nil || actual == nil ||
+		reflect.TypeOf(actual).Kind() != reflect.Map ||
+		reflect.TypeOf(expected).Kind() != reflect.Map {
+		return Fail(t, "Arguments must be maps", msgAndArgs...)
+	}
+
+	actualMap := reflect.ValueOf(actual)
+	expectedMap := reflect.ValueOf(expected)
+
+	if expectedMap.Len() != actualMap.Len() {
+		return Fail(t, "Arguments must have the same number of keys", msgAndArgs...)
+	}
+
+	for _, k := range expectedMap.MapKeys() {
+		ev := expectedMap.MapIndex(k)
+		av := actualMap.MapIndex(k)
+
+		if !ev.IsValid() {
+			return Fail(t, fmt.Sprintf("missing key %q in expected map", k), msgAndArgs...)
+		}
+
+		if !av.IsValid() {
+			return Fail(t, fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
+		}
+
+		if !InEpsilon(
+			t,
+			ev.Interface(),
+			av.Interface(),
+			epsilon,
+			msgAndArgs...,
+		) {
+			return false
+		}
+	}
+
+	return true
+}
+
 /*
 	Errors
 */
