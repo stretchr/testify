@@ -669,9 +669,14 @@ func (s *subtestPanicSuite) TearDownSubTest() {
 }
 
 func (s *subtestPanicSuite) TestSubtestPanic() {
-	s.Run("subtest", func() {
+	ok := s.Run("subtest", func() {
 		panic("panic")
 	})
+	// The panic must have the test reported as failed
+	if s.False(ok, "TestSubtestPanic/subtest failure is expected") {
+		// But we still want to success here, so just skip.
+		s.T().Skip("Subtest failure is expected")
+	}
 }
 
 func TestSubtestPanic(t *testing.T) {
