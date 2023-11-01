@@ -78,11 +78,13 @@ func (suite *Suite) Assert() *assert.Assertions {
 }
 
 func recoverAndFailOnPanic(t *testing.T) {
+	t.Helper()
 	r := recover()
 	failOnPanic(t, r)
 }
 
 func failOnPanic(t *testing.T, r interface{}) {
+	t.Helper()
 	if r != nil {
 		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
 		t.FailNow()
@@ -165,6 +167,8 @@ func Run(t *testing.T, suite TestingSuite) {
 				suite.SetT(t)
 				defer recoverAndFailOnPanic(t)
 				defer func() {
+					t.Helper()
+
 					r := recover()
 
 					if stats != nil {
