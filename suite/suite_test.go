@@ -27,7 +27,7 @@ func TestSuiteRequireTwice(t *testing.T) {
 	ok := testing.RunTests(
 		allTestsFilter,
 		[]testing.InternalTest{{
-			Name: "TestSuiteRequireTwice",
+			Name: t.Name() + "/SuiteRequireTwice",
 			F: func(t *testing.T) {
 				suite := new(SuiteRequireTwice)
 				Run(t, suite)
@@ -104,31 +104,31 @@ func TestSuiteRecoverPanic(t *testing.T) {
 	ok := true
 	panickingTests := []testing.InternalTest{
 		{
-			Name: "TestPanicInSetupSuite",
+			Name: t.Name() + "/InSetupSuite",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInSetupSuite: true}) },
 		},
 		{
-			Name: "TestPanicInSetupTest",
+			Name: t.Name() + "/InSetupTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInSetupTest: true}) },
 		},
 		{
-			Name: "TestPanicInBeforeTest",
+			Name: t.Name() + "InBeforeTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInBeforeTest: true}) },
 		},
 		{
-			Name: "TestPanicInTest",
+			Name: t.Name() + "/InTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTest: true}) },
 		},
 		{
-			Name: "TestPanicInAfterTest",
+			Name: t.Name() + "/InAfterTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInAfterTest: true}) },
 		},
 		{
-			Name: "TestPanicInTearDownTest",
+			Name: t.Name() + "/InTearDownTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTearDownTest: true}) },
 		},
 		{
-			Name: "TestPanicInTearDownSuite",
+			Name: t.Name() + "/InTearDownSuite",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTearDownSuite: true}) },
 		},
 	}
@@ -451,7 +451,7 @@ func TestSuiteLogging(t *testing.T) {
 	suiteLoggingTester := new(SuiteLoggingTester)
 	capture := StdoutCapture{}
 	internalTest := testing.InternalTest{
-		Name: "SomeTest",
+		Name: t.Name() + "/SuiteLoggingTester",
 		F: func(subT *testing.T) {
 			Run(subT, suiteLoggingTester)
 		},
@@ -552,14 +552,15 @@ func (s *suiteWithStats) TestPanic() {
 func TestSuiteWithStats(t *testing.T) {
 	suiteWithStats := new(suiteWithStats)
 
-	testing.RunTests(allTestsFilter, []testing.InternalTest{
+	suiteSuccess := testing.RunTests(allTestsFilter, []testing.InternalTest{
 		{
-			Name: "WithStats",
+			Name: t.Name() + "/suiteWithStats",
 			F: func(t *testing.T) {
 				Run(t, suiteWithStats)
 			},
 		},
 	})
+	require.False(t, suiteSuccess, "suiteWithStats should report test failure because of panic in TestPanic")
 
 	assert.True(t, suiteWithStats.wasCalled)
 	assert.NotZero(t, suiteWithStats.stats.Start)
@@ -596,7 +597,7 @@ func TestFailfastSuite(t *testing.T) {
 	ok := testing.RunTests(
 		allTestsFilter,
 		[]testing.InternalTest{{
-			Name: "TestFailfastSuite",
+			Name: t.Name() + "/FailfastSuite",
 			F: func(t *testing.T) {
 				Run(t, s)
 			},
@@ -672,11 +673,7 @@ func (s *subtestPanicSuite) TestSubtestPanic() {
 	ok := s.Run("subtest", func() {
 		panic("panic")
 	})
-	// The panic must have the test reported as failed
-	if s.False(ok, "TestSubtestPanic/subtest failure is expected") {
-		// But we still want to success here, so just skip.
-		s.T().Skip("Subtest failure is expected")
-	}
+	s.False(ok, "subtest failure is expected")
 }
 
 func TestSubtestPanic(t *testing.T) {
@@ -684,13 +681,13 @@ func TestSubtestPanic(t *testing.T) {
 	ok := testing.RunTests(
 		allTestsFilter,
 		[]testing.InternalTest{{
-			Name: "TestSubtestPanic",
+			Name: t.Name() + "/subtestPanicSuite",
 			F: func(t *testing.T) {
 				Run(t, suite)
 			},
 		}},
 	)
-	assert.False(t, ok)
+	assert.False(t, ok, "TestSubtestPanic/subtest should make the testsuite fail")
 	assert.True(t, suite.inTearDownSubTest)
 	assert.True(t, suite.inTearDownTest)
 	assert.True(t, suite.inTearDownSuite)
