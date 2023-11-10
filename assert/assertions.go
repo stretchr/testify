@@ -2071,7 +2071,11 @@ func buildErrorChainString(err error) string {
 // This allows the assert framework to be extended in specialised ways while maintaining
 // clear error reporting.
 type Matcher interface {
+	// Match returns true if the given actual value meets the criteria embodied
+	// in this Matcher.
 	Match(actual interface{}) bool
+	// Describe is called when the test fails to get a descriptive error message.
+	// It should succinctly describe the condition that is being expected.
 	Describe() string
 }
 
