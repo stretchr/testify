@@ -2032,3 +2032,14 @@ func Zerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 	}
 	t.FailNow()
 }
+
+func Matches(t TestingT, matcher assert.Matcher, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if assert.Matches(t, matcher, actual, msgAndArgs) {
+		return
+	}
+	t.FailNow()
+}
