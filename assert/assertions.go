@@ -717,7 +717,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should be empty, but was %v", object), msgAndArgs...)
+		Fail(t, fmt.Sprintf("Should be empty, but isn't %v", object), msgAndArgs...)
 	}
 
 	return pass
@@ -736,7 +736,7 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should NOT be empty, but was %v", object), msgAndArgs...)
+		Fail(t, fmt.Sprintf("Should NOT be empty, but is %v", object), msgAndArgs...)
 	}
 
 	return pass
