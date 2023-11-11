@@ -6,19 +6,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sergi/go-diff/diffmatchpatch"
 	"math"
 	"os"
 	"reflect"
 	"regexp"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pmezard/go-difflib/difflib"
 	"gopkg.in/yaml.v3"
 )
 
@@ -422,9 +423,9 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 		return Fail(t, fmt.Sprintf("Invalid operation: %#v == %#v (%s)",
 			expected, actual, err), msgAndArgs...)
 	}
-
+	coloredOutput, _ := strconv.Atoi(os.Getenv("TESTIFY_COLORED_DIFF"))
 	if !ObjectsAreEqual(expected, actual) {
-		diff := diff(expected, actual)
+		diff := diff(expected, actual, diffOptions{ColoredOutput: coloredOutput == 1})
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
@@ -545,7 +546,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 	}
 
 	if !ObjectsAreEqualValues(expected, actual) {
-		diff := diff(expected, actual)
+		diff := diff(expected, actual, diffOptions{})
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
@@ -590,7 +591,7 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 	actual = copyExportedFields(actual)
 
 	if !ObjectsAreEqualValues(expected, actual) {
-		diff := diff(expected, actual)
+		diff := diff(expected, actual, diffOptions{})
 		expected, actual = formatUnequalValues(expected, actual)
 		return Fail(t, fmt.Sprintf("Not equal (comparing only exported fields): \n"+
 			"expected: %s\n"+
@@ -1766,9 +1767,13 @@ func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
 	return t, k
 }
 
+type diffOptions struct {
+	ColoredOutput bool
+}
+
 // diff returns a diff of both values as long as both are of the same type and
 // are a struct, map, slice, array or string. Otherwise it returns an empty string.
-func diff(expected interface{}, actual interface{}) string {
+func diff(expected interface{}, actual interface{}, options diffOptions) string {
 	if expected == nil || actual == nil {
 		return ""
 	}
@@ -1797,18 +1802,89 @@ func diff(expected interface{}, actual interface{}) string {
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
 	}
+	structuredDiff := structuredDiff(e, a)
+	prettyDiff := prettyDiff(structuredDiff, options.ColoredOutput)
+	return "\n\nDiff:\n" + prettyDiff
+}
 
-	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		A:        difflib.SplitLines(e),
-		B:        difflib.SplitLines(a),
-		FromFile: "Expected",
-		FromDate: "",
-		ToFile:   "Actual",
-		ToDate:   "",
-		Context:  1,
-	})
+func structuredDiff(e string, a string) []diffmatchpatch.Diff {
+	dmp := diffmatchpatch.New()
+	fromRunes, toRunes, runesToLines := dmp.DiffLinesToRunes(e, a)
+	diffs := dmp.DiffMainRunes(fromRunes, toRunes, false)
+	hydrated := make([]diffmatchpatch.Diff, 0, len(diffs))
+	for _, aDiff := range diffs {
+		chars := strings.FieldsFunc(aDiff.Text, func(r rune) bool {
+			return string(r) == diffmatchpatch.IndexSeparator
+		})
+		text := make([]string, len(chars))
 
-	return "\n\nDiff:\n" + diff
+		for i, char := range chars {
+			i1, err := strconv.Atoi(char)
+			if err == nil {
+				text[i] = runesToLines[i1]
+			}
+		}
+		for idx, line := range text {
+			if aDiff.Type == diffmatchpatch.DiffEqual && idx < len(text)-1 {
+				continue
+			}
+			hydrated = append(hydrated, diffmatchpatch.Diff{
+				Type: aDiff.Type,
+				Text: line,
+			})
+		}
+	}
+	return hydrated
+}
+
+func prettyDiff(diffs []diffmatchpatch.Diff, useColoredOutput bool) string {
+	var diff strings.Builder
+	if useColoredOutput {
+		diff.WriteString("\\033[31m--- Expected\\033[0m\n\\033[32m+++ Actual\\033[0m\n")
+	} else {
+		diff.WriteString("--- Expected\n+++ Actual\n")
+	}
+	for _, diffChunk := range diffs {
+		switch diffChunk.Type {
+		case diffmatchpatch.DiffInsert:
+			// Make sure the different parts are on separate lines for better readability
+			// i.e. it makes diffs like +got-expected to go as +got\n-expected\n
+			if !strings.HasSuffix(diffChunk.Text, "\n") {
+				diffChunk.Text = diffChunk.Text + "\n"
+			}
+			if useColoredOutput {
+				_, _ = fmt.Fprintf(&diff, "\\033[32m+%s\\033[0m", diffChunk.Text)
+			} else {
+				_, _ = fmt.Fprintf(&diff, "+%s", diffChunk.Text)
+			}
+		case diffmatchpatch.DiffDelete:
+			// Make sure the different parts are on separate lines for better readability
+			// i.e. it makes diffs like +got-expected to go as +got\n-expected\n
+			if !strings.HasSuffix(diffChunk.Text, "\n") {
+				diffChunk.Text = diffChunk.Text + "\n"
+			}
+			if useColoredOutput {
+				_, _ = fmt.Fprintf(&diff, "\\033[31m-%s\\033[0m", diffChunk.Text)
+			} else {
+				_, _ = fmt.Fprintf(&diff, "-%s", diffChunk.Text)
+			}
+		default:
+			if len(diffChunk.Text) == 0 {
+				continue
+			}
+			equalTextByLines := strings.SplitAfter(diffChunk.Text, "\n")
+			var linesTrimmed []string
+			for _, line := range equalTextByLines {
+				if len(line) == 0 {
+					continue
+				}
+				linesTrimmed = append(linesTrimmed, line)
+			}
+			// We're not interested in the equal parts, so only keep the last line for some context
+			_, _ = fmt.Fprintf(&diff, " %s", equalTextByLines[len(linesTrimmed)-1])
+		}
+	}
+	return diff.String()
 }
 
 func isFunction(arg interface{}) bool {
