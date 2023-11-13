@@ -2,8 +2,8 @@ package assert
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
-	"testing"
 )
 
 // stringStartsWith is a type that implements Matcher to test the actual
@@ -30,8 +30,19 @@ func StringStarting(e string) Matcher {
 	return &stringStartsWith{expected: e}
 }
 
-func ExampleMatcher() {
-	t := &testing.T{} // provided by test
+// Remove trailing whitespace from the message string, because govet
+// removes it from the example comment
+var stripTrailingSpace = regexp.MustCompile("(\\s+)\n")
 
-	Matches(t, StringStarting("hello"), "hello world")
+func ExampleMatcher() {
+	t := &captureTestingT{} // Usually this would be the *testing.T provided by the test
+
+	Matches(t, StringStarting("goodbye"), "hello world")
+
+	fmt.Println(stripTrailingSpace.ReplaceAllString(t.msg, "\n"))
+	// Output:
+	// Error Trace:
+	//	Error:      	Not matching:
+	// 	            	expected: a string starting with "goodbye"
+	// 	            	actual  : string("hello world")
 }
