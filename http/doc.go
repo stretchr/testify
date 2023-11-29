@@ -1,2 +1,2 @@
-// Package http DEPRECATED USE net/http/httptest
+// Deprecated: Use [net/http/httptest] instead.
 package http
