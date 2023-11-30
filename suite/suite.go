@@ -185,7 +185,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				}()
 
 				if method.Type.NumIn() > 1 || method.Type.NumOut() > 0 {
-					msg := fmt.Sprintf("testify: suite method '%s' shouldn't have any arguments or returning values\n", method.Name)
+					msg := fmt.Sprintf("testify: suite method '%s' shouldn't have any arguments or returning values", method.Name)
 					panic(msg)
 				}
 
