@@ -416,7 +416,16 @@ func (s *SuiteInvalidTestSignatureTester) SetupSuite() {
 	s.setUp = true
 }
 
-func (s *SuiteInvalidTestSignatureTester) TestInvalidSignature(somearg string) interface{} {
+func (s *SuiteInvalidTestSignatureTester) TestInvalidSignatureReturnValue() interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+func (s *SuiteInvalidTestSignatureTester) TestInvalidSignatureArg(somearg string) {
+	s.executedTestCount++
+}
+
+func (s *SuiteInvalidTestSignatureTester) TestInvalidSignatureBoth(somearg string) interface{} {
 	s.executedTestCount++
 	return nil
 }
