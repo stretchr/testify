@@ -1857,7 +1857,7 @@ func NoDirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	return Fail(t, fmt.Sprintf("directory %q exists", path), msgAndArgs...)
 }
 
-// JSONEqBytes asserts that two JSON byte arrays are equivalent.
+// JSONEqBytes asserts that two JSON byte slices are equivalent.
 //
 //	assert.JSONEqBytes(t, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`))
 func JSONEqBytes(t TestingT, expected, actual []byte, msgAndArgs ...interface{}) bool {
