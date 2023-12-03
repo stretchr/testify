@@ -1405,9 +1405,9 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	expectedSlice := reflect.ValueOf(expected)
 
 	for i := 0; i < actualSlice.Len(); i++ {
-		result := InDelta(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta, msgAndArgs...)
-		if !result {
-			return result
+		elemMsgAndArgs := appendMsgAndArgs(msgAndArgs, fmt.Sprint("at index: ", i))
+		if !InDelta(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta, elemMsgAndArgs...) {
+			return false
 		}
 	}
 
@@ -1444,12 +1444,13 @@ func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, m
 			return Fail(t, fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
 		}
 
+		elemMsgAndArgs := appendMsgAndArgs(msgAndArgs, fmt.Sprintf("at key: %v", k))
 		if !InDelta(
 			t,
 			ev.Interface(),
 			av.Interface(),
 			delta,
-			msgAndArgs...,
+			elemMsgAndArgs...,
 		) {
 			return false
 		}
@@ -1523,12 +1524,32 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	}
 
 	for i := 0; i < expectedLen; i++ {
-		if !InEpsilon(t, expectedSlice.Index(i).Interface(), actualSlice.Index(i).Interface(), epsilon, "at index %d", i) {
+		elemMsgAndArgs := appendMsgAndArgs(msgAndArgs, fmt.Sprint("at index: ", i))
+		if !InEpsilon(t, expectedSlice.Index(i).Interface(), actualSlice.Index(i).Interface(), epsilon, elemMsgAndArgs...) {
 			return false
 		}
 	}
 
 	return true
+}
+
+// appendMsgAndArgs appends a message string to the first element of the msgAndArgs slice
+// and returns the updated slice.
+func appendMsgAndArgs(msgAndArgs []interface{}, message string) []interface{} {
+	if len(msgAndArgs) == 0 || msgAndArgs == nil {
+		return []interface{}{message}
+	}
+	if len(msgAndArgs) == 1 {
+		msg := msgAndArgs[0]
+		if msgAsStr, ok := msg.(string); ok {
+			msgAndArgs = []interface{}{fmt.Sprintf("%s %s", msgAsStr, message)}
+		}
+	}
+	if len(msgAndArgs) > 1 {
+		msgAndArgs[0] = fmt.Sprintf("%s %s", msgAndArgs[0].(string), message)
+	}
+
+	return msgAndArgs
 }
 
 /*
