@@ -2,6 +2,7 @@ package assert
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -9,6 +10,12 @@ import (
 
 func httpOK(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
+}
+
+func httpReadBody(w http.ResponseWriter, r *http.Request) {
+	_, _ = io.Copy(io.Discard, r.Body)
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("hello"))
 }
 
 func httpRedirect(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +48,10 @@ func TestHTTPSuccess(t *testing.T) {
 	mockT4 := new(testing.T)
 	assert.Equal(HTTPSuccess(mockT4, httpStatusCode, "GET", "/", nil), false)
 	assert.True(mockT4.Failed())
+
+	mockT5 := new(testing.T)
+	assert.Equal(HTTPSuccess(mockT5, httpReadBody, "POST", "/", nil), true)
+	assert.False(mockT5.Failed())
 }
 
 func TestHTTPRedirect(t *testing.T) {
@@ -122,7 +133,7 @@ func TestHTTPStatusesWrapper(t *testing.T) {
 
 func httpHelloName(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
-	_, _ = w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
+	_, _ = fmt.Fprintf(w, "Hello, %s!", name)
 }
 
 func TestHTTPRequestWithNoParams(t *testing.T) {
@@ -165,6 +176,8 @@ func TestHttpBody(t *testing.T) {
 	assert.False(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
 	assert.False(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
 	assert.True(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+
+	assert.True(HTTPBodyContains(mockT, httpReadBody, "GET", "/", nil, "hello"))
 }
 
 func TestHttpBodyWrappers(t *testing.T) {
@@ -178,5 +191,4 @@ func TestHttpBodyWrappers(t *testing.T) {
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
 	assert.True(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
-
 }
