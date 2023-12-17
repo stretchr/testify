@@ -1865,6 +1865,116 @@ func TestInDeltaMapValues(t *testing.T) {
 	}
 }
 
+func TestInMapDeltasMapValues(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, tc := range []struct {
+		title     string
+		expect    interface{}
+		actual    interface{}
+		f         func(TestingT, bool, ...interface{}) bool
+		deltasMap map[interface{}]float64
+	}{
+		{
+			title: "Within deltas",
+			expect: map[string]float64{
+				"foo": 1.0,
+				"bar": 7,
+				"baz": math.NaN(),
+			},
+			actual: map[string]float64{
+				"foo": 1.01,
+				"bar": 7.99,
+				"baz": math.NaN(),
+			},
+			deltasMap: map[interface{}]float64{
+				"foo": 0.1,
+				"bar": 1,
+				"baz": 0.1,
+			},
+			f: True,
+		},
+		{
+			title: "Within deltas",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+				2: 1.99,
+			},
+			deltasMap: map[interface{}]float64{
+				1: 0.1,
+				2: 0.1,
+			},
+			f: True,
+		},
+		{
+			title: "Different number of keys",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 1.0,
+			},
+			deltasMap: map[interface{}]float64{
+				1: 0.1,
+				2: 0.1,
+			},
+			f: False,
+		},
+		{
+			title: "Within delta with zero value",
+			expect: map[string]float64{
+				"zero": 0,
+			},
+			actual: map[string]float64{
+				"zero": 0,
+			},
+			deltasMap: map[interface{}]float64{
+				"zero": 0.1,
+			},
+			f: True,
+		},
+		{
+			title: "With missing key with zero value",
+			expect: map[string]float64{
+				"zero": 0,
+				"foo":  0,
+			},
+			actual: map[string]float64{
+				"zero": 0,
+				"bar":  0,
+			},
+			deltasMap: map[interface{}]float64{
+				"zero": 0,
+				"bar":  0,
+			},
+			f: False,
+		},
+		{
+			title: "With missing key with zero value in deltas map",
+			expect: map[string]float64{
+				"zero": 0,
+				"foo":  0,
+			},
+			actual: map[string]float64{
+				"zero": 0,
+				"foo":  0,
+			},
+			deltasMap: map[interface{}]float64{
+				"zero": 0,
+				"bar":  0,
+			},
+			f: False,
+		},
+	} {
+		tc.f(t, InMapDeltasMapValues(mockT, tc.expect, tc.actual, tc.deltasMap), tc.title+"\n"+diff(tc.expect, tc.actual))
+	}
+}
+
 func TestInEpsilon(t *testing.T) {
 	mockT := new(testing.T)
 
