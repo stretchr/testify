@@ -390,6 +390,14 @@ func InEpsilonSlicef(t TestingT, expected interface{}, actual interface{}, epsil
 	return InEpsilonSlice(t, expected, actual, epsilon, append([]interface{}{msg}, args...)...)
 }
 
+// InMapDeltasMapValuesf is the same as InDelta, but it compares all values between two maps with the matching delta on the delta's map. All maps must have exactly the same keys.
+func InMapDeltasMapValuesf(t TestingT, expected interface{}, actual interface{}, deltasMap map[interface{}]float64, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return InMapDeltasMapValues(t, expected, actual, deltasMap, append([]interface{}{msg}, args...)...)
+}
+
 // IsDecreasingf asserts that the collection is decreasing
 //
 //	assert.IsDecreasingf(t, []int{2, 1, 0}, "error message %s", "formatted")
