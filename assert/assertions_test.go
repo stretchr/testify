@@ -1912,7 +1912,7 @@ func TestInEpsilon(t *testing.T) {
 }
 
 func TestInEpsilonSlice(t *testing.T) {
-	mockT := new(testing.T)
+	mockT := new(mockTestingT)
 
 	True(t, InEpsilonSlice(mockT,
 		[]float64{2.2, math.NaN(), 2.0},
@@ -1925,6 +1925,17 @@ func TestInEpsilonSlice(t *testing.T) {
 		0.04), "{2.2, 2.0} is not element-wise close to {2.1, 2.1} in epsilon=0.04")
 
 	False(t, InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
+
+	mockT = new(mockTestingT)
+	False(t, InEpsilonSlice(mockT, "", nil, 1, "Expected non numeral slices to fail"))
+	Equal(t, "\n\tError Trace:\t\n\tError:      \tParameters must be slice\n\tMessages:   \tExpected non numeral slices to fail\n", mockT.errorString())
+
+	mockT = new(mockTestingT)
+	True(t, InEpsilonSlice(mockT,
+		[]float64{2.2, math.NaN(), 2.0},
+		[]float64{2.1, math.NaN(), 2.1},
+		0.06), "{2.2, NaN, 2.0} is element-wise close to {2.1, NaN, 2.1} in epsilon=0.06")
+	Equal(t, "", mockT.errorString())
 }
 
 func TestRegexp(t *testing.T) {
