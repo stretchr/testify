@@ -632,17 +632,6 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
 }
 
-// containsKind checks if a specified kind in the slice of kinds.
-func containsKind(kinds []reflect.Kind, kind reflect.Kind) bool {
-	for i := 0; i < len(kinds); i++ {
-		if kind == kinds[i] {
-			return true
-		}
-	}
-
-	return false
-}
-
 // isNil checks if a specified object is nil or not, without Failing.
 func isNil(object interface{}) bool {
 	if object == nil {
@@ -650,16 +639,13 @@ func isNil(object interface{}) bool {
 	}
 
 	value := reflect.ValueOf(object)
-	kind := value.Kind()
-	isNilableKind := containsKind(
-		[]reflect.Kind{
-			reflect.Chan, reflect.Func,
-			reflect.Interface, reflect.Map,
-			reflect.Ptr, reflect.Slice, reflect.UnsafePointer},
-		kind)
+	switch value.Kind() {
+	case
+		reflect.Chan, reflect.Func,
+		reflect.Interface, reflect.Map,
+		reflect.Ptr, reflect.Slice, reflect.UnsafePointer:
 
-	if isNilableKind && value.IsNil() {
-		return true
+		return value.IsNil()
 	}
 
 	return false
