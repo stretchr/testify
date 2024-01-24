@@ -1307,10 +1307,12 @@ func (a *Assertions) NotSamef(expected interface{}, actual interface{}, msg stri
 	NotSamef(a.t, expected, actual, msg, args...)
 }
 
-// NotSubset asserts that the specified list(array, slice...) contains not all
-// elements given in the specified subset(array, slice...).
+// NotSubset asserts that the specified list(array, slice...) or map does NOT
+// contain all elements given in the specified subset list(array, slice...) or
+// map.
 //
-//	a.NotSubset([1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]")
+//	a.NotSubset([1, 3, 4], [1, 2])
+//	a.NotSubset({"x": 1, "y": 2}, {"z": 3})
 func (a *Assertions) NotSubset(list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1318,10 +1320,12 @@ func (a *Assertions) NotSubset(list interface{}, subset interface{}, msgAndArgs 
 	NotSubset(a.t, list, subset, msgAndArgs...)
 }
 
-// NotSubsetf asserts that the specified list(array, slice...) contains not all
-// elements given in the specified subset(array, slice...).
+// NotSubsetf asserts that the specified list(array, slice...) or map does NOT
+// contain all elements given in the specified subset list(array, slice...) or
+// map.
 //
-//	a.NotSubsetf([1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]", "error message %s", "formatted")
+//	a.NotSubsetf([1, 3, 4], [1, 2], "error message %s", "formatted")
+//	a.NotSubsetf({"x": 1, "y": 2}, {"z": 3}, "error message %s", "formatted")
 func (a *Assertions) NotSubsetf(list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1481,10 +1485,11 @@ func (a *Assertions) Samef(expected interface{}, actual interface{}, msg string,
 	Samef(a.t, expected, actual, msg, args...)
 }
 
-// Subset asserts that the specified list(array, slice...) contains all
-// elements given in the specified subset(array, slice...).
+// Subset asserts that the specified list(array, slice...) or map contains all
+// elements given in the specified subset list(array, slice...) or map.
 //
-//	a.Subset([1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]")
+//	a.Subset([1, 2, 3], [1, 2])
+//	a.Subset({"x": 1, "y": 2}, {"x": 1})
 func (a *Assertions) Subset(list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1492,10 +1497,11 @@ func (a *Assertions) Subset(list interface{}, subset interface{}, msgAndArgs ...
 	Subset(a.t, list, subset, msgAndArgs...)
 }
 
-// Subsetf asserts that the specified list(array, slice...) contains all
-// elements given in the specified subset(array, slice...).
+// Subsetf asserts that the specified list(array, slice...) or map contains all
+// elements given in the specified subset list(array, slice...) or map.
 //
-//	a.Subsetf([1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]", "error message %s", "formatted")
+//	a.Subsetf([1, 2, 3], [1, 2], "error message %s", "formatted")
+//	a.Subsetf({"x": 1, "y": 2}, {"x": 1}, "error message %s", "formatted")
 func (a *Assertions) Subsetf(list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()

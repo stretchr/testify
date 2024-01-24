@@ -96,19 +96,20 @@ func failOnPanic(t *testing.T, r interface{}) {
 func (suite *Suite) Run(name string, subtest func()) bool {
 	oldT := suite.T()
 
-	if setupSubTest, ok := suite.s.(SetupSubTest); ok {
-		setupSubTest.SetupSubTest()
-	}
-
-	defer func() {
-		suite.SetT(oldT)
-		if tearDownSubTest, ok := suite.s.(TearDownSubTest); ok {
-			tearDownSubTest.TearDownSubTest()
-		}
-	}()
-
 	return oldT.Run(name, func(t *testing.T) {
 		suite.SetT(t)
+		defer suite.SetT(oldT)
+
+		defer recoverAndFailOnPanic(t)
+
+		if setupSubTest, ok := suite.s.(SetupSubTest); ok {
+			setupSubTest.SetupSubTest()
+		}
+
+		if tearDownSubTest, ok := suite.s.(TearDownSubTest); ok {
+			defer tearDownSubTest.TearDownSubTest()
+		}
+
 		subtest()
 	})
 }

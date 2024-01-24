@@ -150,6 +150,8 @@ func copyExportedFields(expected interface{}) interface{} {
 // structures.
 //
 // This function does no assertion of any kind.
+//
+// Deprecated: Use [EqualExportedValues] instead.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
 	expectedCleaned := copyExportedFields(expected)
 	actualCleaned := copyExportedFields(actual)
@@ -630,17 +632,6 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
 }
 
-// containsKind checks if a specified kind in the slice of kinds.
-func containsKind(kinds []reflect.Kind, kind reflect.Kind) bool {
-	for i := 0; i < len(kinds); i++ {
-		if kind == kinds[i] {
-			return true
-		}
-	}
-
-	return false
-}
-
 // isNil checks if a specified object is nil or not, without Failing.
 func isNil(object interface{}) bool {
 	if object == nil {
@@ -648,16 +639,13 @@ func isNil(object interface{}) bool {
 	}
 
 	value := reflect.ValueOf(object)
-	kind := value.Kind()
-	isNilableKind := containsKind(
-		[]reflect.Kind{
-			reflect.Chan, reflect.Func,
-			reflect.Interface, reflect.Map,
-			reflect.Ptr, reflect.Slice, reflect.UnsafePointer},
-		kind)
+	switch value.Kind() {
+	case
+		reflect.Chan, reflect.Func,
+		reflect.Interface, reflect.Map,
+		reflect.Ptr, reflect.Slice, reflect.UnsafePointer:
 
-	if isNilableKind && value.IsNil() {
-		return true
+		return value.IsNil()
 	}
 
 	return false
@@ -927,10 +915,11 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 
 }
 
-// Subset asserts that the specified list(array, slice...) contains all
-// elements given in the specified subset(array, slice...).
+// Subset asserts that the specified list(array, slice...) or map contains all
+// elements given in the specified subset list(array, slice...) or map.
 //
-//	assert.Subset(t, [1, 2, 3], [1, 2], "But [1, 2, 3] does contain [1, 2]")
+//	assert.Subset(t, [1, 2, 3], [1, 2])
+//	assert.Subset(t, {"x": 1, "y": 2}, {"x": 1})
 func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -983,10 +972,12 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	return true
 }
 
-// NotSubset asserts that the specified list(array, slice...) contains not all
-// elements given in the specified subset(array, slice...).
+// NotSubset asserts that the specified list(array, slice...) or map does NOT
+// contain all elements given in the specified subset list(array, slice...) or
+// map.
 //
-//	assert.NotSubset(t, [1, 3, 4], [1, 2], "But [1, 3, 4] does not contain [1, 2]")
+//	assert.NotSubset(t, [1, 3, 4], [1, 2])
+//	assert.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
 func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1466,19 +1457,26 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if expected == nil || actual == nil ||
-		reflect.TypeOf(actual).Kind() != reflect.Slice ||
-		reflect.TypeOf(expected).Kind() != reflect.Slice {
+
+	if expected == nil || actual == nil {
 		return Fail(t, "Parameters must be slice", msgAndArgs...)
 	}
 
-	actualSlice := reflect.ValueOf(actual)
 	expectedSlice := reflect.ValueOf(expected)
+	actualSlice := reflect.ValueOf(actual)
 
-	for i := 0; i < actualSlice.Len(); i++ {
-		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon)
-		if !result {
-			return result
+	if expectedSlice.Type().Kind() != reflect.Slice {
+		return Fail(t, "Expected value must be slice", msgAndArgs...)
+	}
+
+	expectedLen := expectedSlice.Len()
+	if !IsType(t, expected, actual) || !Len(t, actual, expectedLen) {
+		return false
+	}
+
+	for i := 0; i < expectedLen; i++ {
+		if !InEpsilon(t, expectedSlice.Index(i).Interface(), actualSlice.Index(i).Interface(), epsilon, "at index %d", i) {
+			return false
 		}
 	}
 
