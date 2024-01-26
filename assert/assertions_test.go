@@ -2869,12 +2869,26 @@ func TestNeverTrue(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
-func TestEventuallyIssue805(t *testing.T) {
+// Check that a long running condition doesn't block Eventually.
+// See issue 805 (and its long tail of following issues)
+func TestEventuallyTimeout(t *testing.T) {
 	mockT := new(testing.T)
 
 	NotPanics(t, func() {
-		condition := func() bool { <-time.After(time.Millisecond); return true }
+		done, done2 := make(chan struct{}), make(chan struct{})
+
+		// A condition function that returns after the Eventually timeout
+		condition := func() bool {
+			// Wait until Eventually times out and terminates
+			<-done
+			close(done2)
+			return true
+		}
+
 		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
+
+		close(done)
+		<-done2
 	})
 }
 
