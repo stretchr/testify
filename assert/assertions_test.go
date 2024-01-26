@@ -998,6 +998,10 @@ func TestContainsNotContains(t *testing.T) {
 		{"g", "h"},
 		{"j", "k"},
 	}
+	byteSliceList := [][]byte{
+		[]byte("Foo"), []byte("Bar"),
+	}
+
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 	var zeroMap map[interface{}]interface{}
 
@@ -1008,8 +1012,12 @@ func TestContainsNotContains(t *testing.T) {
 	}{
 		{"Hello World", "Hello", true},
 		{"Hello World", "Salut", false},
+		{[]byte("Hello World"), []byte("Hello"), true},
+		{[]byte("Hello World"), []byte("Salut"), false},
 		{list, "Bar", true},
 		{list, "Salut", false},
+		{byteSliceList, []byte("Bar"), true},
+		{byteSliceList, []byte("Salut"), false},
 		{complexList, &A{"g", "h"}, true},
 		{complexList, &A{"g", "e"}, false},
 		{simpleMap, "Foo", true},
@@ -1023,7 +1031,7 @@ func TestContainsNotContains(t *testing.T) {
 			res := Contains(mockT, c.expected, c.actual)
 
 			if res != c.result {
-				if res {
+				if c.result {
 					t.Errorf("Contains(%#v, %#v) should return true:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
 				} else {
 					t.Errorf("Contains(%#v, %#v) should return false:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
@@ -1040,7 +1048,7 @@ func TestContainsNotContains(t *testing.T) {
 			// NotContains should be inverse of Contains. If it's not, something is wrong
 			if res == Contains(mockT, c.expected, c.actual) {
 				if res {
-					t.Errorf("NotContains(%#v, %#v) should return true:\n\t%#v does not contains %#v", c.expected, c.actual, c.expected, c.actual)
+					t.Errorf("NotContains(%#v, %#v) should return true:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
 				} else {
 					t.Errorf("NotContains(%#v, %#v) should return false:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
 				}

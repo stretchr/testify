@@ -912,12 +912,11 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}()
 
-	if listKind == reflect.String {
+	switch listKind {
+	case reflect.String:
 		elementValue := reflect.ValueOf(element)
 		return true, strings.Contains(listValue.String(), elementValue.String())
-	}
-
-	if listKind == reflect.Map {
+	case reflect.Map:
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
 			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
@@ -925,6 +924,14 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 			}
 		}
 		return true, false
+	case reflect.Slice:
+		elementValue := reflect.ValueOf(element)
+		if elementValue.Kind() != reflect.Slice ||
+			elementValue.Type().Elem().Kind() != reflect.Uint8 ||
+			listType.Elem().Kind() != reflect.Uint8 {
+			break
+		}
+		return true, bytes.Contains(listValue.Bytes(), elementValue.Bytes())
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
