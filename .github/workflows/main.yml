@@ -7,8 +7,8 @@ jobs:
     strategy:
       matrix:
         go_version:
-          - "1.20"
-          - "1.21"
+          - stable
+          - oldstable
     steps:
       - uses: actions/checkout@v4
       - name: Setup Go
