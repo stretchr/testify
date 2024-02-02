@@ -6,10 +6,11 @@ go 1.17
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/pmezard/go-difflib v1.0.0
 	github.com/stretchr/objx v0.5.1
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+require github.com/hexops/gotextdiff v1.0.3
 
 // Break dependency cycle with objx.
 // See https://github.com/stretchr/objx/pull/140

@@ -12,7 +12,8 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pmezard/go-difflib/difflib"
+	"github.com/hexops/gotextdiff"
+	"github.com/hexops/gotextdiff/myers"
 	"github.com/stretchr/objx"
 
 	"github.com/stretchr/testify/assert"
@@ -1151,15 +1152,8 @@ func diff(expected interface{}, actual interface{}) string {
 	e := spewConfig.Sdump(expected)
 	a := spewConfig.Sdump(actual)
 
-	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		A:        difflib.SplitLines(e),
-		B:        difflib.SplitLines(a),
-		FromFile: "Expected",
-		FromDate: "",
-		ToFile:   "Actual",
-		ToDate:   "",
-		Context:  1,
-	})
+	edits := myers.ComputeEdits("Expected", e, a)
+	diff := fmt.Sprint(gotextdiff.ToUnified("Expected", "Actual", e, edits))
 
 	return diff
 }
