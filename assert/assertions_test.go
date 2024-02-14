@@ -135,24 +135,42 @@ func TestObjectsAreEqual(t *testing.T) {
 
 		})
 	}
+}
 
-	// Cases where type differ but values are equal
-	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
-		t.Error("ObjectsAreEqualValues should return true")
-	}
-	if ObjectsAreEqualValues(0, nil) {
-		t.Fail()
-	}
-	if ObjectsAreEqualValues(nil, 0) {
-		t.Fail()
+func TestObjectsAreEqualValues(t *testing.T) {
+	now := time.Now()
+
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
+		{uint32(10), int32(10), true},
+		{0, nil, false},
+		{nil, 0, false},
+		{now, now.In(time.Local), true}, // should be time zone independent
+		{int(270), int8(14), false},     // should handle overflow/underflow
+		{int8(14), int(270), false},
+		{[]int{270, 270}, []int8{14, 14}, false},
+		{complex128(1e+100 + 1e+100i), complex64(complex(math.Inf(0), math.Inf(0))), false},
+		{complex64(complex(math.Inf(0), math.Inf(0))), complex128(1e+100 + 1e+100i), false},
+		{complex128(1e+100 + 1e+100i), 270, false},
+		{270, complex128(1e+100 + 1e+100i), false},
+		{complex128(1e+100 + 1e+100i), 3.14, false},
+		{3.14, complex128(1e+100 + 1e+100i), false},
+		{complex128(1e+10 + 1e+10i), complex64(1e+10 + 1e+10i), true},
+		{complex64(1e+10 + 1e+10i), complex128(1e+10 + 1e+10i), true},
 	}
 
-	tm := time.Now()
-	tz := tm.In(time.Local)
-	if !ObjectsAreEqualValues(tm, tz) {
-		t.Error("ObjectsAreEqualValues should return true for time.Time objects with different time zones")
-	}
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("ObjectsAreEqualValues(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := ObjectsAreEqualValues(c.expected, c.actual)
 
+			if res != c.result {
+				t.Errorf("ObjectsAreEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+		})
+	}
 }
 
 type Nested struct {

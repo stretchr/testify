@@ -165,17 +165,40 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		return true
 	}
 
-	actualType := reflect.TypeOf(actual)
-	if actualType == nil {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+	if !expectedValue.IsValid() || !actualValue.IsValid() {
 		return false
 	}
-	expectedValue := reflect.ValueOf(expected)
-	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
-		// Attempt comparison after type conversion
-		return reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual)
+
+	expectedType := expectedValue.Type()
+	actualType := actualValue.Type()
+	if !expectedType.ConvertibleTo(actualType) {
+		return false
 	}
 
-	return false
+	if !isNumericType(expectedType) || !isNumericType(actualType) {
+		// Attempt comparison after type conversion
+		return reflect.DeepEqual(
+			expectedValue.Convert(actualType).Interface(), actual,
+		)
+	}
+
+	// If BOTH values are numeric, there are chances of false positives due
+	// to overflow or underflow. So, we need to make sure to always convert
+	// the smaller type to a larger type before comparing.
+	if expectedType.Size() >= actualType.Size() {
+		return actualValue.Convert(expectedType).Interface() == expected
+	}
+
+	return expectedValue.Convert(actualType).Interface() == actual
+}
+
+// isNumericType returns true if the type is one of:
+// int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,
+// float32, float64, complex64, complex128
+func isNumericType(t reflect.Type) bool {
+	return t.Kind() >= reflect.Int && t.Kind() <= reflect.Complex128
 }
 
 /* CallerInfo is necessary because the assert functions use the testing object
