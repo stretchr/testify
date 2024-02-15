@@ -309,8 +309,9 @@ func (a *Assertions) Errorf(err error, msg string, args ...interface{}) {
 	Errorf(a.t, err, msg, args...)
 }
 
-// Eventually asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// Eventually asserts that given condition will be met in waitFor time. The target function
+// is checked each tick, unless its execution takes longer than one tick.
+// If so, it will be called again on the next multiple of tick after it returns.
 //
 //	a.Eventually(func() bool { return true; }, time.Second, 10*time.Millisecond)
 func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
@@ -370,8 +371,9 @@ func (a *Assertions) EventuallyWithTf(condition func(collect *assert.CollectT), 
 	EventuallyWithTf(a.t, condition, waitFor, tick, msg, args...)
 }
 
-// Eventuallyf asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// Eventuallyf asserts that given condition will be met in waitFor time. The target function
+// is checked each tick, unless its execution takes longer than one tick.
+// If so, it will be called again on the next multiple of tick after it returns.
 //
 //	a.Eventuallyf(func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func (a *Assertions) Eventuallyf(condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {

@@ -1855,8 +1855,9 @@ type tHelper interface {
 	Helper()
 }
 
-// Eventually asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// Eventually asserts that given condition will be met in waitFor time. The target function
+// is checked each tick, unless its execution takes longer than one tick.
+// If so, it will be called again on the next multiple of tick after it returns.
 //
 //	assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
