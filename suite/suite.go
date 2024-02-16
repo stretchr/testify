@@ -58,7 +58,7 @@ func (suite *Suite) Require() *require.Assertions {
 	suite.mu.Lock()
 	defer suite.mu.Unlock()
 	if suite.require == nil {
-		suite.require = require.New(suite.T())
+		panic("'Require' must not be called before 'Run' or 'SetT'")
 	}
 	return suite.require
 }
@@ -72,7 +72,7 @@ func (suite *Suite) Assert() *assert.Assertions {
 	suite.mu.Lock()
 	defer suite.mu.Unlock()
 	if suite.Assertions == nil {
-		suite.Assertions = assert.New(suite.T())
+		panic("'Assert' must not be called before 'Run' or 'SetT'")
 	}
 	return suite.Assertions
 }
