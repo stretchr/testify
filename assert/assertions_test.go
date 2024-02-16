@@ -1661,49 +1661,33 @@ func TestLen(t *testing.T) {
 	ch <- 3
 
 	cases := []struct {
-		v interface{}
-		l int
+		v               interface{}
+		l               int
+		expected1234567 string // message when expecting 1234567 items
 	}{
-		{[]int{1, 2, 3}, 3},
-		{[...]int{1, 2, 3}, 3},
-		{"ABC", 3},
-		{map[int]int{1: 2, 2: 4, 3: 6}, 3},
-		{ch, 3},
+		{[]int{1, 2, 3}, 3, `"[1 2 3]" should have 1234567 item(s), but has 3`},
+		{[...]int{1, 2, 3}, 3, `"[1 2 3]" should have 1234567 item(s), but has 3`},
+		{"ABC", 3, `"ABC" should have 1234567 item(s), but has 3`},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 3, `"map[1:2 2:4 3:6]" should have 1234567 item(s), but has 3`},
+		{ch, 3, ""},
 
-		{[]int{}, 0},
-		{map[int]int{}, 0},
-		{make(chan int), 0},
+		{[]int{}, 0, `"[]" should have 1234567 item(s), but has 0`},
+		{map[int]int{}, 0, `"map[]" should have 1234567 item(s), but has 0`},
+		{make(chan int), 0, ""},
 
-		{[]int(nil), 0},
-		{map[int]int(nil), 0},
-		{(chan int)(nil), 0},
+		{[]int(nil), 0, `"[]" should have 1234567 item(s), but has 0`},
+		{map[int]int(nil), 0, `"map[]" should have 1234567 item(s), but has 0`},
+		{(chan int)(nil), 0, `"<nil>" should have 1234567 item(s), but has 0`},
 	}
 
 	for _, c := range cases {
 		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
-	}
-
-	cases = []struct {
-		v interface{}
-		l int
-	}{
-		{[]int{1, 2, 3}, 4},
-		{[...]int{1, 2, 3}, 2},
-		{"ABC", 2},
-		{map[int]int{1: 2, 2: 4, 3: 6}, 4},
-		{ch, 2},
-
-		{[]int{}, 1},
-		{map[int]int{}, 1},
-		{make(chan int), 1},
-
-		{[]int(nil), 1},
-		{map[int]int(nil), 1},
-		{(chan int)(nil), 1},
-	}
-
-	for _, c := range cases {
-		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		False(t, Len(mockT, c.v, c.l+1), "%#v have %d items", c.v, c.l)
+		if c.expected1234567 != "" {
+			msgMock := new(mockTestingT)
+			Len(msgMock, c.v, 1234567)
+			Contains(t, msgMock.errorString(), c.expected1234567)
+		}
 	}
 }
 
