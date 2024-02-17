@@ -594,6 +594,9 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 // AssertExpectations asserts that everything specified with On and Return was
 // in fact called as expected.  Calls may have occurred in any order.
 func (m *Mock) AssertExpectations(t TestingT) bool {
+	if s, ok := t.(interface{ Skipped() bool }); ok && s.Skipped() {
+		return true
+	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}

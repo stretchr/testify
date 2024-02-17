@@ -1493,6 +1493,16 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 }
 
+func Test_Mock_AssertExpectations_Skipped_Test(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectations_Skipped_Test", 1, 2, 3).Return(5, 6, 7)
+	defer mockedService.AssertExpectations(t)
+
+	t.Skip("skipping test to ensure AssertExpectations does not fail")
+}
+
 func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
