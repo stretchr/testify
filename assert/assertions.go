@@ -906,13 +906,13 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 		return true, false
 	case reflect.Slice:
+		// Special case: use bytes.Contains if both element and list are []byte.
 		elementValue := reflect.ValueOf(element)
-		if elementValue.Kind() != reflect.Slice ||
-			elementValue.Type().Elem().Kind() != reflect.Uint8 ||
-			listType.Elem().Kind() != reflect.Uint8 {
-			break
+		if elementValue.Kind() == reflect.Slice &&
+			elementValue.Type().Elem().Kind() == reflect.Uint8 &&
+			listType.Elem().Kind() == reflect.Uint8 {
+			return true, bytes.Contains(listValue.Bytes(), elementValue.Bytes())
 		}
-		return true, bytes.Contains(listValue.Bytes(), elementValue.Bytes())
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
@@ -930,6 +930,8 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 //	assert.Contains(t, "Hello World", "World")
 //	assert.Contains(t, ["Hello", "World"], "World")
 //	assert.Contains(t, {"Hello": "World"}, "Hello")
+//	assert.Contains(t, []byte("Hello World"), []byte("World"))
+//	assert.Contains(t, [[]byte("Hello"), []byte("World")], []byte("World"))
 func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -953,6 +955,8 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 //	assert.NotContains(t, "Hello World", "Earth")
 //	assert.NotContains(t, ["Hello", "World"], "Earth")
 //	assert.NotContains(t, {"Hello": "World"}, "Earth")
+//	assert.NotContains(t, []byte("Hello World"), []byte("Earth"))
+//	assert.NotContains(t, [[]byte("Hello"), []byte("World")], []byte("Earth"))
 func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
