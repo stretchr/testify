@@ -22,6 +22,8 @@ func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bo
 //	assert.Containsf(t, "Hello World", "World", "error message %s", "formatted")
 //	assert.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
 //	assert.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	assert.Containsf(t, []byte("Hello World"), []byte("World"), "error message %s", "formatted")
+//	assert.Containsf(t, [[]byte("Hello"), []byte("World")], []byte("World"), "error message %s", "formatted")
 func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -561,6 +563,8 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) boo
 //	assert.NotContainsf(t, "Hello World", "Earth", "error message %s", "formatted")
 //	assert.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
 //	assert.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	assert.NotContainsf(t, []byte("Hello World"), []byte("Earth"), "error message %s", "formatted")
+//	assert.NotContainsf(t, [[]byte("Hello"), []byte("World")], []byte("Earth"), "error message %s", "formatted")
 func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

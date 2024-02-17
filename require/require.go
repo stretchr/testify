@@ -37,6 +37,8 @@ func Conditionf(t TestingT, comp assert.Comparison, msg string, args ...interfac
 //	require.Contains(t, "Hello World", "World")
 //	require.Contains(t, ["Hello", "World"], "World")
 //	require.Contains(t, {"Hello": "World"}, "Hello")
+//	require.Contains(t, []byte("Hello World"), []byte("World"))
+//	require.Contains(t, [[]byte("Hello"), []byte("World")], []byte("World"))
 func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -53,6 +55,8 @@ func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...int
 //	require.Containsf(t, "Hello World", "World", "error message %s", "formatted")
 //	require.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
 //	require.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	require.Containsf(t, []byte("Hello World"), []byte("World"), "error message %s", "formatted")
+//	require.Containsf(t, [[]byte("Hello"), []byte("World")], []byte("World"), "error message %s", "formatted")
 func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1403,6 +1407,8 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 //	require.NotContains(t, "Hello World", "Earth")
 //	require.NotContains(t, ["Hello", "World"], "Earth")
 //	require.NotContains(t, {"Hello": "World"}, "Earth")
+//	require.NotContains(t, []byte("Hello World"), []byte("Earth"))
+//	require.NotContains(t, [[]byte("Hello"), []byte("World")], []byte("Earth"))
 func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1419,6 +1425,8 @@ func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...
 //	require.NotContainsf(t, "Hello World", "Earth", "error message %s", "formatted")
 //	require.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
 //	require.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	require.NotContainsf(t, []byte("Hello World"), []byte("Earth"), "error message %s", "formatted")
+//	require.NotContainsf(t, [[]byte("Hello"), []byte("World")], []byte("Earth"), "error message %s", "formatted")
 func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
