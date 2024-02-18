@@ -692,3 +692,27 @@ func TestSubtestPanic(t *testing.T) {
 	assert.True(t, suite.inTearDownTest)
 	assert.True(t, suite.inTearDownSuite)
 }
+
+type unInitialisedSuite struct {
+	Suite
+}
+
+// TestUnInitialisedSuites asserts the behaviour of the suite methods when the
+// suite is not initialised
+func TestUnInitialisedSuites(t *testing.T) {
+	t.Run("should panic on Require", func(t *testing.T) {
+		suite := new(unInitialisedSuite)
+
+		assert.Panics(t, func() {
+			suite.Require().True(true)
+		})
+	})
+
+	t.Run("should panic on Assert", func(t *testing.T) {
+		suite := new(unInitialisedSuite)
+
+		assert.Panics(t, func() {
+			suite.Assert().True(true)
+		})
+	})
+}
