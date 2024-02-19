@@ -9,14 +9,14 @@ assignees: ''
 
 <!-- if this is a question, consider using the discussion section of this repo -->
 
-**Description**
+## Description
 <!-- a detailed description of the bug -->
 
-**Step To Reproduce**
+## Step To Reproduce
 <!-- Steps or code snippet to reproduce the behaviour -->
 
-**Expected behaviour**
+## Expected behaviour
 <!-- A clear and concise description of what you expected to happen -->
 
-**Actual behaviour**
+## Actual behaviour
 <!-- what testify does -->
