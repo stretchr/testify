@@ -9,14 +9,14 @@ assignees: ''
 
 <!-- if this is a question, consider using the discussion section of this repo -->
 
-**Describe the bug**
+**Description**
 <!-- a detailed description of the bug -->
 
-**To Reproduce**
-<!-- Steps to reproduce the behavior -->
+**Step To Reproduce**
+<!-- Steps or code snippet to reproduce the behaviour -->
 
-**Expected behavior**
+**Expected behaviour**
 <!-- A clear and concise description of what you expected to happen -->
 
-**Screenshots/Snippets**
-<!-- If applicable, add screenshots or code snippets to help explain your problem -->
+**Actual behaviour**
+<!-- what testify does -->
