@@ -7,7 +7,8 @@ assignees: ''
 
 ---
 
-<!-- if this is a question, consider using the discussion section of this repo -->
+<!-- If this is a question, consider using the discussion section of this repo -->
+<!-- Here: https://github.com/stretchr/testify/discussions/new?category=q-a -->
 
 ## Description
 <!-- A clear and concise description of what feature you are proposing -->

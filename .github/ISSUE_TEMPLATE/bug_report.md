@@ -7,10 +7,11 @@ assignees: ''
 
 ---
 
-<!-- if this is a question, consider using the discussion section of this repo -->
+<!-- If this is a question, consider using the discussion section of this repo -->
+<!-- Here: https://github.com/stretchr/testify/discussions/new?category=q-a -->
 
 ## Description
-<!-- a detailed description of the bug -->
+<!-- A detailed description of the bug -->
 
 ## Step To Reproduce
 <!-- Steps or code snippet to reproduce the behaviour -->
@@ -19,4 +20,4 @@ assignees: ''
 <!-- A clear and concise description of what you expected to happen -->
 
 ## Actual behaviour
-<!-- what testify does -->
+<!-- What testify does -->
