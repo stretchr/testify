@@ -1463,7 +1463,7 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 		h.Helper()
 	}
 	if math.IsNaN(epsilon) {
-		return Fail(t, "epsilon must not be NaN")
+		return Fail(t, "epsilon must not be NaN", msgAndArgs...)
 	}
 	actualEpsilon, err := calcRelativeError(expected, actual)
 	if err != nil {
