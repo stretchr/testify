@@ -596,12 +596,12 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
 	}
 
-	if aType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", aType.Kind(), reflect.Struct), msgAndArgs...)
+	if aType.Kind() != reflect.Struct && aType.Kind() != reflect.Ptr {
+		return Fail(t, fmt.Sprintf("Types expected to both be struct or ptr \n\t%v != %v", aType.Kind(), reflect.Struct), msgAndArgs...)
 	}
 
-	if bType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
+	if bType.Kind() != reflect.Struct && bType.Kind() != reflect.Ptr {
+		return Fail(t, fmt.Sprintf("Types expected to both be struct or ptr \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
 	}
 
 	expected = copyExportedFields(expected)
