@@ -42,7 +42,10 @@ func TestHTTPSuccess(t *testing.T) {
 	assert.True(mockT2.Failed())
 
 	mockT3 := new(testing.T)
-	assert.Equal(HTTPSuccess(mockT3, httpError, "GET", "/", nil), false)
+	assert.Equal(HTTPSuccess(
+		mockT3, httpError, "GET", "/", nil,
+		"was not expecting a failure here",
+	), false)
 	assert.True(mockT3.Failed())
 
 	mockT4 := new(testing.T)
@@ -58,7 +61,10 @@ func TestHTTPRedirect(t *testing.T) {
 	assert := New(t)
 
 	mockT1 := new(testing.T)
-	assert.Equal(HTTPRedirect(mockT1, httpOK, "GET", "/", nil), false)
+	assert.Equal(HTTPRedirect(
+		mockT1, httpOK, "GET", "/", nil,
+		"was expecting a 3xx status code. Got 200.",
+	), false)
 	assert.True(mockT1.Failed())
 
 	mockT2 := new(testing.T)
@@ -82,7 +88,10 @@ func TestHTTPError(t *testing.T) {
 	assert.True(mockT1.Failed())
 
 	mockT2 := new(testing.T)
-	assert.Equal(HTTPError(mockT2, httpRedirect, "GET", "/", nil), false)
+	assert.Equal(HTTPError(
+		mockT2, httpRedirect, "GET", "/", nil,
+		"Expected this request to error out. But it didn't",
+	), false)
 	assert.True(mockT2.Failed())
 
 	mockT3 := new(testing.T)
@@ -106,7 +115,10 @@ func TestHTTPStatusCode(t *testing.T) {
 	assert.True(mockT2.Failed())
 
 	mockT3 := new(testing.T)
-	assert.Equal(HTTPStatusCode(mockT3, httpError, "GET", "/", nil, http.StatusSwitchingProtocols), false)
+	assert.Equal(HTTPStatusCode(
+		mockT3, httpError, "GET", "/", nil, http.StatusSwitchingProtocols,
+		"Expected the status code to be %d", http.StatusSwitchingProtocols,
+	), false)
 	assert.True(mockT3.Failed())
 
 	mockT4 := new(testing.T)
@@ -174,7 +186,10 @@ func TestHttpBody(t *testing.T) {
 	assert.False(HTTPBodyContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
 
 	assert.False(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
-	assert.False(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
+	assert.False(HTTPBodyNotContains(
+		mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World",
+		"Expected the request body to not contain 'World'. But it did.",
+	))
 	assert.True(HTTPBodyNotContains(mockT, httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
 
 	assert.True(HTTPBodyContains(mockT, httpReadBody, "GET", "/", nil, "hello"))
