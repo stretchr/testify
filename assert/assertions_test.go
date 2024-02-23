@@ -2514,6 +2514,10 @@ func (m *mockTestingT) Errorf(format string, args ...interface{}) {
 	m.args = args
 }
 
+func (m *mockTestingT) Failed() bool {
+	return m.errorFmt != ""
+}
+
 func TestFailNowWithPlainTestingT(t *testing.T) {
 	mockT := &mockTestingT{}
 
