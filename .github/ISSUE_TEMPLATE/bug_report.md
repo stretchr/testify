@@ -14,10 +14,10 @@ assignees: ''
 <!-- A detailed description of the bug -->
 
 ## Step To Reproduce
-<!-- Steps or code snippet to reproduce the behaviour -->
+<!-- Steps or code snippet to reproduce the behavior -->
 
-## Expected behaviour
+## Expected behavior
 <!-- A clear and concise description of what you expected to happen -->
 
-## Actual behaviour
+## Actual behavior
 <!-- What testify does -->
