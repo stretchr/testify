@@ -880,7 +880,7 @@ func TestNotEqualValues(t *testing.T) {
 		{new(AssertionTesterConformingObject), new(AssertionTesterConformingObject), false},
 		{&struct{}{}, &struct{}{}, false},
 
-		// Different behaviour from NotEqual()
+		// Different behavior from NotEqual()
 		{func() int { return 23 }, func() int { return 24 }, true},
 		{int(10), int(11), true},
 		{int(10), uint(10), false},
