@@ -1836,7 +1836,9 @@ func isFunction(arg interface{}) bool {
 	return reflect.TypeOf(arg).Kind() == reflect.Func
 }
 
-var spewConfig = spew.ConfigState{
+const stringerEnabledEnvVarName = "TESTIFY_SPEW_STRINGER_ENABLE"
+
+var spewConfigStringerDisabled = spew.ConfigState{
 	Indent:                  " ",
 	DisablePointerAddresses: true,
 	DisableCapacities:       true,
@@ -1851,6 +1853,20 @@ var spewConfigStringerEnabled = spew.ConfigState{
 	DisableCapacities:       true,
 	SortKeys:                true,
 	MaxDepth:                10,
+}
+
+var spewConfig spew.ConfigState
+
+func setupSpewConfig() {
+	if os.Getenv(stringerEnabledEnvVarName) == "TRUE" {
+		spewConfig = spewConfigStringerEnabled
+		return
+	}
+	spewConfig = spewConfigStringerDisabled
+}
+
+func init() {
+	setupSpewConfig()
 }
 
 type tHelper interface {
