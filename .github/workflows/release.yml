@@ -17,3 +17,5 @@ jobs:
 
       - name: Create GitHub release from tag
         uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
