@@ -385,11 +385,10 @@ func TestEqualExportedValues(t *testing.T) {
 	            	Diff:
 	            	--- Expected
 	            	+++ Actual
-	            	@@ -3,3 +3,3 @@
 	            	  Exported2: (assert.Nested) {
 	            	-  Exported: (int) 2,
 	            	+  Exported: (int) 1,
-	            	   notExported: (interface {}) <nil>`,
+	            	 }`,
 		},
 		{
 			value1:        S3{&Nested{1, 2}, &Nested{3, 4}},
@@ -399,11 +398,10 @@ func TestEqualExportedValues(t *testing.T) {
 	            	Diff:
 	            	--- Expected
 	            	+++ Actual
-	            	@@ -2,3 +2,3 @@
 	            	  Exported1: (*assert.Nested)({
 	            	-  Exported: (int) 1,
 	            	+  Exported: (string) (len=1) "a",
-	            	   notExported: (interface {}) <nil>`,
+	            	 }`,
 		},
 		{
 			value1: S4{[]*Nested{
@@ -419,11 +417,10 @@ func TestEqualExportedValues(t *testing.T) {
 	            	Diff:
 	            	--- Expected
 	            	+++ Actual
-	            	@@ -7,3 +7,3 @@
 	            	   (*assert.Nested)({
 	            	-   Exported: (int) 3,
 	            	+   Exported: (int) 2,
-	            	    notExported: (interface {}) <nil>`,
+	            	 }`,
 		},
 		{
 			value1:        S{[2]int{1, 2}, Nested{2, 3}, 4, Nested{5, 6}},
@@ -691,7 +688,7 @@ func TestStringEqual(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "hi, \nmy name is", equalGot: "what,\nmy name is", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"hi, \\\\nmy name is\"\n\\s+actual\\s+: \"what,\\\\nmy name is\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1,2 \\+1,2 @@\n\\s+-hi, \n\\s+\\+what,\n\\s+my name is"},
+		{equalWant: "hi, \nmy name is", equalGot: "what,\nmy name is", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"hi, \\\\nmy name is\"\n\\s+actual\\s+: \"what,\\\\nmy name is\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+-hi, \n\\s+\\+what,\n\\s+my name is"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -706,10 +703,10 @@ func TestEqualFormatting(t *testing.T) {
 		msgAndArgs []interface{}
 		want       string
 	}{
-		{equalWant: "want", equalGot: "got", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+hello, world!\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{123}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+123\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{struct{ a string }{"hello"}}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+{a:hello}\n"},
+		{equalWant: "want", equalGot: "got", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+-want\n\\s+\\+got\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+hello, world!\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{123}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+123\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{struct{ a string }{"hello"}}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+{a:hello}\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -2336,7 +2333,6 @@ func TestDiff(t *testing.T) {
 Diff:
 --- Expected
 +++ Actual
-@@ -1,3 +1,3 @@
  (struct { foo string }) {
 - foo: (string) (len=5) "hello"
 + foo: (string) (len=3) "bar"
@@ -2353,7 +2349,6 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -2,5 +2,5 @@
   (int) 1,
 - (int) 2,
   (int) 3,
@@ -2373,11 +2368,10 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -2,4 +2,4 @@
   (int) 1,
 - (int) 2,
-- (int) 3
 + (int) 3,
+- (int) 3
 + (int) 5
  }
 `
@@ -2392,14 +2386,13 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -1,6 +1,6 @@
  (map[string]int) (len=4) {
 - (string) (len=4) "four": (int) 4,
 + (string) (len=4) "five": (int) 5,
   (string) (len=3) "one": (int) 1,
 - (string) (len=5) "three": (int) 3,
-- (string) (len=3) "two": (int) 2
 + (string) (len=5) "seven": (int) 7,
+- (string) (len=3) "two": (int) 2
 + (string) (len=5) "three": (int) 3
  }
 `
@@ -2415,7 +2408,6 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -1,3 +1,3 @@
  (*errors.errorString)({
 - s: (string) (len=19) "some expected error"
 + s: (string) (len=12) "actual error"
@@ -2433,7 +2425,6 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -2,3 +2,3 @@
   A: (string) (len=11) "some string",
 - B: (int) 10
 + B: (int) 15
@@ -2451,10 +2442,8 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
-@@ -1,2 +1,2 @@
 -(time.Time) 2020-09-24 00:00:00 +0000 UTC
 +(time.Time) 2020-09-25 00:00:00 +0000 UTC
- 
 `
 
 	actual = diff(
