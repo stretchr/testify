@@ -613,6 +613,16 @@ func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interf
 	return NotErrorIs(t, err, target, append([]interface{}{msg}, args...)...)
 }
 
+// NotImplementsf asserts that an object does not implement the specified interface.
+//
+//	assert.NotImplementsf(t, (*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
+func NotImplementsf(t TestingT, interfaceObject interface{}, object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotImplements(t, interfaceObject, object, append([]interface{}{msg}, args...)...)
+}
+
 // NotNilf asserts that the specified object is not nil.
 //
 //	assert.NotNilf(t, err, "error message %s", "formatted")
