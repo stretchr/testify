@@ -26,4 +26,15 @@ type BoolAssertionFunc func(TestingT, bool, ...interface{})
 // for table driven tests.
 type ErrorAssertionFunc func(TestingT, error, ...interface{})
 
+// ErrorIsFunc returns an [ErrorAssertionFunc] which tests if the error wraps target.
+func ErrorIsFor(expectedError error) ErrorAssertionFunc {
+	return func(t TestingT, err error, msgsAndArgs ...interface{}) {
+		if h, ok := t.(tHelper); ok {
+			h.Helper()
+		}
+
+		ErrorIs(t, err, expectedError, msgsAndArgs...)
+	}
+}
+
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=require -template=require.go.tmpl -include-format-funcs"

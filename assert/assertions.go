@@ -48,6 +48,17 @@ type ErrorAssertionFunc func(TestingT, error, ...interface{}) bool
 // Comparison is a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
+// ErrorIsFor returns an [ErrorAssertionFunc] which tests if the error wraps target.
+func ErrorIsFor(target error) ErrorAssertionFunc {
+	return func(t TestingT, err error, msgAndArgs ...interface{}) bool {
+		if h, ok := t.(tHelper); ok {
+			h.Helper()
+		}
+
+		return ErrorIs(t, err, target, msgAndArgs...)
+	}
+}
+
 /*
 	Helper functions
 */
