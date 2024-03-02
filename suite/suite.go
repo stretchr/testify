@@ -93,7 +93,6 @@ func (suite *Suite) Log(args ...interface{}) {
 	suite.T().Log(args...)
 }
 
-
 func recoverAndFailOnPanic(t *testing.T) {
 	t.Helper()
 	r := recover()
