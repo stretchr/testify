@@ -168,16 +168,19 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 
 	expectedType := expectedValue.Type()
 	actualType := actualValue.Type()
-	if !expectedType.ConvertibleTo(actualType) {
-		return false
+
+	if expectedType.Kind() == actualType.Kind() {
+		// Test when object type is array/slice/map
+		switch actualType.Kind() {
+		case reflect.Array, reflect.Slice:
+			return listsAreEqualValues(expected, actual)
+		case reflect.Map:
+			return mapsAreEqualValues(expected, actual)
+		}
 	}
 
-	// Test when object type is array/slice/map
-	switch actualType.Kind() {
-	case reflect.Array, reflect.Slice:
-		return listsAreEqualValues(expected, actual)
-	case reflect.Map:
-		return mapsAreEqualValues(expected, actual)
+	if !expectedType.ConvertibleTo(actualType) {
+		return false
 	}
 
 	if !isNumericType(expectedType) || !isNumericType(actualType) {
