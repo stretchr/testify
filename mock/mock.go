@@ -779,10 +779,6 @@ func (m *Mock) expectedCalls() []*Call {
 	return append([]*Call{}, m.ExpectedCalls...)
 }
 
-// func (m *Mock) calls() []Call {
-// 	return append([]Call{}, m.Calls...)
-// }
-
 /*
 	Arguments
 */
