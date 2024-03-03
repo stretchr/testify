@@ -1186,11 +1186,6 @@ func Test_Mock_Called(t *testing.T) {
 	returnArguments1 := mockedService.Called(4, 5, 6)
 
 	if assert.Equal(t, 1, len(mockedService.Calls)) {
-		// assert.Equal(t, "Test_Mock_Called", mockedService.Calls["Test_Mock_Called"][0].Method)
-		// assert.Equal(t, 1, mockedService.Calls["Test_Mock_Called"][0].Arguments[0])
-		// assert.Equal(t, 2, mockedService.Calls["Test_Mock_Called"][0].Arguments[1])
-		// assert.Equal(t, 3, mockedService.Calls["Test_Mock_Called"][0].Arguments[2])
-
 		returnArgs := mockedService.ArgsForCallCount(t, "Test_Mock_Called", 0)
 		if assert.Equal(t, 3, len(returnArgs)) {
 			assert.Equal(t, 1, returnArgs[0])
