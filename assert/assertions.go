@@ -301,13 +301,17 @@ func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
 func indentMessageLines(message string, longestLabelLen int) string {
 	outBuf := new(bytes.Buffer)
 
-	for i, scanner := 0, bufio.NewScanner(strings.NewReader(message)); scanner.Scan(); i++ {
-		// no need to align first line because it starts at the correct location (after the label)
-		if i != 0 {
-			// append alignLen+1 spaces to align with "{{longestLabel}}:" before adding tab
+	msgScanner := bufio.NewScanner(strings.NewReader(message))
+	msgScanner.Buffer([]byte{}, len(message)+1)
+
+	first := true
+	for msgScanner.Scan() {
+		if !first {
 			outBuf.WriteString("\n\t" + strings.Repeat(" ", longestLabelLen+1) + "\t")
 		}
-		outBuf.WriteString(scanner.Text())
+
+		outBuf.WriteString(msgScanner.Text())
+		first = false
 	}
 
 	return outBuf.String()
