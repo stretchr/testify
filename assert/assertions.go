@@ -59,25 +59,20 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 	if expected == nil || actual == nil {
 		return expected == actual
 	}
-	switch exp := expected.(type) {
-	case []byte:
-		act, ok := actual.([]byte)
-		if !ok {
-			return false
-		}
-		if exp == nil || act == nil {
-			return exp == nil && act == nil
-		}
-		return bytes.Equal(exp, act)
-	case time.Time:
-		act, ok := actual.(time.Time)
-		if !ok {
-			return false
-		}
-		return exp.Equal(act)
-	default:
+
+	exp, ok := expected.([]byte)
+	if !ok {
 		return reflect.DeepEqual(expected, actual)
 	}
+
+	act, ok := actual.([]byte)
+	if !ok {
+		return false
+	}
+	if exp == nil || act == nil {
+		return exp == nil && act == nil
+	}
+	return bytes.Equal(exp, act)
 }
 
 // copyExportedFields iterates downward through nested data structures and creates a copy
@@ -165,33 +160,48 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		return true
 	}
 
-	actualType := reflect.TypeOf(actual)
-	if actualType == nil {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+	if !expectedValue.IsValid() || !actualValue.IsValid() {
 		return false
 	}
 
-	expectedValue := reflect.ValueOf(expected)
-	if expectedValue.IsValid() && expectedValue.Type().ConvertibleTo(actualType) {
-		// Attempt comparison after type conversion
-		if reflect.DeepEqual(expectedValue.Convert(actualType).Interface(), actual) {
-			return true
-		}
-	}
-
-	actualKind := reflect.ValueOf(actual).Kind()
-	expectedKind := expectedValue.Kind()
-	if actualKind != expectedKind {
+	expectedType := expectedValue.Type()
+	actualType := actualValue.Type()
+	if !expectedType.ConvertibleTo(actualType) {
 		return false
 	}
 
 	// Test when object type is array/slice/map
-	switch actualKind {
+	switch actualType.Kind() {
 	case reflect.Array, reflect.Slice:
 		return listsAreEqualValues(expected, actual)
 	case reflect.Map:
 		return mapsAreEqualValues(expected, actual)
 	}
-	return false
+
+	if !isNumericType(expectedType) || !isNumericType(actualType) {
+		// Attempt comparison after type conversion
+		return reflect.DeepEqual(
+			expectedValue.Convert(actualType).Interface(), actual,
+		)
+	}
+
+	// If BOTH values are numeric, there are chances of false positives due
+	// to overflow or underflow. So, we need to make sure to always convert
+	// the smaller type to a larger type before comparing.
+	if expectedType.Size() >= actualType.Size() {
+		return actualValue.Convert(expectedType).Interface() == expected
+	}
+
+	return expectedValue.Convert(actualType).Interface() == actual
+}
+
+// isNumericType returns true if the type is one of:
+// int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,
+// float32, float64, complex64, complex128
+func isNumericType(t reflect.Type) bool {
+	return t.Kind() >= reflect.Int && t.Kind() <= reflect.Complex128
 }
 
 // listsAreEqualValues gets whether two lists(arrays, slices) are equal, or if their
@@ -472,6 +482,25 @@ func Implements(t TestingT, interfaceObject interface{}, object interface{}, msg
 	return true
 }
 
+// NotImplements asserts that an object does not implement the specified interface.
+//
+//	assert.NotImplements(t, (*MyInterface)(nil), new(MyObject))
+func NotImplements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	interfaceType := reflect.TypeOf(interfaceObject).Elem()
+
+	if object == nil {
+		return Fail(t, fmt.Sprintf("Cannot check if nil does not implement %v", interfaceType), msgAndArgs...)
+	}
+	if reflect.TypeOf(object).Implements(interfaceType) {
+		return Fail(t, fmt.Sprintf("%T implements %v", object, interfaceType), msgAndArgs...)
+	}
+
+	return true
+}
+
 // IsType asserts that the specified objects are of the same type.
 func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
@@ -656,12 +685,19 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
 	}
 
+	if aType.Kind() == reflect.Ptr {
+		aType = aType.Elem()
+	}
+	if bType.Kind() == reflect.Ptr {
+		bType = bType.Elem()
+	}
+
 	if aType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", aType.Kind(), reflect.Struct), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Types expected to both be struct or pointer to struct \n\t%v != %v", aType.Kind(), reflect.Struct), msgAndArgs...)
 	}
 
 	if bType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Types expected to both be struct or pointer to struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
 	}
 
 	expected = copyExportedFields(expected)
@@ -710,17 +746,6 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
 }
 
-// containsKind checks if a specified kind in the slice of kinds.
-func containsKind(kinds []reflect.Kind, kind reflect.Kind) bool {
-	for i := 0; i < len(kinds); i++ {
-		if kind == kinds[i] {
-			return true
-		}
-	}
-
-	return false
-}
-
 // isNil checks if a specified object is nil or not, without Failing.
 func isNil(object interface{}) bool {
 	if object == nil {
@@ -728,16 +753,13 @@ func isNil(object interface{}) bool {
 	}
 
 	value := reflect.ValueOf(object)
-	kind := value.Kind()
-	isNilableKind := containsKind(
-		[]reflect.Kind{
-			reflect.Chan, reflect.Func,
-			reflect.Interface, reflect.Map,
-			reflect.Ptr, reflect.Slice, reflect.UnsafePointer},
-		kind)
+	switch value.Kind() {
+	case
+		reflect.Chan, reflect.Func,
+		reflect.Interface, reflect.Map,
+		reflect.Ptr, reflect.Slice, reflect.UnsafePointer:
 
-	if isNilableKind && value.IsNil() {
-		return true
+		return value.IsNil()
 	}
 
 	return false
@@ -841,11 +863,11 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 	}
 	l, ok := getLen(object)
 	if !ok {
-		return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", object), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("\"%v\" could not be applied builtin len()", object), msgAndArgs...)
 	}
 
 	if l != length {
-		return Fail(t, fmt.Sprintf("\"%s\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("\"%v\" should have %d item(s), but has %d", object, length, l), msgAndArgs...)
 	}
 	return true
 }
@@ -1530,7 +1552,7 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 		h.Helper()
 	}
 	if math.IsNaN(epsilon) {
-		return Fail(t, "epsilon must not be NaN")
+		return Fail(t, "epsilon must not be NaN", msgAndArgs...)
 	}
 	actualEpsilon, err := calcRelativeError(expected, actual)
 	if err != nil {
@@ -1549,19 +1571,26 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if expected == nil || actual == nil ||
-		reflect.TypeOf(actual).Kind() != reflect.Slice ||
-		reflect.TypeOf(expected).Kind() != reflect.Slice {
+
+	if expected == nil || actual == nil {
 		return Fail(t, "Parameters must be slice", msgAndArgs...)
 	}
 
-	actualSlice := reflect.ValueOf(actual)
 	expectedSlice := reflect.ValueOf(expected)
+	actualSlice := reflect.ValueOf(actual)
 
-	for i := 0; i < actualSlice.Len(); i++ {
-		result := InEpsilon(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), epsilon)
-		if !result {
-			return result
+	if expectedSlice.Type().Kind() != reflect.Slice {
+		return Fail(t, "Expected value must be slice", msgAndArgs...)
+	}
+
+	expectedLen := expectedSlice.Len()
+	if !IsType(t, expected, actual) || !Len(t, actual, expectedLen) {
+		return false
+	}
+
+	for i := 0; i < expectedLen; i++ {
+		if !InEpsilon(t, expectedSlice.Index(i).Interface(), actualSlice.Index(i).Interface(), epsilon, "at index %d", i) {
+			return false
 		}
 	}
 

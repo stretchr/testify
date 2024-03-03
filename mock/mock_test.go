@@ -1493,6 +1493,16 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 
 }
 
+func Test_Mock_AssertExpectations_Skipped_Test(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("Test_Mock_AssertExpectations_Skipped_Test", 1, 2, 3).Return(5, 6, 7)
+	defer mockedService.AssertExpectations(t)
+
+	t.Skip("skipping test to ensure AssertExpectations does not fail")
+}
+
 func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -1616,17 +1626,14 @@ func Test_Mock_IsMethodCallable(t *testing.T) {
 
 func TestIsArgsEqual(t *testing.T) {
 	var expected = Arguments{5, 3, 4, 6, 7, 2}
-	var args = make([]interface{}, 5)
-	for i := 1; i < len(expected); i++ {
-		args[i-1] = expected[i]
-	}
+
+	// Copy elements 1 to 5
+	args := append(([]interface{})(nil), expected[1:]...)
 	args[2] = expected[1]
 	assert.False(t, isArgsEqual(expected, args))
 
-	var arr = make([]interface{}, 6)
-	for i := 0; i < len(expected); i++ {
-		arr[i] = expected[i]
-	}
+	// Clone
+	arr := append(([]interface{})(nil), expected...)
 	assert.True(t, isArgsEqual(expected, arr))
 }
 

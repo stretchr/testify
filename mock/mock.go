@@ -594,6 +594,9 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 // AssertExpectations asserts that everything specified with On and Return was
 // in fact called as expected.  Calls may have occurred in any order.
 func (m *Mock) AssertExpectations(t TestingT) bool {
+	if s, ok := t.(interface{ Skipped() bool }); ok && s.Skipped() {
+		return true
+	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -786,7 +789,7 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 // for use when type checking.  This is an alternative to AnythingOfType.
 // Used in Diff and Assert.
 type IsTypeArgument struct {
-	t interface{}
+	t reflect.Type
 }
 
 // IsType returns an IsTypeArgument object containing the type to check for.
@@ -796,7 +799,7 @@ type IsTypeArgument struct {
 // For example:
 // Assert(t, IsType(""), IsType(0))
 func IsType(t interface{}) *IsTypeArgument {
-	return &IsTypeArgument{t: t}
+	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
 
 // FunctionalOptionsArgument is a struct that contains the type and value of an functional option argument
@@ -960,52 +963,54 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				differences++
 				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
-		} else if reflect.TypeOf(expected) == reflect.TypeOf((*anythingOfTypeArgument)(nil)).Elem() {
-			// type checking
-			if reflect.TypeOf(actual).Name() != string(expected.(anythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(anythingOfTypeArgument)) {
-				// not match
-				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
-			}
-		} else if reflect.TypeOf(expected) == reflect.TypeOf((*IsTypeArgument)(nil)) {
-			t := expected.(*IsTypeArgument).t
-			if reflect.TypeOf(t) != reflect.TypeOf(actual) {
-				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
-			}
-		} else if reflect.TypeOf(expected) == reflect.TypeOf((*FunctionalOptionsArgument)(nil)) {
-			t := expected.(*FunctionalOptionsArgument).value
+		} else {
+			switch expected := expected.(type) {
+			case anythingOfTypeArgument:
+				// type checking
+				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
+					// not match
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+				}
+			case *IsTypeArgument:
+				actualT := reflect.TypeOf(actual)
+				if actualT != expected.t {
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected.t.Name(), actualT.Name(), actualFmt)
+				}
+			case *FunctionalOptionsArgument:
+				t := expected.value
 
-			var name string
-			tValue := reflect.ValueOf(t)
-			if tValue.Len() > 0 {
-				name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
-			}
+				var name string
+				tValue := reflect.ValueOf(t)
+				if tValue.Len() > 0 {
+					name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+				}
 
-			tName := reflect.TypeOf(t).Name()
-			if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
-				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
-			} else {
-				if ef, af := assertOpts(t, actual); ef == "" && af == "" {
+				tName := reflect.TypeOf(t).Name()
+				if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
+				} else {
+					if ef, af := assertOpts(t, actual); ef == "" && af == "" {
+						// match
+						output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
+					} else {
+						// not match
+						differences++
+						output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
+					}
+				}
+
+			default:
+				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 					// match
-					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
+					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 				} else {
 					// not match
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
+					output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
 				}
-			}
-		} else {
-			// normal checking
-
-			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
-				// match
-				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
-			} else {
-				// not match
-				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
 			}
 		}
 

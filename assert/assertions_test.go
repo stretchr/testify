@@ -16,7 +16,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"unsafe"
 )
 
 var (
@@ -137,43 +136,33 @@ func TestObjectsAreEqual(t *testing.T) {
 
 		})
 	}
-
-	// Cases where type differ but values are equal
-	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
-		t.Error("ObjectsAreEqualValues should return true")
-	}
-	if ObjectsAreEqualValues(0, nil) {
-		t.Fail()
-	}
-	if ObjectsAreEqualValues(nil, 0) {
-		t.Fail()
-	}
-
-	tm := time.Now()
-	tz := tm.In(time.Local)
-	if !ObjectsAreEqualValues(tm, tz) {
-		t.Error("ObjectsAreEqualValues should return true for time.Time objects with different time zones")
-	}
-
 }
 
 func TestObjectsAreEqualValues(t *testing.T) {
+	now := time.Now()
+
 	cases := []struct {
 		expected interface{}
 		actual   interface{}
 		result   bool
 	}{
-		// cases that are expected to be equal
 		{uint32(10), int32(10), true},
-		{[]interface{}{1}, []interface{}{1}, true},
-		{[]interface{}{int32(1)}, []interface{}{int64(1)}, true},
-		{[1]interface{}{int32(1)}, [1]interface{}{int64(1)}, true},
-		{map[string]interface{}{"1": int32(1)}, map[string]interface{}{"1": int64(1)}, true},
-		{map[int]interface{}{1: int32(1)}, map[int64]interface{}{1: int64(1)}, true},
-
-		// cases that are expected not to be equal
 		{0, nil, false},
 		{nil, 0, false},
+		{now, now.In(time.Local), false}, // should not be time zone independent
+		{int(270), int8(14), false},      // should handle overflow/underflow
+		{int8(14), int(270), false},
+		{[]int{270, 270}, []int8{14, 14}, false},
+		{complex128(1e+100 + 1e+100i), complex64(complex(math.Inf(0), math.Inf(0))), false},
+		{complex64(complex(math.Inf(0), math.Inf(0))), complex128(1e+100 + 1e+100i), false},
+		{complex128(1e+100 + 1e+100i), 270, false},
+		{270, complex128(1e+100 + 1e+100i), false},
+		{complex128(1e+100 + 1e+100i), 3.14, false},
+		{3.14, complex128(1e+100 + 1e+100i), false},
+		{complex128(1e+10 + 1e+10i), complex64(1e+10 + 1e+10i), true},
+		{complex64(1e+10 + 1e+10i), complex128(1e+10 + 1e+10i), true},
+		{map[string]interface{}{"1": int32(1)}, map[string]interface{}{"1": int64(1)}, true},
+		{map[int]interface{}{1: int32(1)}, map[int64]interface{}{1: int64(1)}, true},
 		{map[interface{}]interface{}{1: int32(1)}, map[interface{}]interface{}{"1": int64(1)}, false},
 	}
 
@@ -184,7 +173,6 @@ func TestObjectsAreEqualValues(t *testing.T) {
 			if res != c.result {
 				t.Errorf("ObjectsAreEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 			}
-
 		})
 	}
 }
@@ -446,6 +434,25 @@ func TestEqualExportedValues(t *testing.T) {
 			value2:        S{[2]int{1, 2}, Nested{2, nil}, nil, Nested{}},
 			expectedEqual: true,
 		},
+		{
+			value1:        &S{1, Nested{2, 3}, 4, Nested{5, 6}},
+			value2:        &S{1, Nested{2, nil}, nil, Nested{}},
+			expectedEqual: true,
+		},
+		{
+			value1:        &S{1, Nested{2, 3}, 4, Nested{5, 6}},
+			value2:        &S{1, Nested{1, nil}, nil, Nested{}},
+			expectedEqual: false,
+			expectedFail: `
+	            	Diff:
+	            	--- Expected
+	            	+++ Actual
+	            	@@ -3,3 +3,3 @@
+	            	  Exported2: (assert.Nested) {
+	            	-  Exported: (int) 2,
+	            	+  Exported: (int) 1,
+	            	   notExported: (interface {}) <nil>`,
+		},
 	}
 
 	for _, c := range cases {
@@ -478,6 +485,22 @@ func TestImplements(t *testing.T) {
 	}
 	if Implements(mockT, (*AssertionTesterInterface)(nil), nil) {
 		t.Error("Implements method should return false: nil does not implement AssertionTesterInterface")
+	}
+
+}
+
+func TestNotImplements(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
+		t.Error("NotImplements method should return true: AssertionTesterNonConformingObject does not implement AssertionTesterInterface")
+	}
+	if NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
+		t.Error("NotImplements method should return false: AssertionTesterConformingObject implements AssertionTesterInterface")
+	}
+	if NotImplements(mockT, (*AssertionTesterInterface)(nil), nil) {
+		t.Error("NotImplements method should return false: nil can't be checked to be implementing AssertionTesterInterface or not")
 	}
 
 }
@@ -877,7 +900,7 @@ func TestNotEqualValues(t *testing.T) {
 		{new(AssertionTesterConformingObject), new(AssertionTesterConformingObject), false},
 		{&struct{}{}, &struct{}{}, false},
 
-		// Different behaviour from NotEqual()
+		// Different behavior from NotEqual()
 		{func() int { return 23 }, func() int { return 24 }, true},
 		{int(10), int(11), true},
 		{int(10), uint(10), false},
@@ -1677,49 +1700,33 @@ func TestLen(t *testing.T) {
 	ch <- 3
 
 	cases := []struct {
-		v interface{}
-		l int
+		v               interface{}
+		l               int
+		expected1234567 string // message when expecting 1234567 items
 	}{
-		{[]int{1, 2, 3}, 3},
-		{[...]int{1, 2, 3}, 3},
-		{"ABC", 3},
-		{map[int]int{1: 2, 2: 4, 3: 6}, 3},
-		{ch, 3},
+		{[]int{1, 2, 3}, 3, `"[1 2 3]" should have 1234567 item(s), but has 3`},
+		{[...]int{1, 2, 3}, 3, `"[1 2 3]" should have 1234567 item(s), but has 3`},
+		{"ABC", 3, `"ABC" should have 1234567 item(s), but has 3`},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 3, `"map[1:2 2:4 3:6]" should have 1234567 item(s), but has 3`},
+		{ch, 3, ""},
 
-		{[]int{}, 0},
-		{map[int]int{}, 0},
-		{make(chan int), 0},
+		{[]int{}, 0, `"[]" should have 1234567 item(s), but has 0`},
+		{map[int]int{}, 0, `"map[]" should have 1234567 item(s), but has 0`},
+		{make(chan int), 0, ""},
 
-		{[]int(nil), 0},
-		{map[int]int(nil), 0},
-		{(chan int)(nil), 0},
+		{[]int(nil), 0, `"[]" should have 1234567 item(s), but has 0`},
+		{map[int]int(nil), 0, `"map[]" should have 1234567 item(s), but has 0`},
+		{(chan int)(nil), 0, `"<nil>" should have 1234567 item(s), but has 0`},
 	}
 
 	for _, c := range cases {
 		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
-	}
-
-	cases = []struct {
-		v interface{}
-		l int
-	}{
-		{[]int{1, 2, 3}, 4},
-		{[...]int{1, 2, 3}, 2},
-		{"ABC", 2},
-		{map[int]int{1: 2, 2: 4, 3: 6}, 4},
-		{ch, 2},
-
-		{[]int{}, 1},
-		{map[int]int{}, 1},
-		{make(chan int), 1},
-
-		{[]int(nil), 1},
-		{map[int]int(nil), 1},
-		{(chan int)(nil), 1},
-	}
-
-	for _, c := range cases {
-		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		False(t, Len(mockT, c.v, c.l+1), "%#v have %d items", c.v, c.l)
+		if c.expected1234567 != "" {
+			msgMock := new(mockTestingT)
+			Len(msgMock, c.v, 1234567)
+			Contains(t, msgMock.errorString(), c.expected1234567)
+		}
 	}
 }
 
@@ -2527,6 +2534,10 @@ func (m *mockTestingT) Errorf(format string, args ...interface{}) {
 	m.args = args
 }
 
+func (m *mockTestingT) Failed() bool {
+	return m.errorFmt != ""
+}
+
 func TestFailNowWithPlainTestingT(t *testing.T) {
 	mockT := &mockTestingT{}
 
@@ -2903,12 +2914,26 @@ func TestNeverTrue(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
-func TestEventuallyIssue805(t *testing.T) {
+// Check that a long running condition doesn't block Eventually.
+// See issue 805 (and its long tail of following issues)
+func TestEventuallyTimeout(t *testing.T) {
 	mockT := new(testing.T)
 
 	NotPanics(t, func() {
-		condition := func() bool { <-time.After(time.Millisecond); return true }
+		done, done2 := make(chan struct{}), make(chan struct{})
+
+		// A condition function that returns after the Eventually timeout
+		condition := func() bool {
+			// Wait until Eventually times out and terminates
+			<-done
+			close(done2)
+			return true
+		}
+
 		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
+
+		close(done)
+		<-done2
 	})
 }
 
@@ -3169,12 +3194,5 @@ func TestErrorAs(t *testing.T) {
 				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
 			}
 		})
-	}
-}
-
-func TestIsNil(t *testing.T) {
-	var n unsafe.Pointer = nil
-	if !isNil(n) {
-		t.Fatal("fail")
 	}
 }

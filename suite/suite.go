@@ -58,7 +58,7 @@ func (suite *Suite) Require() *require.Assertions {
 	suite.mu.Lock()
 	defer suite.mu.Unlock()
 	if suite.require == nil {
-		suite.require = require.New(suite.T())
+		panic("'Require' must not be called before 'Run' or 'SetT'")
 	}
 	return suite.require
 }
@@ -72,17 +72,19 @@ func (suite *Suite) Assert() *assert.Assertions {
 	suite.mu.Lock()
 	defer suite.mu.Unlock()
 	if suite.Assertions == nil {
-		suite.Assertions = assert.New(suite.T())
+		panic("'Assert' must not be called before 'Run' or 'SetT'")
 	}
 	return suite.Assertions
 }
 
 func recoverAndFailOnPanic(t *testing.T) {
+	t.Helper()
 	r := recover()
 	failOnPanic(t, r)
 }
 
 func failOnPanic(t *testing.T, r interface{}) {
+	t.Helper()
 	if r != nil {
 		t.Errorf("test panicked: %v\n%s", r, debug.Stack())
 		t.FailNow()
@@ -165,6 +167,8 @@ func Run(t *testing.T, suite TestingSuite) {
 				suite.SetT(t)
 				defer recoverAndFailOnPanic(t)
 				defer func() {
+					t.Helper()
+
 					r := recover()
 
 					if stats != nil {

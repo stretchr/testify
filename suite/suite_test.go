@@ -21,7 +21,7 @@ import (
 type SuiteRequireTwice struct{ Suite }
 
 // TestSuiteRequireTwice checks for regressions of issue #149 where
-// suite.requirements was not initialised in suite.SetT()
+// suite.requirements was not initialized in suite.SetT()
 // A regression would result on these tests panicking rather than failing.
 func TestSuiteRequireTwice(t *testing.T) {
 	ok := testing.RunTests(
@@ -691,4 +691,28 @@ func TestSubtestPanic(t *testing.T) {
 	assert.True(t, suite.inTearDownSubTest)
 	assert.True(t, suite.inTearDownTest)
 	assert.True(t, suite.inTearDownSuite)
+}
+
+type unInitializedSuite struct {
+	Suite
+}
+
+// TestUnInitializedSuites asserts the behavior of the suite methods when the
+// suite is not initialized
+func TestUnInitializedSuites(t *testing.T) {
+	t.Run("should panic on Require", func(t *testing.T) {
+		suite := new(unInitializedSuite)
+
+		assert.Panics(t, func() {
+			suite.Require().True(true)
+		})
+	})
+
+	t.Run("should panic on Assert", func(t *testing.T) {
+		suite := new(unInitializedSuite)
+
+		assert.Panics(t, func() {
+			suite.Assert().True(true)
+		})
+	})
 }
