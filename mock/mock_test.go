@@ -1180,20 +1180,43 @@ func Test_Mock_Called(t *testing.T) {
 	var mockedService = new(TestExampleImplementation)
 
 	mockedService.On("Test_Mock_Called", 1, 2, 3).Return(5, "6", true)
+	mockedService.On("Test_Mock_Called", 4, 5, 6).Return(8, "10", false)
 
 	returnArguments := mockedService.Called(1, 2, 3)
+	returnArguments1 := mockedService.Called(4, 5, 6)
 
 	if assert.Equal(t, 1, len(mockedService.Calls)) {
-		assert.Equal(t, "Test_Mock_Called", mockedService.Calls[0].Method)
-		assert.Equal(t, 1, mockedService.Calls[0].Arguments[0])
-		assert.Equal(t, 2, mockedService.Calls[0].Arguments[1])
-		assert.Equal(t, 3, mockedService.Calls[0].Arguments[2])
+		// assert.Equal(t, "Test_Mock_Called", mockedService.Calls["Test_Mock_Called"][0].Method)
+		// assert.Equal(t, 1, mockedService.Calls["Test_Mock_Called"][0].Arguments[0])
+		// assert.Equal(t, 2, mockedService.Calls["Test_Mock_Called"][0].Arguments[1])
+		// assert.Equal(t, 3, mockedService.Calls["Test_Mock_Called"][0].Arguments[2])
+
+		returnArgs := mockedService.ArgsForCallCount(t, "Test_Mock_Called", 0)
+		if assert.Equal(t, 3, len(returnArgs)) {
+			assert.Equal(t, 1, returnArgs[0])
+			assert.Equal(t, 2, returnArgs[1])
+			assert.Equal(t, 3, returnArgs[2])
+		}
+
+		returnArgs = mockedService.ArgsForCallCount(t, "Test_Mock_Called", 1)
+		if assert.Equal(t, 3, len(returnArgs)) {
+			assert.Equal(t, 4, returnArgs[0])
+			assert.Equal(t, 5, returnArgs[1])
+			assert.Equal(t, 6, returnArgs[2])
+		}
+
 	}
 
 	if assert.Equal(t, 3, len(returnArguments)) {
 		assert.Equal(t, 5, returnArguments[0])
 		assert.Equal(t, "6", returnArguments[1])
 		assert.Equal(t, true, returnArguments[2])
+	}
+
+	if assert.Equal(t, 3, len(returnArguments1)) {
+		assert.Equal(t, 8, returnArguments1[0])
+		assert.Equal(t, "10", returnArguments1[1])
+		assert.Equal(t, false, returnArguments1[2])
 	}
 
 }
@@ -1221,10 +1244,10 @@ func Test_Mock_Called_blocks(t *testing.T) {
 	returnArguments := <-ch
 
 	if assert.Equal(t, 1, len(mockedService.Mock.Calls)) {
-		assert.Equal(t, "asyncCall", mockedService.Mock.Calls[0].Method)
-		assert.Equal(t, 1, mockedService.Mock.Calls[0].Arguments[0])
-		assert.Equal(t, 2, mockedService.Mock.Calls[0].Arguments[1])
-		assert.Equal(t, 3, mockedService.Mock.Calls[0].Arguments[2])
+		assert.Equal(t, "asyncCall", mockedService.Calls["asyncCall"][0].Method)
+		assert.Equal(t, 1, mockedService.Calls["asyncCall"][0].Arguments[0])
+		assert.Equal(t, 2, mockedService.Calls["asyncCall"][0].Arguments[1])
+		assert.Equal(t, 3, mockedService.Calls["asyncCall"][0].Arguments[2])
 	}
 
 	if assert.Equal(t, 3, len(returnArguments)) {
@@ -1250,16 +1273,18 @@ func Test_Mock_Called_For_Bounded_Repeatability(t *testing.T) {
 	returnArguments1 := mockedService.Called(1, 2, 3)
 	returnArguments2 := mockedService.Called(1, 2, 3)
 
-	if assert.Equal(t, 2, len(mockedService.Calls)) {
-		assert.Equal(t, "Test_Mock_Called_For_Bounded_Repeatability", mockedService.Calls[0].Method)
-		assert.Equal(t, 1, mockedService.Calls[0].Arguments[0])
-		assert.Equal(t, 2, mockedService.Calls[0].Arguments[1])
-		assert.Equal(t, 3, mockedService.Calls[0].Arguments[2])
+	// t.Error(mockedService.Calls)
 
-		assert.Equal(t, "Test_Mock_Called_For_Bounded_Repeatability", mockedService.Calls[1].Method)
-		assert.Equal(t, 1, mockedService.Calls[1].Arguments[0])
-		assert.Equal(t, 2, mockedService.Calls[1].Arguments[1])
-		assert.Equal(t, 3, mockedService.Calls[1].Arguments[2])
+	if assert.Equal(t, 2, len(mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"])) {
+		assert.Equal(t, "Test_Mock_Called_For_Bounded_Repeatability", mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][0].Method)
+		assert.Equal(t, 1, mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][0].Arguments[0])
+		assert.Equal(t, 2, mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][0].Arguments[1])
+		assert.Equal(t, 3, mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][0].Arguments[2])
+
+		assert.Equal(t, "Test_Mock_Called_For_Bounded_Repeatability", mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][1].Method)
+		assert.Equal(t, 1, mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][1].Arguments[0])
+		assert.Equal(t, 2, mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][1].Arguments[1])
+		assert.Equal(t, 3, mockedService.Calls["Test_Mock_Called_For_Bounded_Repeatability"][1].Arguments[2])
 	}
 
 	if assert.Equal(t, 3, len(returnArguments1)) {
