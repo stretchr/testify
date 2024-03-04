@@ -420,18 +420,18 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 	mockT := new(testing.T)
 
 	for _, currCase := range []struct {
-		v1           interface{}
-		v2           interface{}
-		compareTypes []CompareType
+		v1             interface{}
+		v2             interface{}
+		allowedResults []CompareType
 	}{
-		{v1: 1, v2: 2, compareTypes: []CompareType{compareLess}},
-		{v1: 1, v2: 2, compareTypes: []CompareType{compareLess, compareEqual}},
-		{v1: 2, v2: 2, compareTypes: []CompareType{compareGreater, compareEqual}},
-		{v1: 2, v2: 2, compareTypes: []CompareType{compareEqual}},
-		{v1: 2, v2: 1, compareTypes: []CompareType{compareEqual, compareGreater}},
-		{v1: 2, v2: 1, compareTypes: []CompareType{compareGreater}},
+		{v1: 1, v2: 2, allowedResults: []CompareType{compareLess}},
+		{v1: 1, v2: 2, allowedResults: []CompareType{compareLess, compareEqual}},
+		{v1: 2, v2: 2, allowedResults: []CompareType{compareGreater, compareEqual}},
+		{v1: 2, v2: 2, allowedResults: []CompareType{compareEqual}},
+		{v1: 2, v2: 1, allowedResults: []CompareType{compareEqual, compareGreater}},
+		{v1: 2, v2: 1, allowedResults: []CompareType{compareGreater}},
 	} {
-		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage")
+		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, currCase.allowedResults, "testFailMessage")
 		True(t, compareResult)
 	}
 }
