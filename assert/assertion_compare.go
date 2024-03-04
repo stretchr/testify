@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+// Deprecated: CompareType has only ever been for internal use and has accidently been published since v1.6.0. Do not use it.
+type CompareType = compareResult
+
 type compareResult int
 
 const (
