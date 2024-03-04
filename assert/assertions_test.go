@@ -3213,13 +3213,13 @@ func Test_indentMessageLines(t *testing.T) {
 			expected:        "Hello\n\t            \tWorld",
 		},
 		{
-			name:            "single line - extreamly long",
+			name:            "single line - extremely long",
 			msg:             strings.Repeat("hello ", 20000),
 			longestLabelLen: 11,
 			expected:        strings.Repeat("hello ", 20000),
 		},
 		{
-			name:            "multi line - extreamly long",
+			name:            "multi line - extremely long",
 			msg:             strings.Repeat("hello\n", 20000),
 			longestLabelLen: 3,
 			expected: strings.TrimSpace(
