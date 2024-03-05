@@ -1876,7 +1876,7 @@ var spewConfigStringerEnabled = spew.ConfigState{
 	MaxDepth:                10,
 }
 
-type tHelper interface {
+type tHelper = interface {
 	Helper()
 }
 
