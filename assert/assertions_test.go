@@ -2794,7 +2794,7 @@ func ExamplePanicAssertionFunc() {
 
 	tests := []struct {
 		name      string
-		panicFn   func()
+		panicFn   PanicTestFunc
 		assertion PanicAssertionFunc
 	}{
 		{"with panic", func() { panic(nil) }, Panics},
@@ -2811,7 +2811,7 @@ func ExamplePanicAssertionFunc() {
 func TestPanicAssertionFunc(t *testing.T) {
 	tests := []struct {
 		name      string
-		panicFn   func()
+		panicFn   PanicTestFunc
 		assertion PanicAssertionFunc
 	}{
 		{"not panic", func() {}, NotPanics},
