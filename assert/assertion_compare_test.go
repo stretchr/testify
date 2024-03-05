@@ -392,7 +392,7 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 		{v1: float64(12), v2: "123"},
 		{v1: "float(12)", v2: float64(1)},
 	} {
-		result := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
+		result := compareTwoValues(mockT, currCase.v1, currCase.v2, []compareResult{compareLess, compareEqual, compareGreater}, "testFailMessage")
 		False(t, result)
 	}
 }
@@ -411,7 +411,7 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 		{v1: map[string]int{}, v2: map[string]int{}},
 		{v1: make([]int, 5), v2: make([]int, 5)},
 	} {
-		result := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
+		result := compareTwoValues(mockT, currCase.v1, currCase.v2, []compareResult{compareLess, compareEqual, compareGreater}, "testFailMessage")
 		False(t, result)
 	}
 }
@@ -422,14 +422,14 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 	for _, currCase := range []struct {
 		v1             interface{}
 		v2             interface{}
-		allowedResults []CompareType
+		allowedResults []compareResult
 	}{
-		{v1: 1, v2: 2, allowedResults: []CompareType{compareLess}},
-		{v1: 1, v2: 2, allowedResults: []CompareType{compareLess, compareEqual}},
-		{v1: 2, v2: 2, allowedResults: []CompareType{compareGreater, compareEqual}},
-		{v1: 2, v2: 2, allowedResults: []CompareType{compareEqual}},
-		{v1: 2, v2: 1, allowedResults: []CompareType{compareEqual, compareGreater}},
-		{v1: 2, v2: 1, allowedResults: []CompareType{compareGreater}},
+		{v1: 1, v2: 2, allowedResults: []compareResult{compareLess}},
+		{v1: 1, v2: 2, allowedResults: []compareResult{compareLess, compareEqual}},
+		{v1: 2, v2: 2, allowedResults: []compareResult{compareGreater, compareEqual}},
+		{v1: 2, v2: 2, allowedResults: []compareResult{compareEqual}},
+		{v1: 2, v2: 1, allowedResults: []compareResult{compareEqual, compareGreater}},
+		{v1: 2, v2: 1, allowedResults: []compareResult{compareGreater}},
 	} {
 		result := compareTwoValues(mockT, currCase.v1, currCase.v2, currCase.allowedResults, "testFailMessage")
 		True(t, result)
@@ -438,14 +438,14 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 
 func Test_containsValue(t *testing.T) {
 	for _, currCase := range []struct {
-		values []CompareType
-		value  CompareType
+		values []compareResult
+		value  compareResult
 		result bool
 	}{
-		{values: []CompareType{compareGreater}, value: compareGreater, result: true},
-		{values: []CompareType{compareGreater, compareLess}, value: compareGreater, result: true},
-		{values: []CompareType{compareGreater, compareLess}, value: compareLess, result: true},
-		{values: []CompareType{compareGreater, compareLess}, value: compareEqual, result: false},
+		{values: []compareResult{compareGreater}, value: compareGreater, result: true},
+		{values: []compareResult{compareGreater, compareLess}, value: compareGreater, result: true},
+		{values: []compareResult{compareGreater, compareLess}, value: compareLess, result: true},
+		{values: []compareResult{compareGreater, compareLess}, value: compareEqual, result: false},
 	} {
 		result := containsValue(currCase.values, currCase.value)
 		Equal(t, currCase.result, result)
