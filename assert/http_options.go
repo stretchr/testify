@@ -8,7 +8,7 @@ import (
 )
 
 type builder struct {
-	code           int
+	code           *int
 	body           io.ReadCloser
 	expectedBody   bytes.Buffer
 	requestHeader  http.Header
@@ -24,7 +24,7 @@ func WithCode(code int) HttpOption {
 			return errors.New("Given HTTP code is outside range of possible values assignement")
 		}
 
-		b.code = code
+		b.code = &code
 		return nil
 	}
 }

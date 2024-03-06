@@ -175,6 +175,11 @@ func HTTP(t TestingT, handler http.HandlerFunc, method, url string, values url.V
 		h.Helper()
 	}
 
+	if options == nil {
+		Fail(t, fmt.Sprintf("No options selected, no assertions can be executed"))
+		return false
+	}
+
 	b := &builder{}
 	for _, option := range options {
 		err := option(b)
@@ -194,7 +199,7 @@ func HTTP(t TestingT, handler http.HandlerFunc, method, url string, values url.V
 	req.Header = b.requestHeader
 	req.URL.RawQuery = values.Encode()
 	handler(w, req)
-	if w.Code != b.code {
+	if b.code != nil && w.Code != *b.code {
 		Fail(t, fmt.Sprintf("Expected HTTP success status code for %q but received %d", url+"?"+values.Encode(), w.Code))
 		return false
 	}
