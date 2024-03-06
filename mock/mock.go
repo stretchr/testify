@@ -1092,7 +1092,7 @@ func (args Arguments) Error(index int) error {
 		return nil
 	}
 	if s, ok = obj.(error); !ok {
-		panic(fmt.Sprintf("assert: arguments: Error(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
+		panic(fmt.Sprintf("assert: arguments: Error(%d) failed because object wasn't correct type: %v", index, obj))
 	}
 	return s
 }
