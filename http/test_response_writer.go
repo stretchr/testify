@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-// TestResponseWriter DEPRECATED: We recommend you use http://golang.org/pkg/net/http/httptest instead.
+// Deprecated: Use [net/http/httptest] instead.
 type TestResponseWriter struct {
 
 	// StatusCode is the last int written by the call to WriteHeader(int)
@@ -17,7 +17,7 @@ type TestResponseWriter struct {
 	header http.Header
 }
 
-// Header DEPRECATED: We recommend you use http://golang.org/pkg/net/http/httptest instead.
+// Deprecated: Use [net/http/httptest] instead.
 func (rw *TestResponseWriter) Header() http.Header {
 
 	if rw.header == nil {
@@ -27,7 +27,7 @@ func (rw *TestResponseWriter) Header() http.Header {
 	return rw.header
 }
 
-// Write DEPRECATED: We recommend you use http://golang.org/pkg/net/http/httptest instead.
+// Deprecated: Use [net/http/httptest] instead.
 func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
 
 	// assume 200 success if no header has been set
@@ -36,14 +36,14 @@ func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
 	}
 
 	// add these bytes to the output string
-	rw.Output = rw.Output + string(bytes)
+	rw.Output += string(bytes)
 
 	// return normal values
 	return 0, nil
 
 }
 
-// WriteHeader DEPRECATED: We recommend you use http://golang.org/pkg/net/http/httptest instead.
+// Deprecated: Use [net/http/httptest] instead.
 func (rw *TestResponseWriter) WriteHeader(i int) {
 	rw.StatusCode = i
 }

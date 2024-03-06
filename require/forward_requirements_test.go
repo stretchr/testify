@@ -196,6 +196,18 @@ func TestErrorWrapper(t *testing.T) {
 	}
 }
 
+func TestErrorContainsWrapper(t *testing.T) {
+	require := New(t)
+	require.ErrorContains(errors.New("some error: another error"), "some error")
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.ErrorContains(errors.New("some error: another error"), "different error")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestEqualErrorWrapper(t *testing.T) {
 	require := New(t)
 	require.EqualError(errors.New("some error"), "some error")
@@ -379,6 +391,132 @@ func TestJSONEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEqWrapper_EqualYAMLString(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEqWrapper_EquivalentButNotEqual(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEqWrapper_HashOfArraysAndHashes(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	expected := `
+numeric: 1.5
+array:
+  - foo: bar
+  - 1
+  - "string"
+  - ["nested", "array", 5.5]
+hash:
+  nested: hash
+  nested_slice: [this, is, nested]
+string: "foo"
+`
+
+	actual := `
+numeric: 1.5
+hash:
+  nested: hash
+  nested_slice: [this, is, nested]
+string: "foo"
+array:
+  - foo: bar
+  - 1
+  - "string"
+  - ["nested", "array", 5.5]
+`
+
+	mockRequire.YAMLEq(expected, actual)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEqWrapper_Array(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEqWrapper_HashesNotEquivalent(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEqWrapper_ActualIsSimpleString(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq(`{"foo": "bar"}`, "Simple String")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEqWrapper_ExpectedIsSimpleString(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq("Simple String", `{"foo": "bar", "hello": "world"}`)
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
+func TestYAMLEqWrapper_ExpectedAndActualSimpleString(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq("Simple String", "Simple String")
+	if mockT.Failed {
+		t.Error("Check should pass")
+	}
+}
+
+func TestYAMLEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+
+	mockRequire.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}

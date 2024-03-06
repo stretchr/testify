@@ -1,9 +1,14 @@
 package suite
 
 import (
+	"bytes"
 	"errors"
+	"flag"
 	"io/ioutil"
+	"math/rand"
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,20 +21,20 @@ import (
 type SuiteRequireTwice struct{ Suite }
 
 // TestSuiteRequireTwice checks for regressions of issue #149 where
-// suite.requirements was not initialised in suite.SetT()
+// suite.requirements was not initialized in suite.SetT()
 // A regression would result on these tests panicking rather than failing.
 func TestSuiteRequireTwice(t *testing.T) {
 	ok := testing.RunTests(
 		allTestsFilter,
 		[]testing.InternalTest{{
-			Name: "TestSuiteRequireTwice",
+			Name: t.Name() + "/SuiteRequireTwice",
 			F: func(t *testing.T) {
 				suite := new(SuiteRequireTwice)
 				Run(t, suite)
 			},
 		}},
 	)
-	assert.Equal(t, false, ok)
+	assert.False(t, ok)
 }
 
 func (s *SuiteRequireTwice) TestRequireOne() {
@@ -99,31 +104,31 @@ func TestSuiteRecoverPanic(t *testing.T) {
 	ok := true
 	panickingTests := []testing.InternalTest{
 		{
-			Name: "TestPanicInSetupSuite",
+			Name: t.Name() + "/InSetupSuite",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInSetupSuite: true}) },
 		},
 		{
-			Name: "TestPanicInSetupTest",
+			Name: t.Name() + "/InSetupTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInSetupTest: true}) },
 		},
 		{
-			Name: "TestPanicInBeforeTest",
+			Name: t.Name() + "InBeforeTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInBeforeTest: true}) },
 		},
 		{
-			Name: "TestPanicInTest",
+			Name: t.Name() + "/InTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTest: true}) },
 		},
 		{
-			Name: "TestPanicInAfterTest",
+			Name: t.Name() + "/InAfterTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInAfterTest: true}) },
 		},
 		{
-			Name: "TestPanicInTearDownTest",
+			Name: t.Name() + "/InTearDownTest",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTearDownTest: true}) },
 		},
 		{
-			Name: "TestPanicInTearDownSuite",
+			Name: t.Name() + "/InTearDownSuite",
 			F:    func(t *testing.T) { Run(t, &panickingSuite{panicInTearDownSuite: true}) },
 		},
 	}
@@ -146,14 +151,19 @@ type SuiteTester struct {
 	Suite
 
 	// Keep counts of how many times each method is run.
-	SetupSuiteRunCount    int
-	TearDownSuiteRunCount int
-	SetupTestRunCount     int
-	TearDownTestRunCount  int
-	TestOneRunCount       int
-	TestTwoRunCount       int
-	TestSubtestRunCount   int
-	NonTestMethodRunCount int
+	SetupSuiteRunCount      int
+	TearDownSuiteRunCount   int
+	SetupTestRunCount       int
+	TearDownTestRunCount    int
+	TestOneRunCount         int
+	TestTwoRunCount         int
+	TestSubtestRunCount     int
+	NonTestMethodRunCount   int
+	SetupSubTestRunCount    int
+	TearDownSubTestRunCount int
+
+	SetupSubTestNames    []string
+	TearDownSubTestNames []string
 
 	SuiteNameBefore []string
 	TestNameBefore  []string
@@ -250,6 +260,16 @@ func (suite *SuiteTester) TestSubtest() {
 	}
 }
 
+func (suite *SuiteTester) TearDownSubTest() {
+	suite.TearDownSubTestNames = append(suite.TearDownSubTestNames, suite.T().Name())
+	suite.TearDownSubTestRunCount++
+}
+
+func (suite *SuiteTester) SetupSubTest() {
+	suite.SetupSubTestNames = append(suite.SetupSubTestNames, suite.T().Name())
+	suite.SetupSubTestRunCount++
+}
+
 type SuiteSkipTester struct {
 	// Include our basic suite logic.
 	Suite
@@ -286,13 +306,13 @@ func TestRunSuite(t *testing.T) {
 
 	// The suite was only run once, so the SetupSuite and TearDownSuite
 	// methods should have each been run only once.
-	assert.Equal(t, suiteTester.SetupSuiteRunCount, 1)
-	assert.Equal(t, suiteTester.TearDownSuiteRunCount, 1)
+	assert.Equal(t, 1, suiteTester.SetupSuiteRunCount)
+	assert.Equal(t, 1, suiteTester.TearDownSuiteRunCount)
 
-	assert.Equal(t, len(suiteTester.SuiteNameAfter), 4)
-	assert.Equal(t, len(suiteTester.SuiteNameBefore), 4)
-	assert.Equal(t, len(suiteTester.TestNameAfter), 4)
-	assert.Equal(t, len(suiteTester.TestNameBefore), 4)
+	assert.Len(t, suiteTester.SuiteNameAfter, 4)
+	assert.Len(t, suiteTester.SuiteNameBefore, 4)
+	assert.Len(t, suiteTester.TestNameAfter, 4)
+	assert.Len(t, suiteTester.TestNameBefore, 4)
 
 	assert.Contains(t, suiteTester.TestNameAfter, "TestOne")
 	assert.Contains(t, suiteTester.TestNameAfter, "TestTwo")
@@ -303,6 +323,12 @@ func TestRunSuite(t *testing.T) {
 	assert.Contains(t, suiteTester.TestNameBefore, "TestTwo")
 	assert.Contains(t, suiteTester.TestNameBefore, "TestSkip")
 	assert.Contains(t, suiteTester.TestNameBefore, "TestSubtest")
+
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuite/TestSubtest/first")
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuite/TestSubtest/second")
+
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuite/TestSubtest/first")
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuite/TestSubtest/second")
 
 	for _, suiteName := range suiteTester.SuiteNameAfter {
 		assert.Equal(t, "SuiteTester", suiteName)
@@ -323,17 +349,20 @@ func TestRunSuite(t *testing.T) {
 	// There are four test methods (TestOne, TestTwo, TestSkip, and TestSubtest), so
 	// the SetupTest and TearDownTest methods (which should be run once for
 	// each test) should have been run four times.
-	assert.Equal(t, suiteTester.SetupTestRunCount, 4)
-	assert.Equal(t, suiteTester.TearDownTestRunCount, 4)
+	assert.Equal(t, 4, suiteTester.SetupTestRunCount)
+	assert.Equal(t, 4, suiteTester.TearDownTestRunCount)
 
 	// Each test should have been run once.
-	assert.Equal(t, suiteTester.TestOneRunCount, 1)
-	assert.Equal(t, suiteTester.TestTwoRunCount, 1)
-	assert.Equal(t, suiteTester.TestSubtestRunCount, 1)
+	assert.Equal(t, 1, suiteTester.TestOneRunCount)
+	assert.Equal(t, 1, suiteTester.TestTwoRunCount)
+	assert.Equal(t, 1, suiteTester.TestSubtestRunCount)
+
+	assert.Equal(t, 2, suiteTester.TearDownSubTestRunCount)
+	assert.Equal(t, 2, suiteTester.SetupSubTestRunCount)
 
 	// Methods that don't match the test method identifier shouldn't
 	// have been run at all.
-	assert.Equal(t, suiteTester.NonTestMethodRunCount, 0)
+	assert.Equal(t, 0, suiteTester.NonTestMethodRunCount)
 
 	suiteSkipTester := new(SuiteSkipTester)
 	Run(t, suiteSkipTester)
@@ -341,8 +370,8 @@ func TestRunSuite(t *testing.T) {
 	// The suite was only run once, so the SetupSuite and TearDownSuite
 	// methods should have each been run only once, even though SetupSuite
 	// called Skip()
-	assert.Equal(t, suiteSkipTester.SetupSuiteRunCount, 1)
-	assert.Equal(t, suiteSkipTester.TearDownSuiteRunCount, 1)
+	assert.Equal(t, 1, suiteSkipTester.SetupSuiteRunCount)
+	assert.Equal(t, 1, suiteSkipTester.TearDownSuiteRunCount)
 
 }
 
@@ -350,7 +379,7 @@ func TestRunSuite(t *testing.T) {
 type SuiteSetupSkipTester struct {
 	Suite
 
-	setUp bool
+	setUp    bool
 	toreDown bool
 }
 
@@ -422,7 +451,7 @@ func TestSuiteLogging(t *testing.T) {
 	suiteLoggingTester := new(SuiteLoggingTester)
 	capture := StdoutCapture{}
 	internalTest := testing.InternalTest{
-		Name: "SomeTest",
+		Name: t.Name() + "/SuiteLoggingTester",
 		F: func(subT *testing.T) {
 			Run(subT, suiteLoggingTester)
 		},
@@ -442,4 +471,248 @@ func TestSuiteLogging(t *testing.T) {
 	} else {
 		assert.NotContains(t, output, "TESTLOGPASS")
 	}
+}
+
+type CallOrderSuite struct {
+	Suite
+	callOrder []string
+}
+
+func (s *CallOrderSuite) call(method string) {
+	time.Sleep(time.Duration(rand.Intn(300)) * time.Millisecond)
+	s.callOrder = append(s.callOrder, method)
+}
+
+func TestSuiteCallOrder(t *testing.T) {
+	Run(t, new(CallOrderSuite))
+}
+func (s *CallOrderSuite) SetupSuite() {
+	s.call("SetupSuite")
+}
+
+func (s *CallOrderSuite) TearDownSuite() {
+	s.call("TearDownSuite")
+	assert.Equal(s.T(), "SetupSuite;SetupTest;Test A;SetupSubTest;SubTest A1;TearDownSubTest;SetupSubTest;SubTest A2;TearDownSubTest;TearDownTest;SetupTest;Test B;SetupSubTest;SubTest B1;TearDownSubTest;SetupSubTest;SubTest B2;TearDownSubTest;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+}
+func (s *CallOrderSuite) SetupTest() {
+	s.call("SetupTest")
+}
+
+func (s *CallOrderSuite) TearDownTest() {
+	s.call("TearDownTest")
+}
+
+func (s *CallOrderSuite) SetupSubTest() {
+	s.call("SetupSubTest")
+}
+
+func (s *CallOrderSuite) TearDownSubTest() {
+	s.call("TearDownSubTest")
+}
+
+func (s *CallOrderSuite) Test_A() {
+	s.call("Test A")
+	s.Run("SubTest A1", func() {
+		s.call("SubTest A1")
+	})
+	s.Run("SubTest A2", func() {
+		s.call("SubTest A2")
+	})
+}
+
+func (s *CallOrderSuite) Test_B() {
+	s.call("Test B")
+	s.Run("SubTest B1", func() {
+		s.call("SubTest B1")
+	})
+	s.Run("SubTest B2", func() {
+		s.call("SubTest B2")
+	})
+}
+
+type suiteWithStats struct {
+	Suite
+	wasCalled bool
+	stats     *SuiteInformation
+}
+
+func (s *suiteWithStats) HandleStats(suiteName string, stats *SuiteInformation) {
+	s.wasCalled = true
+	s.stats = stats
+}
+
+func (s *suiteWithStats) TestSomething() {
+	s.Equal(1, 1)
+}
+
+func (s *suiteWithStats) TestPanic() {
+	panic("oops")
+}
+
+func TestSuiteWithStats(t *testing.T) {
+	suiteWithStats := new(suiteWithStats)
+
+	suiteSuccess := testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: t.Name() + "/suiteWithStats",
+			F: func(t *testing.T) {
+				Run(t, suiteWithStats)
+			},
+		},
+	})
+	require.False(t, suiteSuccess, "suiteWithStats should report test failure because of panic in TestPanic")
+
+	assert.True(t, suiteWithStats.wasCalled)
+	assert.NotZero(t, suiteWithStats.stats.Start)
+	assert.NotZero(t, suiteWithStats.stats.End)
+	assert.False(t, suiteWithStats.stats.Passed())
+
+	testStats := suiteWithStats.stats.TestStats
+
+	assert.NotZero(t, testStats["TestSomething"].Start)
+	assert.NotZero(t, testStats["TestSomething"].End)
+	assert.True(t, testStats["TestSomething"].Passed)
+
+	assert.NotZero(t, testStats["TestPanic"].Start)
+	assert.NotZero(t, testStats["TestPanic"].End)
+	assert.False(t, testStats["TestPanic"].Passed)
+}
+
+// FailfastSuite will test the behavior when running with the failfast flag
+// It logs calls in the callOrder slice which we then use to assert the correct calls were made
+type FailfastSuite struct {
+	Suite
+	callOrder []string
+}
+
+func (s *FailfastSuite) call(method string) {
+	s.callOrder = append(s.callOrder, method)
+}
+
+func TestFailfastSuite(t *testing.T) {
+	// This test suite is run twice. Once normally and once with the -failfast flag by TestFailfastSuiteFailFastOn
+	// If you need to debug it run this test directly with the failfast flag set on/off as you need
+	failFast := flag.Lookup("test.failfast").Value.(flag.Getter).Get().(bool)
+	s := new(FailfastSuite)
+	ok := testing.RunTests(
+		allTestsFilter,
+		[]testing.InternalTest{{
+			Name: t.Name() + "/FailfastSuite",
+			F: func(t *testing.T) {
+				Run(t, s)
+			},
+		}},
+	)
+	assert.False(t, ok)
+	if failFast {
+		// Test A Fails and because we are running with failfast Test B never runs and we proceed straight to TearDownSuite
+		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+	} else {
+		// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
+		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+	}
+}
+func TestFailfastSuiteFailFastOn(t *testing.T) {
+	// To test this with failfast on (and isolated from other intended test failures in our test suite) we launch it in its own process
+	cmd := exec.Command("go", "test", "-v", "-race", "-run", "TestFailfastSuite", "-failfast")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	t.Log("Running go test -v -race -run TestFailfastSuite -failfast")
+	err := cmd.Run()
+	t.Log(out.String())
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+func (s *FailfastSuite) SetupSuite() {
+	s.call("SetupSuite")
+}
+
+func (s *FailfastSuite) TearDownSuite() {
+	s.call("TearDownSuite")
+}
+func (s *FailfastSuite) SetupTest() {
+	s.call("SetupTest")
+}
+
+func (s *FailfastSuite) TearDownTest() {
+	s.call("TearDownTest")
+}
+
+func (s *FailfastSuite) Test_A_Fails() {
+	s.call("Test A Fails")
+	s.T().Error("Test A meant to fail")
+}
+
+func (s *FailfastSuite) Test_B_Passes() {
+	s.call("Test B Passes")
+	s.Require().True(true)
+}
+
+type subtestPanicSuite struct {
+	Suite
+	inTearDownSuite   bool
+	inTearDownTest    bool
+	inTearDownSubTest bool
+}
+
+func (s *subtestPanicSuite) TearDownSuite() {
+	s.inTearDownSuite = true
+}
+
+func (s *subtestPanicSuite) TearDownTest() {
+	s.inTearDownTest = true
+}
+
+func (s *subtestPanicSuite) TearDownSubTest() {
+	s.inTearDownSubTest = true
+}
+
+func (s *subtestPanicSuite) TestSubtestPanic() {
+	ok := s.Run("subtest", func() {
+		panic("panic")
+	})
+	s.False(ok, "subtest failure is expected")
+}
+
+func TestSubtestPanic(t *testing.T) {
+	suite := new(subtestPanicSuite)
+	ok := testing.RunTests(
+		allTestsFilter,
+		[]testing.InternalTest{{
+			Name: t.Name() + "/subtestPanicSuite",
+			F: func(t *testing.T) {
+				Run(t, suite)
+			},
+		}},
+	)
+	assert.False(t, ok, "TestSubtestPanic/subtest should make the testsuite fail")
+	assert.True(t, suite.inTearDownSubTest)
+	assert.True(t, suite.inTearDownTest)
+	assert.True(t, suite.inTearDownSuite)
+}
+
+type unInitializedSuite struct {
+	Suite
+}
+
+// TestUnInitializedSuites asserts the behavior of the suite methods when the
+// suite is not initialized
+func TestUnInitializedSuites(t *testing.T) {
+	t.Run("should panic on Require", func(t *testing.T) {
+		suite := new(unInitializedSuite)
+
+		assert.Panics(t, func() {
+			suite.Require().True(true)
+		})
+	})
+
+	t.Run("should panic on Assert", func(t *testing.T) {
+		suite := new(unInitializedSuite)
+
+		assert.Panics(t, func() {
+			suite.Assert().True(true)
+		})
+	})
 }
