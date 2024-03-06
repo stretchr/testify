@@ -22,3 +22,9 @@ _testmain.go
 *.exe
 
 .DS_Store
+
+# Output of "go test -c"
+/assert/assert.test
+/require/require.test
+/suite/suite.test
+/mock/mock.test
