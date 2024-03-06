@@ -828,14 +828,17 @@ func Test_Mock_Return_Func(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
-	mockedService.On("TheExampleMethod", 1, 2, 3).
+	mockedService.On("TheExampleMethod", Anything, Anything, Anything).
 		Return(func(args Arguments) Arguments {
-			return []interface{}{42, fmt.Errorf("hrm")}
+			return Arguments{args[0].(int) + 40, fmt.Errorf("hrm")}
 		}).
-		Once()
+		Twice()
 
-	answer, _ := mockedService.TheExampleMethod(1, 2, 3)
+	answer, _ := mockedService.TheExampleMethod(2, 4, 5)
 	assert.Equal(t, 42, answer)
+
+	answer, _ = mockedService.TheExampleMethod(44, 4, 5)
+	assert.Equal(t, 84, answer)
 }
 
 func Test_Mock_Return_Once(t *testing.T) {
