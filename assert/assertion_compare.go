@@ -28,6 +28,8 @@ var (
 	uint32Type = reflect.TypeOf(uint32(1))
 	uint64Type = reflect.TypeOf(uint64(1))
 
+	uintptrType = reflect.TypeOf(uintptr(1))
+
 	float32Type = reflect.TypeOf(float32(1))
 	float64Type = reflect.TypeOf(float64(1))
 
@@ -344,6 +346,26 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 			}
 
 			return CompareType(bytes.Compare(bytesObj1, bytesObj2)), true
+		}
+	case reflect.Uintptr:
+		{
+			uintptrObj1, ok := obj1.(uintptr)
+			if !ok {
+				uintptrObj1 = obj1Value.Convert(uintptrType).Interface().(uintptr)
+			}
+			uintptrObj2, ok := obj2.(uintptr)
+			if !ok {
+				uintptrObj2 = obj2Value.Convert(uintptrType).Interface().(uintptr)
+			}
+			if uintptrObj1 > uintptrObj2 {
+				return compareGreater, true
+			}
+			if uintptrObj1 == uintptrObj2 {
+				return compareEqual, true
+			}
+			if uintptrObj1 < uintptrObj2 {
+				return compareLess, true
+			}
 		}
 	}
 

@@ -148,8 +148,8 @@ func TestObjectsAreEqualValues(t *testing.T) {
 		{uint32(10), int32(10), true},
 		{0, nil, false},
 		{nil, 0, false},
-		{now, now.In(time.Local), true}, // should be time zone independent
-		{int(270), int8(14), false},     // should handle overflow/underflow
+		{now, now.In(time.Local), false}, // should not be time zone independent
+		{int(270), int8(14), false},      // should handle overflow/underflow
 		{int8(14), int(270), false},
 		{[]int{270, 270}, []int8{14, 14}, false},
 		{complex128(1e+100 + 1e+100i), complex64(complex(math.Inf(0), math.Inf(0))), false},
@@ -430,6 +430,25 @@ func TestEqualExportedValues(t *testing.T) {
 			value2:        S{[2]int{1, 2}, Nested{2, nil}, nil, Nested{}},
 			expectedEqual: true,
 		},
+		{
+			value1:        &S{1, Nested{2, 3}, 4, Nested{5, 6}},
+			value2:        &S{1, Nested{2, nil}, nil, Nested{}},
+			expectedEqual: true,
+		},
+		{
+			value1:        &S{1, Nested{2, 3}, 4, Nested{5, 6}},
+			value2:        &S{1, Nested{1, nil}, nil, Nested{}},
+			expectedEqual: false,
+			expectedFail: `
+	            	Diff:
+	            	--- Expected
+	            	+++ Actual
+	            	@@ -3,3 +3,3 @@
+	            	  Exported2: (assert.Nested) {
+	            	-  Exported: (int) 2,
+	            	+  Exported: (int) 1,
+	            	   notExported: (interface {}) <nil>`,
+		},
 	}
 
 	for _, c := range cases {
@@ -462,6 +481,22 @@ func TestImplements(t *testing.T) {
 	}
 	if Implements(mockT, (*AssertionTesterInterface)(nil), nil) {
 		t.Error("Implements method should return false: nil does not implement AssertionTesterInterface")
+	}
+
+}
+
+func TestNotImplements(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
+		t.Error("NotImplements method should return true: AssertionTesterNonConformingObject does not implement AssertionTesterInterface")
+	}
+	if NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
+		t.Error("NotImplements method should return false: AssertionTesterConformingObject implements AssertionTesterInterface")
+	}
+	if NotImplements(mockT, (*AssertionTesterInterface)(nil), nil) {
+		t.Error("NotImplements method should return false: nil can't be checked to be implementing AssertionTesterInterface or not")
 	}
 
 }
@@ -861,7 +896,7 @@ func TestNotEqualValues(t *testing.T) {
 		{new(AssertionTesterConformingObject), new(AssertionTesterConformingObject), false},
 		{&struct{}{}, &struct{}{}, false},
 
-		// Different behaviour from NotEqual()
+		// Different behavior from NotEqual()
 		{func() int { return 23 }, func() int { return 24 }, true},
 		{int(10), int(11), true},
 		{int(10), uint(10), false},
@@ -1661,49 +1696,33 @@ func TestLen(t *testing.T) {
 	ch <- 3
 
 	cases := []struct {
-		v interface{}
-		l int
+		v               interface{}
+		l               int
+		expected1234567 string // message when expecting 1234567 items
 	}{
-		{[]int{1, 2, 3}, 3},
-		{[...]int{1, 2, 3}, 3},
-		{"ABC", 3},
-		{map[int]int{1: 2, 2: 4, 3: 6}, 3},
-		{ch, 3},
+		{[]int{1, 2, 3}, 3, `"[1 2 3]" should have 1234567 item(s), but has 3`},
+		{[...]int{1, 2, 3}, 3, `"[1 2 3]" should have 1234567 item(s), but has 3`},
+		{"ABC", 3, `"ABC" should have 1234567 item(s), but has 3`},
+		{map[int]int{1: 2, 2: 4, 3: 6}, 3, `"map[1:2 2:4 3:6]" should have 1234567 item(s), but has 3`},
+		{ch, 3, ""},
 
-		{[]int{}, 0},
-		{map[int]int{}, 0},
-		{make(chan int), 0},
+		{[]int{}, 0, `"[]" should have 1234567 item(s), but has 0`},
+		{map[int]int{}, 0, `"map[]" should have 1234567 item(s), but has 0`},
+		{make(chan int), 0, ""},
 
-		{[]int(nil), 0},
-		{map[int]int(nil), 0},
-		{(chan int)(nil), 0},
+		{[]int(nil), 0, `"[]" should have 1234567 item(s), but has 0`},
+		{map[int]int(nil), 0, `"map[]" should have 1234567 item(s), but has 0`},
+		{(chan int)(nil), 0, `"<nil>" should have 1234567 item(s), but has 0`},
 	}
 
 	for _, c := range cases {
 		True(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
-	}
-
-	cases = []struct {
-		v interface{}
-		l int
-	}{
-		{[]int{1, 2, 3}, 4},
-		{[...]int{1, 2, 3}, 2},
-		{"ABC", 2},
-		{map[int]int{1: 2, 2: 4, 3: 6}, 4},
-		{ch, 2},
-
-		{[]int{}, 1},
-		{map[int]int{}, 1},
-		{make(chan int), 1},
-
-		{[]int(nil), 1},
-		{map[int]int(nil), 1},
-		{(chan int)(nil), 1},
-	}
-
-	for _, c := range cases {
-		False(t, Len(mockT, c.v, c.l), "%#v have %d items", c.v, c.l)
+		False(t, Len(mockT, c.v, c.l+1), "%#v have %d items", c.v, c.l)
+		if c.expected1234567 != "" {
+			msgMock := new(mockTestingT)
+			Len(msgMock, c.v, 1234567)
+			Contains(t, msgMock.errorString(), c.expected1234567)
+		}
 	}
 }
 
@@ -2511,6 +2530,10 @@ func (m *mockTestingT) Errorf(format string, args ...interface{}) {
 	m.args = args
 }
 
+func (m *mockTestingT) Failed() bool {
+	return m.errorFmt != ""
+}
+
 func TestFailNowWithPlainTestingT(t *testing.T) {
 	mockT := &mockTestingT{}
 
@@ -2762,6 +2785,42 @@ func TestErrorAssertionFunc(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.assertion(t, tt.err)
+		})
+	}
+}
+
+func ExamplePanicAssertionFunc() {
+	t := &testing.T{} // provided by test
+
+	tests := []struct {
+		name      string
+		panicFn   PanicTestFunc
+		assertion PanicAssertionFunc
+	}{
+		{"with panic", func() { panic(nil) }, Panics},
+		{"without panic", func() {}, NotPanics},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.assertion(t, tt.panicFn)
+		})
+	}
+}
+
+func TestPanicAssertionFunc(t *testing.T) {
+	tests := []struct {
+		name      string
+		panicFn   PanicTestFunc
+		assertion PanicAssertionFunc
+	}{
+		{"not panic", func() {}, NotPanics},
+		{"panic", func() { panic(nil) }, Panics},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.assertion(t, tt.panicFn)
 		})
 	}
 }

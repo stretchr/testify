@@ -33,12 +33,12 @@ func HTTPSuccess(t TestingT, handler http.HandlerFunc, method, url string, value
 	}
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
-		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
+		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err), msgAndArgs...)
 	}
 
 	isSuccessCode := code >= http.StatusOK && code <= http.StatusPartialContent
 	if !isSuccessCode {
-		Fail(t, fmt.Sprintf("Expected HTTP success status code for %q but received %d", url+"?"+values.Encode(), code))
+		Fail(t, fmt.Sprintf("Expected HTTP success status code for %q but received %d", url+"?"+values.Encode(), code), msgAndArgs...)
 	}
 
 	return isSuccessCode
@@ -55,12 +55,12 @@ func HTTPRedirect(t TestingT, handler http.HandlerFunc, method, url string, valu
 	}
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
-		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
+		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err), msgAndArgs...)
 	}
 
 	isRedirectCode := code >= http.StatusMultipleChoices && code <= http.StatusTemporaryRedirect
 	if !isRedirectCode {
-		Fail(t, fmt.Sprintf("Expected HTTP redirect status code for %q but received %d", url+"?"+values.Encode(), code))
+		Fail(t, fmt.Sprintf("Expected HTTP redirect status code for %q but received %d", url+"?"+values.Encode(), code), msgAndArgs...)
 	}
 
 	return isRedirectCode
@@ -77,12 +77,12 @@ func HTTPError(t TestingT, handler http.HandlerFunc, method, url string, values 
 	}
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
-		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
+		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err), msgAndArgs...)
 	}
 
 	isErrorCode := code >= http.StatusBadRequest
 	if !isErrorCode {
-		Fail(t, fmt.Sprintf("Expected HTTP error status code for %q but received %d", url+"?"+values.Encode(), code))
+		Fail(t, fmt.Sprintf("Expected HTTP error status code for %q but received %d", url+"?"+values.Encode(), code), msgAndArgs...)
 	}
 
 	return isErrorCode
@@ -99,12 +99,12 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method, url string, va
 	}
 	code, err := httpCode(handler, method, url, values)
 	if err != nil {
-		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err))
+		Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err), msgAndArgs...)
 	}
 
 	successful := code == statuscode
 	if !successful {
-		Fail(t, fmt.Sprintf("Expected HTTP status code %d for %q but received %d", statuscode, url+"?"+values.Encode(), code))
+		Fail(t, fmt.Sprintf("Expected HTTP status code %d for %q but received %d", statuscode, url+"?"+values.Encode(), code), msgAndArgs...)
 	}
 
 	return successful
@@ -139,7 +139,7 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method, url string, 
 
 	contains := strings.Contains(body, fmt.Sprint(str))
 	if !contains {
-		Fail(t, fmt.Sprintf("Expected response body for \"%s\" to contain \"%s\" but found \"%s\"", url+"?"+values.Encode(), str, body))
+		Fail(t, fmt.Sprintf("Expected response body for \"%s\" to contain \"%s\" but found \"%s\"", url+"?"+values.Encode(), str, body), msgAndArgs...)
 	}
 
 	return contains
@@ -159,7 +159,7 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method, url strin
 
 	contains := strings.Contains(body, fmt.Sprint(str))
 	if contains {
-		Fail(t, fmt.Sprintf("Expected response body for \"%s\" to NOT contain \"%s\" but found \"%s\"", url+"?"+values.Encode(), str, body))
+		Fail(t, fmt.Sprintf("Expected response body for \"%s\" to NOT contain \"%s\" but found \"%s\"", url+"?"+values.Encode(), str, body), msgAndArgs...)
 	}
 
 	return !contains
