@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -219,7 +220,7 @@ func Run(t *testing.T, suite TestingSuite) {
 // Filtering method according to set regular expression
 // specified command-line argument -m
 func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Test", name); !ok {
+	if !strings.HasPrefix(name, "Test") {
 		return false, nil
 	}
 	return regexp.MatchString(*matchMethod, name)
