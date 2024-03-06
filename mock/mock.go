@@ -32,8 +32,6 @@ type TestingT interface {
 	Call
 */
 
-type returnArgumentsFunc func(args Arguments) Arguments
-
 // Call represents a method call and is used for setting expectations,
 // as well as recording activity.
 type Call struct {
@@ -51,9 +49,9 @@ type Call struct {
 	// on each call of the mock to determine what to return.
 	ReturnArguments Arguments
 
-	// if the first arg in ReturnArguments is a returnArgumentsFunc, this
+	// if the first arg in ReturnArguments is a func(args Arguments) Arguments, this
 	// stores that ready for use
-	returnFunc returnArgumentsFunc
+	returnFunc func(args Arguments) Arguments
 
 	// Holds the caller info for the On() call
 	callerInfo []string
@@ -135,21 +133,15 @@ func (c *Call) Return(returnArguments ...interface{}) *Call {
 	c.lock()
 	defer c.unlock()
 
-	c.ReturnArguments = returnArguments
-
-	if len(c.ReturnArguments) == 1 {
-		fn := reflect.ValueOf(c.ReturnArguments[0])
-		if fn.Kind() == reflect.Func {
-			fnType := fn.Type()
-			if fnType.NumIn() == 1 && fnType.NumOut() == 1 && fnType.In(0) == argumentsType && fnType.Out(0) == argumentsType {
-				c.returnFunc = func(args Arguments) Arguments {
-					ret := fn.Call([]reflect.Value{reflect.ValueOf(args)})
-					return ret[0].Interface().(Arguments)
-				}
-			}
+	if len(returnArguments) == 1 {
+		if fn, ok := returnArguments[0].(func(Arguments) Arguments); ok {
+			c.returnFunc = fn
+			return c
 		}
 	}
 
+	c.returnFunc = nil
+	c.ReturnArguments = returnArguments
 	return c
 }
 
