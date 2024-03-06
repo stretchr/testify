@@ -305,9 +305,10 @@ func indentMessageLines(message string, longestLabelLen int) string {
 
 	// a buffer is set manually to store the tokenization of the message string
 	// so that we can re-use the same buffer for each line of the message without
-	// any additional allocations. We set the buffer length to 1 more than the
-	// length of the message to avoid exceeding the default MaxScanTokenSize
-	// while scanning lines. This CAN happen. Refer to issue #1525
+	// any additional allocations. We set the maximum buffer length to 1 more
+	// than the length of the message to avoid exceeding the default
+	// MaxScanTokenSize while scanning lines. This can happen when there is a
+	// single very long line. Refer to issue #1525
 	msgScanner.Buffer(nil, len(message)+1)
 
 	first := true
