@@ -117,8 +117,6 @@ func (c *Call) getReturnArguments(args Arguments) Arguments {
 	return c.ReturnArguments
 }
 
-var argumentsType = reflect.TypeOf(Arguments(nil))
-
 // Return specifies the return arguments for the expectation.
 //
 //	Mock.On("DoSomething").Return(errors.New("failed"))
