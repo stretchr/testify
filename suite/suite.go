@@ -82,7 +82,7 @@ func (suite *Suite) Assert() *assert.Assertions {
 func (suite *Suite) Logf(format string, args ...interface{}) {
 	suite.mu.RLock()
 	defer suite.mu.RUnlock()
-	suite.T().Logf(format, args...)
+	suite.t.Logf(format, args...)
 }
 
 // Log wraps call to testing.T Log function. This is erquivalent to calling
@@ -90,7 +90,7 @@ func (suite *Suite) Logf(format string, args ...interface{}) {
 func (suite *Suite) Log(args ...interface{}) {
 	suite.mu.RLock()
 	defer suite.mu.RUnlock()
-	suite.T().Log(args...)
+	suite.t.Log(args...)
 }
 
 func recoverAndFailOnPanic(t *testing.T) {
