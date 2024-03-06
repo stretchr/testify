@@ -1537,9 +1537,11 @@ func InEpsilonMapValues(t TestingT, expected, actual interface{}, epsilon float6
 		h.Helper()
 	}
 	if expected == nil || actual == nil ||
-		reflect.TypeOf(actual).Kind() != reflect.Map ||
 		reflect.TypeOf(expected).Kind() != reflect.Map {
 		return Fail(t, "Arguments must be maps", msgAndArgs...)
+	}
+	if !IsType(t, expected, actual) {
+		return Fail(t, "Both values must be of the same type", msgAndArgs...)
 	}
 
 	actualMap := reflect.ValueOf(actual)

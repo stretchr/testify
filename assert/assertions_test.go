@@ -1971,7 +1971,7 @@ func TestInEpsilonMapValues(t *testing.T) {
 		title    string
 		expected interface{}
 		actual   interface{}
-		f        func(TestingT, bool, ...interface{}) bool
+		f        BoolAssertionFunc
 		epsilon  float64
 	}{
 		{
@@ -2005,7 +2005,7 @@ func TestInEpsilonMapValues(t *testing.T) {
 			f:       False,
 		},
 		{
-			title: "With different map keys",
+			title: "Within epsilon with different map keys",
 			expected: map[string]float64{
 				"foo": 2.2,
 				"baz": 2.0,
@@ -2018,7 +2018,7 @@ func TestInEpsilonMapValues(t *testing.T) {
 			f:       False,
 		},
 		{
-			title: "With different number of keys",
+			title: "Within epsilon with different number of map keys",
 			expected: map[string]float64{
 				"foo": 2.2,
 				"baz": 2.0,
@@ -2030,7 +2030,7 @@ func TestInEpsilonMapValues(t *testing.T) {
 			f:       False,
 		},
 		{
-			title: "With zero value on expected",
+			title: "Within epsilon with zero value on expected",
 			expected: map[string]float64{
 				"foo": 0,
 			},
@@ -2084,6 +2084,39 @@ func TestInEpsilonMapValues(t *testing.T) {
 				"foo": 2.1,
 			},
 			actual:  nil,
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When expected and actual are not the same type",
+			expected: map[string]float64{
+				"foo": 2.1,
+			},
+			actual: map[string]string{
+				"foo": "2.0",
+			},
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When expected and actual map value are string",
+			expected: map[string]string{
+				"foo": "2.1",
+			},
+			actual: map[string]string{
+				"foo": "2.0",
+			},
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When expected and actual map value are struct",
+			expected: map[string]struct{}{
+				"foo": {},
+			},
+			actual: map[string]struct{}{
+				"foo": {},
+			},
 			epsilon: 0.1,
 			f:       False,
 		},
