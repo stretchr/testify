@@ -856,15 +856,25 @@ const (
 // AnythingOfTypeArgument contains the type of an argument
 // for use when type checking.  Used in [Arguments.Diff] and [Arguments.Assert].
 //
-// Deprecated: this is an implementation detail that must not be used. Use the [AnythingOfType] constructor instead, example:
+// Deprecated: this is an implementation detail that must not be used. Use the [AnythingOfType] constructor instead.
 //
-//	m.On("Do", mock.AnythingOfType("string"))
+// If AnythingOfTypeArgument is used as a function return value type you can usually replace
+// the function with a variable. Example:
 //
-// All explicit type declarations can be replaced with interface{} as is expected by [Mock.On], example:
-//
-//	func anyString interface{} {
-//		return mock.AnythingOfType("string")
+//	func anyString() mock.AnythingOfTypeArgument {
+//	    return mock.AnythingOfType("string")
 //	}
+//
+// Can be replaced by:
+//
+//	func anyString() interface{} {
+//	    return mock.IsType("")
+//	}
+//
+// It could even be replaced with a variable:
+//
+//	var anyString = mock.AnythingOfType("string")
+//	var anyString = mock.IsType("") // alternative
 type AnythingOfTypeArgument = anythingOfTypeArgument
 
 // anythingOfTypeArgument is a string that contains the type of an argument
