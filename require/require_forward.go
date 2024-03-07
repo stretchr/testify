@@ -29,10 +29,10 @@ func (a *Assertions) Conditionf(comp assert.Comparison, msg string, args ...inte
 // specified substring or element.
 //
 //	a.Contains("Hello World", "World")
-//	a.Contains(["Hello", "World"], "World")
-//	a.Contains({"Hello": "World"}, "Hello")
+//	a.Contains([]string{"Hello", "World"}, "World")
+//	a.Contains(map[string]string{"Hello": "World"}, "Hello")
 //	a.Contains([]byte("Hello World"), []byte("World"))
-//	a.Contains([[]byte("Hello"), []byte("World")], []byte("World"))
+//	a.Contains([][]byte{[]byte("Hello"), []byte("World")}, []byte("World"))
 func (a *Assertions) Contains(s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -44,10 +44,10 @@ func (a *Assertions) Contains(s interface{}, contains interface{}, msgAndArgs ..
 // specified substring or element.
 //
 //	a.Containsf("Hello World", "World", "error message %s", "formatted")
-//	a.Containsf(["Hello", "World"], "World", "error message %s", "formatted")
-//	a.Containsf({"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	a.Containsf([]string{"Hello", "World"}, "World", "error message %s", "formatted")
+//	a.Containsf(map[string]string{"Hello": "World"}, "Hello", "error message %s", "formatted")
 //	a.Containsf([]byte("Hello World"), []byte("World"), "error message %s", "formatted")
-//	a.Containsf([[]byte("Hello"), []byte("World")], []byte("World"), "error message %s", "formatted")
+//	a.Containsf([][]byte{[]byte("Hello"), []byte("World")}, []byte("World"), "error message %s", "formatted")
 func (a *Assertions) Containsf(s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1111,10 +1111,10 @@ func (a *Assertions) NoFileExistsf(path string, msg string, args ...interface{})
 // specified substring or element.
 //
 //	a.NotContains("Hello World", "Earth")
-//	a.NotContains(["Hello", "World"], "Earth")
-//	a.NotContains({"Hello": "World"}, "Earth")
+//	a.NotContains([]string{"Hello", "World"}, "Earth")
+//	a.NotContains(map[string]string{"Hello": "World"}, "Earth")
 //	a.NotContains([]byte("Hello World"), []byte("Earth"))
-//	a.NotContains([[]byte("Hello"), []byte("World")], []byte("Earth"))
+//	a.NotContains([][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"))
 func (a *Assertions) NotContains(s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1126,10 +1126,10 @@ func (a *Assertions) NotContains(s interface{}, contains interface{}, msgAndArgs
 // specified substring or element.
 //
 //	a.NotContainsf("Hello World", "Earth", "error message %s", "formatted")
-//	a.NotContainsf(["Hello", "World"], "Earth", "error message %s", "formatted")
-//	a.NotContainsf({"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	a.NotContainsf([]string{"Hello", "World"}, "Earth", "error message %s", "formatted")
+//	a.NotContainsf(map[string]string{"Hello": "World"}, "Earth", "error message %s", "formatted")
 //	a.NotContainsf([]byte("Hello World"), []byte("Earth"), "error message %s", "formatted")
-//	a.NotContainsf([[]byte("Hello"), []byte("World")], []byte("Earth"), "error message %s", "formatted")
+//	a.NotContainsf([][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"), "error message %s", "formatted")
 func (a *Assertions) NotContainsf(s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()

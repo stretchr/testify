@@ -990,7 +990,7 @@ func TestContainsNotContains(t *testing.T) {
 	type A struct {
 		Name, Value string
 	}
-	list := []string{"Foo", "Bar"}
+	list := []string{"Hello", "World"}
 
 	complexList := []*A{
 		{"b", "c"},
@@ -999,10 +999,10 @@ func TestContainsNotContains(t *testing.T) {
 		{"j", "k"},
 	}
 	byteSliceList := [][]byte{
-		[]byte("Foo"), []byte("Bar"),
+		[]byte("Hello"), []byte("World"),
 	}
 
-	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
+	simpleMap := map[interface{}]interface{}{"Hello": "World"}
 	var zeroMap map[interface{}]interface{}
 
 	cases := []struct {
@@ -1010,18 +1010,18 @@ func TestContainsNotContains(t *testing.T) {
 		actual   interface{}
 		result   bool
 	}{
-		{"Hello World", "Hello", true},
-		{"Hello World", "Salut", false},
-		{[]byte("Hello World"), []byte("Hello"), true},
-		{[]byte("Hello World"), []byte("Salut"), false},
-		{list, "Bar", true},
-		{list, "Salut", false},
-		{byteSliceList, []byte("Bar"), true},
-		{byteSliceList, []byte("Salut"), false},
+		{"Hello World", "World", true},
+		{"Hello World", "Earth", false},
+		{[]byte("Hello World"), []byte("World"), true},
+		{[]byte("Hello World"), []byte("Earth"), false},
+		{list, "World", true},
+		{list, "Earth", false},
+		{byteSliceList, []byte("World"), true},
+		{byteSliceList, []byte("Earth"), false},
 		{complexList, &A{"g", "h"}, true},
 		{complexList, &A{"g", "e"}, false},
-		{simpleMap, "Foo", true},
-		{simpleMap, "Bar", false},
+		{simpleMap, "Hello", true},
+		{simpleMap, "Earth", false},
 		{zeroMap, "Bar", false},
 	}
 

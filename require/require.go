@@ -3,10 +3,11 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
 )
 
 // Condition uses a Comparison to assert a complex condition.
@@ -35,10 +36,10 @@ func Conditionf(t TestingT, comp assert.Comparison, msg string, args ...interfac
 // specified substring or element.
 //
 //	require.Contains(t, "Hello World", "World")
-//	require.Contains(t, ["Hello", "World"], "World")
-//	require.Contains(t, {"Hello": "World"}, "Hello")
+//	require.Contains(t, []string{"Hello", "World"}, "World")
+//	require.Contains(t, map[string]string{"Hello": "World"}, "Hello")
 //	require.Contains(t, []byte("Hello World"), []byte("World"))
-//	require.Contains(t, [[]byte("Hello"), []byte("World")], []byte("World"))
+//	require.Contains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("World"))
 func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -53,10 +54,10 @@ func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...int
 // specified substring or element.
 //
 //	require.Containsf(t, "Hello World", "World", "error message %s", "formatted")
-//	require.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
-//	require.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	require.Containsf(t, []string{"Hello", "World"}, "World", "error message %s", "formatted")
+//	require.Containsf(t, map[string]string{"Hello": "World"}, "Hello", "error message %s", "formatted")
 //	require.Containsf(t, []byte("Hello World"), []byte("World"), "error message %s", "formatted")
-//	require.Containsf(t, [[]byte("Hello"), []byte("World")], []byte("World"), "error message %s", "formatted")
+//	require.Containsf(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("World"), "error message %s", "formatted")
 func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1405,10 +1406,10 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 // specified substring or element.
 //
 //	require.NotContains(t, "Hello World", "Earth")
-//	require.NotContains(t, ["Hello", "World"], "Earth")
-//	require.NotContains(t, {"Hello": "World"}, "Earth")
+//	require.NotContains(t, []string{"Hello", "World"}, "Earth")
+//	require.NotContains(t, map[string]string{"Hello": "World"}, "Earth")
 //	require.NotContains(t, []byte("Hello World"), []byte("Earth"))
-//	require.NotContains(t, [[]byte("Hello"), []byte("World")], []byte("Earth"))
+//	require.NotContains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"))
 func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1423,10 +1424,10 @@ func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...
 // specified substring or element.
 //
 //	require.NotContainsf(t, "Hello World", "Earth", "error message %s", "formatted")
-//	require.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
-//	require.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	require.NotContainsf(t, []string{"Hello", "World"}, "Earth", "error message %s", "formatted")
+//	require.NotContainsf(t, map[string]string{"Hello": "World"}, "Earth", "error message %s", "formatted")
 //	require.NotContainsf(t, []byte("Hello World"), []byte("Earth"), "error message %s", "formatted")
-//	require.NotContainsf(t, [[]byte("Hello"), []byte("World")], []byte("Earth"), "error message %s", "formatted")
+//	require.NotContainsf(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"), "error message %s", "formatted")
 func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

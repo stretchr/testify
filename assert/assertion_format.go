@@ -20,10 +20,10 @@ func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bo
 // specified substring or element.
 //
 //	assert.Containsf(t, "Hello World", "World", "error message %s", "formatted")
-//	assert.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
-//	assert.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	assert.Containsf(t, []string{"Hello", "World"}, "World", "error message %s", "formatted")
+//	assert.Containsf(t, map[string]string{"Hello": "World"}, "Hello", "error message %s", "formatted")
 //	assert.Containsf(t, []byte("Hello World"), []byte("World"), "error message %s", "formatted")
-//	assert.Containsf(t, [[]byte("Hello"), []byte("World")], []byte("World"), "error message %s", "formatted")
+//	assert.Containsf(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("World"), "error message %s", "formatted")
 func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -561,10 +561,10 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) boo
 // specified substring or element.
 //
 //	assert.NotContainsf(t, "Hello World", "Earth", "error message %s", "formatted")
-//	assert.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
-//	assert.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	assert.NotContainsf(t, []string{"Hello", "World"}, "Earth", "error message %s", "formatted")
+//	assert.NotContainsf(t, map[string]string{"Hello": "World"}, "Earth", "error message %s", "formatted")
 //	assert.NotContainsf(t, []byte("Hello World"), []byte("Earth"), "error message %s", "formatted")
-//	assert.NotContainsf(t, [[]byte("Hello"), []byte("World")], []byte("Earth"), "error message %s", "formatted")
+//	assert.NotContainsf(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"), "error message %s", "formatted")
 func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
