@@ -209,7 +209,7 @@ func (c *Call) After(d time.Duration) *Call {
 //
 // 3) func(Arguments) Arguments which behaves like (2) except you need to do the typecasting yourself
 //
-//	Mock.On("HelloWorld", mock.Anything).Run(func(args mock.Arguments) args mock.Arguments {
+//	Mock.On("HelloWorld", mock.Anything).Run(func(args mock.Arguments) mock.Arguments {
 //		return mock.Arguments([]any{"Hello " + args[0].(string)})
 //	})
 func (c *Call) Run(fn interface{}) *Call {
