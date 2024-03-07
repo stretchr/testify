@@ -925,12 +925,11 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 		return true, false
 	case reflect.Slice:
-		// Special case: use bytes.Contains if both element and list are []byte.
-		elementValue := reflect.ValueOf(element)
-		if elementValue.Kind() == reflect.Slice &&
-			elementValue.Type().Elem().Kind() == reflect.Uint8 &&
-			listType.Elem().Kind() == reflect.Uint8 {
-			return true, bytes.Contains(listValue.Bytes(), elementValue.Bytes())
+		switch element := element.(type) {
+		case []byte:
+			if list, ok := list.([]byte); ok {
+				return true, bytes.Contains(list, element)
+			}
 		}
 	}
 

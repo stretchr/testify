@@ -992,15 +992,18 @@ func TestContainsNotContains(t *testing.T) {
 	}
 	list := []string{"Hello", "World"}
 
+	byteSliceList := [][]byte{
+		[]byte("Hello"), []byte("World"),
+	}
+
 	complexList := []*A{
 		{"b", "c"},
 		{"d", "e"},
 		{"g", "h"},
 		{"j", "k"},
 	}
-	byteSliceList := [][]byte{
-		[]byte("Hello"), []byte("World"),
-	}
+
+	interfaceList := []interface{}{"Hello World", 5, 2, []byte("Goodbye")}
 
 	simpleMap := map[interface{}]interface{}{"Hello": "World"}
 	var zeroMap map[interface{}]interface{}
@@ -1020,6 +1023,9 @@ func TestContainsNotContains(t *testing.T) {
 		{byteSliceList, []byte("Earth"), false},
 		{complexList, &A{"g", "h"}, true},
 		{complexList, &A{"g", "e"}, false},
+		{interfaceList, 5, true},
+		{interfaceList, []byte("Goodbye"), true},
+		{interfaceList, "World", false},
 		{simpleMap, "Hello", true},
 		{simpleMap, "Earth", false},
 		{zeroMap, "Bar", false},
