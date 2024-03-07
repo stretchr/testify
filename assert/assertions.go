@@ -317,7 +317,7 @@ func indentMessageLines(message string, longestLabelLen int) string {
 			outBuf.WriteString("\n\t" + strings.Repeat(" ", longestLabelLen+1) + "\t")
 		}
 
-		outBuf.WriteString(msgScanner.Text())
+		outBuf.Write(msgScanner.Bytes())
 		first = false
 	}
 

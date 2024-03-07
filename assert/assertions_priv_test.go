@@ -6,14 +6,9 @@ import (
 	"testing"
 )
 
-const (
-	// set maxScanTokenSize to 1 more than the default set by bufio. This will
-	// cover the case where a single line is longer than the default
-	// maxScanTokenSize
-	maxScanTokenSize = bufio.MaxScanTokenSize + 1
-)
-
 func Test_indentMessageLines(t *testing.T) {
+	const maxScanTokenSize = bufio.MaxScanTokenSize + 1
+
 	tt := []struct {
 		name            string
 		msg             string
