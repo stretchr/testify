@@ -78,6 +78,9 @@ type Call struct {
 
 	// Calls which must be satisfied before this call can be
 	requires []*Call
+
+	// Calls that depend on this call to be satisfied so succeed
+	requiredBy []*Call
 }
 
 func newCall(parent *Mock, methodName string, callerInfo []string, methodArguments ...interface{}) *Call {
@@ -242,6 +245,21 @@ func (c *Call) Unset() *Call {
 	// trim slice up to last copied index
 	c.Parent.ExpectedCalls = c.Parent.ExpectedCalls[:index]
 
+	// in-place filter slice for dependent calls to be cleaned - iterate from 0'th to last skipping unnecessary ones
+	for _, dependentCall := range c.requiredBy {
+		var index int
+		for _, requiredByDependent := range dependentCall.requires {
+			if requiredByDependent == c {
+				// Remove from the required calls of the dependent call
+				continue
+			}
+			dependentCall.requires[index] = requiredByDependent
+			index++
+		}
+		dependentCall.requires = dependentCall.requires[:index]
+	}
+	c.requiredBy = []*Call{}
+
 	if !foundMatchingCall {
 		unlockOnce.Do(c.unlock)
 		c.Parent.fail("\n\nmock: Could not find expected call\n-----------------------------\n\n%s\n\n",
@@ -267,6 +285,8 @@ func (c *Call) NotBefore(calls ...*Call) *Call {
 		if call.Parent == nil {
 			panic("not before calls must be created with Mock.On()")
 		}
+
+		call.requiredBy = append(call.requiredBy, c)
 	}
 
 	c.requires = append(c.requires, calls...)
