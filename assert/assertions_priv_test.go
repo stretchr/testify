@@ -7,8 +7,6 @@ import (
 )
 
 func Test_indentMessageLines(t *testing.T) {
-	const maxScanTokenSize = bufio.MaxScanTokenSize + 1
-
 	tt := []struct {
 		name            string
 		msg             string
@@ -28,17 +26,45 @@ func Test_indentMessageLines(t *testing.T) {
 			expected:        "Hello\n\t            \tWorld",
 		},
 		{
-			name:            "single line - extremely long",
-			msg:             strings.Repeat("hello ", maxScanTokenSize),
+			name:            "single line - over the bufio default limit",
+			msg:             strings.Repeat("hello ", bufio.MaxScanTokenSize+10),
 			longestLabelLen: 11,
-			expected:        strings.Repeat("hello ", maxScanTokenSize),
+			expected:        strings.Repeat("hello ", bufio.MaxScanTokenSize+10),
 		},
 		{
-			name:            "multi line - extremely long",
-			msg:             strings.Repeat("hello\n", maxScanTokenSize),
+			name:            "multi line - over the bufio default limit",
+			msg:             strings.Repeat("hello\n", bufio.MaxScanTokenSize+10),
 			longestLabelLen: 3,
 			expected: strings.TrimSpace(
-				strings.TrimPrefix(strings.Repeat("\thello\n\t    ", maxScanTokenSize), "\t"),
+				strings.TrimPrefix(strings.Repeat("\thello\n\t    ", bufio.MaxScanTokenSize+10), "\t"),
+			),
+		},
+		{
+			name:            "single line - just under the bufio default limit",
+			msg:             strings.Repeat("hello ", bufio.MaxScanTokenSize-10),
+			longestLabelLen: 11,
+			expected:        strings.Repeat("hello ", bufio.MaxScanTokenSize-10),
+		},
+		{
+			name:            "multi line - just under the bufio default limit",
+			msg:             strings.Repeat("hello\n", bufio.MaxScanTokenSize-10),
+			longestLabelLen: 3,
+			expected: strings.TrimSpace(
+				strings.TrimPrefix(strings.Repeat("\thello\n\t    ", bufio.MaxScanTokenSize-10), "\t"),
+			),
+		},
+		{
+			name:            "single line - equal to the bufio default limit",
+			msg:             strings.Repeat("hello ", bufio.MaxScanTokenSize),
+			longestLabelLen: 11,
+			expected:        strings.Repeat("hello ", bufio.MaxScanTokenSize),
+		},
+		{
+			name:            "multi line - equal to the bufio default limit",
+			msg:             strings.Repeat("hello\n", bufio.MaxScanTokenSize),
+			longestLabelLen: 3,
+			expected: strings.TrimSpace(
+				strings.TrimPrefix(strings.Repeat("\thello\n\t    ", bufio.MaxScanTokenSize), "\t"),
 			),
 		},
 	}
