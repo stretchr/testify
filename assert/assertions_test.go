@@ -3208,23 +3208,48 @@ func TestNotErrorIs(t *testing.T) {
 }
 
 func TestErrorAs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
-		err    error
-		result bool
+		err          error
+		result       bool
+		resultErrMsg string
 	}{
-		{fmt.Errorf("wrap: %w", &customError{}), true},
-		{io.EOF, false},
-		{nil, false},
+		{
+			err:    fmt.Errorf("wrap: %w", &customError{}),
+			result: true,
+		},
+		{
+			err:    io.EOF,
+			result: false,
+			resultErrMsg: "" +
+				"Should be in error chain:\n" +
+				"expected: **assert.customError\n" +
+				"in chain: \"EOF\" (*errors.errorString)\n",
+		},
+		{
+			err:    nil,
+			result: false,
+			resultErrMsg: "" +
+				"Should be in error chain:\n" +
+				"expected: **assert.customError\n" +
+				"in chain: \n",
+		},
+		{
+			err:    fmt.Errorf("abc: %w", errors.New("def")),
+			result: false,
+			resultErrMsg: "" +
+				"Should be in error chain:\n" +
+				"expected: **assert.customError\n" +
+				"in chain: \"abc: def\" (*fmt.wrapError)\n" +
+				"\t\"def\" (*errors.errorString)\n",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(captureTestingT)
 			res := ErrorAs(mockT, tt.err, &target)
-			if res != tt.result {
-				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
-			}
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
 		})
 	}
 }
