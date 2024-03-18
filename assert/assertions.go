@@ -347,6 +347,7 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+
 	content := []labeledContent{
 		{"Error Trace", strings.Join(CallerInfo(), "\n\t\t\t")},
 		{"Error", failureMessage},
@@ -456,6 +457,8 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
 func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(t)
+
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -467,9 +470,15 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 	if !ObjectsAreEqual(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
-		return Fail(t, fmt.Sprintf("Not equal: \n"+
+		failureMessage := fmt.Sprintf("Not equal: \n"+
 			"expected: %s\n"+
-			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+			"actual  : %s%s", expected, actual, diff)
+
+		if c != nil {
+			failureMessage = c.Message(failureMessage)
+		}
+
+		return Fail(t, failureMessage, msgAndArgs...)
 	}
 
 	return true
@@ -496,14 +505,22 @@ func validateEqualArgs(expected, actual interface{}) error {
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(t)
+
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if !samePointers(expected, actual) {
-		return Fail(t, fmt.Sprintf("Not same: \n"+
-			"expected: %p %#v\n"+
-			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
+		failureMessage := "Not same: \n" +
+			"expected: %p %#v\n" +
+			"actual  : %p %#v"
+
+		if c != nil {
+			failureMessage = c.Message(failureMessage)
+		}
+
+		return Fail(t, fmt.Sprintf(failureMessage, expected, expected, actual, actual), msgAndArgs...)
 	}
 
 	return true
@@ -581,6 +598,8 @@ func truncatingFormat(data interface{}) string {
 //
 //	assert.EqualValues(t, uint32(123), int32(123))
 func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(t)
+
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -588,9 +607,15 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 	if !ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
 		expected, actual = formatUnequalValues(expected, actual)
-		return Fail(t, fmt.Sprintf("Not equal: \n"+
-			"expected: %s\n"+
-			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+		failureMessage := "Not equal: \n" +
+			"expected: %s\n" +
+			"actual  : %s%s"
+
+		if c != nil {
+			failureMessage = c.Message(failureMessage)
+		}
+
+		return Fail(t, fmt.Sprintf(failureMessage, expected, actual, diff), msgAndArgs...)
 	}
 
 	return true
@@ -1575,6 +1600,8 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 //	actualObj, err := SomeFunction()
 //	assert.EqualError(t, err,  expectedErrorString)
 func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) bool {
+	t, c := Retrieve(t)
+
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -1585,9 +1612,15 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	actual := theError.Error()
 	// don't need to use deep equals here, we know they are both strings
 	if expected != actual {
-		return Fail(t, fmt.Sprintf("Error message not equal:\n"+
-			"expected: %q\n"+
-			"actual  : %q", expected, actual), msgAndArgs...)
+		failureMessage := "Error message not equal:\n" +
+			"expected: %q\n" +
+			"actual  : %q"
+
+		if c != nil {
+			failureMessage = c.Message(failureMessage)
+		}
+
+		return Fail(t, fmt.Sprintf(failureMessage, expected, actual), msgAndArgs...)
 	}
 	return true
 }

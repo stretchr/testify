@@ -1,5 +1,8 @@
 {{.CommentWithoutT "a"}}
 func (a *Assertions) {{.DocInfo.Name}}({{.Params}}) bool {
+	t, c := Retrieve(a.t)
+	if t != nil { a.t = t }
 	if h, ok := a.t.(tHelper); ok { h.Helper() }
+	if c != nil { a.t = WrapColorize(t) }
 	return {{.DocInfo.Name}}(a.t, {{.ForwardedParams}})
 }
