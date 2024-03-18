@@ -764,7 +764,7 @@ const (
 )
 
 // AnythingOfTypeArgument contains the type of an argument
-// for use when type checking.  Used in Diff and Assert.
+// for use when type checking.  Used in [Arguments.Diff] and [Arguments.Assert].
 //
 // Deprecated: this is an implementation detail that must not be used. Use [AnythingOfType] instead.
 type AnythingOfTypeArgument = anythingOfTypeArgument
@@ -780,24 +780,25 @@ type anythingOfTypeArgument string
 //
 // For example:
 //
-//	Assert(t, AnythingOfType("string"), AnythingOfType("int"))
+//	args.Assert(t, AnythingOfType("string"), AnythingOfType("int"))
 func AnythingOfType(t string) AnythingOfTypeArgument {
 	return anythingOfTypeArgument(t)
 }
 
 // IsTypeArgument is a struct that contains the type of an argument
-// for use when type checking.  This is an alternative to AnythingOfType.
-// Used in Diff and Assert.
+// for use when type checking.  This is an alternative to [AnythingOfType].
+// Used in [Arguments.Diff] and [Arguments.Assert].
 type IsTypeArgument struct {
 	t reflect.Type
 }
 
 // IsType returns an IsTypeArgument object containing the type to check for.
 // You can provide a zero-value of the type to check.  This is an
-// alternative to AnythingOfType.  Used in Diff and Assert.
+// alternative to [AnythingOfType].  Used in [Arguments.Diff] and [Arguments.Assert].
 //
 // For example:
-// Assert(t, IsType(""), IsType(0))
+//
+//	args.Assert(t, IsType(""), IsType(0))
 func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
@@ -874,10 +875,11 @@ func (f argumentMatcher) String() string {
 // and false otherwise.
 //
 // Example:
-// m.On("Do", MatchedBy(func(req *http.Request) bool { return req.Host == "example.com" }))
 //
-// |fn|, must be a function accepting a single argument (of the expected type)
-// which returns a bool. If |fn| doesn't match the required signature,
+//	m.On("Do", MatchedBy(func(req *http.Request) bool { return req.Host == "example.com" }))
+//
+// fn must be a function accepting a single argument (of the expected type)
+// which returns a bool. If fn doesn't match the required signature,
 // MatchedBy() panics.
 func MatchedBy(fn interface{}) argumentMatcher {
 	fnType := reflect.TypeOf(fn)
