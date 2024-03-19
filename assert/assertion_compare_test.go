@@ -340,6 +340,49 @@ func TestPositive(t *testing.T) {
 	}
 }
 
+func TestNonPositive(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !NonPositive(mockT, -1) {
+		t.Error("NonPositive should return true")
+	}
+
+	if !NonPositive(mockT, -1.23) {
+		t.Error("NonPositive should return true")
+	}
+
+	if !NonPositive(mockT, 0) {
+		t.Error("NonPositive should return true")
+	}
+
+	if NonPositive(mockT, 1) {
+		t.Error("NonPositive should return false")
+	}
+
+	if NonPositive(mockT, 1.23) {
+		t.Error("NonPositive should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		e   interface{}
+		msg string
+	}{
+		{e: int(1), msg: `"1" is positive`},
+		{e: int8(1), msg: `"1" is positive`},
+		{e: int16(1), msg: `"1" is positive`},
+		{e: int32(1), msg: `"1" is positive`},
+		{e: int64(1), msg: `"1" is positive`},
+		{e: float32(1.23), msg: `"1.23" is positive`},
+		{e: float64(1.23), msg: `"1.23" is positive`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, NonPositive(out, currCase.e))
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.NonPositive")
+	}
+}
+
 func TestNegative(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -376,6 +419,49 @@ func TestNegative(t *testing.T) {
 		False(t, Negative(out, currCase.e))
 		Contains(t, out.buf.String(), currCase.msg)
 		Contains(t, out.helpers, "github.com/stretchr/testify/assert.Negative")
+	}
+}
+
+func TestNonNegative(t *testing.T) {
+	mockT := new(testing.T)
+
+	if !NonNegative(mockT, 1) {
+		t.Error("NonNegative should return true")
+	}
+
+	if !NonNegative(mockT, 1.23) {
+		t.Error("NonNegative should return true")
+	}
+
+	if !NonNegative(mockT, 0) {
+		t.Error("NonNegative should return true")
+	}
+
+	if NonNegative(mockT, -1) {
+		t.Error("NonNegative should return false")
+	}
+
+	if NonNegative(mockT, -1.23) {
+		t.Error("NonNegative should return false")
+	}
+
+	// Check error report
+	for _, currCase := range []struct {
+		e   interface{}
+		msg string
+	}{
+		{e: int(-1), msg: `"-1" is negative`},
+		{e: int8(-1), msg: `"-1" is negative`},
+		{e: int16(-1), msg: `"-1" is negative`},
+		{e: int32(-1), msg: `"-1" is negative`},
+		{e: int64(-1), msg: `"-1" is negative`},
+		{e: float32(-1.23), msg: `"-1.23" is negative`},
+		{e: float64(-1.23), msg: `"-1.23" is negative`},
+	} {
+		out := &outputT{buf: bytes.NewBuffer(nil)}
+		False(t, NonNegative(out, currCase.e))
+		Contains(t, string(out.buf.Bytes()), currCase.msg)
+		Contains(t, out.helpers, "github.com/stretchr/testify/assert.NonNegative")
 	}
 }
 
