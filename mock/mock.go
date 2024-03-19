@@ -356,6 +356,32 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
+// Get returns existing expectation so you can change behavior set earlier.
+//
+//     // in default mock builder
+//     Mock.On("Close").Return(nil)
+//
+//     // in TestCloseError
+//     makeMock().Get("Close").Return(io.EOF) 
+func (m *Mock) Get(method string, arguments ...interface{}) *Call {
+	var help string
+	minDiff := -1
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for _, call := range m.expectedCalls() {
+		if call.Method == method {
+			errInfo, diffCount := call.Arguments.Diff(arguments)
+			if diffCount == 0 {
+				return call
+			} else if minDiff == -1 || diffCount < minDiff {
+				help = errInfo
+				minDiff = diffCount
+			}
+		}
+	}
+	panic(fmt.Sprintf("call not found " + help))
+}
+
 // /*
 // 	Recording and responding to activity
 // */
