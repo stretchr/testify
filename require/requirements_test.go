@@ -27,6 +27,9 @@ type MockT struct {
 	Failed bool
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (MockT) Helper() {}
+
 func (t *MockT) FailNow() {
 	t.Failed = true
 }
