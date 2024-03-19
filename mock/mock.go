@@ -356,6 +356,21 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
+// Off clear repeatability of the specified method, 
+// which should be called
+//
+//		Mock.Off("MyMethod", arg1, arg2)
+func (m *Mock) Off(method string, arguments ...interface{}) {
+	for _, call := range m.ExpectedCalls {
+		if call.Method == method {
+			_, diffCount := call.Arguments.Diff(arguments)
+			if diffCount == 0 {
+				call.Repeatability = -1
+			}
+		}
+	}
+}
+
 // /*
 // 	Recording and responding to activity
 // */
