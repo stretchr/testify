@@ -2,6 +2,7 @@ package assert
 
 import (
 	"bufio"
+	"bytes"
 	"strings"
 	"testing"
 )
@@ -9,69 +10,78 @@ import (
 func Test_indentMessageLines(t *testing.T) {
 	tt := []struct {
 		name            string
-		msg             string
 		longestLabelLen int
-		expected        string
+
+		// the input is constructed based on the below parameters
+		bytesPerLine int
+		lineCount    int
 	}{
 		{
-			name:            "single line",
-			msg:             "Hello World\n",
-			longestLabelLen: 11,
-			expected:        "Hello World",
-		},
-		{
-			name:            "multi line",
-			msg:             "Hello\nWorld\n",
-			longestLabelLen: 11,
-			expected:        "Hello\n\t            \tWorld",
-		},
-		{
 			name:            "single line - over the bufio default limit",
-			msg:             strings.Repeat("hello ", bufio.MaxScanTokenSize+10),
 			longestLabelLen: 11,
-			expected:        strings.Repeat("hello ", bufio.MaxScanTokenSize+10),
+			bytesPerLine:    bufio.MaxScanTokenSize + 10,
+			lineCount:       1,
 		},
 		{
 			name:            "multi line - over the bufio default limit",
-			msg:             strings.Repeat("hello\n", bufio.MaxScanTokenSize+10),
-			longestLabelLen: 3,
-			expected: strings.TrimSpace(
-				strings.TrimPrefix(strings.Repeat("\thello\n\t    ", bufio.MaxScanTokenSize+10), "\t"),
-			),
+			longestLabelLen: 11,
+			bytesPerLine:    bufio.MaxScanTokenSize + 10,
+			lineCount:       3,
 		},
 		{
 			name:            "single line - just under the bufio default limit",
-			msg:             strings.Repeat("hello ", bufio.MaxScanTokenSize-10),
 			longestLabelLen: 11,
-			expected:        strings.Repeat("hello ", bufio.MaxScanTokenSize-10),
+			bytesPerLine:    bufio.MaxScanTokenSize - 10,
+			lineCount:       1,
 		},
 		{
-			name:            "multi line - just under the bufio default limit",
-			msg:             strings.Repeat("hello\n", bufio.MaxScanTokenSize-10),
-			longestLabelLen: 3,
-			expected: strings.TrimSpace(
-				strings.TrimPrefix(strings.Repeat("\thello\n\t    ", bufio.MaxScanTokenSize-10), "\t"),
-			),
+			name:            "single line - just under the bufio default limit",
+			longestLabelLen: 11,
+			bytesPerLine:    bufio.MaxScanTokenSize - 10,
+			lineCount:       1,
 		},
 		{
 			name:            "single line - equal to the bufio default limit",
-			msg:             strings.Repeat("hello ", bufio.MaxScanTokenSize),
 			longestLabelLen: 11,
-			expected:        strings.Repeat("hello ", bufio.MaxScanTokenSize),
+			bytesPerLine:    bufio.MaxScanTokenSize,
+			lineCount:       1,
 		},
 		{
 			name:            "multi line - equal to the bufio default limit",
-			msg:             strings.Repeat("hello\n", bufio.MaxScanTokenSize),
-			longestLabelLen: 3,
-			expected: strings.TrimSpace(
-				strings.TrimPrefix(strings.Repeat("\thello\n\t    ", bufio.MaxScanTokenSize), "\t"),
-			),
+			longestLabelLen: 11,
+			bytesPerLine:    bufio.MaxScanTokenSize,
+			lineCount:       3,
+		},
+		{
+			name:            "longest label length is zero",
+			longestLabelLen: 0,
+			bytesPerLine:    10,
+			lineCount:       1,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			Equal(t, tc.expected, indentMessageLines(tc.msg, tc.longestLabelLen))
+			var input bytes.Buffer
+			for i := 0; i < tc.lineCount; i++ {
+				input.WriteString(strings.Repeat("#", tc.bytesPerLine))
+				input.WriteRune('\n')
+			}
+
+			output := indentMessageLines(
+				strings.TrimSpace(input.String()), tc.longestLabelLen,
+			)
+			outputLines := strings.Split(output, "\n")
+			for i, line := range outputLines {
+				if i > 0 {
+					// count the leading white spaces. It should be equal to the longest
+					// label length + 3. The +3 is to account for the 2 '\t' and 1 extra
+					// space. Read the comment in the function for more context
+					Equal(t, tc.longestLabelLen+3, strings.Index(line, "#"))
+				}
+
+				Len(t, strings.TrimSpace(line), tc.bytesPerLine)
+			}
 		})
 	}
 }

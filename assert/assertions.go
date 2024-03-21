@@ -300,7 +300,6 @@ func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
 // basis on which the alignment occurs).
 func indentMessageLines(message string, longestLabelLen int) string {
 	outBuf := new(bytes.Buffer)
-
 	msgScanner := bufio.NewScanner(strings.NewReader(message))
 
 	// a buffer is set manually to store the tokenization of the message string
@@ -311,14 +310,15 @@ func indentMessageLines(message string, longestLabelLen int) string {
 	// single very long line. Refer to issue #1525
 	msgScanner.Buffer(nil, len(message)+1)
 
-	first := true
+	isFirstLine := true
+	indent := fmt.Sprintf("\n\t%*s\t", longestLabelLen+1, "")
 	for msgScanner.Scan() {
-		if !first {
-			outBuf.WriteString("\n\t" + strings.Repeat(" ", longestLabelLen+1) + "\t")
+		if !isFirstLine {
+			outBuf.WriteString(indent)
 		}
 
 		outBuf.Write(msgScanner.Bytes())
-		first = false
+		isFirstLine = false
 	}
 
 	return outBuf.String()
