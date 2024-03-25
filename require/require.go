@@ -35,8 +35,10 @@ func Conditionf(t TestingT, comp assert.Comparison, msg string, args ...interfac
 // specified substring or element.
 //
 //	assert.Contains(t, "Hello World", "World")
-//	assert.Contains(t, ["Hello", "World"], "World")
-//	assert.Contains(t, {"Hello": "World"}, "Hello")
+//	assert.Contains(t, []string{"Hello", "World"}, "World")
+//	assert.Contains(t, map[string]string{"Hello": "World"}, "Hello")
+//	assert.Contains(t, []byte("Hello World"), []byte("World"))
+//	assert.Contains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("World"))
 func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -51,8 +53,10 @@ func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...int
 // specified substring or element.
 //
 //	assert.Containsf(t, "Hello World", "World", "error message %s", "formatted")
-//	assert.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
-//	assert.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	assert.Containsf(t, []string{"Hello", "World"}, "World", "error message %s", "formatted")
+//	assert.Containsf(t, map[string]string{"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	assert.Containsf(t, []byte("Hello World"), []byte("World"), "error message %s", "formatted")
+//	assert.Containsf(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("World"), "error message %s", "formatted")
 func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1401,8 +1405,10 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 // specified substring or element.
 //
 //	assert.NotContains(t, "Hello World", "Earth")
-//	assert.NotContains(t, ["Hello", "World"], "Earth")
-//	assert.NotContains(t, {"Hello": "World"}, "Earth")
+//	assert.NotContains(t, []string{"Hello", "World"}, "Earth")
+//	assert.NotContains(t, map[string]string{"Hello": "World"}, "Earth")
+//	assert.NotContains(t, []byte("Hello World"), []byte("Earth"))
+//	assert.NotContains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"))
 func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1417,8 +1423,10 @@ func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...
 // specified substring or element.
 //
 //	assert.NotContainsf(t, "Hello World", "Earth", "error message %s", "formatted")
-//	assert.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
-//	assert.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	assert.NotContainsf(t, []string{"Hello", "World"}, "Earth", "error message %s", "formatted")
+//	assert.NotContainsf(t, map[string]string{"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	assert.NotContainsf(t, []byte("Hello World"), []byte("Earth"), "error message %s", "formatted")
+//	assert.NotContainsf(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"), "error message %s", "formatted")
 func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
