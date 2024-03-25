@@ -252,6 +252,16 @@ func (c *Call) Unset() *Call {
 	return c
 }
 
+// Replace removes mock handlers from being called and returns a new Call. The
+// behavior is similar to calling Unset and then On again with the same method
+// name and arguments.
+//
+//	test.On("func", mock.Anything).Replace().Return(true)
+func (c *Call) Replace() *Call {
+	c.Unset()
+	return c.Parent.On(c.Method, c.Arguments...)
+}
+
 // NotBefore indicates that the mock should only be called after the referenced
 // calls have been called as expected. The referenced calls may be from the
 // same mock instance and/or other mock instances.

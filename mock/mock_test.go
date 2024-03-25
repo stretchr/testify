@@ -666,6 +666,53 @@ func Test_Mock_Unset_WithFuncPanics(t *testing.T) {
 	})
 }
 
+func Test_Mock_Replace(t *testing.T) {
+	var mockedService = &TestExampleImplementation{}
+
+	mockedService.On("TheExampleMethod", 1, 2, 3).Return(1, nil)
+	mockedService.On("TheExampleMethod", 1, 2, 3).Replace().Return(2, nil)
+
+	res, _ := mockedService.TheExampleMethod(1, 2, 3)
+	assert.Equal(t, 2, res, "should return correct value")
+}
+
+func Test_Mock_Replace_MultipleCallsWithDifferentArgs(t *testing.T) {
+	var mockedService = &TestExampleImplementation{}
+
+	mockedService.On("TheExampleMethod", 1, 1, 1).Return(1, nil)
+	mockedService.On("TheExampleMethod", 2, 2, 2).Return(1, nil)
+	mockedService.On("TheExampleMethod", 3, 3, 3).Return(1, nil)
+
+	mockedService.On("TheExampleMethod", 2, 2, 2).Replace().Return(2, nil)
+
+	res, _ := mockedService.TheExampleMethod(1, 1, 1)
+	assert.Equal(t, 1, res, "should return correct value")
+	res, _ = mockedService.TheExampleMethod(2, 2, 2)
+	assert.Equal(t, 2, res, "should return correct value")
+	res, _ = mockedService.TheExampleMethod(3, 3, 3)
+	assert.Equal(t, 1, res, "should return correct value")
+}
+
+func Test_Mock_Replace_Chained(t *testing.T) {
+	var mockedService = &TestExampleImplementation{}
+
+	mockedService.On("TheExampleMethod", 1, 1, 1).Return(1, nil)
+	mockedService.On("TheExampleMethod", 2, 2, 2).Return(1, nil)
+	mockedService.On("TheExampleMethod", 3, 3, 3).Return(1, nil)
+
+	mockedService.On("TheExampleMethod", 4, 4, 4).Return(5, nil).
+		On("TheExampleMethod", 3, 3, 3).Replace().Return(10, nil)
+
+	res, _ := mockedService.TheExampleMethod(1, 1, 1)
+	assert.Equal(t, 1, res, "should return correct value")
+	res, _ = mockedService.TheExampleMethod(2, 2, 2)
+	assert.Equal(t, 1, res, "should return correct value")
+	res, _ = mockedService.TheExampleMethod(3, 3, 3)
+	assert.Equal(t, 10, res, "should return correct value")
+	res, _ = mockedService.TheExampleMethod(4, 4, 4)
+	assert.Equal(t, 5, res, "should return correct value")
+}
+
 func Test_Mock_Return(t *testing.T) {
 
 	// make a test impl object
