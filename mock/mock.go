@@ -905,6 +905,46 @@ func (args Arguments) Get(index int) interface{} {
 	return args[index]
 }
 
+// Returns assigns the arguments to the values pointed to by v. Used to return
+// values in a mocked method.
+//
+// For example:
+//     func (o *MyTestObject) SavePersonDetails(firstname, lastname string, age int) (n int, err error) {
+//       o.Called(firstname, lastname, age).Returns(&n, &err)
+//       return
+//     }
+func (args Arguments) Returns(v ...interface{}) {
+	if len(v) != len(args) {
+		panic(fmt.Sprintf("assert: arguments: Cannot call Returns() with %d value(s) because there are %d argument(s).", len(v), len(args)))
+	}
+
+	for i := range v {
+		val := reflect.ValueOf(v[i])
+		if val.Kind() != reflect.Ptr || !val.Elem().CanSet() {
+			panic(fmt.Sprintf("assert: arguments: Value %d in call of Returns() is non-pointer.", i))
+		}
+
+		arg := reflect.ValueOf(args.Get(i))
+		if !arg.IsValid() {
+			if !canBeNil(val.Elem()) {
+				panic(fmt.Sprintf("assert: arguments: Cannot assign nil argument %d to value in call of Returns().", i))
+			}
+			continue
+		}
+
+		val.Elem().Set(arg)
+	}
+}
+
+func canBeNil(v reflect.Value) bool {
+	k := v.Kind()
+	if k == reflect.Chan || k == reflect.Func || k == reflect.Map || k == reflect.Ptr ||
+		k == reflect.UnsafePointer || k == reflect.Interface || k == reflect.Slice {
+		return true
+	}
+	return false
+}
+
 // Is gets whether the objects match the arguments specified.
 func (args Arguments) Is(objects ...interface{}) bool {
 	for i, obj := range args {
