@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -211,4 +212,28 @@ func TestHttpBodyWrappers(t *testing.T) {
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
 	assert.True(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+}
+
+func TestHTTPBuilder(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	// Test status codes
+	assert.Equal(mockAssert.HTTP(httpOK, "GET", "/", nil, WithCode(200)), true)
+	assert.Equal(mockAssert.HTTP(httpRedirect, "GET", "/", nil, WithCode(200)), false)
+	assert.Equal(mockAssert.HTTP(httpError, "GET", "/", nil, WithCode(200)), false)
+
+	assert.Equal(mockAssert.HTTP(httpOK, "GET", "/", nil, WithCode(200)), true)
+	assert.Equal(mockAssert.HTTP(httpRedirect, "GET", "/", nil, WithCode(307)), true)
+	assert.Equal(mockAssert.HTTP(httpError, "GET", "/", nil, WithCode(500)), true)
+
+	// Test codes and body
+	assert.True(mockAssert.HTTP(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, WithCode(200), WithExpectedBody(*bytes.NewBufferString("Hello, World!"))))
+	assert.True(mockAssert.HTTP(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, WithCode(200), WithExpectedBody(*bytes.NewBufferString("World"))))
+	assert.False(mockAssert.HTTP(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, WithCode(200), WithExpectedBody(*bytes.NewBufferString("world"))))
+
+	// Test codes headers and body
+	assert.True(mockAssert.HTTP(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, WithCode(200), WithResponseHeader(http.Header{"Content-Type": []string{"text/plain; charset=utf-8"}}), WithExpectedBody(*bytes.NewBufferString("Hello, World!"))))
+	assert.True(mockAssert.HTTP(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, WithCode(200), WithResponseHeader(http.Header{"Content-Type": []string{"text/plain; charset=utf-8"}}), WithExpectedBody(*bytes.NewBufferString("World"))))
+	assert.False(mockAssert.HTTP(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, WithCode(200), WithResponseHeader(http.Header{"Content-Type": []string{"text/plain; charset=utf-8"}}), WithExpectedBody(*bytes.NewBufferString("world"))))
 }
