@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // AssertionTesterInterface defines an interface to be used for testing assertion methods
@@ -680,4 +682,31 @@ func TestErrorAssertionFunc(t *testing.T) {
 			tt.assertion(t, tt.err)
 		})
 	}
+}
+
+func TestEventuallyWithTFalse(t *testing.T) {
+	mockT := new(MockT)
+
+	condition := func(collect *assert.CollectT) {
+		True(collect, false)
+	}
+
+	EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
+	True(t, mockT.Failed, "Check should fail")
+}
+
+func TestEventuallyWithTTrue(t *testing.T) {
+	mockT := new(MockT)
+
+	counter := 0
+	condition := func(collect *assert.CollectT) {
+		defer func() {
+			counter += 1
+		}()
+		True(collect, counter == 1)
+	}
+
+	EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
+	False(t, mockT.Failed, "Check should pass")
+	Equal(t, 2, counter, "Condition is expected to be called 2 times")
 }
