@@ -59,6 +59,7 @@ func TestCompare(t *testing.T) {
 		{less: uintptr(1), greater: uintptr(2), cType: "uintptr"},
 		{less: customUintptr(1), greater: customUintptr(2), cType: "uint64"},
 		{less: time.Now(), greater: time.Now().Add(time.Hour), cType: "time.Time"},
+		{less: time.Date(2024, 0, 0, 0, 0, 0, 0, time.Local), greater: time.Date(2263, 0, 0, 0, 0, 0, 0, time.Local), cType: "time.Time"},
 		{less: customTime(time.Now()), greater: customTime(time.Now().Add(time.Hour)), cType: "time.Time"},
 		{less: []byte{1, 1}, greater: []byte{1, 2}, cType: "[]byte"},
 		{less: customBytes([]byte{1, 1}), greater: customBytes([]byte{1, 2}), cType: "[]byte"},
