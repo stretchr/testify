@@ -328,7 +328,13 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (compareResult, bool) {
 				timeObj2 = obj2Value.Convert(timeType).Interface().(time.Time)
 			}
 
-			return compare(timeObj1.UnixNano(), timeObj2.UnixNano(), reflect.Int64)
+			if timeObj1.Before(timeObj2) {
+				return compareLess, true
+			}
+			if timeObj1.Equal(timeObj2) {
+				return compareEqual, true
+			}
+			return compareGreater, true
 		}
 	case reflect.Slice:
 		{
