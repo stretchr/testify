@@ -308,7 +308,7 @@ func indentMessageLines(message string, longestLabelLen int) string {
 	// than the length of the message to avoid exceeding the default
 	// MaxScanTokenSize while scanning lines. This can happen when there is a
 	// single very long line. Refer to issue #1525
-	msgScanner.Buffer(nil, len(message)+1)
+	msgScanner.Buffer(make([]byte, len(message)+1), len(message)+1)
 
 	isFirstLine := true
 	indent := fmt.Sprintf("\n\t%*s\t", longestLabelLen+1, "")
