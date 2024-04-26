@@ -3664,3 +3664,88 @@ func TestNotErrorAs(t *testing.T) {
 		})
 	}
 }
+
+func TestNoFieldIsEmpty(t *testing.T) {
+	str := "a string"
+	tests := []struct {
+		name         string
+		input        interface{}
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			name: "success",
+			input: struct {
+				Float64   float64
+				Func      func()
+				Int       int
+				Interface interface{}
+				Pointer   *string
+				Slice     []string
+				String    string
+				Struct    struct{ String string }
+			}{
+				Float64:   1.5,
+				Func:      func() {},
+				Int:       1,
+				Interface: "interface",
+				Pointer:   &str,
+				Slice:     []string{"a", "b"},
+				String:    "a string",
+				Struct:    struct{ String string }{String: "a nested string"},
+			},
+			result: true,
+		},
+		{
+			name: "success_pointer",
+			input: &struct {
+				String string
+			}{
+				String: "a string",
+			},
+			result: true,
+		},
+		{
+			name:   "success_unexported",
+			input:  struct{ unexported string }{},
+			result: true,
+		},
+		{
+			name: "failure",
+			input: struct {
+				Float64   float64
+				Func      func()
+				Int       int
+				Interface interface{}
+				Pointer   *string
+				Slice     []string
+				String    string
+				Struct    struct{ String string }
+			}{},
+			result:       false,
+			resultErrMsg: "Object contained empty fields: Float64, Func, Int, Interface, Pointer, Slice, String, Struct\n",
+		},
+		{
+			name: "failure_partial",
+			input: struct {
+				StringA string
+				StringB string
+			}{StringA: "not_empty"},
+			result:       false,
+			resultErrMsg: "Object contained empty fields: StringB\n",
+		},
+		{
+			name:         "failure_wrong_type",
+			input:        "a string is not a struct",
+			result:       false,
+			resultErrMsg: "Input must be a struct or eventually reference one\n",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			result := NoFieldIsEmpty(mockT, tt.input)
+			mockT.checkResultAndErrMsg(t, tt.result, result, tt.resultErrMsg)
+		})
+	}
+}

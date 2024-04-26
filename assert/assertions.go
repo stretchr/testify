@@ -2274,3 +2274,38 @@ func buildErrorChainString(err error, withType bool) string {
 	}
 	return chain
 }
+
+// NoFieldIsEmpty asserts that object, which must be a struct or eventually reference to one, has no empty exported fields.
+func NoFieldIsEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
+	if reflect.TypeOf(object).Kind() == reflect.Ptr {
+		return NoFieldIsEmpty(t, reflect.ValueOf(object).Elem().Interface(), msgAndArgs)
+	}
+
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	objectType := reflect.TypeOf(object)
+	if objectType.Kind() != reflect.Struct {
+		return Fail(t, "Input must be a struct or eventually reference one", msgAndArgs...)
+	}
+
+	var emptyFields []string
+	objectValue := reflect.ValueOf(object)
+	for i := 0; i < objectType.NumField(); i++ {
+		field := objectType.Field(i)
+		if !field.IsExported() {
+			continue
+		}
+
+		if isEmpty(objectValue.Field(i).Interface()) {
+			emptyFields = append(emptyFields, field.Name)
+		}
+	}
+
+	if len(emptyFields) > 0 {
+		return Fail(t, fmt.Sprintf("Object contained empty fields: %s", strings.Join(emptyFields, ", ")), msgAndArgs...)
+	}
+
+	return true
+}
