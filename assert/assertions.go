@@ -1536,16 +1536,15 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 // appendMsgAndArgs appends a message string to the first element of the msgAndArgs slice
 // and returns the updated slice.
 func appendMsgAndArgs(msgAndArgs []interface{}, message string) []interface{} {
-	if len(msgAndArgs) == 0 || msgAndArgs == nil {
+	switch len(msgAndArgs) {
+	case 0:
 		return []interface{}{message}
-	}
-	if len(msgAndArgs) == 1 {
+	case 1:
 		msg := msgAndArgs[0]
 		if msgAsStr, ok := msg.(string); ok {
 			msgAndArgs = []interface{}{fmt.Sprintf("%s %s", msgAsStr, message)}
 		}
-	}
-	if len(msgAndArgs) > 1 {
+	default:
 		msgAndArgs[0] = fmt.Sprintf("%s %s", msgAndArgs[0].(string), message)
 	}
 
