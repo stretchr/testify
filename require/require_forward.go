@@ -187,8 +187,8 @@ func (a *Assertions) EqualExportedValuesf(expected interface{}, actual interface
 	EqualExportedValuesf(a.t, expected, actual, msg, args...)
 }
 
-// EqualValues asserts that two objects are equal or convertible to the same types
-// and equal.
+// EqualValues asserts that two objects are equal or convertible to the larger
+// type and equal.
 //
 //	a.EqualValues(uint32(123), int32(123))
 func (a *Assertions) EqualValues(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
@@ -198,8 +198,8 @@ func (a *Assertions) EqualValues(expected interface{}, actual interface{}, msgAn
 	EqualValues(a.t, expected, actual, msgAndArgs...)
 }
 
-// EqualValuesf asserts that two objects are equal or convertible to the same types
-// and equal.
+// EqualValuesf asserts that two objects are equal or convertible to the larger
+// type and equal.
 //
 //	a.EqualValuesf(uint32(123), int32(123), "error message %s", "formatted")
 func (a *Assertions) EqualValuesf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
@@ -337,7 +337,7 @@ func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, ti
 //	a.EventuallyWithT(func(c *assert.CollectT) {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		assert.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 func (a *Assertions) EventuallyWithT(condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -362,7 +362,7 @@ func (a *Assertions) EventuallyWithT(condition func(collect *assert.CollectT), w
 //	a.EventuallyWithTf(func(c *assert.CollectT, "error message %s", "formatted") {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		assert.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 func (a *Assertions) EventuallyWithTf(condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
