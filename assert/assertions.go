@@ -1176,6 +1176,39 @@ func formatListDiff(listA, listB interface{}, extraA, extraB []interface{}) stri
 	return msg.String()
 }
 
+// NotElementsMatch asserts that the specified listA(array, slice...) is NOT equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should not match.
+// This is an inverse of ElementsMatch.
+//
+// assert.NotElementsMatch(t, [1, 1, 2, 3], [1, 1, 2, 3]) -> false
+//
+// assert.NotElementsMatch(t, [1, 1, 2, 3], [1, 2, 3]) -> true
+//
+// assert.NotElementsMatch(t, [1, 2, 3], [1, 2, 4]) -> true
+func NotElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface{}) (ok bool) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if isEmpty(listA) && isEmpty(listB) {
+		return Fail(t, "A and B are the same", msgAndArgs)
+	}
+
+	if !isList(t, listA, msgAndArgs...) {
+		return Fail(t, "A is not a list", msgAndArgs...)
+	}
+	if !isList(t, listB, msgAndArgs...) {
+		return Fail(t, "B is not a list", msgAndArgs...)
+	}
+
+	extraA, extraB := diffLists(listA, listB)
+	if len(extraA) == 0 && len(extraB) == 0 {
+		return Fail(t, "A and B are the same", msgAndArgs)
+	}
+
+	return true
+}
+
 // Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
