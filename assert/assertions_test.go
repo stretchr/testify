@@ -1972,13 +1972,16 @@ func TestRegexp(t *testing.T) {
 	}{
 		{"^start", "start of the line"},
 		{"end$", "in the end"},
+		{"end$", "in the end"},
 		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12.34"},
 	}
 
 	for _, tc := range cases {
 		True(t, Regexp(mockT, tc.rx, tc.str))
 		True(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		True(t, Regexp(mockT, regexp.MustCompile(tc.rx), []byte(tc.str)))
 		False(t, NotRegexp(mockT, tc.rx, tc.str))
+		False(t, NotRegexp(mockT, tc.rx, []byte(tc.str)))
 		False(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 	}
 
@@ -1993,7 +1996,9 @@ func TestRegexp(t *testing.T) {
 	for _, tc := range cases {
 		False(t, Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
 		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), []byte(tc.str)))
 		True(t, NotRegexp(mockT, tc.rx, tc.str))
+		True(t, NotRegexp(mockT, tc.rx, []byte(tc.str)))
 		True(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 	}
 }
