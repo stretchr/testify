@@ -19,7 +19,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
-	"gopkg.in/yaml.v3"
+
+	// Wrapper around gopkg.in/yaml.v3
+	"github.com/stretchr/testify/assert/yaml"
 )
 
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_format.go.tmpl"
@@ -1600,7 +1602,6 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 
 // matchRegexp return true if a specified regexp matches a string.
 func matchRegexp(rx interface{}, str interface{}) bool {
-
 	var r *regexp.Regexp
 	if rr, ok := rx.(*regexp.Regexp); ok {
 		r = rr
@@ -1608,7 +1609,14 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 		r = regexp.MustCompile(fmt.Sprint(rx))
 	}
 
-	return (r.FindStringIndex(fmt.Sprint(str)) != nil)
+	switch v := str.(type) {
+	case []byte:
+		return r.Match(v)
+	case string:
+		return r.MatchString(v)
+	default:
+		return r.MatchString(fmt.Sprint(v))
+	}
 
 }
 
