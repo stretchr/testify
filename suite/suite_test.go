@@ -582,7 +582,8 @@ func TestSuiteWithStats(t *testing.T) {
 // It logs calls in the callOrder slice which we then use to assert the correct calls were made
 type FailfastSuite struct {
 	Suite
-	callOrder []string
+	callOrder       []string
+	callOrderPerRun []string
 }
 
 func (s *FailfastSuite) call(method string) {
@@ -605,11 +606,15 @@ func TestFailfastSuite(t *testing.T) {
 	)
 	assert.False(t, ok)
 	if failFast {
-		// Test A Fails and because we are running with failfast Test B never runs and we proceed straight to TearDownSuite
-		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+		for _, callOrder := range s.callOrderPerRun {
+			// Test A Fails and because we are running with failfast Test B never runs and we proceed straight to TearDownSuite
+			assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", callOrder)
+		}
 	} else {
-		// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
-		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+		for _, callOrder := range s.callOrderPerRun {
+			// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
+			assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", callOrder)
+		}
 	}
 }
 func TestFailfastSuiteFailFastOn(t *testing.T) {
@@ -631,6 +636,8 @@ func (s *FailfastSuite) SetupSuite() {
 
 func (s *FailfastSuite) TearDownSuite() {
 	s.call("TearDownSuite")
+	s.callOrderPerRun = append(s.callOrderPerRun, strings.Join(s.callOrder, ";"))
+	s.callOrder = []string{}
 }
 func (s *FailfastSuite) SetupTest() {
 	s.call("SetupTest")
