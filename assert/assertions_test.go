@@ -3279,3 +3279,25 @@ func TestErrorAs(t *testing.T) {
 		})
 	}
 }
+
+func TestNotErrorAs(t *testing.T) {
+	mockT := new(testing.T)
+	tests := []struct {
+		err    error
+		result bool
+	}{
+		{fmt.Errorf("wrap: %w", &customError{}), false},
+		{io.EOF, true},
+		{nil, true},
+	}
+	for _, tt := range tests {
+		tt := tt
+		var target *customError
+		t.Run(fmt.Sprintf("NotErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			res := NotErrorAs(mockT, tt.err, &target)
+			if res != tt.result {
+				t.Errorf("NotErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
+			}
+		})
+	}
+}
