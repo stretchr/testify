@@ -666,6 +666,35 @@ func Test_Mock_Unset_WithFuncPanics(t *testing.T) {
 	})
 }
 
+func Test_Mock_Unset_WithUnsetToggle_Option(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("TheExampleMethod", 1).
+		Unset(WithUnsetToggle(true))
+	assert.Len(t, mockedService.ExpectedCalls, 0)
+
+	mockedService.On("TestExampleMethod", 1).
+		Unset(WithUnsetToggle(false))
+	assert.Len(t, mockedService.ExpectedCalls, 1)
+}
+
+func Test_Mock_Unset_WithUnsetEnabled_Option(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("TheExampleMethod", 1).
+		Unset(WithUnsetEnabled())
+
+	assert.Len(t, mockedService.ExpectedCalls, 0)
+}
+
+func Test_Mock_Unset_WithUnsetDisabled_Option(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("TheExampleMethod", 1).
+		Unset(WithUnsetDisabled())
+	assert.Len(t, mockedService.ExpectedCalls, 1)
+}
+
 func Test_Mock_Return(t *testing.T) {
 
 	// make a test impl object

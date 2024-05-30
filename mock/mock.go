@@ -208,10 +208,49 @@ func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
 
+// unsetConfiguration stores Unset method call configuration.
+type unsetConfiguration struct {
+	enabled bool
+}
+
+// UnsetOption will allow to configure Unset method invocation.
+type UnsetOption func(*unsetConfiguration)
+
+// WithUnsetToggle will configure unset value. If enabled == false the Unset
+// function will not be called. Default: true - the Unset will be called.
+// This option may be used to conditionally enable or disable mock calls.
+func WithUnsetToggle(enabled bool) UnsetOption {
+	return func(uc *unsetConfiguration) {
+		uc.enabled = enabled
+	}
+}
+
+// WithUnsetEnabled is shorthand for WithUnsetToggle(true).
+func WithUnsetEnabled() UnsetOption {
+	return func(uc *unsetConfiguration) {
+		uc.enabled = true
+	}
+}
+
+// WithUnsetEnabled is shorthand for WithUnsetToggle(false).
+func WithUnsetDisabled() UnsetOption {
+	return func(uc *unsetConfiguration) {
+		uc.enabled = false
+	}
+}
+
 // Unset removes a mock handler from being called.
 //
 //	test.On("func", mock.Anything).Unset()
-func (c *Call) Unset() *Call {
+func (c *Call) Unset(options ...UnsetOption) *Call {
+	configuration := &unsetConfiguration{enabled: true}
+	for _, option := range options {
+		option(configuration)
+	}
+	if !configuration.enabled {
+		return c
+	}
+
 	var unlockOnce sync.Once
 
 	for _, arg := range c.Arguments {
