@@ -291,6 +291,15 @@ func (c *Call) Unset(options ...UnsetOption) *Call {
 	return c
 }
 
+// Toggle will conditionally enable or disable mock call via flag.
+// By default Call is toggled.
+func (c *Call) Toggle(t bool) *Call {
+	if t {
+		return c
+	}
+	return c.Unset()
+}
+
 // NotBefore indicates that the mock should only be called after the referenced
 // calls have been called as expected. The referenced calls may be from the
 // same mock instance and/or other mock instances.

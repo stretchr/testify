@@ -695,6 +695,15 @@ func Test_Mock_Unset_WithUnsetDisabled_Option(t *testing.T) {
 	assert.Len(t, mockedService.ExpectedCalls, 1)
 }
 
+func Test_Mock_Toggle(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("TheExampleMethod", 1).Toggle(true)
+	assert.Len(t, mockedService.ExpectedCalls, 1)
+
+	mockedService.On("TheExampleMethod", 1).Toggle(false)
+	assert.Len(t, mockedService.ExpectedCalls, 0)
+}
+
 func Test_Mock_Return(t *testing.T) {
 
 	// make a test impl object
