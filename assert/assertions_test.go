@@ -2898,6 +2898,29 @@ func TestEventuallyTrue(t *testing.T) {
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+func TestConsistentlyTrue(t *testing.T) {
+	condition := func() bool {
+		return true
+	}
+
+	True(t, Consistently(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
+func TestConsistentlyFalse(t *testing.T) {
+	mockT := new(testing.T)
+
+	state := 0
+	condition := func() bool {
+		defer func() {
+			state += 1
+		}()
+
+		return state != 2
+	}
+
+	False(t, Consistently(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
 // errorsCapturingT is a mock implementation of TestingT that captures errors reported with Errorf.
 type errorsCapturingT struct {
 	errors []error
@@ -2968,6 +2991,32 @@ func TestEventuallyWithT_ReturnsTheLatestFinishedConditionErrors(t *testing.T) {
 	mockT := new(errorsCapturingT)
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 2)
+}
+
+func TestConsistentlyWithTTrue(t *testing.T) {
+	mockT := new(errorsCapturingT)
+
+	condition := func(collect *CollectT) {
+		True(collect, true)
+	}
+
+	True(t, ConsistentlyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockT.errors, 0)
+}
+
+func TestConsistentlyWithTFalse(t *testing.T) {
+	mockT := new(errorsCapturingT)
+
+	state := 0
+	condition := func(collect *CollectT) {
+		defer func() {
+			state += 1
+		}()
+		False(collect, state == 2)
+	}
+
+	False(t, ConsistentlyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockT.errors, 1)
 }
 
 func TestNeverFalse(t *testing.T) {
