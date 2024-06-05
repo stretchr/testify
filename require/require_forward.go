@@ -1105,7 +1105,9 @@ func (a *Assertions) NoErrorf(err error, msg string, args ...interface{}) {
 	NoErrorf(a.t, err, msg, args...)
 }
 
-// NoFieldIsEmpty asserts that object, which must be a struct or eventually reference to one, has no empty exported fields.
+// NoFieldIsEmpty asserts that object, which must be a struct or eventually
+// reference to one, has no exported field with a value that is empty (following
+// the definition of empty used in [Empty]).
 func (a *Assertions) NoFieldIsEmpty(object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1113,7 +1115,9 @@ func (a *Assertions) NoFieldIsEmpty(object interface{}, msgAndArgs ...interface{
 	NoFieldIsEmpty(a.t, object, msgAndArgs...)
 }
 
-// NoFieldIsEmptyf asserts that object, which must be a struct or eventually reference to one, has no empty exported fields.
+// NoFieldIsEmptyf asserts that object, which must be a struct or eventually
+// reference to one, has no exported field with a value that is empty (following
+// the definition of empty used in [Empty]).
 func (a *Assertions) NoFieldIsEmptyf(object interface{}, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
