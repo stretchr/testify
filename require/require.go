@@ -1559,7 +1559,7 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 	t.FailNow()
 }
 
-// NotErrorIs asserts that at none of the errors in err's chain matches target.
+// NotErrorIs asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
@@ -1571,7 +1571,7 @@ func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) 
 	t.FailNow()
 }
 
-// NotErrorIsf asserts that at none of the errors in err's chain matches target.
+// NotErrorIsf asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
