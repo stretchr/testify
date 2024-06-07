@@ -9,6 +9,8 @@ jobs:
         go_version:
           - stable
           - oldstable
+        go-version-file:
+          - ./go.mod
     steps:
       - uses: actions/checkout@v4
       - name: Setup Go
