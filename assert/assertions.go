@@ -2012,12 +2012,12 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	ch := make(chan []error, 1)
 
 	checkCond := func() {
-				collect := new(CollectT)
-				defer func() {
-					ch <- collect.errors
-				}()
-				condition(collect)
-			}()
+		collect := new(CollectT)
+		defer func() {
+			ch <- collect.errors
+		}()
+		condition(collect)
+	}
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2046,7 +2046,7 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			}
 			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
 			lastFinishedTickErrs = errs
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
