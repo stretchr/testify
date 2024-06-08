@@ -236,8 +236,8 @@ func EqualExportedValuesf(t TestingT, expected interface{}, actual interface{}, 
 	t.FailNow()
 }
 
-// EqualValues asserts that two objects are equal or convertible to the same types
-// and equal.
+// EqualValues asserts that two objects are equal or convertible to the larger
+// type and equal.
 //
 //	assert.EqualValues(t, uint32(123), int32(123))
 func EqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
@@ -250,8 +250,8 @@ func EqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArg
 	t.FailNow()
 }
 
-// EqualValuesf asserts that two objects are equal or convertible to the same types
-// and equal.
+// EqualValuesf asserts that two objects are equal or convertible to the larger
+// type and equal.
 //
 //	assert.EqualValuesf(t, uint32(123), int32(123), "error message %s", "formatted")
 func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
@@ -422,7 +422,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 //	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		assert.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -450,7 +450,7 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitF
 //	assert.EventuallyWithTf(t, func(c *assert.CollectT, "error message %s", "formatted") {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		assert.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1432,6 +1432,46 @@ func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, a
 		h.Helper()
 	}
 	if assert.NotContainsf(t, s, contains, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotElementsMatch asserts that the specified listA(array, slice...) is NOT equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should not match.
+// This is an inverse of ElementsMatch.
+//
+// assert.NotElementsMatch(t, [1, 1, 2, 3], [1, 1, 2, 3]) -> false
+//
+// assert.NotElementsMatch(t, [1, 1, 2, 3], [1, 2, 3]) -> true
+//
+// assert.NotElementsMatch(t, [1, 2, 3], [1, 2, 4]) -> true
+func NotElementsMatch(t TestingT, listA interface{}, listB interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotElementsMatch(t, listA, listB, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotElementsMatchf asserts that the specified listA(array, slice...) is NOT equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should not match.
+// This is an inverse of ElementsMatch.
+//
+// assert.NotElementsMatchf(t, [1, 1, 2, 3], [1, 1, 2, 3], "error message %s", "formatted") -> false
+//
+// assert.NotElementsMatchf(t, [1, 1, 2, 3], [1, 2, 3], "error message %s", "formatted") -> true
+//
+// assert.NotElementsMatchf(t, [1, 2, 3], [1, 2, 4], "error message %s", "formatted") -> true
+func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotElementsMatchf(t, listA, listB, msg, args...) {
 		return
 	}
 	t.FailNow()

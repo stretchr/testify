@@ -16,6 +16,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create GitHub release from tag
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
