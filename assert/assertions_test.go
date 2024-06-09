@@ -3007,6 +3007,24 @@ func TestNeverTrue(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+func TestNeverFailQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func() bool { <-time.After(time.Millisecond); return true }
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		False(t, Never(mockT, condition, 1000*time.Millisecond, 100*time.Millisecond))
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(10 * time.Millisecond):
+		Fail(t, `condition not satisfied quickly enough`)
+	}
+}
+
 // Check that a long running condition doesn't block Eventually.
 // See issue 805 (and its long tail of following issues)
 func TestEventuallyTimeout(t *testing.T) {
