@@ -2980,42 +2980,6 @@ func TestEventuallyWithTFailNow(t *testing.T) {
 	Len(t, mockT.errors, 1)
 }
 
-func TestNeverFalse(t *testing.T) {
-	condition := func() bool {
-		return false
-	}
-
-	True(t, Never(t, condition, 100*time.Millisecond, 20*time.Millisecond))
-}
-
-// TestNeverTrue checks Never with a condition that returns true on second call.
-func TestNeverTrue(t *testing.T) {
-	mockT := new(testing.T)
-
-	// A list of values returned by condition.
-	// Channel protects against concurrent access.
-	returns := make(chan bool, 2)
-	returns <- false
-	returns <- true
-	defer close(returns)
-
-	// Will return true on second call.
-	condition := func() bool {
-		return <-returns
-	}
-
-	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
-}
-
-func TestNeverFailQuickly(t *testing.T) {
-	mockT := new(testing.T)
-
-	// By making the tick longer than the total duration, we expect that this test would fail if
-	// we didn't check the condition before the first tick elapses.
-	condition := func() bool { return true }
-	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
-}
-
 // Check that a long running condition doesn't block Eventually.
 // See issue 805 (and its long tail of following issues)
 func TestEventuallyTimeout(t *testing.T) {
@@ -3057,6 +3021,42 @@ func TestEventuallyWithTSucceedQuickly(t *testing.T) {
 	// By making the tick longer than the total duration, we expect that this test would fail if
 	// we didn't check the condition before the first tick elapses.
 	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Second))
+}
+
+func TestNeverFalse(t *testing.T) {
+	condition := func() bool {
+		return false
+	}
+
+	True(t, Never(t, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
+// TestNeverTrue checks Never with a condition that returns true on second call.
+func TestNeverTrue(t *testing.T) {
+	mockT := new(testing.T)
+
+	// A list of values returned by condition.
+	// Channel protects against concurrent access.
+	returns := make(chan bool, 2)
+	returns <- false
+	returns <- true
+	defer close(returns)
+
+	// Will return true on second call.
+	condition := func() bool {
+		return <-returns
+	}
+
+	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+}
+
+func TestNeverFailQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	condition := func() bool { return true }
+	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 func Test_validateEqualArgs(t *testing.T) {
