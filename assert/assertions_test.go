@@ -3010,19 +3010,10 @@ func TestNeverTrue(t *testing.T) {
 func TestNeverFailQuickly(t *testing.T) {
 	mockT := new(testing.T)
 
-	condition := func() bool { <-time.After(time.Millisecond); return true }
-
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		False(t, Never(mockT, condition, 1000*time.Millisecond, 100*time.Millisecond))
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(10 * time.Millisecond):
-		Fail(t, `condition not satisfied quickly enough`)
-	}
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	condition := func() bool { return true }
+	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 // Check that a long running condition doesn't block Eventually.
@@ -3051,37 +3042,21 @@ func TestEventuallyTimeout(t *testing.T) {
 func TestEventuallySucceedQuickly(t *testing.T) {
 	mockT := new(testing.T)
 
-	condition := func() bool { <-time.After(time.Millisecond); return true }
+	condition := func() bool { return true }
 
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		True(t, Eventually(mockT, condition, 1000*time.Millisecond, 100*time.Millisecond))
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(10 * time.Millisecond):
-		Fail(t, `condition not satisfied quickly enough`)
-	}
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	True(t, Eventually(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 func TestEventuallyWithTSucceedQuickly(t *testing.T) {
 	mockT := new(testing.T)
 
-	condition := func(t *CollectT) { <-time.After(time.Millisecond) }
+	condition := func(t *CollectT) {}
 
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		True(t, EventuallyWithT(mockT, condition, 1000*time.Millisecond, 100*time.Millisecond))
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(10 * time.Millisecond):
-		Fail(t, `condition not satisfied quickly enough`)
-	}
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 func Test_validateEqualArgs(t *testing.T) {
