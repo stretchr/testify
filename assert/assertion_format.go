@@ -621,7 +621,7 @@ func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg s
 	return NotEqualValues(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// NotErrorIsf asserts that at none of the errors in err's chain matches target.
+// NotErrorIsf asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
