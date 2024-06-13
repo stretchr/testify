@@ -10,7 +10,7 @@ import (
 )
 
 // Condition uses a Comparison to assert a complex condition.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Condition(t TestingT, comp assert.Comparison, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -22,7 +22,7 @@ func Condition(t TestingT, comp assert.Comparison, msgAndArgs ...interface{}) {
 }
 
 // Conditionf uses a Comparison to assert a complex condition.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Conditionf(t TestingT, comp assert.Comparison, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -40,7 +40,7 @@ func Conditionf(t TestingT, comp assert.Comparison, msg string, args ...interfac
 //	require.Contains(t, ["Hello", "World"], "World")
 //	require.Contains(t, {"Hello": "World"}, "Hello")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -58,7 +58,7 @@ func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...int
 //	require.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
 //	require.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -71,7 +71,7 @@ func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args
 
 // DirExists checks whether a directory exists in the given path. It also fails
 // if the path is a file rather a directory or there is an error checking whether it exists.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func DirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -84,7 +84,7 @@ func DirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 
 // DirExistsf checks whether a directory exists in the given path. It also fails
 // if the path is a file rather a directory or there is an error checking whether it exists.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func DirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -100,7 +100,7 @@ func DirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 // the number of appearances of each of them in both lists should match.
 //
 // require.ElementsMatch(t, [1, 3, 2, 3], [1, 3, 3, 2])
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ElementsMatch(t TestingT, listA interface{}, listB interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -116,7 +116,7 @@ func ElementsMatch(t TestingT, listA interface{}, listB interface{}, msgAndArgs 
 // the number of appearances of each of them in both lists should match.
 //
 // require.ElementsMatchf(t, [1, 3, 2, 3], [1, 3, 3, 2], "error message %s", "formatted")
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -132,7 +132,7 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 //
 //	require.Empty(t, obj)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -148,7 +148,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //
 //	require.Emptyf(t, obj, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -166,7 +166,7 @@ func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -183,7 +183,7 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...i
 //	actualObj, err := SomeFunction()
 //	require.EqualError(t, err,  expectedErrorString)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -200,7 +200,7 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 //	actualObj, err := SomeFunction()
 //	require.EqualErrorf(t, err,  expectedErrorString, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EqualErrorf(t TestingT, theError error, errString string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -222,7 +222,7 @@ func EqualErrorf(t TestingT, theError error, errString string, msg string, args 
 //	 require.EqualExportedValues(t, S{1, 2}, S{1, 3}) => true
 //	 require.EqualExportedValues(t, S{1, 2}, S{2, 3}) => false
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EqualExportedValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -244,7 +244,7 @@ func EqualExportedValues(t TestingT, expected interface{}, actual interface{}, m
 //	 require.EqualExportedValuesf(t, S{1, 2}, S{1, 3}, "error message %s", "formatted") => true
 //	 require.EqualExportedValuesf(t, S{1, 2}, S{2, 3}, "error message %s", "formatted") => false
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EqualExportedValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -260,7 +260,7 @@ func EqualExportedValuesf(t TestingT, expected interface{}, actual interface{}, 
 //
 //	require.EqualValues(t, uint32(123), int32(123))
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -276,7 +276,7 @@ func EqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArg
 //
 //	require.EqualValuesf(t, uint32(123), int32(123), "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -294,7 +294,7 @@ func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg stri
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -312,7 +312,7 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 //		   require.Equal(t, expectedError, err)
 //	  }
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Error(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -325,7 +325,7 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) {
 
 // ErrorAs asserts that at least one of the errors in err's chain matches target, and if so, sets target to that error value.
 // This is a wrapper for errors.As.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -338,7 +338,7 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 
 // ErrorAsf asserts that at least one of the errors in err's chain matches target, and if so, sets target to that error value.
 // This is a wrapper for errors.As.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -355,7 +355,7 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 //	actualObj, err := SomeFunction()
 //	require.ErrorContains(t, err,  expectedErrorSubString)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -372,7 +372,7 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 //	actualObj, err := SomeFunction()
 //	require.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ErrorContainsf(t TestingT, theError error, contains string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -385,7 +385,7 @@ func ErrorContainsf(t TestingT, theError error, contains string, msg string, arg
 
 // ErrorIs asserts that at least one of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -398,7 +398,7 @@ func ErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
 
 // ErrorIsf asserts that at least one of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -416,7 +416,7 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 //		   require.Equal(t, expectedErrorf, err)
 //	  }
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -432,7 +432,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 //
 //	require.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -462,7 +462,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 //		require.True(c, externalValue, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -492,7 +492,7 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitF
 //		require.True(c, externalValue, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -508,7 +508,7 @@ func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), wait
 //
 //	require.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -523,7 +523,7 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 //
 //	require.Exactly(t, int32(123), int64(123))
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Exactly(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -538,7 +538,7 @@ func Exactly(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 //
 //	require.Exactlyf(t, int32(123), int64(123), "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Exactlyf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -550,7 +550,7 @@ func Exactlyf(t TestingT, expected interface{}, actual interface{}, msg string, 
 }
 
 // Fail reports a failure through
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -562,7 +562,7 @@ func Fail(t TestingT, failureMessage string, msgAndArgs ...interface{}) {
 }
 
 // FailNow fails test
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -574,7 +574,7 @@ func FailNow(t TestingT, failureMessage string, msgAndArgs ...interface{}) {
 }
 
 // FailNowf fails test
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func FailNowf(t TestingT, failureMessage string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -586,7 +586,7 @@ func FailNowf(t TestingT, failureMessage string, msg string, args ...interface{}
 }
 
 // Failf reports a failure through
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Failf(t TestingT, failureMessage string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -601,7 +601,7 @@ func Failf(t TestingT, failureMessage string, msg string, args ...interface{}) {
 //
 //	require.False(t, myBool)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -616,7 +616,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 //
 //	require.Falsef(t, myBool, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -629,7 +629,7 @@ func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 
 // FileExists checks whether a file exists in the given path. It also fails if
 // the path points to a directory or there is an error when trying to check the file.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func FileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -642,7 +642,7 @@ func FileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 
 // FileExistsf checks whether a file exists in the given path. It also fails if
 // the path points to a directory or there is an error when trying to check the file.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func FileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -659,7 +659,7 @@ func FileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 //	require.Greater(t, float64(2), float64(1))
 //	require.Greater(t, "b", "a")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -677,7 +677,7 @@ func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface
 //	require.GreaterOrEqual(t, "b", "a")
 //	require.GreaterOrEqual(t, "b", "b")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -695,7 +695,7 @@ func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...in
 //	require.GreaterOrEqualf(t, "b", "a", "error message %s", "formatted")
 //	require.GreaterOrEqualf(t, "b", "b", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func GreaterOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -712,7 +712,7 @@ func GreaterOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, arg
 //	require.Greaterf(t, float64(2), float64(1), "error message %s", "formatted")
 //	require.Greaterf(t, "b", "a", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Greaterf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -729,7 +729,7 @@ func Greaterf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...in
 //	require.HTTPBodyContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -746,7 +746,7 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url s
 //	require.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -763,7 +763,7 @@ func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url 
 //	require.HTTPBodyNotContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -780,7 +780,7 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, ur
 //	require.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -796,7 +796,7 @@ func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, u
 //	require.HTTPError(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPError(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -812,7 +812,7 @@ func HTTPError(t TestingT, handler http.HandlerFunc, method string, url string, 
 //	require.HTTPErrorf(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -828,7 +828,7 @@ func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string,
 //	require.HTTPRedirect(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPRedirect(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -844,7 +844,7 @@ func HTTPRedirect(t TestingT, handler http.HandlerFunc, method string, url strin
 //	require.HTTPRedirectf(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -860,7 +860,7 @@ func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url stri
 //	require.HTTPStatusCode(t, myHandler, "GET", "/notImplemented", nil, 501)
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -876,7 +876,7 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method string, url str
 //	require.HTTPStatusCodef(t, myHandler, "GET", "/notImplemented", nil, 501, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPStatusCodef(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -892,7 +892,7 @@ func HTTPStatusCodef(t TestingT, handler http.HandlerFunc, method string, url st
 //	require.HTTPSuccess(t, myHandler, "POST", "http://www.google.com", nil)
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPSuccess(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -908,7 +908,7 @@ func HTTPSuccess(t TestingT, handler http.HandlerFunc, method string, url string
 //	require.HTTPSuccessf(t, myHandler, "POST", "http://www.google.com", nil, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -923,7 +923,7 @@ func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url strin
 //
 //	require.Implements(t, (*MyInterface)(nil), new(MyObject))
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Implements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -938,7 +938,7 @@ func Implements(t TestingT, interfaceObject interface{}, object interface{}, msg
 //
 //	require.Implementsf(t, (*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -953,7 +953,7 @@ func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, ms
 //
 //	require.InDelta(t, math.Pi, 22/7.0, 0.01)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -965,7 +965,7 @@ func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64
 }
 
 // InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InDeltaMapValues(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -977,7 +977,7 @@ func InDeltaMapValues(t TestingT, expected interface{}, actual interface{}, delt
 }
 
 // InDeltaMapValuesf is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InDeltaMapValuesf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -989,7 +989,7 @@ func InDeltaMapValuesf(t TestingT, expected interface{}, actual interface{}, del
 }
 
 // InDeltaSlice is the same as InDelta, except it compares two slices.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InDeltaSlice(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1001,7 +1001,7 @@ func InDeltaSlice(t TestingT, expected interface{}, actual interface{}, delta fl
 }
 
 // InDeltaSlicef is the same as InDelta, except it compares two slices.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1016,7 +1016,7 @@ func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta f
 //
 //	require.InDeltaf(t, math.Pi, 22/7.0, 0.01, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1028,7 +1028,7 @@ func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float6
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InEpsilon(t TestingT, expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1040,7 +1040,7 @@ func InEpsilon(t TestingT, expected interface{}, actual interface{}, epsilon flo
 }
 
 // InEpsilonSlice is the same as InEpsilon, except it compares each value from two slices.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InEpsilonSlice(t TestingT, expected interface{}, actual interface{}, epsilon float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1052,7 +1052,7 @@ func InEpsilonSlice(t TestingT, expected interface{}, actual interface{}, epsilo
 }
 
 // InEpsilonSlicef is the same as InEpsilon, except it compares each value from two slices.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InEpsilonSlicef(t TestingT, expected interface{}, actual interface{}, epsilon float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1064,7 +1064,7 @@ func InEpsilonSlicef(t TestingT, expected interface{}, actual interface{}, epsil
 }
 
 // InEpsilonf asserts that expected and actual have a relative error less than epsilon
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1081,7 +1081,7 @@ func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon fl
 //	require.IsDecreasing(t, []float{2, 1})
 //	require.IsDecreasing(t, []string{"b", "a"})
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1098,7 +1098,7 @@ func IsDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //	require.IsDecreasingf(t, []float{2, 1}, "error message %s", "formatted")
 //	require.IsDecreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1115,7 +1115,7 @@ func IsDecreasingf(t TestingT, object interface{}, msg string, args ...interface
 //	require.IsIncreasing(t, []float{1, 2})
 //	require.IsIncreasing(t, []string{"a", "b"})
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1132,7 +1132,7 @@ func IsIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //	require.IsIncreasingf(t, []float{1, 2}, "error message %s", "formatted")
 //	require.IsIncreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1149,7 +1149,7 @@ func IsIncreasingf(t TestingT, object interface{}, msg string, args ...interface
 //	require.IsNonDecreasing(t, []float{1, 2})
 //	require.IsNonDecreasing(t, []string{"a", "b"})
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsNonDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1166,7 +1166,7 @@ func IsNonDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) 
 //	require.IsNonDecreasingf(t, []float{1, 2}, "error message %s", "formatted")
 //	require.IsNonDecreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsNonDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1183,7 +1183,7 @@ func IsNonDecreasingf(t TestingT, object interface{}, msg string, args ...interf
 //	require.IsNonIncreasing(t, []float{2, 1})
 //	require.IsNonIncreasing(t, []string{"b", "a"})
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsNonIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1200,7 +1200,7 @@ func IsNonIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) 
 //	require.IsNonIncreasingf(t, []float{2, 1}, "error message %s", "formatted")
 //	require.IsNonIncreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1212,7 +1212,7 @@ func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interf
 }
 
 // IsType asserts that the specified objects are of the same type.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1224,7 +1224,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 }
 
 // IsTypef asserts that the specified objects are of the same type.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1239,7 +1239,7 @@ func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg strin
 //
 //	require.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1254,7 +1254,7 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 //
 //	require.JSONEqf(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func JSONEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1270,7 +1270,7 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 //
 //	require.Len(t, mySlice, 3)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1286,7 +1286,7 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 //
 //	require.Lenf(t, mySlice, 3, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Lenf(t TestingT, object interface{}, length int, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1303,7 +1303,7 @@ func Lenf(t TestingT, object interface{}, length int, msg string, args ...interf
 //	require.Less(t, float64(1), float64(2))
 //	require.Less(t, "a", "b")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1321,7 +1321,7 @@ func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{})
 //	require.LessOrEqual(t, "a", "b")
 //	require.LessOrEqual(t, "b", "b")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1339,7 +1339,7 @@ func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...inter
 //	require.LessOrEqualf(t, "a", "b", "error message %s", "formatted")
 //	require.LessOrEqualf(t, "b", "b", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1356,7 +1356,7 @@ func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args .
 //	require.Lessf(t, float64(1), float64(2), "error message %s", "formatted")
 //	require.Lessf(t, "a", "b", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1372,7 +1372,7 @@ func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...inter
 //	require.Negative(t, -1)
 //	require.Negative(t, -1.23)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1388,7 +1388,7 @@ func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 //	require.Negativef(t, -1, "error message %s", "formatted")
 //	require.Negativef(t, -1.23, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1404,7 +1404,7 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) {
 //
 //	require.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1420,7 +1420,7 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 //
 //	require.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1435,7 +1435,7 @@ func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.
 //
 //	require.Nil(t, err)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1450,7 +1450,7 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //
 //	require.Nilf(t, err, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Nilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1463,7 +1463,7 @@ func Nilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 
 // NoDirExists checks whether a directory does not exist in the given path.
 // It fails if the path points to an existing _directory_ only.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NoDirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1476,7 +1476,7 @@ func NoDirExists(t TestingT, path string, msgAndArgs ...interface{}) {
 
 // NoDirExistsf checks whether a directory does not exist in the given path.
 // It fails if the path points to an existing _directory_ only.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1494,7 +1494,7 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 //		   require.Equal(t, expectedObj, actualObj)
 //	  }
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1512,7 +1512,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 //		   require.Equal(t, expectedObj, actualObj)
 //	  }
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1525,7 +1525,7 @@ func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 
 // NoFileExists checks whether a file does not exist in a given path. It fails
 // if the path points to an existing _file_ only.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NoFileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1538,7 +1538,7 @@ func NoFileExists(t TestingT, path string, msgAndArgs ...interface{}) {
 
 // NoFileExistsf checks whether a file does not exist in a given path. It fails
 // if the path points to an existing _file_ only.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1556,7 +1556,7 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 //	require.NotContains(t, ["Hello", "World"], "Earth")
 //	require.NotContains(t, {"Hello": "World"}, "Earth")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1574,7 +1574,7 @@ func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...
 //	require.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
 //	require.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1595,7 +1595,7 @@ func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, a
 // require.NotElementsMatch(t, [1, 1, 2, 3], [1, 2, 3]) -> true
 //
 // require.NotElementsMatch(t, [1, 2, 3], [1, 2, 4]) -> true
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotElementsMatch(t TestingT, listA interface{}, listB interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1616,7 +1616,7 @@ func NotElementsMatch(t TestingT, listA interface{}, listB interface{}, msgAndAr
 // require.NotElementsMatchf(t, [1, 1, 2, 3], [1, 2, 3], "error message %s", "formatted") -> true
 //
 // require.NotElementsMatchf(t, [1, 2, 3], [1, 2, 4], "error message %s", "formatted") -> true
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1634,7 +1634,7 @@ func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg str
 //	  require.Equal(t, "two", obj[1])
 //	}
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1652,7 +1652,7 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //	  require.Equal(t, "two", obj[1])
 //	}
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1669,7 +1669,7 @@ func NotEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) 
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotEqual(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1684,7 +1684,7 @@ func NotEqual(t TestingT, expected interface{}, actual interface{}, msgAndArgs .
 //
 //	require.NotEqualValues(t, obj1, obj2)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotEqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1699,7 +1699,7 @@ func NotEqualValues(t TestingT, expected interface{}, actual interface{}, msgAnd
 //
 //	require.NotEqualValuesf(t, obj1, obj2, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1716,7 +1716,7 @@ func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg s
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1729,7 +1729,7 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 
 // NotErrorIs asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1742,7 +1742,7 @@ func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) 
 
 // NotErrorIsf asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1757,7 +1757,7 @@ func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interf
 //
 //	require.NotImplements(t, (*MyInterface)(nil), new(MyObject))
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotImplements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1772,7 +1772,7 @@ func NotImplements(t TestingT, interfaceObject interface{}, object interface{}, 
 //
 //	require.NotImplementsf(t, (*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotImplementsf(t TestingT, interfaceObject interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1787,7 +1787,7 @@ func NotImplementsf(t TestingT, interfaceObject interface{}, object interface{},
 //
 //	require.NotNil(t, err)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1802,7 +1802,7 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //
 //	require.NotNilf(t, err, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotNilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1817,7 +1817,7 @@ func NotNilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 //
 //	require.NotPanics(t, func(){ RemainCalm() })
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotPanics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1832,7 +1832,7 @@ func NotPanics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 //
 //	require.NotPanicsf(t, func(){ RemainCalm() }, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotPanicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1848,7 +1848,7 @@ func NotPanicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interfac
 //	require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //	require.NotRegexp(t, "^start", "it's not starting")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1864,7 +1864,7 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 //	require.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
 //	require.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1881,7 +1881,7 @@ func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ..
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1898,7 +1898,7 @@ func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1916,7 +1916,7 @@ func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, 
 //	require.NotSubset(t, [1, 3, 4], [1, 2])
 //	require.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotSubset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1934,7 +1934,7 @@ func NotSubset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...i
 //	require.NotSubsetf(t, [1, 3, 4], [1, 2], "error message %s", "formatted")
 //	require.NotSubsetf(t, {"x": 1, "y": 2}, {"z": 3}, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotSubsetf(t TestingT, list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1946,7 +1946,7 @@ func NotSubsetf(t TestingT, list interface{}, subset interface{}, msg string, ar
 }
 
 // NotZero asserts that i is not the zero value for its type.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1958,7 +1958,7 @@ func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
 }
 
 // NotZerof asserts that i is not the zero value for its type.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1973,7 +1973,7 @@ func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 //
 //	require.Panics(t, func(){ GoCrazy() })
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1990,7 +1990,7 @@ func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 //
 //	require.PanicsWithError(t, "crazy error", func(){ GoCrazy() })
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func PanicsWithError(t TestingT, errString string, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2007,7 +2007,7 @@ func PanicsWithError(t TestingT, errString string, f assert.PanicTestFunc, msgAn
 //
 //	require.PanicsWithErrorf(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func PanicsWithErrorf(t TestingT, errString string, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2023,7 +2023,7 @@ func PanicsWithErrorf(t TestingT, errString string, f assert.PanicTestFunc, msg 
 //
 //	require.PanicsWithValue(t, "crazy error", func(){ GoCrazy() })
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func PanicsWithValue(t TestingT, expected interface{}, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2039,7 +2039,7 @@ func PanicsWithValue(t TestingT, expected interface{}, f assert.PanicTestFunc, m
 //
 //	require.PanicsWithValuef(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func PanicsWithValuef(t TestingT, expected interface{}, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2054,7 +2054,7 @@ func PanicsWithValuef(t TestingT, expected interface{}, f assert.PanicTestFunc, 
 //
 //	require.Panicsf(t, func(){ GoCrazy() }, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Panicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2070,7 +2070,7 @@ func Panicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}
 //	require.Positive(t, 1)
 //	require.Positive(t, 1.23)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2086,7 +2086,7 @@ func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 //	require.Positivef(t, 1, "error message %s", "formatted")
 //	require.Positivef(t, 1.23, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2102,7 +2102,7 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
 //	require.Regexp(t, regexp.MustCompile("start"), "it's starting")
 //	require.Regexp(t, "start...$", "it's not starting")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2118,7 +2118,7 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 //	require.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
 //	require.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2135,7 +2135,7 @@ func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...in
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Same(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2152,7 +2152,7 @@ func Same(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...in
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Samef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2169,7 +2169,7 @@ func Samef(t TestingT, expected interface{}, actual interface{}, msg string, arg
 //	require.Subset(t, [1, 2, 3], [1, 2])
 //	require.Subset(t, {"x": 1, "y": 2}, {"x": 1})
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Subset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2186,7 +2186,7 @@ func Subset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...inte
 //	require.Subsetf(t, [1, 2, 3], [1, 2], "error message %s", "formatted")
 //	require.Subsetf(t, {"x": 1, "y": 2}, {"x": 1}, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Subsetf(t TestingT, list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2201,7 +2201,7 @@ func Subsetf(t TestingT, list interface{}, subset interface{}, msg string, args 
 //
 //	require.True(t, myBool)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func True(t TestingT, value bool, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2216,7 +2216,7 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) {
 //
 //	require.Truef(t, myBool, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Truef(t TestingT, value bool, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2231,7 +2231,7 @@ func Truef(t TestingT, value bool, msg string, args ...interface{}) {
 //
 //	require.WithinDuration(t, time.Now(), time.Now(), 10*time.Second)
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func WithinDuration(t TestingT, expected time.Time, actual time.Time, delta time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2246,7 +2246,7 @@ func WithinDuration(t TestingT, expected time.Time, actual time.Time, delta time
 //
 //	require.WithinDurationf(t, time.Now(), time.Now(), 10*time.Second, "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func WithinDurationf(t TestingT, expected time.Time, actual time.Time, delta time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2261,7 +2261,7 @@ func WithinDurationf(t TestingT, expected time.Time, actual time.Time, delta tim
 //
 //	require.WithinRange(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second))
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func WithinRange(t TestingT, actual time.Time, start time.Time, end time.Time, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2276,7 +2276,7 @@ func WithinRange(t TestingT, actual time.Time, start time.Time, end time.Time, m
 //
 //	require.WithinRangef(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second), "error message %s", "formatted")
 //
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2288,7 +2288,7 @@ func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, 
 }
 
 // YAMLEq asserts that two YAML strings are equivalent.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2300,7 +2300,7 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 }
 
 // YAMLEqf asserts that two YAML strings are equivalent.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2312,7 +2312,7 @@ func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...int
 }
 
 // Zero asserts that i is the zero value for its type.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2324,7 +2324,7 @@ func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) {
 }
 
 // Zerof asserts that i is the zero value for its type.
-// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func Zerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
