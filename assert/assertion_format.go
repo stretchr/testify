@@ -16,6 +16,42 @@ func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bo
 	return Condition(t, comp, append([]interface{}{msg}, args...)...)
 }
 
+// Consistentlyf asserts that given condition will be met for the entire
+// duration of waitFor time, periodically checking target function each tick.
+//
+//	assert.Consistentlyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func Consistentlyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Consistently(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
+}
+
+// ConsistentlyWithTf asserts that given condition will be met for the entire
+// waitFor time, periodically checking target function each tick. In contrast
+// to Consistently, it supplies a CollectT to the condition function, so that
+// the condition function can use the CollectT to call other assertions. The
+// condition is considered "met" if no errors are raised across all ticks. The
+// supplied CollectT collects all errors from one tick (if there are any). If
+// the condition is not met once before waitFor, the collected error of the
+// failing tick are copied to t.
+//
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	assert.ConsistentlyWithTf(t, func(c *assert.CollectT, "error message %s", "formatted") {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+func ConsistentlyWithTf(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return ConsistentlyWithT(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
+}
+
 // Containsf asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //

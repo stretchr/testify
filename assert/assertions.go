@@ -2038,6 +2038,93 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	}
 }
 
+// Consistently asserts that given condition will be met for the entire
+// duration of waitFor time, periodically checking target function each tick.
+//
+//	assert.Consistently(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
+func Consistently(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	ch := make(chan bool, 1)
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
+
+	ticker := time.NewTicker(tick)
+	defer ticker.Stop()
+
+	for tick := ticker.C; ; {
+		select {
+		case <-timer.C:
+			return true
+		case <-tick:
+			tick = nil
+			go func() { ch <- condition() }()
+		case v := <-ch:
+			if !v {
+				return Fail(t, "Condition never satisfied", msgAndArgs...)
+			}
+			tick = ticker.C
+		}
+	}
+}
+
+// ConsistentlyWithT asserts that given condition will be met for the entire
+// waitFor time, periodically checking target function each tick. In contrast
+// to Consistently, it supplies a CollectT to the condition function, so that
+// the condition function can use the CollectT to call other assertions. The
+// condition is considered "met" if no errors are raised across all ticks. The
+// supplied CollectT collects all errors from one tick (if there are any). If
+// the condition is not met once before waitFor, the collected error of the
+// failing tick are copied to t.
+//
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	assert.ConsistentlyWithT(t, func(c *assert.CollectT) {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+func ConsistentlyWithT(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	ch := make(chan []error, 1)
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
+
+	ticker := time.NewTicker(tick)
+	defer ticker.Stop()
+
+	for tick := ticker.C; ; {
+		select {
+		case <-timer.C:
+			return true
+		case <-tick:
+			tick = nil
+			go func() {
+				collect := new(CollectT)
+				defer func() {
+					ch <- collect.errors
+				}()
+				condition(collect)
+			}()
+		case errs := <-ch:
+			if len(errs) > 0 {
+				return Fail(t, "Condition never satisfied", msgAndArgs...)
+			}
+
+			tick = ticker.C
+		}
+	}
+}
+
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //

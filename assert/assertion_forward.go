@@ -24,6 +24,78 @@ func (a *Assertions) Conditionf(comp Comparison, msg string, args ...interface{}
 	return Conditionf(a.t, comp, msg, args...)
 }
 
+// Consistently asserts that given condition will be met for the entire
+// duration of waitFor time, periodically checking target function each tick.
+//
+//	a.Consistently(func() bool { return true; }, time.Second, 10*time.Millisecond)
+func (a *Assertions) Consistently(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return Consistently(a.t, condition, waitFor, tick, msgAndArgs...)
+}
+
+// ConsistentlyWithT asserts that given condition will be met for the entire
+// waitFor time, periodically checking target function each tick. In contrast
+// to Consistently, it supplies a CollectT to the condition function, so that
+// the condition function can use the CollectT to call other assertions. The
+// condition is considered "met" if no errors are raised across all ticks. The
+// supplied CollectT collects all errors from one tick (if there are any). If
+// the condition is not met once before waitFor, the collected error of the
+// failing tick are copied to t.
+//
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	a.ConsistentlyWithT(func(c *assert.CollectT) {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+func (a *Assertions) ConsistentlyWithT(condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ConsistentlyWithT(a.t, condition, waitFor, tick, msgAndArgs...)
+}
+
+// ConsistentlyWithTf asserts that given condition will be met for the entire
+// waitFor time, periodically checking target function each tick. In contrast
+// to Consistently, it supplies a CollectT to the condition function, so that
+// the condition function can use the CollectT to call other assertions. The
+// condition is considered "met" if no errors are raised across all ticks. The
+// supplied CollectT collects all errors from one tick (if there are any). If
+// the condition is not met once before waitFor, the collected error of the
+// failing tick are copied to t.
+//
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	a.ConsistentlyWithTf(func(c *assert.CollectT, "error message %s", "formatted") {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+func (a *Assertions) ConsistentlyWithTf(condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return ConsistentlyWithTf(a.t, condition, waitFor, tick, msg, args...)
+}
+
+// Consistentlyf asserts that given condition will be met for the entire
+// duration of waitFor time, periodically checking target function each tick.
+//
+//	a.Consistentlyf(func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func (a *Assertions) Consistentlyf(condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return Consistentlyf(a.t, condition, waitFor, tick, msg, args...)
+}
+
 // Contains asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //
