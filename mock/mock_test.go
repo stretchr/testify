@@ -2146,3 +2146,33 @@ type user interface {
 type mockUser struct{ Mock }
 
 func (m *mockUser) Use(c caller) { m.Called(c) }
+
+func TestAnythingInSlices(t *testing.T) {
+	m := &TestExampleImplementation{}
+
+	m.On("TheExampleMethodVariadic", []interface{}{1, Anything, 3, Anything, 5}).Return(nil)
+	var err error
+
+	assert.NotPanics(t, func() {
+		err = m.TheExampleMethodVariadic(1, 2, 3, 4, 5)
+	})
+
+	assert.NoError(t, err)
+	m.AssertExpectations(t)
+	m.AssertCalled(t, "TheExampleMethodVariadic", []interface{}{Anything, 2, Anything, 4, Anything})
+}
+
+func TestAnythingOfTypeInSlices(t *testing.T) {
+	m := &TestExampleImplementation{}
+
+	m.On("TheExampleMethodVariadic", []interface{}{1, AnythingOfType("int"), 3, AnythingOfType("int"), 5}).Return(nil)
+	var err error
+
+	assert.NotPanics(t, func() {
+		err = m.TheExampleMethodVariadic(1, 2, 3, 4, 5)
+	})
+
+	assert.NoError(t, err)
+	m.AssertExpectations(t)
+	m.AssertCalled(t, "TheExampleMethodVariadic", []interface{}{AnythingOfType("int"), 2, AnythingOfType("int"), 4, AnythingOfType("int")})
+}
