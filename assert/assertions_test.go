@@ -101,6 +101,14 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct {
 }
 
+type MockT struct {
+	LastMessage string
+}
+
+func (m *MockT) Errorf(format string, a ...interface{}) {
+	m.LastMessage = fmt.Sprintf(format, a...)
+}
+
 func TestObjectsAreEqual(t *testing.T) {
 	cases := []struct {
 		expected interface{}
@@ -3259,22 +3267,45 @@ func TestNotErrorIs(t *testing.T) {
 }
 
 func TestErrorAs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
 		err    error
 		result bool
+		msg    string
 	}{
-		{fmt.Errorf("wrap: %w", &customError{}), true},
-		{io.EOF, false},
-		{nil, false},
+		{
+			err:    fmt.Errorf("wrap: %w", &customError{}),
+			result: true,
+		},
+		{
+			err:    io.EOF,
+			result: false,
+			msg: "\n\tError Trace:\t\n\tError:      \tShould be in error chain:\n\t            " +
+				"\texpected: *assert.customError\n\t            " +
+				"\tin chain: *errors.errorString(\"EOF\")\n",
+		},
+		{
+			err:    nil,
+			result: false,
+			msg: "\n\tError Trace:\t\n\tError:      \tShould be in error chain:\n\t            " +
+				"\texpected: *assert.customError\n\t            " +
+				"\tin chain: <nil>\n",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(MockT) // not prevent race condition if t.Parallel() will be used in future
 			res := ErrorAs(mockT, tt.err, &target)
 			if res != tt.result {
-				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
+				t.Errorf("ErrorAs(%#v,%#v) should return %t", tt.err, target, tt.result)
+			}
+			if res == false && mockT.LastMessage != tt.msg {
+				t.Errorf("ErrorAs(%#v,%#v)"+
+					"\nShould print\n%s"+
+					"\nbut\n%s"+
+					"\nprinted%s",
+					tt.err, target, tt.msg, mockT.LastMessage, diff(tt.msg, mockT.LastMessage))
 			}
 		})
 	}

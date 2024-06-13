@@ -2129,21 +2129,28 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 
 	chain := buildErrorChainString(err)
 
+	tt := reflect.TypeOf(target)
+	if tt.Kind() == reflect.Ptr && tt.Elem().Kind() == reflect.Ptr {
+		tv := reflect.New(tt.Elem().Elem())
+		reflect.ValueOf(target).Elem().Set(tv)
+		target = tv.Interface()
+	}
+
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
-		"expected: %q\n"+
+		"expected: %T\n"+
 		"in chain: %s", target, chain,
 	), msgAndArgs...)
 }
 
 func buildErrorChainString(err error) string {
 	if err == nil {
-		return ""
+		return "<nil>"
 	}
 
 	e := errors.Unwrap(err)
-	chain := fmt.Sprintf("%q", err.Error())
+	chain := fmt.Sprintf("%T(%q)", err, err.Error())
 	for e != nil {
-		chain += fmt.Sprintf("\n\t%q", e.Error())
+		chain += fmt.Sprintf("\n\t%T(%q)", e, e.Error())
 		e = errors.Unwrap(e)
 	}
 	return chain
