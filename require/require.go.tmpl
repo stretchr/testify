@@ -1,4 +1,5 @@
 {{ replace .Comment "assert." "require."}}
+// Instead of returning a boolean result this function calls `t.FailNow()` on failure.
 func {{.DocInfo.Name}}(t TestingT, {{.Params}}) {
 	if h, ok := t.(tHelper); ok { h.Helper() }
 	if assert.{{.DocInfo.Name}}(t, {{.ForwardedParams}}) { return }
