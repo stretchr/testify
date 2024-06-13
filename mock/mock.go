@@ -811,21 +811,20 @@ func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
 
-// FunctionalOptionsArgument is a struct that contains the type and value of an functional option argument
-// for use when type checking.
+// FunctionalOptionsArgument contains a list of functional options arguments
+// expected for use when matching a list of arguments.
 type FunctionalOptionsArgument struct {
-	value interface{}
+	values []interface{}
 }
 
 // String returns the string representation of FunctionalOptionsArgument
 func (f *FunctionalOptionsArgument) String() string {
 	var name string
-	tValue := reflect.ValueOf(f.value)
-	if tValue.Len() > 0 {
-		name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+	if len(f.values) > 0 {
+		name = "[]" + reflect.TypeOf(f.values[0]).String()
 	}
 
-	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", name, 1)
+	return strings.Replace(fmt.Sprintf("%#v", f.values), "[]interface {}", name, 1)
 }
 
 // FunctionalOptions returns an [FunctionalOptionsArgument] object containing
@@ -833,10 +832,10 @@ func (f *FunctionalOptionsArgument) String() string {
 //
 // For example:
 //
-//	Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
-func FunctionalOptions(value ...interface{}) *FunctionalOptionsArgument {
+//	args.Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
+func FunctionalOptions(values ...interface{}) *FunctionalOptionsArgument {
 	return &FunctionalOptionsArgument{
-		value: value,
+		values: values,
 	}
 }
 
@@ -990,20 +989,17 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected.t.Name(), actualT.Name(), actualFmt)
 				}
 			case *FunctionalOptionsArgument:
-				t := expected.value
-
 				var name string
-				tValue := reflect.ValueOf(t)
-				if tValue.Len() > 0 {
-					name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+				if len(expected.values) > 0 {
+					name = "[]" + reflect.TypeOf(expected.values[0]).String()
 				}
 
-				tName := reflect.TypeOf(t).Name()
-				if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
+				const tName = "[]interface{}"
+				if name != reflect.TypeOf(actual).String() && len(expected.values) != 0 {
 					differences++
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
 				} else {
-					if ef, af := assertOpts(t, actual); ef == "" && af == "" {
+					if ef, af := assertOpts(expected.values, actual); ef == "" && af == "" {
 						// match
 						output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
 					} else {
