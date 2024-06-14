@@ -148,6 +148,12 @@ func (c *Call) Times(i int) *Call {
 	c.lock()
 	defer c.unlock()
 	c.Repeatability = i
+
+	// Add expected calls to the parent mock.
+	for j := 1; j < i; j++ {
+		c.Parent.ExpectedCalls = append(c.Parent.ExpectedCalls, c)
+	}
+
 	return c
 }
 
