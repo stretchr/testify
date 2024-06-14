@@ -1,7 +1,8 @@
 Testify - Thou Shalt Write Tests
 ================================
 
-ℹ️ We are working on testify v2 and would love to hear what you'd like to see in it, have your say here: https://cutt.ly/testify
+Notice about Testify V2:
+It won't happen due to various reasons. You can read more about it on the maintainer's manifesto [here](https://github.com/stretchr/testify/issues/1089#issuecomment-1812734472).
 
 [![Build Status](https://github.com/stretchr/testify/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/stretchr/testify/actions/workflows/main.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![PkgGoDev](https://pkg.go.dev/badge/github.com/stretchr/testify)](https://pkg.go.dev/github.com/stretchr/testify)
 
