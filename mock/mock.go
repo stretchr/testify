@@ -947,7 +947,15 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			actualFmt = "(Missing)"
 		} else {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			// Note: avoid %v format specifier for pointer arguments. The %v format
+			// specifier traverses the data structure, and for situations where the
+			// argument is a pointer (that may be updated concurrently) this can result
+			// in the mock code causing a data race when running go test -race.
+			if isPtr(actual) {
+				actualFmt = fmt.Sprintf("(%[1]T=%[1]p)", actual)
+			} else {
+				actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			}
 		}
 
 		if len(args) <= i {
@@ -955,7 +963,15 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expectedFmt = "(Missing)"
 		} else {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			// Note: avoid %v format specifier for pointer arguments. The %v format
+			// specifier traverses the data structure, and for situations where the
+			// argument is a pointer (that may be updated concurrently) this can result
+			// in the mock code causing a data race when running go test -race.
+			if isPtr(expected) {
+				expectedFmt = fmt.Sprintf("(%[1]T=%[1]p)", expected)
+			} else {
+				expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			}
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
@@ -1249,4 +1265,9 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 func funcName(opt interface{}) string {
 	n := runtime.FuncForPC(reflect.ValueOf(opt).Pointer()).Name()
 	return strings.TrimSuffix(path.Base(n), path.Ext(n))
+}
+
+// isPtr indicates if the supplied value is a pointer.
+func isPtr(v interface{}) bool {
+	return reflect.ValueOf(v).Kind() == reflect.Ptr
 }

@@ -1911,6 +1911,42 @@ func Test_MockReturnAndCalledConcurrent(t *testing.T) {
 	wg.Wait()
 }
 
+type argType struct{ Question string }
+
+type pointerArgMock struct{ Mock }
+
+func (m *pointerArgMock) Question(arg *argType) int {
+	args := m.Called(arg)
+	return args.Int(0)
+}
+
+// Exercises calling a mock with a pointer value that gets modified concurrently. Prior to fix
+// https://github.com/stretchr/testify/pull/1598 this would fail when running go test with the -race
+// flag, due to Arguments.Diff printing the format with specifier %v which traverses the pointed to
+// data structure (that is being concurrently modified by another goroutine).
+func Test_CallMockWithConcurrentlyModifiedPointerArg(t *testing.T) {
+	m := &pointerArgMock{}
+	m.On("Question", Anything).Return(42)
+
+	ptrArg := &argType{Question: "What's the meaning of life?"}
+
+	// Emulates a situation where the pointer value gets concurrently updated by another thread.
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ptrArg.Question = "What is 7 * 6?"
+	}()
+
+	// This is where we would get a data race since Arguments.Diff would traverse the pointed to
+	// struct while being updated. Something go test -race would identify as a data race.
+	value := m.Question(ptrArg)
+	assert.Equal(t, 42, value)
+	wg.Wait()
+
+	m.AssertExpectations(t)
+}
+
 type timer struct{ Mock }
 
 func (s *timer) GetTime(i int) string {
