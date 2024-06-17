@@ -1,4 +1,5 @@
-{{.Comment}}
+{{ replace .Comment "assert." "require."}}
+// Failure of this check is fatal ([testing.T.FailNow] is called on failure).
 func {{.DocInfo.Name}}(t TestingT, {{.Params}}) {
 	if h, ok := t.(tHelper); ok { h.Helper() }
 	if assert.{{.DocInfo.Name}}(t, {{.ForwardedParams}}) { return }
