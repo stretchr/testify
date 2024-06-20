@@ -334,6 +334,11 @@ func (m *Mock) fail(format string, args ...interface{}) {
 	if m.test == nil {
 		panic(fmt.Sprintf(format, args...))
 	}
+
+	if h, ok := m.test.(tHelper); ok {
+		h.Helper()
+	}
+
 	m.test.Errorf(format, args...)
 	m.test.FailNow()
 }
@@ -488,6 +493,11 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
 		closestCall, mismatch := m.findClosestCall(methodName, arguments...)
+
+		if h, ok := m.test.(tHelper); ok {
+			h.Helper()
+		}
+
 		m.mutex.Unlock()
 
 		if closestCall != nil {
