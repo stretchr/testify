@@ -66,6 +66,12 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
+	if e, ok := objectToTime(expected); ok {
+		if a, ok := objectToTime(actual); ok {
+			return e.Equal(a)
+		}
+	}
+
 	exp, ok := expected.([]byte)
 	if !ok {
 		return reflect.DeepEqual(expected, actual)
@@ -2161,4 +2167,17 @@ func buildErrorChainString(err error) string {
 		e = errors.Unwrap(e)
 	}
 	return chain
+}
+
+// objectToTime is used to convert an object to time.Time
+func objectToTime(o interface{}) (time.Time, bool) {
+	if s, ok := o.(time.Time); ok {
+		return s, true
+	}
+	if p, ok := o.(*time.Time); ok {
+		if p != nil {
+			return *p, true
+		}
+	}
+	return time.Time{}, false
 }
