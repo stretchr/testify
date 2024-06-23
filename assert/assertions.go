@@ -1966,6 +1966,9 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 
 // CollectT implements the TestingT interface and collects all errors.
 type CollectT struct {
+	// A slice of errors. Non-nil slice denotes a failure.
+	// If it's non-nil but len(c.errors) == 0, this is also a failure
+	// obtained by direct c.FailNow() call.
 	errors []error
 }
 
@@ -1974,9 +1977,10 @@ func (c *CollectT) Errorf(format string, args ...interface{}) {
 	c.errors = append(c.errors, fmt.Errorf(format, args...))
 }
 
-// FailNow panics.
-func (*CollectT) FailNow() {
-	panic("Assertion failed")
+// FailNow stops execution by calling runtime.Goexit.
+func (c *CollectT) FailNow() {
+	c.fail()
+	runtime.Goexit()
 }
 
 // Deprecated: That was a method for internal usage that should not have been published. Now just panics.
@@ -1987,6 +1991,16 @@ func (*CollectT) Reset() {
 // Deprecated: That was a method for internal usage that should not have been published. Now just panics.
 func (*CollectT) Copy(TestingT) {
 	panic("Copy() is deprecated")
+}
+
+func (c *CollectT) fail() {
+	if !c.failed() {
+		c.errors = []error{} // Make it non-nil to mark a failure.
+	}
+}
+
+func (c *CollectT) failed() bool {
+	return c.errors != nil
 }
 
 // EventuallyWithT asserts that given condition will be met in waitFor time,
@@ -2013,7 +2027,7 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	}
 
 	var lastFinishedTickErrs []error
-	ch := make(chan []error, 1)
+	ch := make(chan *CollectT, 1)
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2033,16 +2047,16 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			go func() {
 				collect := new(CollectT)
 				defer func() {
-					ch <- collect.errors
+					ch <- collect
 				}()
 				condition(collect)
 			}()
-		case errs := <-ch:
-			if len(errs) == 0 {
+		case collect := <-ch:
+			if !collect.failed() {
 				return true
 			}
 			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
-			lastFinishedTickErrs = errs
+			lastFinishedTickErrs = collect.errors
 			tick = ticker.C
 		}
 	}
@@ -2104,7 +2118,7 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	), msgAndArgs...)
 }
 
-// NotErrorIs asserts that at none of the errors in err's chain matches target.
+// NotErrorIs asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func NotErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
