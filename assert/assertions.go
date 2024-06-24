@@ -24,6 +24,8 @@ import (
 	"github.com/stretchr/testify/assert/yaml"
 )
 
+const stackFrameBufferSize = 10
+
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_format.go.tmpl"
 
 // TestingT is an interface wrapper around *testing.T
@@ -217,8 +219,14 @@ func CallerInfo() []string {
 	var name string
 
 	callers := []string{}
-	pcs := make([]uintptr, 50)
-	n := runtime.Callers(1, pcs)
+	pcs := make([]uintptr, stackFrameBufferSize)
+	offset := 1
+	n := runtime.Callers(offset, pcs)
+	maybeMore := true
+	if n < stackFrameBufferSize {
+		maybeMore = false
+	}
+
 	if n == 0 {
 		return []string{}
 	}
@@ -269,8 +277,22 @@ func CallerInfo() []string {
 		}
 
 		if !more {
-			break
+			// We know we already have less than a buffer's worth of frames
+			if !maybeMore {
+				break
+			}
+			offset += stackFrameBufferSize
+			n = runtime.Callers(offset, pcs)
+			if n < stackFrameBufferSize {
+				maybeMore = false
+			}
+
+			if n == 0 {
+				break
+			}
+			frames = runtime.CallersFrames(pcs[:n])
 		}
+
 	}
 
 	return callers
