@@ -222,10 +222,7 @@ func CallerInfo() []string {
 	pcs := make([]uintptr, stackFrameBufferSize)
 	offset := 1
 	n := runtime.Callers(offset, pcs)
-	maybeMore := true
-	if n < stackFrameBufferSize {
-		maybeMore = false
-	}
+	maybeMore := n == stackFrameBufferSize
 
 	if n == 0 {
 		return []string{}
@@ -283,13 +280,12 @@ func CallerInfo() []string {
 			}
 			offset += stackFrameBufferSize
 			n = runtime.Callers(offset, pcs)
-			if n < stackFrameBufferSize {
-				maybeMore = false
-			}
-
 			if n == 0 {
 				break
 			}
+
+			maybeMore = n == stackFrameBufferSize
+
 			frames = runtime.CallersFrames(pcs[:n])
 		}
 
