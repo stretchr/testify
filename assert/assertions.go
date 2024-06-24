@@ -217,8 +217,8 @@ func CallerInfo() []string {
 	var name string
 
 	callers := []string{}
-	pcs := []uintptr{}
-	n := runtime.Callers(0, pcs)
+	pcs := make([]uintptr, 50)
+	n := runtime.Callers(1, pcs)
 	if n == 0 {
 		return []string{}
 	}
