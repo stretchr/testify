@@ -222,11 +222,12 @@ func CallerInfo() []string {
 	pcs := make([]uintptr, stackFrameBufferSize)
 	offset := 1
 	n := runtime.Callers(offset, pcs)
-	maybeMore := n == stackFrameBufferSize
 
 	if n == 0 {
 		return []string{}
 	}
+
+	maybeMore := n == stackFrameBufferSize
 	frames := runtime.CallersFrames(pcs[:n])
 
 	for {
@@ -273,21 +274,22 @@ func CallerInfo() []string {
 			break
 		}
 
-		if !more {
-			// We know we already have less than a buffer's worth of frames
-			if !maybeMore {
-				break
-			}
-			offset += stackFrameBufferSize
-			n = runtime.Callers(offset, pcs)
-			if n == 0 {
-				break
-			}
-
-			maybeMore = n == stackFrameBufferSize
-
-			frames = runtime.CallersFrames(pcs[:n])
+		if more {
+			continue
 		}
+		// We know we already have less than a buffer's worth of frames
+		if !maybeMore {
+			break
+		}
+		offset += stackFrameBufferSize
+		n = runtime.Callers(offset, pcs)
+		if n == 0 {
+			break
+		}
+
+		maybeMore = n == stackFrameBufferSize
+
+		frames = runtime.CallersFrames(pcs[:n])
 
 	}
 
