@@ -1033,7 +1033,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				}
 
 			default:
-				if expected == Anything || assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 					// match
 					outputRenderers = append(outputRenderers, func() string {
 						return fmt.Sprintf("\t%d: PASS:  %s == %s\n", i, actualFmt(), expectedFmt())
