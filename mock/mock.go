@@ -945,22 +945,30 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 	for j := 0; j < maxArgCount; j++ {
 		i := j
 		var actual, expected interface{}
-		var actualFmt, expectedFmt string
+		var actualFmt, expectedFmt func() string
 
 		if len(objects) <= i {
 			actual = "(Missing)"
-			actualFmt = "(Missing)"
+			actualFmt = func() string {
+				return "(Missing)"
+			}
 		} else {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			actualFmt = func() string {
+				return fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			}
 		}
 
 		if len(args) <= i {
 			expected = "(Missing)"
-			expectedFmt = "(Missing)"
+			expectedFmt = func() string {
+				return "(Missing)"
+			}
 		} else {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			expectedFmt = func() string {
+				return fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			}
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
@@ -968,18 +976,20 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						actualFmt = fmt.Sprintf("panic in argument matcher: %v", r)
+						actualFmt = func() string {
+							return fmt.Sprintf("panic in argument matcher: %v", r)
+						}
 					}
 				}()
 				matches = matcher.Matches(actual)
 			}()
 			if matches {
 				outputRenderers = append(outputRenderers, func() string {
-					return fmt.Sprintf("\t%d: PASS:  %s matched by %s\n", i, actualFmt, matcher)
+					return fmt.Sprintf("\t%d: PASS:  %s matched by %s\n", i, actualFmt(), matcher)
 				})
 			} else {
 				differences++
-				outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  %s not matched by %s\n", i, actualFmt, matcher))
+				outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  %s not matched by %s\n", i, actualFmt(), matcher))
 			}
 		} else {
 			switch expected := expected.(type) {
@@ -988,13 +998,13 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
 					// not match
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected, reflect.TypeOf(actual).Name(), actualFmt))
+					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected, reflect.TypeOf(actual).Name(), actualFmt()))
 				}
 			case *IsTypeArgument:
 				actualT := reflect.TypeOf(actual)
 				if actualT != expected.t {
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected.t.Name(), actualT.Name(), actualFmt))
+					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected.t.Name(), actualT.Name(), actualFmt()))
 				}
 			case *FunctionalOptionsArgument:
 				t := expected.value
@@ -1008,7 +1018,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				tName := reflect.TypeOf(t).Name()
 				if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, tName, reflect.TypeOf(actual).Name(), actualFmt))
+					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, tName, reflect.TypeOf(actual).Name(), actualFmt()))
 				} else {
 					if ef, af := assertOpts(t, actual); ef == "" && af == "" {
 						// match
@@ -1026,12 +1036,12 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				if expected == Anything || assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 					// match
 					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: PASS:  %s == %s\n", i, actualFmt, expectedFmt)
+						return fmt.Sprintf("\t%d: PASS:  %s == %s\n", i, actualFmt(), expectedFmt())
 					})
 				} else {
 					// not match
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, actualFmt, expectedFmt))
+					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, actualFmt(), expectedFmt()))
 				}
 			}
 		}
