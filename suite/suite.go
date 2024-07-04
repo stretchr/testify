@@ -3,6 +3,7 @@ package suite
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"reflect"
 	"regexp"
@@ -216,6 +217,10 @@ func Run(t *testing.T, suite TestingSuite) {
 			}
 		}()
 	}
+
+	rand.Shuffle(len(tests), func(i, j int) {
+		tests[i], tests[j] = tests[j], tests[i]
+	})
 
 	runTests(t, tests)
 }
