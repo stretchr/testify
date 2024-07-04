@@ -222,6 +222,10 @@ func Run(t *testing.T, suite TestingSuite) {
 		tests[i], tests[j] = tests[j], tests[i]
 	})
 
+	rand.Shuffle(len(tests), func(i, j int) {
+		tests[i], tests[j] = tests[j], tests[i]
+	})
+
 	runTests(t, tests)
 }
 
