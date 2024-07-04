@@ -37,7 +37,7 @@ package yours
 
 import (
   "testing"
-  "github.com/wallester/testify/assert"
+  "github.com/stretchr/testify/assert"
 )
 
 func TestSomething(t *testing.T) {
@@ -73,7 +73,7 @@ package yours
 
 import (
   "testing"
-  "github.com/wallester/testify/assert"
+  "github.com/stretchr/testify/assert"
 )
 
 func TestSomething(t *testing.T) {
@@ -119,7 +119,7 @@ package yours
 
 import (
   "testing"
-  "github.com/wallester/testify/mock"
+  "github.com/stretchr/testify/mock"
 )
 
 /*
@@ -232,8 +232,8 @@ An example suite is shown below:
 // Basic imports
 import (
     "testing"
-    "github.com/wallester/testify/assert"
-    "github.com/wallester/testify/suite"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/suite"
 )
 
 // Define the suite, and absorb the built-in basic suite
@@ -273,7 +273,7 @@ For more information on writing suites, check out the [API documentation for the
 // Basic imports
 import (
     "testing"
-    "github.com/wallester/testify/suite"
+    "github.com/stretchr/testify/suite"
 )
 
 // Define the suite, and absorb the built-in basic suite
@@ -309,15 +309,15 @@ Installation
 
 To install Testify, use `go get`:
 
-    go get github.com/wallester/testify
+    go get github.com/stretchr/testify
 
 This will then make the following packages available to you:
 
-    github.com/wallester/testify/assert
-    github.com/wallester/testify/require
-    github.com/wallester/testify/mock
-    github.com/wallester/testify/suite
-    github.com/wallester/testify/http (deprecated)
+    github.com/stretchr/testify/assert
+    github.com/stretchr/testify/require
+    github.com/stretchr/testify/mock
+    github.com/stretchr/testify/suite
+    github.com/stretchr/testify/http (deprecated)
 
 Import the `testify/assert` package into your code using this template:
 
@@ -326,7 +326,7 @@ package yours
 
 import (
   "testing"
-  "github.com/wallester/testify/assert"
+  "github.com/stretchr/testify/assert"
 )
 
 func TestSomething(t *testing.T) {
