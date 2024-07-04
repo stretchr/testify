@@ -21,7 +21,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 
 	// Wrapper around gopkg.in/yaml.v3
-	"github.com/stretchr/testify/assert/yaml"
+	"github.com/wallester/testify/assert/yaml"
 )
 
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_format.go.tmpl"
