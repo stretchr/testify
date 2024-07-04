@@ -1,4 +1,4 @@
-module github.com/wallester/testify
+module github.com/stretchr/testify
 
 // This should match the minimum supported version that is tested in
 // .github/workflows/main.yml
