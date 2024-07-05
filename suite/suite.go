@@ -119,7 +119,7 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 
 // Run takes a testing suite and runs all of the tests attached
 // to it.
-func Run(t *testing.T, suite TestingSuite) {
+func Run(t *testing.T, shuffle bool, suite TestingSuite) {
 	defer recoverAndFailOnPanic(t)
 
 	suite.SetT(t)
@@ -218,9 +218,11 @@ func Run(t *testing.T, suite TestingSuite) {
 		}()
 	}
 
-	rand.Shuffle(len(tests), func(i, j int) {
-		tests[i], tests[j] = tests[j], tests[i]
-	})
+	if shuffle {
+		rand.Shuffle(len(tests), func(i, j int) {
+			tests[i], tests[j] = tests[j], tests[i]
+		})
+	}
 
 	runTests(t, tests)
 }
