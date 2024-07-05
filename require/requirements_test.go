@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wallester/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 // AssertionTesterInterface defines an interface to be used for testing assertion methods

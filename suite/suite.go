@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wallester/testify/assert"
-	"github.com/wallester/testify/require"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
@@ -119,8 +119,13 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 
 // Run takes a testing suite and runs all of the tests attached
 // to it.
-func Run(t *testing.T, suite TestingSuite) {
+func Run(t *testing.T, suite TestingSuite, shuffleTests ...bool) {
 	defer recoverAndFailOnPanic(t)
+
+	var shuffle bool
+	if len(shuffleTests) > 0 {
+		shuffle = shuffleTests[0]
+	}
 
 	suite.SetT(t)
 	suite.SetS(suite)
@@ -218,9 +223,11 @@ func Run(t *testing.T, suite TestingSuite) {
 		}()
 	}
 
-	rand.Shuffle(len(tests), func(i, j int) {
-		tests[i], tests[j] = tests[j], tests[i]
-	})
+	if shuffle {
+		rand.Shuffle(len(tests), func(i, j int) {
+			tests[i], tests[j] = tests[j], tests[i]
+		})
+	}
 
 	runTests(t, tests)
 }

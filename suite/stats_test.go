@@ -3,7 +3,7 @@ package suite
 import (
 	"testing"
 
-	"github.com/wallester/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPassedReturnsTrueWhenAllTestsPass(t *testing.T) {
