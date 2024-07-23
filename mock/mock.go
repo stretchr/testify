@@ -1260,5 +1260,12 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 
 func funcName(opt interface{}) string {
 	n := runtime.FuncForPC(reflect.ValueOf(opt).Pointer()).Name()
-	return strings.TrimSuffix(path.Base(n), path.Ext(n))
+	trimmed := strings.TrimSuffix(path.Base(n), path.Ext(n))
+	splitted := strings.Split(trimmed, ".")
+
+	if len(splitted) == 0 {
+		return trimmed
+	}
+
+	return splitted[len(splitted)-1]
 }
