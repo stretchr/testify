@@ -970,59 +970,61 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			}()
 			if matches {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
-			} else {
+				continue
+			}
+			differences++
+			output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
+			continue
+		}
+
+		switch expected := expected.(type) {
+		case anythingOfTypeArgument:
+			// type checking
+			if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
+				// not match
 				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 			}
-		} else {
-			switch expected := expected.(type) {
-			case anythingOfTypeArgument:
-				// type checking
-				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
-					// not match
-					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
-				}
-			case *IsTypeArgument:
-				actualT := reflect.TypeOf(actual)
-				if actualT != expected.t {
-					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected.t.Name(), actualT.Name(), actualFmt)
-				}
-			case *FunctionalOptionsArgument:
-				t := expected.value
-
-				var name string
-				tValue := reflect.ValueOf(t)
-				if tValue.Len() > 0 {
-					name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
-				}
-
-				tName := reflect.TypeOf(t).Name()
-				if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
-					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
-				} else {
-					if ef, af := assertOpts(t, actual); ef == "" && af == "" {
-						// match
-						output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
-					} else {
-						// not match
-						differences++
-						output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
-					}
-				}
-
-			default:
-				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
-					// match
-					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
-				} else {
-					// not match
-					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
-				}
+		case *IsTypeArgument:
+			actualT := reflect.TypeOf(actual)
+			if actualT != expected.t {
+				differences++
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected.t.Name(), actualT.Name(), actualFmt)
 			}
+		case *FunctionalOptionsArgument:
+			t := expected.value
+
+			var name string
+			tValue := reflect.ValueOf(t)
+			if tValue.Len() > 0 {
+				name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+			}
+
+			tName := reflect.TypeOf(t).Name()
+			if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
+				differences++
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
+				continue
+			}
+			ef, af := assertOpts(t, actual)
+			if ef == "" && af == "" {
+				// match
+				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
+				continue
+			}
+			// not match
+			differences++
+			output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
+
+		default:
+			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+				// match
+				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
+				continue
+			}
+			// not match
+			differences++
+			output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
 		}
 
 	}

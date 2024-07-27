@@ -83,6 +83,28 @@ func recoverAndFailOnPanic(t *testing.T) {
 	failOnPanic(t, r)
 }
 
+func cleanUpAfterTest(t *testing.T, suite interface{}, method reflect.Method, suiteName string, parentT *testing.T, stats *SuiteInformation) {
+	t.Helper()
+
+	r := recover()
+
+	if stats != nil {
+		passed := !t.Failed() && r == nil
+		stats.end(method.Name, passed)
+	}
+
+	if afterTestSuite, ok := suite.(AfterTest); ok {
+		afterTestSuite.AfterTest(suiteName, method.Name)
+	}
+
+	if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+		tearDownTestSuite.TearDownTest()
+	}
+
+	suite.(interface{ SetT(*testing.T) }).SetT(parentT)
+	failOnPanic(t, r)
+}
+
 func failOnPanic(t *testing.T, r interface{}) {
 	t.Helper()
 	if r != nil {
@@ -166,27 +188,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				parentT := suite.T()
 				suite.SetT(t)
 				defer recoverAndFailOnPanic(t)
-				defer func() {
-					t.Helper()
-
-					r := recover()
-
-					if stats != nil {
-						passed := !t.Failed() && r == nil
-						stats.end(method.Name, passed)
-					}
-
-					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(suiteName, method.Name)
-					}
-
-					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-						tearDownTestSuite.TearDownTest()
-					}
-
-					suite.SetT(parentT)
-					failOnPanic(t, r)
-				}()
+				defer cleanUpAfterTest(t, suite, method, suiteName, parentT, stats)
 
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
