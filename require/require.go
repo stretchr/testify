@@ -1429,6 +1429,46 @@ func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, a
 	t.FailNow()
 }
 
+// NotElementsMatch asserts that the specified listA(array, slice...) is NOT equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should not match.
+// This is an inverse of ElementsMatch.
+//
+// assert.NotElementsMatch(t, [1, 1, 2, 3], [1, 1, 2, 3]) -> false
+//
+// assert.NotElementsMatch(t, [1, 1, 2, 3], [1, 2, 3]) -> true
+//
+// assert.NotElementsMatch(t, [1, 2, 3], [1, 2, 4]) -> true
+func NotElementsMatch(t TestingT, listA interface{}, listB interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotElementsMatch(t, listA, listB, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotElementsMatchf asserts that the specified listA(array, slice...) is NOT equal to specified
+// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// the number of appearances of each of them in both lists should not match.
+// This is an inverse of ElementsMatch.
+//
+// assert.NotElementsMatchf(t, [1, 1, 2, 3], [1, 1, 2, 3], "error message %s", "formatted") -> false
+//
+// assert.NotElementsMatchf(t, [1, 1, 2, 3], [1, 2, 3], "error message %s", "formatted") -> true
+//
+// assert.NotElementsMatchf(t, [1, 2, 3], [1, 2, 4], "error message %s", "formatted") -> true
+func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotElementsMatchf(t, listA, listB, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
 // a slice or a channel with len == 0.
 //
@@ -1519,7 +1559,7 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 	t.FailNow()
 }
 
-// NotErrorIs asserts that at none of the errors in err's chain matches target.
+// NotErrorIs asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
@@ -1531,7 +1571,7 @@ func NotErrorIs(t TestingT, err error, target error, msgAndArgs ...interface{}) 
 	t.FailNow()
 }
 
-// NotErrorIsf asserts that at none of the errors in err's chain matches target.
+// NotErrorIsf asserts that none of the errors in err's chain matches target.
 // This is a wrapper for errors.Is.
 func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {

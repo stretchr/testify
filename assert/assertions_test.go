@@ -1319,6 +1319,52 @@ func TestDiffLists(t *testing.T) {
 	}
 }
 
+func TestNotElementsMatch(t *testing.T) {
+	mockT := new(testing.T)
+
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
+		// not mathing
+		{[]int{1}, []int{}, true},
+		{[]int{}, []int{2}, true},
+		{[]int{1}, []int{2}, true},
+		{[]int{1}, []int{1, 1}, true},
+		{[]int{1, 2}, []int{3, 4}, true},
+		{[]int{3, 4}, []int{1, 2}, true},
+		{[]int{1, 1, 2, 3}, []int{1, 2, 3}, true},
+		{[]string{"hello"}, []string{"world"}, true},
+		{[]string{"hello", "hello"}, []string{"world", "world"}, true},
+		{[3]string{"hello", "hello", "hello"}, [3]string{"world", "world", "world"}, true},
+
+		// matching
+		{nil, nil, false},
+		{[]int{}, nil, false},
+		{[]int{}, []int{}, false},
+		{[]int{1}, []int{1}, false},
+		{[]int{1, 1}, []int{1, 1}, false},
+		{[]int{1, 2}, []int{2, 1}, false},
+		{[2]int{1, 2}, [2]int{2, 1}, false},
+		{[]int{1, 1, 2}, []int{1, 2, 1}, false},
+		{[]string{"hello", "world"}, []string{"world", "hello"}, false},
+		{[]string{"hello", "hello"}, []string{"hello", "hello"}, false},
+		{[]string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}, false},
+		{[3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}, false},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("NotElementsMatch(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := NotElementsMatch(mockT, c.actual, c.expected)
+
+			if res != c.result {
+				t.Errorf("NotElementsMatch(%#v, %#v) should return %v", c.actual, c.expected, c.result)
+			}
+		})
+	}
+}
+
 func TestCondition(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -1972,13 +2018,16 @@ func TestRegexp(t *testing.T) {
 	}{
 		{"^start", "start of the line"},
 		{"end$", "in the end"},
+		{"end$", "in the end"},
 		{"[0-9]{3}[.-]?[0-9]{2}[.-]?[0-9]{2}", "My phone number is 650.12.34"},
 	}
 
 	for _, tc := range cases {
 		True(t, Regexp(mockT, tc.rx, tc.str))
 		True(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		True(t, Regexp(mockT, regexp.MustCompile(tc.rx), []byte(tc.str)))
 		False(t, NotRegexp(mockT, tc.rx, tc.str))
+		False(t, NotRegexp(mockT, tc.rx, []byte(tc.str)))
 		False(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 	}
 
@@ -1993,7 +2042,9 @@ func TestRegexp(t *testing.T) {
 	for _, tc := range cases {
 		False(t, Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
 		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
+		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), []byte(tc.str)))
 		True(t, NotRegexp(mockT, tc.rx, tc.str))
+		True(t, NotRegexp(mockT, tc.rx, []byte(tc.str)))
 		True(t, NotRegexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 	}
 }
@@ -2872,16 +2923,15 @@ func TestEventuallyWithTFalse(t *testing.T) {
 func TestEventuallyWithTTrue(t *testing.T) {
 	mockT := new(errorsCapturingT)
 
-	state := 0
+	counter := 0
 	condition := func(collect *CollectT) {
-		defer func() {
-			state += 1
-		}()
-		True(collect, state == 2)
+		counter += 1
+		True(collect, counter == 2)
 	}
 
 	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 0)
+	Equal(t, 2, counter, "Condition is expected to be called 2 times")
 }
 
 func TestEventuallyWithT_ConcurrencySafe(t *testing.T) {
@@ -2917,6 +2967,17 @@ func TestEventuallyWithT_ReturnsTheLatestFinishedConditionErrors(t *testing.T) {
 	mockT := new(errorsCapturingT)
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 2)
+}
+
+func TestEventuallyWithTFailNow(t *testing.T) {
+	mockT := new(CollectT)
+
+	condition := func(collect *CollectT) {
+		collect.FailNow()
+	}
+
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockT.errors, 1)
 }
 
 func TestNeverFalse(t *testing.T) {
