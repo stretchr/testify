@@ -274,6 +274,13 @@ func (c *Call) NotBefore(calls ...*Call) *Call {
 }
 
 // InOrder defines the order in which the calls should be made
+//
+//	For example:
+//
+//	InOrder(
+//		Mock.On("init").Return(nil),
+//		Mock.On("Do").Return(nil),
+//	)
 func InOrder(calls ...*Call) {
 	for i := 1; i < len(calls); i++ {
 		calls[i].NotBefore(calls[i-1])

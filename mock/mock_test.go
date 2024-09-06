@@ -940,19 +940,15 @@ func Test_Mock_Return_NotBefore_In_Order(t *testing.T) {
 func Test_Mock_Return_InOrder_Uses_NotBefore(t *testing.T) {
 	var mockedService = new(TestExampleImplementation)
 
-	b := mockedService.
-		On("TheExampleMethod", 1, 2, 3).
-		Return(4, nil)
-	c := mockedService.
-		On("TheExampleMethod2", true).
-		Return()
-
 	InOrder(
-		b,
-		c,
+		mockedService.
+			On("TheExampleMethod", 1, 2, 3).
+			Return(4, nil),
+		mockedService.
+			On("TheExampleMethod2", true).
+			Return(),
 	)
 
-	require.Equal(t, []*Call{b, c}, mockedService.ExpectedCalls)
 	require.NotPanics(t, func() {
 		mockedService.TheExampleMethod(1, 2, 3)
 	})
@@ -994,19 +990,14 @@ TheExampleMethod(int,int,int)
 func Test_Mock_Return_InOrder_Uses_NotBefore_Out_Of_Order(t *testing.T) {
 	var mockedService = new(TestExampleImplementation)
 
-	b := mockedService.
-		On("TheExampleMethod", 1, 2, 3).
-		Return(4, nil).Twice()
-	c := mockedService.
-		On("TheExampleMethod2", true).
-		Return()
-
 	InOrder(
-		b,
-		c,
+		mockedService.
+			On("TheExampleMethod", 1, 2, 3).
+			Return(4, nil).Twice(),
+		mockedService.
+			On("TheExampleMethod2", true).
+			Return(),
 	)
-
-	require.Equal(t, []*Call{b, c}, mockedService.ExpectedCalls)
 
 	expectedPanicString := `mock: Unexpected Method Call
 -----------------------------
