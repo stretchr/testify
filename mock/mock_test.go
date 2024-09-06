@@ -937,6 +937,30 @@ func Test_Mock_Return_NotBefore_In_Order(t *testing.T) {
 	})
 }
 
+func Test_Mock_Return_InOrder_Uses_NotBefore(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	b := mockedService.
+		On("TheExampleMethod", 1, 2, 3).
+		Return(4, nil)
+	c := mockedService.
+		On("TheExampleMethod2", true).
+		Return()
+
+	InOrder(
+		b,
+		c,
+	)
+
+	require.Equal(t, []*Call{b, c}, mockedService.ExpectedCalls)
+	require.NotPanics(t, func() {
+		mockedService.TheExampleMethod(1, 2, 3)
+	})
+	require.NotPanics(t, func() {
+		mockedService.TheExampleMethod2(true)
+	})
+}
+
 func Test_Mock_Return_NotBefore_Out_Of_Order(t *testing.T) {
 	var mockedService = new(TestExampleImplementation)
 
@@ -947,6 +971,40 @@ func Test_Mock_Return_NotBefore_Out_Of_Order(t *testing.T) {
 		On("TheExampleMethod2", true).
 		Return().
 		NotBefore(b)
+
+	require.Equal(t, []*Call{b, c}, mockedService.ExpectedCalls)
+
+	expectedPanicString := `mock: Unexpected Method Call
+-----------------------------
+
+TheExampleMethod2(bool)
+		0: true
+
+Must not be called before:
+
+TheExampleMethod(int,int,int)
+		0: 1
+		1: 2
+		2: 3`
+	require.PanicsWithValue(t, expectedPanicString, func() {
+		mockedService.TheExampleMethod2(true)
+	})
+}
+
+func Test_Mock_Return_InOrder_Uses_NotBefore_Out_Of_Order(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	b := mockedService.
+		On("TheExampleMethod", 1, 2, 3).
+		Return(4, nil).Twice()
+	c := mockedService.
+		On("TheExampleMethod2", true).
+		Return()
+
+	InOrder(
+		b,
+		c,
+	)
 
 	require.Equal(t, []*Call{b, c}, mockedService.ExpectedCalls)
 
@@ -1022,6 +1080,7 @@ func Test_Mock_Return_NotBefore_Different_Mock_In_Order(t *testing.T) {
 		mockedService2.TheExampleMethod2(true)
 	})
 }
+
 func Test_Mock_Return_NotBefore_Different_Mock_Out_Of_Order(t *testing.T) {
 	var (
 		mockedService1 = new(TestExampleImplementation)
