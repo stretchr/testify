@@ -273,6 +273,13 @@ func (c *Call) NotBefore(calls ...*Call) *Call {
 	return c
 }
 
+// InOrder defines the order in which the calls should be made
+func InOrder(calls ...*Call) {
+	for i := 1; i < len(calls); i++ {
+		calls[i].NotBefore(calls[i-1])
+	}
+}
+
 // Mock is the workhorse used to track activity on another object.
 // For an example of its usage, refer to the "Example Usage" section at the top
 // of this document.
