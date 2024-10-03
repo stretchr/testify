@@ -592,6 +592,41 @@ func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
 	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
 }
 
+func Test_Mock_UnsetOfCallRequiredByNotBefore(t *testing.T) {
+	// make a test impl object
+	var mockedServiceA = new(TestExampleImplementation)
+	var mockedServiceB = new(TestExampleImplementation)
+	var mockedServiceC = new(TestExampleImplementation)
+
+	mock1 := mockedServiceA.
+		On("TheExampleMethod", 1, 1, 1).
+		Return(1).
+		Once()
+
+	mock2 := mockedServiceB.
+		On("TheExampleMethod", 2, 2, 2).
+		Return(2).
+		NotBefore(mock1)
+
+	mock3 := mockedServiceC.
+		On("TheExampleMethod", 3, 3, 3).
+		Return(3).
+		NotBefore(mock1).
+		NotBefore(mock2)
+
+	assert.Equal(t, 2, len(mock1.requiredBy))
+	assert.Equal(t, 1, len(mock2.requires))
+	assert.Equal(t, 1, len(mock2.requiredBy))
+	assert.Equal(t, 2, len(mock3.requires))
+
+	mock1.Unset()
+
+	assert.Equal(t, 0, len(mock1.requiredBy))
+	assert.Equal(t, 0, len(mock2.requires))
+	assert.Equal(t, 1, len(mock2.requiredBy))
+	assert.Equal(t, 1, len(mock3.requires))
+}
+
 func Test_Mock_UnsetByOnMethodSpec(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
