@@ -1327,7 +1327,7 @@ func TestNotElementsMatch(t *testing.T) {
 		actual   interface{}
 		result   bool
 	}{
-		// not mathing
+		// not matching
 		{[]int{1}, []int{}, true},
 		{[]int{}, []int{2}, true},
 		{[]int{1}, []int{2}, true},
