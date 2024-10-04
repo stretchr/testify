@@ -3012,6 +3012,9 @@ func TestNeverTrue(t *testing.T) {
 func TestEventuallyTimeout(t *testing.T) {
 	mockT := new(testing.T)
 
+	timeout := time.NewTimer(time.Second)
+	defer timeout.Stop()
+
 	NotPanics(t, func() {
 		done, done2 := make(chan struct{}), make(chan struct{})
 
@@ -3026,7 +3029,65 @@ func TestEventuallyTimeout(t *testing.T) {
 		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
 
 		close(done)
-		<-done2
+		select {
+		case <-done2:
+		case <-timeout.C:
+			panic("test timed out")
+		}
+	})
+}
+
+// If waitFor is smaller than tick or only slightly larger than tick it was
+// possible for Eventually to return a failure having never run condition. See
+// issue 1652. Condition should always be run once.
+func TestEventuallyTickLessThanWaitFor(t *testing.T) {
+	mockT := new(testing.T)
+
+	timeout := time.NewTimer(time.Second)
+	defer timeout.Stop()
+
+	NotPanics(t, func() {
+		done, done2 := make(chan struct{}), make(chan struct{})
+
+		condition := func() bool {
+			<-done
+			close(done2)
+			return true
+		}
+
+		False(t, Eventually(mockT, condition, time.Microsecond, time.Millisecond))
+
+		close(done)
+		select {
+		case <-done2:
+		case <-timeout.C:
+			panic("test timed out")
+		}
+	})
+}
+
+func TestEventuallyWithTTickLessThanWaitFor(t *testing.T) {
+	mockT := new(testing.T)
+
+	timeout := time.NewTimer(time.Second)
+	defer timeout.Stop()
+
+	NotPanics(t, func() {
+		done, done2 := make(chan struct{}), make(chan struct{})
+
+		condition := func(t *CollectT) {
+			<-done
+			close(done2)
+		}
+
+		False(t, EventuallyWithT(mockT, condition, time.Microsecond, time.Millisecond))
+
+		close(done)
+		select {
+		case <-done2:
+		case <-timeout.C:
+			panic("test timed out")
+		}
 	})
 }
 

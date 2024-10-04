@@ -1932,13 +1932,15 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 
 	ch := make(chan bool, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
+
+	go func() { ch <- condition() }()
+
+	for tick := (<-chan time.Time)(nil); ; {
 		select {
 		case <-timer.C:
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
@@ -2019,13 +2021,22 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
+
+	testCondition := func() {
+		collect := new(CollectT)
+		defer func() {
+			ch <- collect
+		}()
+		condition(collect)
+	}
+	go testCondition()
+
+	for tick := (<-chan time.Time)(nil); ; {
 		select {
 		case <-timer.C:
 			for _, err := range lastFinishedTickErrs {
@@ -2034,13 +2045,7 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
 		case <-tick:
 			tick = nil
-			go func() {
-				collect := new(CollectT)
-				defer func() {
-					ch <- collect
-				}()
-				condition(collect)
-			}()
+			go testCondition()
 		case collect := <-ch:
 			if !collect.failed() {
 				return true
