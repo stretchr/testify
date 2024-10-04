@@ -256,7 +256,7 @@ func (c *Call) Unset() *Call {
 // calls have been called as expected. The referenced calls may be from the
 // same mock instance and/or other mock instances.
 //
-//	Mock.On("Do").Return(nil).Notbefore(
+//	Mock.On("Do").Return(nil).NotBefore(
 //	    Mock.On("Init").Return(nil)
 //	)
 func (c *Call) NotBefore(calls ...*Call) *Call {
