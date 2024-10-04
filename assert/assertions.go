@@ -1936,11 +1936,11 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 
 	ch := make(chan bool, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
 
 	for tick := ticker.C; ; {
 		select {
@@ -2027,11 +2027,11 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
 
 	for tick := ticker.C; ; {
 		select {
@@ -2131,11 +2131,11 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 
 	ch := make(chan bool, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
 
 	for tick := ticker.C; ; {
 		select {

@@ -3,6 +3,7 @@ package assert
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -3012,21 +3013,32 @@ func TestNeverTrue(t *testing.T) {
 func TestEventuallyTimeout(t *testing.T) {
 	mockT := new(testing.T)
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
 	NotPanics(t, func() {
 		done, done2 := make(chan struct{}), make(chan struct{})
 
 		// A condition function that returns after the Eventually timeout
 		condition := func() bool {
 			// Wait until Eventually times out and terminates
-			<-done
+			select {
+			case <-done:
+			case <-ctx.Done():
+				panic("test timed out")
+			}
 			close(done2)
 			return true
 		}
 
-		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
+		False(t, Eventually(mockT, condition, 10*time.Millisecond, time.Microsecond))
 
 		close(done)
-		<-done2
+		select {
+		case <-done2:
+		case <-ctx.Done():
+			panic("test timed out")
+		}
 	})
 }
 
