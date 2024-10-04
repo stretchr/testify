@@ -2149,7 +2149,8 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 	), msgAndArgs...)
 }
 
-// NotErrorAs asserts that none of the errors in err's chain matches target.
+// NotErrorAs asserts that none of the errors in err's chain matches target,
+// but if so, sets target to that error value.
 func NotErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
