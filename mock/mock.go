@@ -91,6 +91,7 @@ func newCall(parent *Mock, methodName string, callerInfo []string, methodArgumen
 		ReturnArguments: make([]interface{}, 0),
 		callerInfo:      callerInfo,
 		Repeatability:   0,
+		minimumCalls:    0,
 		WaitFor:         nil,
 		RunFn:           nil,
 		PanicMsg:        nil,
@@ -660,7 +661,7 @@ func (m *Mock) checkExpectation(call *Call) (bool, string) {
 	if call.Repeatability > 0 {
 		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
 	}
-	if call.minimumCalls >= call.totalCalls {
+	if call.minimumCalls > 0 && call.minimumCalls >= call.totalCalls {
 		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
 	}
 	return true, fmt.Sprintf("PASS:\t%s(%s)", call.Method, call.Arguments.String())
