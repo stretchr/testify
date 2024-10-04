@@ -3030,6 +3030,214 @@ func TestEventuallyTimeout(t *testing.T) {
 	})
 }
 
+func TestEventuallySync(t *testing.T) {
+	for name, test := range map[string]struct {
+		condition      func(*CollectT)
+		waitFor, tick  time.Duration
+		expected       bool
+		expectedErrors []error
+	}{
+		"zero_values": {func(t *CollectT) {}, 0, 0, true, nil},
+		"fails": {
+			condition: func(t *CollectT) { t.Errorf("") },
+			waitFor:   0,
+			tick:      0,
+			expected:  false,
+			expectedErrors: []error{
+				errors.New(""),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition never satisfied\n"),
+			},
+		},
+		"passes_2nd": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter >= 2 {
+						return
+					}
+					t.Errorf("oops")
+				}
+			}(),
+			waitFor:  time.Second,
+			tick:     0,
+			expected: true,
+		},
+		"passes_22nd": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter >= 22 {
+						return
+					}
+					t.Errorf("oops")
+				}
+			}(),
+			waitFor:  time.Second,
+			tick:     0,
+			expected: true,
+		},
+		"fails_3_times": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					t.Errorf("%d", counter)
+				}
+			}(),
+			waitFor:  100 * time.Millisecond,
+			tick:     35 * time.Millisecond,
+			expected: false,
+			expectedErrors: []error{
+				errors.New("3"),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition never satisfied\n"),
+			},
+		},
+		"passes_after_fail_now": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter >= 2 {
+						return
+					}
+					t.FailNow()
+				}
+			}(),
+			waitFor:  time.Second,
+			tick:     time.Millisecond,
+			expected: true,
+		},
+		"fails_with_fail_now": {
+			condition: func(t *CollectT) {
+				t.Errorf("should be seen")
+				t.Errorf("should also be seen")
+				t.FailNow()
+				t.Errorf("should not be seen")
+			},
+			waitFor:  time.Millisecond,
+			tick:     time.Millisecond,
+			expected: false,
+			expectedErrors: []error{
+				errors.New("should be seen"),
+				errors.New("should also be seen"),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition never satisfied\n"),
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+
+			mockT := new(errorsCapturingT)
+			Equal(t, test.expected, EventuallySync(mockT, test.condition, test.waitFor, test.tick))
+			Equal(t, test.expectedErrors, mockT.errors)
+		})
+	}
+}
+
+func TestConsistently(t *testing.T) {
+	for name, test := range map[string]struct {
+		condition      func(*CollectT)
+		waitFor, tick  time.Duration
+		expected       bool
+		expectedErrors []error
+	}{
+		"zero_values": {func(*CollectT) {}, 0, 0, true, nil},
+		"fails_immediately": {
+			condition: func(t *CollectT) { t.Errorf("") },
+			waitFor:   0,
+			tick:      0,
+			expected:  false,
+			expectedErrors: []error{
+				errors.New(""),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition was not satisfied\n"),
+			},
+		},
+		"fails_2nd": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter >= 2 {
+						t.Errorf("oops")
+					}
+				}
+			}(),
+			waitFor:  time.Second,
+			tick:     0,
+			expected: false,
+			expectedErrors: []error{
+				errors.New("oops"),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition was not satisfied\n"),
+			},
+		},
+		"fails_22nd": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter >= 22 {
+						t.Errorf("oops")
+					}
+				}
+			}(),
+			waitFor:  time.Second,
+			tick:     0,
+			expected: false,
+			expectedErrors: []error{
+				errors.New("oops"),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition was not satisfied\n"),
+			},
+		},
+		"passes_2_times": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter <= 2 {
+						return
+					}
+					t.Errorf("%d", counter)
+				}
+			}(),
+			waitFor:  100 * time.Millisecond,
+			tick:     35 * time.Millisecond,
+			expected: false,
+			expectedErrors: []error{
+				errors.New("3"),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition was not satisfied\n"),
+			},
+		},
+		"fails_with_fail_now": {
+			condition: func(t *CollectT) {
+				t.Errorf("should be seen")
+				t.Errorf("should also be seen")
+				t.FailNow()
+				t.Errorf("should not be seen")
+			},
+			waitFor:  time.Millisecond,
+			tick:     time.Millisecond,
+			expected: false,
+			expectedErrors: []error{
+				errors.New("should be seen"),
+				errors.New("should also be seen"),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition was not satisfied\n"),
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+
+			mockT := new(errorsCapturingT)
+			Equal(t, test.expected, Consistently(mockT, test.condition, test.waitFor, test.tick))
+			Equal(t, test.expectedErrors, mockT.errors)
+		})
+	}
+}
+
 func Test_validateEqualArgs(t *testing.T) {
 	if validateEqualArgs(func() {}, func() {}) == nil {
 		t.Error("non-nil functions should error")

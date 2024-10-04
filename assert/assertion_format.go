@@ -16,6 +16,30 @@ func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bo
 	return Condition(t, comp, append([]interface{}{msg}, args...)...)
 }
 
+// Consistentlyf asserts that a given condition will always be met until
+// waitFor time plus the time taken for the last call to condition to return has
+// elapsed. The condition is considered met when the condition function does not
+// report failures on the CollectT passed to it. The supplied CollectT collects
+// all errors from one tick (if there are any) and if the condition is ever not
+// met, then the collected errors are copied to t. It is safe to use assertions
+// from the require package in the condition function, these will immediately
+// cease execution of the condition function, but not of the test. The condition
+// function is called synchronously immediately and then every tick duration
+// after that. Consistentlyf will adjust the time interval or drop ticks to make
+// up for slow condition functions.
+//
+//	assert.Consistentlyf(t, func(c *assert.CollectT, "error message %s", "formatted") {
+//		i, err := shouldError()
+//		require.Error(c, err)
+//		require.Equal(c, 7, i)
+//	}, 10*time.Second, 1*time.Second, "shouldError() did not return 7 and an error")
+func Consistentlyf(t TestingT, condition func(*CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Consistently(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
+}
+
 // Containsf asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //
@@ -162,11 +186,41 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 // periodically checking target function each tick.
 //
 //	assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+//
+// Deprecated: For some values of waitFor and tick; Eventuallyf may fail having
+// never called condition. Eventuallyf may leak goroutines. Use [EventuallyfSync]
+// instead.
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 	return Eventually(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
+}
+
+// EventuallySyncf asserts that a given condition will be met before waitFor time
+// plus the time taken for the last call to condition to return. The condition
+// is considered met when the condition function does not report failures on the
+// CollectT passed to it. The supplied CollectT collects all errors from one
+// tick (if there are any) and if the condition is not met before EventuallySyncf
+// returns, then the collected errors of the last tick are copied to t. The
+// condition function is called synchronously immediately and then every tick
+// duration after that. EventuallySyncf will adjust the time interval or drop
+// ticks to make up for slow condition functions.
+//
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	assert.EventuallySyncf(t, func(c *assert.CollectT, "error message %s", "formatted") {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+func EventuallySyncf(t TestingT, condition func(*CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return EventuallySync(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
 }
 
 // EventuallyWithTf asserts that given condition will be met in waitFor time,
@@ -187,6 +241,10 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		assert.True(c, externalValue, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//
+// Deprecated: For some values of waitFor and tick; EventuallyWithTf may fail
+// having never called condition. EventuallyWithTf may leak goroutines. Use
+// [EventuallySync] instead.
 func EventuallyWithTf(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -507,6 +565,10 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 // periodically checking the target function each tick.
 //
 //	assert.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+//
+// Deprecated: For some values of waitFor and tick; Neverf may pass without
+// calling condition. Neverf may leak goroutines. Use [Consistently] and invert
+// the logic of condition instead.
 func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
