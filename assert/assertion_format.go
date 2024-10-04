@@ -621,8 +621,7 @@ func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg s
 	return NotEqualValues(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// NotErrorAsf asserts that at none of the errors in err's chain matches target.
-// This is the inverse of the ErrorAs function.
+// NotErrorAsf asserts that none of the errors in err's chain matches target.
 func NotErrorAsf(t TestingT, err error, target interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
