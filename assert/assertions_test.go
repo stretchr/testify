@@ -3042,18 +3042,21 @@ func TestEventuallyTimeout(t *testing.T) {
 	})
 }
 
-func TestEventuallySync(t *testing.T) {
+func TestEventuallyTimes(t *testing.T) {
 	for name, test := range map[string]struct {
 		condition      func(*CollectT)
-		waitFor, tick  time.Duration
+		times          int
 		expected       bool
 		expectedErrors []error
 	}{
-		"zero_values": {func(t *CollectT) {}, 0, 0, true, nil},
+		"passes": {
+			condition: func(t *CollectT) {},
+			times:     10,
+			expected:  true,
+		},
 		"fails": {
 			condition: func(t *CollectT) { t.Errorf("") },
-			waitFor:   0,
-			tick:      0,
+			times:     10,
 			expected:  false,
 			expectedErrors: []error{
 				errors.New(""),
@@ -3071,8 +3074,7 @@ func TestEventuallySync(t *testing.T) {
 					t.Errorf("oops")
 				}
 			}(),
-			waitFor:  time.Second,
-			tick:     0,
+			times:    10,
 			expected: true,
 		},
 		"passes_22nd": {
@@ -3086,9 +3088,26 @@ func TestEventuallySync(t *testing.T) {
 					t.Errorf("oops")
 				}
 			}(),
-			waitFor:  time.Second,
-			tick:     0,
+			times:    30,
 			expected: true,
+		},
+		"would_pass_22nd": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter >= 22 {
+						return
+					}
+					t.Errorf("%d", counter)
+				}
+			}(),
+			times:    21,
+			expected: false,
+			expectedErrors: []error{
+				errors.New("21"),
+				errors.New("\n\tError Trace:\t\n\tError:      \tCondition never satisfied\n"),
+			},
 		},
 		"fails_3_times": {
 			condition: func() func(*CollectT) {
@@ -3098,8 +3117,7 @@ func TestEventuallySync(t *testing.T) {
 					t.Errorf("%d", counter)
 				}
 			}(),
-			waitFor:  100 * time.Millisecond,
-			tick:     35 * time.Millisecond,
+			times:    3,
 			expected: false,
 			expectedErrors: []error{
 				errors.New("3"),
@@ -3117,8 +3135,7 @@ func TestEventuallySync(t *testing.T) {
 					t.FailNow()
 				}
 			}(),
-			waitFor:  time.Second,
-			tick:     time.Millisecond,
+			times:    10,
 			expected: true,
 		},
 		"fails_with_fail_now": {
@@ -3128,8 +3145,7 @@ func TestEventuallySync(t *testing.T) {
 				t.FailNow()
 				t.Errorf("should not be seen")
 			},
-			waitFor:  time.Millisecond,
-			tick:     time.Millisecond,
+			times:    10,
 			expected: false,
 			expectedErrors: []error{
 				errors.New("should be seen"),
@@ -3143,8 +3159,48 @@ func TestEventuallySync(t *testing.T) {
 			t.Parallel()
 
 			mockT := new(errorsCapturingT)
-			Equal(t, test.expected, EventuallySync(mockT, test.condition, test.waitFor, test.tick))
+			Equal(t, test.expected, EventuallyTimes(mockT, test.condition, test.times, 0))
 			Equal(t, test.expectedErrors, mockT.errors)
+		})
+	}
+}
+
+func TestEventuallyTimes0Times(t *testing.T) {
+	PanicsWithValue(t, "non-positive times for EventuallyTimes", func() {
+		EventuallyTimes(new(mockTestingT), func(ct *CollectT) {}, 0, 0)
+	})
+}
+
+func TestEventuallyTimesTick(t *testing.T) {
+	for name, test := range map[string]struct {
+		condition       func(*CollectT)
+		times           int
+		tick            time.Duration
+		expectedMinTime time.Duration
+	}{
+		"ticks_of_10ms": {
+			condition:       func(t *CollectT) { t.FailNow() },
+			times:           5,
+			tick:            10 * time.Millisecond,
+			expectedMinTime: 50 * time.Millisecond,
+		},
+		"slow_condition": {
+			condition: func(t *CollectT) {
+				time.Sleep(10 * time.Millisecond)
+				t.FailNow()
+			},
+			times:           5,
+			tick:            1 * time.Millisecond,
+			expectedMinTime: 50 * time.Millisecond,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+
+			start := time.Now()
+			EventuallyTimes(new(mockTestingT), test.condition, test.times, test.tick)
+			Greater(t, time.Since(start), test.expectedMinTime)
 		})
 	}
 }
@@ -3152,15 +3208,18 @@ func TestEventuallySync(t *testing.T) {
 func TestConsistently(t *testing.T) {
 	for name, test := range map[string]struct {
 		condition      func(*CollectT)
-		waitFor, tick  time.Duration
+		times          int
 		expected       bool
 		expectedErrors []error
 	}{
-		"zero_values": {func(*CollectT) {}, 0, 0, true, nil},
+		"passes": {
+			condition: func(*CollectT) {},
+			times:     10,
+			expected:  true,
+		},
 		"fails_immediately": {
 			condition: func(t *CollectT) { t.Errorf("") },
-			waitFor:   0,
-			tick:      0,
+			times:     10,
 			expected:  false,
 			expectedErrors: []error{
 				errors.New(""),
@@ -3177,8 +3236,7 @@ func TestConsistently(t *testing.T) {
 					}
 				}
 			}(),
-			waitFor:  time.Second,
-			tick:     0,
+			times:    10,
 			expected: false,
 			expectedErrors: []error{
 				errors.New("oops"),
@@ -3195,13 +3253,25 @@ func TestConsistently(t *testing.T) {
 					}
 				}
 			}(),
-			waitFor:  time.Second,
-			tick:     0,
+			times:    30,
 			expected: false,
 			expectedErrors: []error{
 				errors.New("oops"),
 				errors.New("\n\tError Trace:\t\n\tError:      \tCondition was not satisfied\n"),
 			},
+		},
+		"would_fail_22nd": {
+			condition: func() func(*CollectT) {
+				counter := 0
+				return func(t *CollectT) {
+					counter++
+					if counter >= 22 {
+						t.Errorf("oops")
+					}
+				}
+			}(),
+			times:    21,
+			expected: true,
 		},
 		"passes_2_times": {
 			condition: func() func(*CollectT) {
@@ -3214,8 +3284,7 @@ func TestConsistently(t *testing.T) {
 					t.Errorf("%d", counter)
 				}
 			}(),
-			waitFor:  100 * time.Millisecond,
-			tick:     35 * time.Millisecond,
+			times:    10,
 			expected: false,
 			expectedErrors: []error{
 				errors.New("3"),
@@ -3229,8 +3298,7 @@ func TestConsistently(t *testing.T) {
 				t.FailNow()
 				t.Errorf("should not be seen")
 			},
-			waitFor:  time.Millisecond,
-			tick:     time.Millisecond,
+			times:    10,
 			expected: false,
 			expectedErrors: []error{
 				errors.New("should be seen"),
@@ -3244,8 +3312,45 @@ func TestConsistently(t *testing.T) {
 			t.Parallel()
 
 			mockT := new(errorsCapturingT)
-			Equal(t, test.expected, Consistently(mockT, test.condition, test.waitFor, test.tick))
+			Equal(t, test.expected, Consistently(mockT, test.condition, test.times, 0))
 			Equal(t, test.expectedErrors, mockT.errors)
+		})
+	}
+}
+
+func TestConsistently0Times(t *testing.T) {
+	PanicsWithValue(t, "non-positive times for Consistently", func() {
+		Consistently(new(mockTestingT), func(ct *CollectT) {}, 0, 0)
+	})
+}
+
+func TestConsistentlyTick(t *testing.T) {
+	for name, test := range map[string]struct {
+		condition       func(*CollectT)
+		times           int
+		tick            time.Duration
+		expectedMinTime time.Duration
+	}{
+		"ticks_of_10ms": {
+			condition:       func(ct *CollectT) {},
+			times:           5,
+			tick:            10 * time.Millisecond,
+			expectedMinTime: 50 * time.Millisecond,
+		},
+		"slow_condition": {
+			condition:       func(ct *CollectT) { time.Sleep(10 * time.Millisecond) },
+			times:           5,
+			tick:            1 * time.Millisecond,
+			expectedMinTime: 50 * time.Millisecond,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test := test
+			t.Parallel()
+
+			start := time.Now()
+			Consistently(new(mockTestingT), test.condition, test.times, test.tick)
+			Greater(t, time.Since(start), test.expectedMinTime)
 		})
 	}
 }
