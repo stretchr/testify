@@ -977,6 +977,28 @@ func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon fl
 	t.FailNow()
 }
 
+// InMapDeltasMapValues is the same as InDelta, but it compares all values between two maps with the matching delta on the delta's map. All maps must have exactly the same keys.
+func InMapDeltasMapValues(t TestingT, expected interface{}, actual interface{}, deltasMap map[interface{}]float64, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.InMapDeltasMapValues(t, expected, actual, deltasMap, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// InMapDeltasMapValuesf is the same as InDelta, but it compares all values between two maps with the matching delta on the delta's map. All maps must have exactly the same keys.
+func InMapDeltasMapValuesf(t TestingT, expected interface{}, actual interface{}, deltasMap map[interface{}]float64, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.InMapDeltasMapValuesf(t, expected, actual, deltasMap, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // IsDecreasing asserts that the collection is decreasing
 //
 //	assert.IsDecreasing(t, []int{2, 1, 0})
