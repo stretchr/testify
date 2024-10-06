@@ -223,6 +223,8 @@ You can use the [mockery tool](https://vektra.github.io/mockery/latest/) to auto
 
 [`suite`](https://pkg.go.dev/github.com/stretchr/testify/suite "API documentation") package
 -----------------------------------------------------------------------------------------
+> [!WARNING]
+> The suite package does not support parallel tests. See [#934](https://github.com/stretchr/testify/issues/934).
 
 The `suite` package provides functionality that you might be used to from more common object-oriented languages.  With it, you can build a testing suite as a struct, build setup/teardown methods and testing methods on your struct, and run them with 'go test' as per normal.
 

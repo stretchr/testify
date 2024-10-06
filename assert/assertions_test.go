@@ -1327,7 +1327,7 @@ func TestNotElementsMatch(t *testing.T) {
 		actual   interface{}
 		result   bool
 	}{
-		// not mathing
+		// not matching
 		{[]int{1}, []int{}, true},
 		{[]int{}, []int{2}, true},
 		{[]int{1}, []int{2}, true},
@@ -3269,7 +3269,6 @@ func TestNotErrorIs(t *testing.T) {
 }
 
 func TestErrorAs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
 		err    error
 		result bool
@@ -3282,9 +3281,38 @@ func TestErrorAs(t *testing.T) {
 		tt := tt
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := ErrorAs(mockT, tt.err, &target)
 			if res != tt.result {
-				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
+				t.Errorf("ErrorAs(%#v,%#v) should return %t", tt.err, target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
+			}
+		})
+	}
+}
+
+func TestNotErrorAs(t *testing.T) {
+	tests := []struct {
+		err    error
+		result bool
+	}{
+		{fmt.Errorf("wrap: %w", &customError{}), false},
+		{io.EOF, true},
+		{nil, true},
+	}
+	for _, tt := range tests {
+		tt := tt
+		var target *customError
+		t.Run(fmt.Sprintf("NotErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(testing.T)
+			res := NotErrorAs(mockT, tt.err, &target)
+			if res != tt.result {
+				t.Errorf("NotErrorAs(%#v,%#v) should not return %t", tt.err, target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
 			}
 		})
 	}
