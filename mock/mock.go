@@ -296,7 +296,7 @@ type Mock struct {
 	ExpectedCalls []*Call
 
 	// Holds the calls that were made to this mocked object.
-	Calls []Call
+	Calls map[string][]Call
 
 	// test is An optional variable that holds the test struct, to be used when an
 	// invalid mock call was made.
@@ -543,8 +543,21 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	}
 	call.totalCalls++
 
+	fmt.Println(m.Calls)
+
 	// add the call
-	m.Calls = append(m.Calls, *newCall(m, methodName, assert.CallerInfo(), arguments...))
+	if m.Calls == nil {
+		fmt.Printf("hello")
+		m.Calls = make(map[string][]Call)
+	}
+
+	calls, ok := m.Calls[methodName]
+	if !ok {
+		m.Calls[methodName] = []Call{*newCall(m, methodName, assert.CallerInfo(), arguments...)}
+	} else {
+		calls = append(calls, *newCall(m, methodName, assert.CallerInfo(), arguments...))
+		m.Calls[methodName] = calls
+	}
 	m.mutex.Unlock()
 
 	// block if specified
@@ -655,11 +668,11 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	var actualCalls int
-	for _, call := range m.calls() {
-		if call.Method == methodName {
-			actualCalls++
-		}
+	calls, ok := m.Calls[methodName]
+	if ok {
+		actualCalls = len(calls)
 	}
+
 	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) does not match the actual number of calls (%d).", expectedCalls, actualCalls))
 }
 
@@ -673,8 +686,10 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 	defer m.mutex.Unlock()
 	if !m.methodWasCalled(methodName, arguments) {
 		var calledWithArgs []string
-		for _, call := range m.calls() {
-			calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
+		for _, calls := range m.Calls {
+			for _, call := range calls {
+				calledWithArgs = append(calledWithArgs, fmt.Sprintf("%v", call.Arguments))
+			}
 		}
 		if len(calledWithArgs) == 0 {
 			return assert.Fail(t, "Should have called with given arguments",
@@ -727,6 +742,24 @@ func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...inte
 	return false
 }
 
+// ArgsForCallCount returns the arguments of a function for a specific call count(0 based index)
+func (m *Mock) ArgsForCallCount(t TestingT, methodName string, count int) Arguments {
+	fmt.Println("ArgsForCallCount")
+	fmt.Println(m.Calls)
+	calls, ok := m.Calls[methodName]
+	if !ok {
+		assert.Fail(t, "ArgsForCallCount",
+			fmt.Sprintf("Expected %q to have been called with:\nbut no actual calls happened", methodName))
+	}
+
+	if len(calls) < count+1 {
+		assert.Fail(t, "ArgsForCallCount",
+			fmt.Sprintf("Expected %q to have been called with count:%d:\nbut no actual calls happened", methodName, count))
+	}
+
+	return calls[count].Arguments
+}
+
 // isArgsEqual compares arguments
 func isArgsEqual(expected Arguments, args []interface{}) bool {
 	if len(expected) != len(args) {
@@ -741,8 +774,9 @@ func isArgsEqual(expected Arguments, args []interface{}) bool {
 }
 
 func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
-	for _, call := range m.calls() {
-		if call.Method == methodName {
+	calls, ok := m.Calls[methodName]
+	if ok {
+		for _, call := range calls {
 
 			_, differences := Arguments(expected).Diff(call.Arguments)
 
@@ -750,7 +784,6 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 				// found the expected call
 				return true
 			}
-
 		}
 	}
 	// we didn't find the expected call
@@ -759,10 +792,6 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 
 func (m *Mock) expectedCalls() []*Call {
 	return append([]*Call{}, m.ExpectedCalls...)
-}
-
-func (m *Mock) calls() []Call {
-	return append([]Call{}, m.Calls...)
 }
 
 /*
