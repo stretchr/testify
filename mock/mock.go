@@ -1204,31 +1204,16 @@ type tHelper interface {
 func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	expectedOpts := reflect.ValueOf(expected)
 	actualOpts := reflect.ValueOf(actual)
-	var expectedNames []string
-	for i := 0; i < expectedOpts.Len(); i++ {
-		expectedNames = append(expectedNames, funcName(expectedOpts.Index(i).Interface()))
-	}
-	var actualNames []string
-	for i := 0; i < actualOpts.Len(); i++ {
-		actualNames = append(actualNames, funcName(actualOpts.Index(i).Interface()))
-	}
-	if !assert.ObjectsAreEqual(expectedNames, actualNames) {
-		expectedFmt = fmt.Sprintf("%v", expectedNames)
-		actualFmt = fmt.Sprintf("%v", actualNames)
+
+	if expectedOpts.Len() != actualOpts.Len() {
+		expectedFmt = fmt.Sprintf("%v", expectedOpts)
+		actualFmt = fmt.Sprintf("%v", actualOpts)
 		return
 	}
 
 	for i := 0; i < expectedOpts.Len(); i++ {
 		expectedOpt := expectedOpts.Index(i).Interface()
 		actualOpt := actualOpts.Index(i).Interface()
-
-		expectedFunc := expectedNames[i]
-		actualFunc := actualNames[i]
-		if expectedFunc != actualFunc {
-			expectedFmt = expectedFunc
-			actualFmt = actualFunc
-			return
-		}
 
 		ot := reflect.TypeOf(expectedOpt)
 		var expectedValues []reflect.Value
@@ -1248,8 +1233,8 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 
 		for i := 0; i < ot.NumIn(); i++ {
 			if !assert.ObjectsAreEqual(expectedValues[i].Interface(), actualValues[i].Interface()) {
-				expectedFmt = fmt.Sprintf("%s %+v", expectedNames[i], expectedValues[i].Interface())
-				actualFmt = fmt.Sprintf("%s %+v", expectedNames[i], actualValues[i].Interface())
+				expectedFmt = fmt.Sprintf("%s %+v", funcName(expectedOpts.Index(i).Interface()), expectedValues[i].Interface())
+				actualFmt = fmt.Sprintf("%s %+v", funcName(actualOpts.Index(i).Interface()), actualValues[i].Interface())
 				return
 			}
 		}
@@ -1260,5 +1245,12 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 
 func funcName(opt interface{}) string {
 	n := runtime.FuncForPC(reflect.ValueOf(opt).Pointer()).Name()
-	return strings.TrimSuffix(path.Base(n), path.Ext(n))
+	trimmed := strings.TrimSuffix(path.Base(n), path.Ext(n))
+	splitted := strings.Split(trimmed, ".")
+
+	if len(splitted) == 0 {
+		return trimmed
+	}
+
+	return splitted[len(splitted)-1]
 }
