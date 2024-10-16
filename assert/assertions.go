@@ -1925,6 +1925,10 @@ type tHelper = interface {
 // periodically checking target function each tick.
 //
 //	assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
+//
+// Deprecated: For some values of waitFor and tick; Eventually may fail having
+// never called condition. Eventually may leak goroutines. Use [EventuallyTimes]
+// instead.
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1932,11 +1936,11 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 
 	ch := make(chan bool, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
 
 	for tick := ticker.C; ; {
 		select {
@@ -2011,6 +2015,10 @@ func (c *CollectT) failed() bool {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		assert.True(c, externalValue, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//
+// Deprecated: For some values of waitFor and tick; EventuallyWithT may fail
+// having never called condition. EventuallyWithT may leak goroutines. Use
+// [EventuallyTimes] instead.
 func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2019,11 +2027,11 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
 
 	for tick := ticker.C; ; {
 		select {
@@ -2052,10 +2060,72 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	}
 }
 
+// EventuallyTimes asserts that a given condition will be met within times calls
+// of the condition function. The condition is considered met when the condition
+// function does not report errors on the CollectT passed to it. The supplied
+// CollectT collects errors from each call and if the condition is not met after
+// the last call, then the collected errors of the last call are copied to t.
+// The condition function is called synchronously immediately and then every
+// tick duration after that. If condition returns after the tick interval then
+// the next call will be made immediately. EventuallyTimes will panic if called
+// with non-positive times.
+//
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	assert.EventuallyTimes(t, func(c *assert.CollectT) {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10, 1*time.Second, "external state has not changed to 'true'; still false")
+func EventuallyTimes(t TestingT, condition func(*CollectT), times int, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if times < 1 {
+		panic("non-positive times for EventuallyTimes")
+	}
+
+	tickerCh := make(chan time.Time)
+	close(tickerCh)
+	ticker := (<-chan time.Time)(tickerCh)
+	if tick > 0 {
+		timeTicker := time.NewTicker(tick)
+		defer timeTicker.Stop()
+		ticker = timeTicker.C
+	}
+
+	var lastErrors []error
+	for i := 0; i < times; i++ {
+		collect := new(CollectT)
+
+		wait := make(chan struct{})
+		go func() {
+			defer close(wait)
+			condition(collect)
+		}()
+		<-wait
+		lastErrors = collect.errors
+
+		if !collect.failed() {
+			return true
+		}
+
+		<-ticker
+	}
+
+	for _, err := range lastErrors {
+		t.Errorf("%v", err)
+	}
+	return Fail(t, "Condition never satisfied", msgAndArgs...)
+}
+
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
 //	assert.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
+//
+// Deprecated: For some values of waitFor and tick; Never may pass without
+// calling condition. Never may leak goroutines. Use [Consistently] and invert
+// the logic of condition instead.
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2063,11 +2133,11 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 
 	ch := make(chan bool, 1)
 
-	timer := time.NewTimer(waitFor)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
+
+	timer := time.NewTimer(waitFor)
+	defer timer.Stop()
 
 	for tick := ticker.C; ; {
 		select {
@@ -2083,6 +2153,57 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 			tick = ticker.C
 		}
 	}
+}
+
+// Consistently asserts that a given condition will be met for times calls of
+// the condition function. The condition is considered met when the condition
+// function does not report errors on the CollectT passed to it. The supplied
+// CollectT collects errors from each call and if the condition is not met then
+// the collected errors of the last call are copied to t. The condition function
+// is called synchronously immediately and then every tick duration after that.
+// If condition returns after the tick interval then the next call will be made
+// immediately. Consistently will panic if called with non-positive times.
+//
+//	assert.Consistently(t, func(c *assert.CollectT) {
+//		i, err := shouldError()
+//		require.Error(c, err)
+//		require.Equal(c, 7, i)
+//	}, 10, 1*time.Second, "shouldError() did not return 7 and an error")
+func Consistently(t TestingT, condition func(*CollectT), times int, tick time.Duration, msgAndArgs ...interface{}) bool {
+	if times < 1 {
+		panic("non-positive times for Consistently")
+	}
+
+	tickerCh := make(chan time.Time)
+	close(tickerCh)
+	ticker := (<-chan time.Time)(tickerCh)
+	if tick > 0 {
+		timeTicker := time.NewTicker(tick)
+		defer timeTicker.Stop()
+		ticker = timeTicker.C
+	}
+
+	for i := 0; i < times; i++ {
+		collect := new(CollectT)
+
+		wait := make(chan struct{})
+		go func() {
+			defer close(wait)
+			condition(collect)
+		}()
+		<-wait
+
+		if collect.failed() {
+			for _, err := range collect.errors {
+				t.Errorf("%v", err)
+			}
+			return Fail(t, "Condition was not satisfied", msgAndArgs...)
+		}
+
+		<-ticker
+	}
+
+	return true
 }
 
 // ErrorIs asserts that at least one of the errors in err's chain matches target.
