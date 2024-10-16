@@ -573,6 +573,190 @@ func Test_Mock_Chained_UnsetOnlyUnsetsLastCall(t *testing.T) {
 	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
 }
 
+func Test_Mock_UnsetOnlyUnsetsCurrentCall(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, filename, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod1", Anything, Anything).Return(0).
+		On("TheExampleMethod1", 2, 2).Return(0)
+
+	callToUnset := mockedService.On("TheExampleMethod1", 3, 3).Return(0)
+	callToUnset.Unset()
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{Anything, Anything},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{2, 2},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+3)},
+		},
+	}
+	assert.Equal(t, 2, len(expectedCalls))
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_UnsetOnlyUnsetsExactArgsMatchCall(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, filename, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod1", Anything, Anything).Return(0).
+		On("TheExampleMethod1", 2, 2).Return(0).
+		On("TheExampleMethod1", 3, 3).Return(0)
+
+	mockedService.On("TheExampleMethod1", 3, 3).Unset()
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{Anything, Anything},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{2, 2},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+3)},
+		},
+	}
+	assert.Equal(t, 2, len(expectedCalls))
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_UnsetOnlyUnsetsExactArgsMatchCallWhenPartialMatch(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, filename, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod1", 2, 2).Return(0).
+		On("TheExampleMethod1", 3, 3).Return(0).
+		On("TheExampleMethod1", 3, Anything).Return(0).
+		On("TheExampleMethod1", Anything, Anything).Return(0)
+
+	mockedService.On("TheExampleMethod1", 3, 3).Unset()
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{2, 2},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{3, Anything},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{Anything, Anything},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+5)},
+		},
+	}
+	assert.Equal(t, 3, len(expectedCalls))
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_UnsetOnlyUnsetsExactArgsMatchCallWhenAnythingSomeArg(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, filename, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod1", 2, 2).Return(0).
+		On("TheExampleMethod1", 3, 3).Return(0).
+		On("TheExampleMethod1", 3, Anything).Return(0).
+		On("TheExampleMethod1", Anything, Anything).Return(0)
+
+	mockedService.On("TheExampleMethod1", 3, Anything).Unset()
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{2, 2},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{3, 3},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+3)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{Anything, Anything},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+5)},
+		},
+	}
+	assert.Equal(t, 3, len(expectedCalls))
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_UnsetOnlyUnsetsExactArgsMatchCallWhenAnythingEveryArg(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, filename, line, _ := runtime.Caller(0)
+	mockedService.
+		On("TheExampleMethod1", 2, 2).Return(0).
+		On("TheExampleMethod1", 3, 3).Return(0).
+		On("TheExampleMethod1", 3, Anything).Return(0).
+		On("TheExampleMethod1", Anything, Anything).Return(0)
+
+	mockedService.On("TheExampleMethod1", Anything, Anything).Unset()
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{2, 2},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{3, 3},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+3)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod1",
+			Arguments:       []interface{}{3, Anything},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
+		},
+	}
+	assert.Equal(t, 3, len(expectedCalls))
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
 func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
