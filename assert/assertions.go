@@ -491,12 +491,12 @@ func validateEqualArgs(expected, actual interface{}) error {
 	return nil
 }
 
-// Same asserts that two pointers reference the same object.
+// Same asserts that two arguments reference the same object.
 //
-//	assert.Same(t, ptr1, ptr2)
+//	assert.Same(t, arg1, arg2)
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
-// determined based on the equality of both type and value.
+// Both arguments can be pointers, channels, functions, maps, slices or strings.
+// Argument sameness is determined based on the equality of both type and value.
 func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -511,12 +511,12 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 	return true
 }
 
-// NotSame asserts that two pointers do not reference the same object.
+// NotSame asserts that two arguments do not reference the same object.
 //
-//	assert.NotSame(t, ptr1, ptr2)
+//	assert.NotSame(t, arg1, arg2)
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
-// determined based on the equality of both type and value.
+// Both arguments can be pointers, channels, functions, maps, slices or strings.
+// Argument sameness is determined based on the equality of both type and value.
 func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -534,17 +534,13 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 // they point to the same object
 func samePointers(first, second interface{}) bool {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
-	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
+
+	switch firstPtr.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.Slice, reflect.String:
+		return firstPtr.Kind() == secondPtr.Kind() && firstPtr.Pointer() == secondPtr.Pointer()
+	default:
 		return false
 	}
-
-	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
-	if firstType != secondType {
-		return false
-	}
-
-	// compare pointer addresses
-	return first == second
 }
 
 // formatUnequalValues takes two values of arbitrary types and returns string
