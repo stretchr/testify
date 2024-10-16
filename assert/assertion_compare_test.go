@@ -59,6 +59,7 @@ func TestCompare(t *testing.T) {
 		{less: uintptr(1), greater: uintptr(2), cType: "uintptr"},
 		{less: customUintptr(1), greater: customUintptr(2), cType: "uint64"},
 		{less: time.Now(), greater: time.Now().Add(time.Hour), cType: "time.Time"},
+		{less: time.Date(2024, 0, 0, 0, 0, 0, 0, time.Local), greater: time.Date(2263, 0, 0, 0, 0, 0, 0, time.Local), cType: "time.Time"},
 		{less: customTime(time.Now()), greater: customTime(time.Now().Add(time.Hour)), cType: "time.Time"},
 		{less: []byte{1, 1}, greater: []byte{1, 2}, cType: "[]byte"},
 		{less: customBytes([]byte{1, 1}), greater: customBytes([]byte{1, 2}), cType: "[]byte"},
@@ -392,8 +393,8 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 		{v1: float64(12), v2: "123"},
 		{v1: "float(12)", v2: float64(1)},
 	} {
-		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
-		False(t, compareResult)
+		result := compareTwoValues(mockT, currCase.v1, currCase.v2, []compareResult{compareLess, compareEqual, compareGreater}, "testFailMessage")
+		False(t, result)
 	}
 }
 
@@ -411,8 +412,8 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 		{v1: map[string]int{}, v2: map[string]int{}},
 		{v1: make([]int, 5), v2: make([]int, 5)},
 	} {
-		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, []CompareType{compareLess, compareEqual, compareGreater}, "testFailMessage")
-		False(t, compareResult)
+		result := compareTwoValues(mockT, currCase.v1, currCase.v2, []compareResult{compareLess, compareEqual, compareGreater}, "testFailMessage")
+		False(t, result)
 	}
 }
 
@@ -420,35 +421,35 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 	mockT := new(testing.T)
 
 	for _, currCase := range []struct {
-		v1           interface{}
-		v2           interface{}
-		compareTypes []CompareType
+		v1             interface{}
+		v2             interface{}
+		allowedResults []compareResult
 	}{
-		{v1: 1, v2: 2, compareTypes: []CompareType{compareLess}},
-		{v1: 1, v2: 2, compareTypes: []CompareType{compareLess, compareEqual}},
-		{v1: 2, v2: 2, compareTypes: []CompareType{compareGreater, compareEqual}},
-		{v1: 2, v2: 2, compareTypes: []CompareType{compareEqual}},
-		{v1: 2, v2: 1, compareTypes: []CompareType{compareEqual, compareGreater}},
-		{v1: 2, v2: 1, compareTypes: []CompareType{compareGreater}},
+		{v1: 1, v2: 2, allowedResults: []compareResult{compareLess}},
+		{v1: 1, v2: 2, allowedResults: []compareResult{compareLess, compareEqual}},
+		{v1: 2, v2: 2, allowedResults: []compareResult{compareGreater, compareEqual}},
+		{v1: 2, v2: 2, allowedResults: []compareResult{compareEqual}},
+		{v1: 2, v2: 1, allowedResults: []compareResult{compareEqual, compareGreater}},
+		{v1: 2, v2: 1, allowedResults: []compareResult{compareGreater}},
 	} {
-		compareResult := compareTwoValues(mockT, currCase.v1, currCase.v2, currCase.compareTypes, "testFailMessage")
-		True(t, compareResult)
+		result := compareTwoValues(mockT, currCase.v1, currCase.v2, currCase.allowedResults, "testFailMessage")
+		True(t, result)
 	}
 }
 
 func Test_containsValue(t *testing.T) {
 	for _, currCase := range []struct {
-		values []CompareType
-		value  CompareType
+		values []compareResult
+		value  compareResult
 		result bool
 	}{
-		{values: []CompareType{compareGreater}, value: compareGreater, result: true},
-		{values: []CompareType{compareGreater, compareLess}, value: compareGreater, result: true},
-		{values: []CompareType{compareGreater, compareLess}, value: compareLess, result: true},
-		{values: []CompareType{compareGreater, compareLess}, value: compareEqual, result: false},
+		{values: []compareResult{compareGreater}, value: compareGreater, result: true},
+		{values: []compareResult{compareGreater, compareLess}, value: compareGreater, result: true},
+		{values: []compareResult{compareGreater, compareLess}, value: compareLess, result: true},
+		{values: []compareResult{compareGreater, compareLess}, value: compareEqual, result: false},
 	} {
-		compareResult := containsValue(currCase.values, currCase.value)
-		Equal(t, currCase.result, compareResult)
+		result := containsValue(currCase.values, currCase.value)
+		Equal(t, currCase.result, result)
 	}
 }
 
