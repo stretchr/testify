@@ -637,7 +637,12 @@ func Test_samePointers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, samePointers(tt.args.first, tt.args.second))
+			same, ok := samePointers(tt.args.first, tt.args.second)
+			if !ok {
+				tt.assertion(t, false) // both arguments must be pointers
+				return
+			}
+			tt.assertion(t, same)
 		})
 	}
 }
