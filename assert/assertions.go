@@ -532,19 +532,19 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 
 // samePointers compares two generic interface objects and returns whether
 // they point to the same object
-func samePointers(first, second interface{}) bool {
+func samePointers(first, second interface{}) (same bool, ok bool) {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
 	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
-		return false
+		return false, false //not both are pointers
 	}
 
 	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
 	if firstType != secondType {
-		return false
+		return false, true // both are pointers, but of different types
 	}
 
 	// compare pointer addresses
-	return first == second
+	return first == second, true
 }
 
 // formatUnequalValues takes two values of arbitrary types and returns string
