@@ -542,8 +542,10 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	//we return !Fail because Fail return false, but we need to return true if the arguments are not pointers(by default)
 }
 
-// samePointers compares two generic interface objects and returns whether
-// they point to the same object
+// samePointers checks if two generic interface objects are pointers to
+// the same object. It returns two values: a boolean indicating if they
+// point to the same object, and another boolean indicating whether both
+// inputs are valid pointers of the same type.
 func samePointers(first, second interface{}) (same bool, ok bool) {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
 	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
