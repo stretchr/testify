@@ -507,8 +507,8 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 		return Fail(t, "Both arguments must be pointers", msgAndArgs...)
 	}
 
-	//both are pointers but pointing to different addresses
 	if !same {
+		// both are pointers but not the same type & pointing to the same address
 		return Fail(t, fmt.Sprintf("Not same: \n"+
 			"expected: %p %#v\n"+
 			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
