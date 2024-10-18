@@ -1060,10 +1060,10 @@ func TestSubsetNotSubset(t *testing.T) {
 	}{
 		// cases that are expected to contain
 		{[]int{1, 2, 3}, nil, true, `nil is the empty set which is a subset of every set`},
-		{[]int{1, 2, 3}, []int{}, true, `[] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]int{1, 2, 3}, []int{1, 2}, true, `['\x01' '\x02'] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `['\x01' '\x02' '\x03'] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]string{"hello", "world"}, []string{"hello"}, true, `["hello"] is a subset of ["hello" "world"]`},
+		{[]int{1, 2, 3}, []int{}, true, `[]int{} is a subset of []int{1, 2, 3}`},
+		{[]int{1, 2, 3}, []int{1, 2}, true, `[]int{1, 2} is a subset of []int{1, 2, 3}`},
+		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `[]int{1, 2, 3} is a subset of []int{1, 2, 3}`},
+		{[]string{"hello", "world"}, []string{"hello"}, true, `[]string{"hello"} is a subset of []string{"hello", "world"}`},
 		{map[string]string{
 			"a": "x",
 			"c": "z",
@@ -1071,7 +1071,7 @@ func TestSubsetNotSubset(t *testing.T) {
 		}, map[string]string{
 			"a": "x",
 			"b": "y",
-		}, true, `map["a":"x" "b":"y"] is a subset of map["a":"x" "b":"y" "c":"z"]`},
+		}, true, `map[string]string{"a":"x", "b":"y"} is a subset of map[string]string{"a":"x", "b":"y", "c":"z"}`},
 
 		// cases that are expected not to contain
 		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, `[]string{"hello", "world"} does not contain "testify"`},
@@ -3046,12 +3046,12 @@ func Test_validateEqualArgs(t *testing.T) {
 
 func Test_truncatingFormat(t *testing.T) {
 
-	original := strings.Repeat("a", bufio.MaxScanTokenSize-102)
-	result := truncatingFormat(original)
+	original := strings.Repeat("a", bufio.MaxScanTokenSize/2-102)
+	result := truncatingFormat("%#v", original)
 	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")
 
 	original = original + "x"
-	result = truncatingFormat(original)
+	result = truncatingFormat("%#v", original)
 	NotEqual(t, fmt.Sprintf("%#v", original), result, "string should have been truncated.")
 
 	if !strings.HasSuffix(result, "<... truncated>") {
@@ -3316,4 +3316,245 @@ func TestNotErrorAs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLenWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Len(mockT, longSlice, 1)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	"[0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated>" should have 1 item(s), but has 1000000`)
+}
+
+func TestContainsWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Contains(mockT, longSlice, 1)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	[]int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated> does not contain 1`)
+}
+
+func TestNotContainsWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	NotContains(mockT, longSlice, 0)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	[]int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated> should not contain 0`)
+}
+
+func TestSubsetWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Subset(mockT, longSlice, []int{1})
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	[]int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated> does not contain 1`)
+}
+
+func TestSubsetWithMapTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Subset(mockT, map[bool][]int{true: longSlice}, map[bool][]int{false: longSlice})
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	map[bool][]int{true:[]int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated> does not contain map[bool][]int{false:[]int{0, 0, 0,`)
+}
+
+func TestNotSubsetWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	NotSubset(mockT, longSlice, longSlice)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	[]int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated> is a subset of []int{0, 0, 0,`)
+}
+
+func TestNotSubsetWithMapTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	NotSubset(mockT, map[bool][]int{true: longSlice}, map[bool][]int{true: longSlice})
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	map[bool][]int{true:[]int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated> is a subset of map[bool][]int{true:[]int{0, 0, 0,`)
+}
+
+func TestSameWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Same(mockT, &[]int{}, &longSlice)
+	Contains(t, mockT.errorString(), `&[]int{0, 0, 0,`)
+}
+
+func TestNotSameWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	NotSame(mockT, &longSlice, &longSlice)
+	Contains(t, mockT.errorString(), `&[]int{0, 0, 0,`)
+}
+
+func TestNilWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Nil(mockT, &longSlice)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Expected nil, but got: &[]int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated>`)
+}
+
+func TestEmptyWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Empty(mockT, longSlice)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Should be empty, but was [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated>`)
+}
+
+func TestNotEqualWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	NotEqual(mockT, longSlice, longSlice)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Should not be: []int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated>`)
+}
+
+func TestNotEqualValuesWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	NotEqualValues(mockT, longSlice, longSlice)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Should not be: []int{0, 0, 0,`)
+	Contains(t, mockT.errorString(), `<... truncated>`)
+}
+
+func TestNoErrorWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	NoError(mockT, fmt.Errorf("long: %v", longSlice))
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Received unexpected error:
+	            	long: [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated>`)
+}
+
+func TestEqualErrorWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	EqualError(mockT, fmt.Errorf("long: %v", longSlice), "EOF")
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Error message not equal:
+	            	expected: "EOF"
+	            	actual  : "long: [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated>`)
+}
+
+func TestErrorContainsWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	ErrorContains(mockT, fmt.Errorf("long: %v", longSlice), "EOF")
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Error "long: [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated> does not contain "EOF"`)
+}
+
+func TestZeroWithSliceTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Zero(mockT, longSlice)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Should be zero, but was [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated>`)
+}
+
+func TestErrorIsWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	ErrorIs(mockT, fmt.Errorf("long: %v", longSlice), fmt.Errorf("also: %v", longSlice))
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Target error should be in err chain:
+	            	expected: "also: [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated>
+	            	in chain: "long: [0 0 0`)
+}
+
+func TestNotErrorIsWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	err := fmt.Errorf("long: %v", longSlice)
+	NotErrorIs(mockT, err, err)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Target error should not be in err chain:
+	            	found: "long: [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated>
+	            	in chain: "long: [0 0 0`)
+}
+
+func TestErrorAsWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	var target *customError
+	ErrorAs(mockT, fmt.Errorf("long: %v", longSlice), &target)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Should be in error chain:
+	            	expected: %!q(**assert.customError=0x`)
+	Contains(t, mockT.errorString(), `
+	            	in chain: "long: [0 0 0`)
+	Contains(t, mockT.errorString(), "<... truncated>")
+}
+
+func TestNotErrorAsWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	var target *customError
+	NotErrorAs(mockT, fmt.Errorf("long: %v %w", longSlice, &customError{}), &target)
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Target error should not be in err chain:
+	            	found: %!q(**assert.customError=0x`)
+	Contains(t, mockT.errorString(), `
+	            	in chain: "long: [0 0 0`)
+	Contains(t, mockT.errorString(), "<... truncated>")
 }
