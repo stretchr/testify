@@ -527,7 +527,10 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if same, ok := samePointers(expected, actual); ok {
+
+	same, ok := samePointers(expected, actual)
+
+	if ok {
 		//if ok is true, then both arguments are pointers
 		if same {
 			return Fail(t, fmt.Sprintf(
