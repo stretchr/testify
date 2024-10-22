@@ -50,6 +50,13 @@ func OpStr(s string) OptionFn {
 		o.str = s
 	}
 }
+
+func OpBytes(b []byte) OptionFn {
+	return func(m *options) {
+		m.str = string(b)
+	}
+}
+
 func (i *TestExampleImplementation) TheExampleMethodFunctionalOptions(x string, opts ...OptionFn) error {
 	args := i.Called(x, opts)
 	return args.Error(0)
@@ -1509,7 +1516,7 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType(t *testing.T) {
 
 }
 
-func Test_Mock_AssertExpectationsFunctionalOptionsTypeIndirectly(t *testing.T) {
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Indirectly(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1543,17 +1550,31 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Empty(t *testing.T) {
 
 }
 
-func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff(t *testing.T) {
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Name(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
 
-	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpNum(1))).Return(nil).Once()
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpStr("this"))).Return(nil).Once()
 
 	tt := new(testing.T)
 	assert.False(t, mockedService.AssertExpectations(tt))
 
 	assert.Panics(t, func() {
-		mockedService.TheExampleMethodFunctionalOptions("test", OpStr("1"))
+		mockedService.TheExampleMethodFunctionalOptions("test", OpBytes([]byte("this")))
+	})
+}
+
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Arg(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpStr("this"))).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodFunctionalOptions("test", OpStr("that"))
 	})
 }
 

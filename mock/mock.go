@@ -1211,6 +1211,20 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 		return
 	}
 
+	var expectedNames []string
+	for i := 0; i < expectedOpts.Len(); i++ {
+		expectedNames = append(expectedNames, funcName(expectedOpts.Index(i).Interface()))
+	}
+	var actualNames []string
+	for i := 0; i < actualOpts.Len(); i++ {
+		actualNames = append(actualNames, funcName(actualOpts.Index(i).Interface()))
+	}
+	if !assert.ObjectsAreEqual(expectedNames, actualNames) {
+		expectedFmt = fmt.Sprintf("%v", expectedNames)
+		actualFmt = fmt.Sprintf("%v", actualNames)
+		return
+	}
+
 	for i := 0; i < expectedOpts.Len(); i++ {
 		expectedOpt := expectedOpts.Index(i).Interface()
 		actualOpt := actualOpts.Index(i).Interface()
@@ -1232,9 +1246,9 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 		reflect.ValueOf(actualOpt).Call(actualValues)
 
 		for i := 0; i < ot.NumIn(); i++ {
-			if !assert.ObjectsAreEqual(expectedValues[i].Interface(), actualValues[i].Interface()) {
-				expectedFmt = fmt.Sprintf("%s %+v", funcName(expectedOpts.Index(i).Interface()), expectedValues[i].Interface())
-				actualFmt = fmt.Sprintf("%s %+v", funcName(actualOpts.Index(i).Interface()), actualValues[i].Interface())
+			if expectedArg, actualArg := expectedValues[i].Interface(), actualValues[i].Interface(); !assert.ObjectsAreEqual(expectedArg, actualArg) {
+				expectedFmt = fmt.Sprintf("%s(%T) -> %#v", expectedNames[i], expectedArg, expectedArg)
+				actualFmt = fmt.Sprintf("%s(%T) -> %#v", expectedNames[i], actualArg, actualArg)
 				return
 			}
 		}
