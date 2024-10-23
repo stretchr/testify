@@ -604,14 +604,44 @@ func TestFailfastSuite(t *testing.T) {
 		}},
 	)
 	assert.False(t, ok)
+	var expect []string
 	if failFast {
 		// Test A Fails and because we are running with failfast Test B never runs and we proceed straight to TearDownSuite
-		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+		expect = []string{"SetupSuite", "SetupTest", "Test A Fails", "TearDownTest", "TearDownSuite"}
 	} else {
 		// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
-		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+		expect = []string{"SetupSuite", "SetupTest", "Test A Fails", "TearDownTest", "SetupTest", "Test B Passes", "TearDownTest", "TearDownSuite"}
 	}
+	callOrderAssert(t, expect, s.callOrder)
 }
+
+type tHelper interface {
+	Helper()
+}
+
+// callOrderAssert is a help with confirms that asserts that expect
+// matches one or more times in callOrder. This makes it compatible
+// with go test flag -count=X where X > 1.
+func callOrderAssert(t *testing.T, expect, callOrder []string) {
+	var ti interface{} = t
+	if h, ok := ti.(tHelper); ok {
+		h.Helper()
+	}
+
+	callCount := len(callOrder)
+	expectCount := len(expect)
+	if callCount > expectCount && callCount%expectCount == 0 {
+		// Command line flag -count=X where X > 1.
+		for len(callOrder) >= expectCount {
+			assert.Equal(t, expect, callOrder[:expectCount])
+			callOrder = callOrder[expectCount:]
+		}
+		return
+	}
+
+	assert.Equal(t, expect, callOrder)
+}
+
 func TestFailfastSuiteFailFastOn(t *testing.T) {
 	// To test this with failfast on (and isolated from other intended test failures in our test suite) we launch it in its own process
 	cmd := exec.Command("go", "test", "-v", "-race", "-run", "TestFailfastSuite", "-failfast")
