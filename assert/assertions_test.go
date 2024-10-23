@@ -1369,6 +1369,52 @@ func TestDiffLists(t *testing.T) {
 	}
 }
 
+func TestNotElementsMatch(t *testing.T) {
+	mockT := new(testing.T)
+
+	cases := []struct {
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
+		// not matching
+		{[]int{1}, []int{}, true},
+		{[]int{}, []int{2}, true},
+		{[]int{1}, []int{2}, true},
+		{[]int{1}, []int{1, 1}, true},
+		{[]int{1, 2}, []int{3, 4}, true},
+		{[]int{3, 4}, []int{1, 2}, true},
+		{[]int{1, 1, 2, 3}, []int{1, 2, 3}, true},
+		{[]string{"hello"}, []string{"world"}, true},
+		{[]string{"hello", "hello"}, []string{"world", "world"}, true},
+		{[3]string{"hello", "hello", "hello"}, [3]string{"world", "world", "world"}, true},
+
+		// matching
+		{nil, nil, false},
+		{[]int{}, nil, false},
+		{[]int{}, []int{}, false},
+		{[]int{1}, []int{1}, false},
+		{[]int{1, 1}, []int{1, 1}, false},
+		{[]int{1, 2}, []int{2, 1}, false},
+		{[2]int{1, 2}, [2]int{2, 1}, false},
+		{[]int{1, 1, 2}, []int{1, 2, 1}, false},
+		{[]string{"hello", "world"}, []string{"world", "hello"}, false},
+		{[]string{"hello", "hello"}, []string{"hello", "hello"}, false},
+		{[]string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}, false},
+		{[3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}, false},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("NotElementsMatch(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			res := NotElementsMatch(mockT, c.actual, c.expected)
+
+			if res != c.result {
+				t.Errorf("NotElementsMatch(%#v, %#v) should return %v", c.actual, c.expected, c.result)
+			}
+		})
+	}
+}
+
 func TestCondition(t *testing.T) {
 	mockT := new(testing.T)
 
@@ -2927,16 +2973,15 @@ func TestEventuallyWithTFalse(t *testing.T) {
 func TestEventuallyWithTTrue(t *testing.T) {
 	mockT := new(errorsCapturingT)
 
-	state := 0
+	counter := 0
 	condition := func(collect *CollectT) {
-		defer func() {
-			state += 1
-		}()
-		True(collect, state == 2)
+		counter += 1
+		True(collect, counter == 2)
 	}
 
 	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 0)
+	Equal(t, 2, counter, "Condition is expected to be called 2 times")
 }
 
 func TestEventuallyWithT_ConcurrencySafe(t *testing.T) {
@@ -2972,6 +3017,17 @@ func TestEventuallyWithT_ReturnsTheLatestFinishedConditionErrors(t *testing.T) {
 	mockT := new(errorsCapturingT)
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 2)
+}
+
+func TestEventuallyWithTFailNow(t *testing.T) {
+	mockT := new(CollectT)
+
+	condition := func(collect *CollectT) {
+		collect.FailNow()
+	}
+
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockT.errors, 1)
 }
 
 func TestNeverFalse(t *testing.T) {
@@ -3263,7 +3319,6 @@ func TestNotErrorIs(t *testing.T) {
 }
 
 func TestErrorAs(t *testing.T) {
-	mockT := new(testing.T)
 	tests := []struct {
 		err    error
 		result bool
@@ -3276,9 +3331,38 @@ func TestErrorAs(t *testing.T) {
 		tt := tt
 		var target *customError
 		t.Run(fmt.Sprintf("ErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(testing.T)
 			res := ErrorAs(mockT, tt.err, &target)
 			if res != tt.result {
-				t.Errorf("ErrorAs(%#v,%#v) should return %t)", tt.err, target, tt.result)
+				t.Errorf("ErrorAs(%#v,%#v) should return %t", tt.err, target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
+			}
+		})
+	}
+}
+
+func TestNotErrorAs(t *testing.T) {
+	tests := []struct {
+		err    error
+		result bool
+	}{
+		{fmt.Errorf("wrap: %w", &customError{}), false},
+		{io.EOF, true},
+		{nil, true},
+	}
+	for _, tt := range tests {
+		tt := tt
+		var target *customError
+		t.Run(fmt.Sprintf("NotErrorAs(%#v,%#v)", tt.err, target), func(t *testing.T) {
+			mockT := new(testing.T)
+			res := NotErrorAs(mockT, tt.err, &target)
+			if res != tt.result {
+				t.Errorf("NotErrorAs(%#v,%#v) should not return %t", tt.err, target, tt.result)
+			}
+			if res == mockT.Failed() {
+				t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !mockT.Failed())
 			}
 		})
 	}

@@ -5,7 +5,7 @@
 //
 // This package is just an indirection that allows the builder to override the
 // indirection with an alternative implementation of this package that uses
-// another implemantation of YAML deserialization. This allows to not either not
+// another implementation of YAML deserialization. This allows to not either not
 // use YAML deserialization at all, or to use another implementation than
 // [gopkg.in/yaml.v3] (for example for license compatibility reasons, see [PR #1120]).
 //

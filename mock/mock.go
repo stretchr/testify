@@ -80,12 +80,12 @@ type Call struct {
 	requires []*Call
 }
 
-func newCall(parent *Mock, methodName string, callerInfo []string, methodArguments ...interface{}) *Call {
+func newCall(parent *Mock, methodName string, callerInfo []string, methodArguments Arguments, returnArguments Arguments) *Call {
 	return &Call{
 		Parent:          parent,
 		Method:          methodName,
 		Arguments:       methodArguments,
-		ReturnArguments: make([]interface{}, 0),
+		ReturnArguments: returnArguments,
 		callerInfo:      callerInfo,
 		Repeatability:   0,
 		WaitFor:         nil,
@@ -256,7 +256,7 @@ func (c *Call) Unset() *Call {
 // calls have been called as expected. The referenced calls may be from the
 // same mock instance and/or other mock instances.
 //
-//	Mock.On("Do").Return(nil).Notbefore(
+//	Mock.On("Do").Return(nil).NotBefore(
 //	    Mock.On("Init").Return(nil)
 //	)
 func (c *Call) NotBefore(calls ...*Call) *Call {
@@ -271,6 +271,20 @@ func (c *Call) NotBefore(calls ...*Call) *Call {
 
 	c.requires = append(c.requires, calls...)
 	return c
+}
+
+// InOrder defines the order in which the calls should be made
+//
+//	For example:
+//
+//	InOrder(
+//		Mock.On("init").Return(nil),
+//		Mock.On("Do").Return(nil),
+//	)
+func InOrder(calls ...*Call) {
+	for i := 1; i < len(calls); i++ {
+		calls[i].NotBefore(calls[i-1])
+	}
 }
 
 // Mock is the workhorse used to track activity on another object.
@@ -351,7 +365,8 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	c := newCall(m, methodName, assert.CallerInfo(), arguments...)
+
+	c := newCall(m, methodName, assert.CallerInfo(), arguments, make([]interface{}, 0))
 	m.ExpectedCalls = append(m.ExpectedCalls, c)
 	return c
 }
@@ -491,11 +506,12 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		m.mutex.Unlock()
 
 		if closestCall != nil {
-			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s",
+			m.fail("\n\nmock: Unexpected Method Call\n-----------------------------\n\n%s\n\nThe closest call I have is: \n\n%s\n\n%s\nDiff: %s\nat: %s\n",
 				callString(methodName, arguments, true),
 				callString(methodName, closestCall.Arguments, true),
 				diffArguments(closestCall.Arguments, arguments),
 				strings.TrimSpace(mismatch),
+				assert.CallerInfo(),
 			)
 		} else {
 			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
@@ -529,7 +545,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	call.totalCalls++
 
 	// add the call
-	m.Calls = append(m.Calls, *newCall(m, methodName, assert.CallerInfo(), arguments...))
+	m.Calls = append(m.Calls, *newCall(m, methodName, assert.CallerInfo(), arguments, call.ReturnArguments))
 	m.mutex.Unlock()
 
 	// block if specified
@@ -811,21 +827,20 @@ func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
 
-// FunctionalOptionsArgument is a struct that contains the type and value of an functional option argument
-// for use when type checking.
+// FunctionalOptionsArgument contains a list of functional options arguments
+// expected for use when matching a list of arguments.
 type FunctionalOptionsArgument struct {
-	value interface{}
+	values []interface{}
 }
 
 // String returns the string representation of FunctionalOptionsArgument
 func (f *FunctionalOptionsArgument) String() string {
 	var name string
-	tValue := reflect.ValueOf(f.value)
-	if tValue.Len() > 0 {
-		name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+	if len(f.values) > 0 {
+		name = "[]" + reflect.TypeOf(f.values[0]).String()
 	}
 
-	return strings.Replace(fmt.Sprintf("%#v", f.value), "[]interface {}", name, 1)
+	return strings.Replace(fmt.Sprintf("%#v", f.values), "[]interface {}", name, 1)
 }
 
 // FunctionalOptions returns an [FunctionalOptionsArgument] object containing
@@ -833,10 +848,10 @@ func (f *FunctionalOptionsArgument) String() string {
 //
 // For example:
 //
-//	Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
-func FunctionalOptions(value ...interface{}) *FunctionalOptionsArgument {
+//	args.Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
+func FunctionalOptions(values ...interface{}) *FunctionalOptionsArgument {
 	return &FunctionalOptionsArgument{
-		value: value,
+		values: values,
 	}
 }
 
@@ -990,20 +1005,17 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected.t.Name(), actualT.Name(), actualFmt)
 				}
 			case *FunctionalOptionsArgument:
-				t := expected.value
-
 				var name string
-				tValue := reflect.ValueOf(t)
-				if tValue.Len() > 0 {
-					name = "[]" + reflect.TypeOf(tValue.Index(0).Interface()).String()
+				if len(expected.values) > 0 {
+					name = "[]" + reflect.TypeOf(expected.values[0]).String()
 				}
 
-				tName := reflect.TypeOf(t).Name()
-				if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
+				const tName = "[]interface{}"
+				if name != reflect.TypeOf(actual).String() && len(expected.values) != 0 {
 					differences++
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
 				} else {
-					if ef, af := assertOpts(t, actual); ef == "" && af == "" {
+					if ef, af := assertOpts(expected.values, actual); ef == "" && af == "" {
 						// match
 						output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
 					} else {
