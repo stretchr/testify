@@ -1516,23 +1516,6 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType(t *testing.T) {
 
 }
 
-func Test_Mock_AssertExpectationsFunctionalOptionsType_Indirectly(t *testing.T) {
-
-	var mockedService = new(TestExampleImplementation)
-
-	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpNum(1), OpStr("foo"))).Return(nil).Once()
-
-	tt := new(testing.T)
-	assert.False(t, mockedService.AssertExpectations(tt))
-
-	// make the call now
-	TheExampleMethodFunctionalOptionsIndirect(mockedService)
-
-	// now assert expectations
-	assert.True(t, mockedService.AssertExpectations(tt))
-
-}
-
 func Test_Mock_AssertExpectationsFunctionalOptionsType_Empty(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
@@ -1544,6 +1527,23 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Empty(t *testing.T) {
 
 	// make the call now
 	mockedService.TheExampleMethodFunctionalOptions("test")
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Indirectly(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpNum(1), OpStr("foo"))).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	TheExampleMethodFunctionalOptionsIndirect(mockedService)
 
 	// now assert expectations
 	assert.True(t, mockedService.AssertExpectations(tt))
