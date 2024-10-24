@@ -148,6 +148,13 @@ func Run(t *testing.T, suite TestingSuite) {
 			continue
 		}
 
+		// Checking method signature, should not contain arguments and return values
+		if method.Type.NumIn() > 1 || method.Type.NumOut() > 0 {
+			t.Errorf("testify: suite method '%s' has %d input arguments and %d return values. It should have none.",
+				method.Name, method.Type.NumIn()-1, method.Type.NumOut())
+			continue
+		}
+
 		if !suiteSetupDone {
 			if stats != nil {
 				stats.Start = time.Now()
