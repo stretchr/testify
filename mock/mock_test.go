@@ -1550,7 +1550,7 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Indirectly(t *testing.T) 
 
 }
 
-func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Name(t *testing.T) {
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Func(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
 
