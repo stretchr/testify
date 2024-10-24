@@ -107,7 +107,9 @@ func parseTemplates() (*template.Template, *template.Template, error) {
 		}
 		funcTemplate = string(f)
 	}
-	tmpl, err := template.New("function").Parse(funcTemplate)
+	tmpl, err := template.New("function").Funcs(template.FuncMap{
+		"replace": strings.ReplaceAll,
+	}).Parse(funcTemplate)
 	if err != nil {
 		return nil, nil, err
 	}
