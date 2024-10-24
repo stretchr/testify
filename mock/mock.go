@@ -1205,12 +1205,6 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	expectedOpts := reflect.ValueOf(expected)
 	actualOpts := reflect.ValueOf(actual)
 
-	if expectedOpts.Len() != actualOpts.Len() {
-		expectedFmt = fmt.Sprintf("%v", expectedOpts)
-		actualFmt = fmt.Sprintf("%v", actualOpts)
-		return
-	}
-
 	var expectedNames []string
 	for i := 0; i < expectedOpts.Len(); i++ {
 		expectedNames = append(expectedNames, funcName(expectedOpts.Index(i).Interface()))
@@ -1228,6 +1222,14 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	for i := 0; i < expectedOpts.Len(); i++ {
 		expectedOpt := expectedOpts.Index(i).Interface()
 		actualOpt := actualOpts.Index(i).Interface()
+
+		expectedFunc := expectedNames[i]
+		actualFunc := actualNames[i]
+		if expectedFunc != actualFunc {
+			expectedFmt = expectedFunc
+			actualFmt = actualFunc
+			return
+		}
 
 		ot := reflect.TypeOf(expectedOpt)
 		var expectedValues []reflect.Value
