@@ -529,20 +529,17 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	}
 
 	same, ok := samePointers(expected, actual)
-
-	if ok {
-		//if ok is true, then both arguments are pointers
-		if same {
-			return Fail(t, fmt.Sprintf(
-				"Expected and actual point to the same object: %p %#v",
-				expected, expected), msgAndArgs...) //because Fail return false, but we need to
-		}
-		return true
+	if !ok {
+		//fails when the arguments are not pointers
+		return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
 	}
 
-	//fails when the arguments are not pointers
-	return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
-	//we return !Fail because Fail return false, but we need to return true if the arguments are not pointers(by default)
+	if same {
+		return Fail(t, fmt.Sprintf(
+			"Expected and actual point to the same object: %p %#v",
+			expected, expected), msgAndArgs...)
+	}
+	return true
 }
 
 // samePointers checks if two generic interface objects are pointers to
