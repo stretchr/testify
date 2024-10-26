@@ -640,6 +640,18 @@ func Test_samePointers(t *testing.T) {
 			same: False,
 			ok:   False,
 		},
+		{
+			name: "non-pointer vs pointer (1 != ptr(2))",
+			args: args{first: 1, second: p},
+			same: False,
+			ok:   False,
+		},
+		{
+			name: "pointer vs non-pointer (ptr(2) != 1)",
+			args: args{first: p, second: 1},
+			same: False,
+			ok:   False,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
