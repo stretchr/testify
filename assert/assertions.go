@@ -1512,6 +1512,9 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 	if err != nil {
 		return Fail(t, err.Error(), msgAndArgs...)
 	}
+	if math.IsNaN(actualEpsilon) {
+		return Fail(t, "relative error is NaN", msgAndArgs...)
+	}
 	if actualEpsilon > epsilon {
 		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
 			"        < %#v (actual)", epsilon, actualEpsilon), msgAndArgs...)

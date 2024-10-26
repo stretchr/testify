@@ -2036,6 +2036,14 @@ func TestInEpsilon(t *testing.T) {
 		{math.NaN(), 0, 1},
 		{0, math.NaN(), 1},
 		{0, 0, math.NaN()},
+		{math.Inf(1), 1, 1},
+		{math.Inf(-1), 1, 1},
+		{1, math.Inf(1), 1},
+		{1, math.Inf(-1), 1},
+		{math.Inf(1), math.Inf(1), 1},
+		{math.Inf(1), math.Inf(-1), 1},
+		{math.Inf(-1), math.Inf(1), 1},
+		{math.Inf(-1), math.Inf(-1), 1},
 	}
 
 	for _, tc := range cases {
