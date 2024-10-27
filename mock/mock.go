@@ -1227,16 +1227,14 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	}
 
 	for i := 0; i < expectedOpts.Len(); i++ {
+		expectedOpt := expectedOpts.Index(i).Interface()
+		actualOpt := actualOpts.Index(i).Interface()
+
 		if !isFuncSame(expectedFuncs[i], actualFuncs[i]) {
 			expectedFmt = expectedNames[i]
 			actualFmt = actualNames[i]
 			return
 		}
-	}
-
-	for i := 0; i < expectedOpts.Len(); i++ {
-		expectedOpt := expectedOpts.Index(i).Interface()
-		actualOpt := actualOpts.Index(i).Interface()
 
 		ot := reflect.TypeOf(expectedOpt)
 		var expectedValues []reflect.Value
