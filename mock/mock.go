@@ -1205,21 +1205,31 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	expectedOpts := reflect.ValueOf(expected)
 	actualOpts := reflect.ValueOf(actual)
 
+	var expectedFuncs []*runtime.Func
+	var expectedNames []string
+	for i := 0; i < expectedOpts.Len(); i++ {
+		f := runtimeFunc(expectedOpts.Index(i).Interface())
+		expectedFuncs = append(expectedFuncs, f)
+		expectedNames = append(expectedNames, funcName(f))
+	}
+	var actualFuncs []*runtime.Func
+	var actualNames []string
+	for i := 0; i < actualOpts.Len(); i++ {
+		f := runtimeFunc(actualOpts.Index(i).Interface())
+		actualFuncs = append(actualFuncs, f)
+		actualNames = append(actualNames, funcName(f))
+	}
+
 	if expectedOpts.Len() != actualOpts.Len() {
-		expectedFmt = fmt.Sprintf("%v", expected)
-		actualFmt = fmt.Sprintf("%v", actual)
+		expectedFmt = fmt.Sprintf("%v", expectedNames)
+		actualFmt = fmt.Sprintf("%v", actualNames)
 		return
 	}
 
-	var funcNames []string
-
 	for i := 0; i < expectedOpts.Len(); i++ {
-		expectedFunc := getRuntimeFunc(expectedOpts.Index(i).Interface())
-		funcNames = append(funcNames, funcName(getRuntimeFunc(expectedFunc)))
-
-		if actualFunc := getRuntimeFunc(actualOpts.Index(i).Interface()); !isFuncSame(expectedFunc, actualFunc) {
-			expectedFmt = funcName(expectedFunc)
-			actualFmt = funcName(actualFunc)
+		if !isFuncSame(expectedFuncs[i], actualFuncs[i]) {
+			expectedFmt = expectedNames[i]
+			actualFmt = actualNames[i]
 			return
 		}
 	}
@@ -1246,8 +1256,8 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 
 		for i := 0; i < ot.NumIn(); i++ {
 			if expectedArg, actualArg := expectedValues[i].Interface(), actualValues[i].Interface(); !assert.ObjectsAreEqual(expectedArg, actualArg) {
-				expectedFmt = fmt.Sprintf("%s(%T) -> %#v", funcNames[i], expectedArg, expectedArg)
-				actualFmt = fmt.Sprintf("%s(%T) -> %#v", funcNames[i], actualArg, actualArg)
+				expectedFmt = fmt.Sprintf("%s(%T) -> %#v", expectedNames[i], expectedArg, expectedArg)
+				actualFmt = fmt.Sprintf("%s(%T) -> %#v", expectedNames[i], actualArg, actualArg)
 				return
 			}
 		}
@@ -1256,7 +1266,7 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	return "", ""
 }
 
-func getRuntimeFunc(opt interface{}) *runtime.Func {
+func runtimeFunc(opt interface{}) *runtime.Func {
 	return runtime.FuncForPC(reflect.ValueOf(opt).Pointer())
 }
 
