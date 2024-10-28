@@ -1256,7 +1256,7 @@ func Test_Mock_Called_blocks(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
 
-	mockedService.Mock.On("asyncCall", 1, 2, 3).Return(5, "6", true).After(2 * time.Millisecond)
+	mockedService.Mock.On("asyncCall", 1, 2, 3).Return(5, "6", true).After(20 * time.Millisecond)
 
 	ch := make(chan Arguments)
 
@@ -1265,7 +1265,7 @@ func Test_Mock_Called_blocks(t *testing.T) {
 	select {
 	case <-ch:
 		t.Fatal("should have waited")
-	case <-time.After(1 * time.Millisecond):
+	case <-time.After(10 * time.Millisecond):
 	}
 
 	returnArguments := <-ch
