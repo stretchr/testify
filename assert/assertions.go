@@ -635,21 +635,6 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
 	}
 
-	if aType.Kind() == reflect.Ptr {
-		aType = aType.Elem()
-	}
-	if bType.Kind() == reflect.Ptr {
-		bType = bType.Elem()
-	}
-
-	if aType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct or pointer to struct \n\t%v != %v", aType.Kind(), reflect.Struct), msgAndArgs...)
-	}
-
-	if bType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct or pointer to struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
-	}
-
 	expected = copyExportedFields(expected)
 	actual = copyExportedFields(actual)
 
@@ -1540,6 +1525,9 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 	actualEpsilon, err := calcRelativeError(expected, actual)
 	if err != nil {
 		return Fail(t, err.Error(), msgAndArgs...)
+	}
+	if math.IsNaN(actualEpsilon) {
+		return Fail(t, "relative error is NaN", msgAndArgs...)
 	}
 	if actualEpsilon > epsilon {
 		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
