@@ -655,39 +655,59 @@ func Test_samePointers(t *testing.T) {
 		second interface{}
 	}
 	tests := []struct {
-		name      string
-		args      args
-		assertion BoolAssertionFunc
+		name string
+		args args
+		same BoolAssertionFunc
+		ok   BoolAssertionFunc
 	}{
 		{
-			name:      "1 != 2",
-			args:      args{first: 1, second: 2},
-			assertion: False,
+			name: "1 != 2",
+			args: args{first: 1, second: 2},
+			same: False,
+			ok:   False,
 		},
 		{
-			name:      "1 != 1 (not same ptr)",
-			args:      args{first: 1, second: 1},
-			assertion: False,
+			name: "1 != 1 (not same ptr)",
+			args: args{first: 1, second: 1},
+			same: False,
+			ok:   False,
 		},
 		{
-			name:      "ptr(1) == ptr(1)",
-			args:      args{first: p, second: p},
-			assertion: True,
+			name: "ptr(1) == ptr(1)",
+			args: args{first: p, second: p},
+			same: True,
+			ok:   True,
 		},
 		{
-			name:      "int(1) != float32(1)",
-			args:      args{first: int(1), second: float32(1)},
-			assertion: False,
+			name: "int(1) != float32(1)",
+			args: args{first: int(1), second: float32(1)},
+			same: False,
+			ok:   False,
 		},
 		{
-			name:      "array != slice",
-			args:      args{first: [2]int{1, 2}, second: []int{1, 2}},
-			assertion: False,
+			name: "array != slice",
+			args: args{first: [2]int{1, 2}, second: []int{1, 2}},
+			same: False,
+			ok:   False,
+		},
+		{
+			name: "non-pointer vs pointer (1 != ptr(2))",
+			args: args{first: 1, second: p},
+			same: False,
+			ok:   False,
+		},
+		{
+			name: "pointer vs non-pointer (ptr(2) != 1)",
+			args: args{first: p, second: 1},
+			same: False,
+			ok:   False,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.assertion(t, samePointers(tt.args.first, tt.args.second))
+			same, ok := samePointers(tt.args.first, tt.args.second)
+			tt.same(t, same)
+			tt.ok(t, ok)
 		})
 	}
 }
