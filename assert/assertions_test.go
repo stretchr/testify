@@ -132,7 +132,6 @@ func TestObjectsAreEqual(t *testing.T) {
 			if res != c.result {
 				t.Errorf("ObjectsAreEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 			}
-
 		})
 	}
 }
@@ -208,7 +207,6 @@ type S6 struct {
 }
 
 func TestObjectsExportedFieldsAreEqual(t *testing.T) {
-
 	intValue := 1
 
 	cases := []struct {
@@ -277,7 +275,6 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 			if res != c.result {
 				t.Errorf("ObjectsExportedFieldsAreEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
 			}
-
 		})
 	}
 }
@@ -516,11 +513,9 @@ func TestEqualExportedValues(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestImplements(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !Implements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
@@ -532,11 +527,9 @@ func TestImplements(t *testing.T) {
 	if Implements(mockT, (*AssertionTesterInterface)(nil), nil) {
 		t.Error("Implements method should return false: nil does not implement AssertionTesterInterface")
 	}
-
 }
 
 func TestNotImplements(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
@@ -548,11 +541,9 @@ func TestNotImplements(t *testing.T) {
 	if NotImplements(mockT, (*AssertionTesterInterface)(nil), nil) {
 		t.Error("NotImplements method should return false: nil can't be checked to be implementing AssertionTesterInterface or not")
 	}
-
 }
 
 func TestIsType(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !IsType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
@@ -561,7 +552,6 @@ func TestIsType(t *testing.T) {
 	if IsType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterNonConformingObject)) {
 		t.Error("IsType should return false: AssertionTesterConformingObject is not the same type as AssertionTesterNonConformingObject")
 	}
-
 }
 
 func TestEqual(t *testing.T) {
@@ -610,7 +600,6 @@ func ptr(i int) *int {
 }
 
 func TestSame(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if Same(mockT, ptr(1), ptr(1)) {
@@ -629,7 +618,6 @@ func TestSame(t *testing.T) {
 }
 
 func TestNotSame(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !NotSame(mockT, ptr(1), ptr(1)) {
@@ -814,7 +802,6 @@ func TestFormatUnequalValues(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !NotNil(mockT, new(AssertionTesterConformingObject)) {
@@ -826,11 +813,9 @@ func TestNotNil(t *testing.T) {
 	if NotNil(mockT, (*struct{})(nil)) {
 		t.Error("NotNil should return false: object is (*struct{})(nil)")
 	}
-
 }
 
 func TestNil(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !Nil(mockT, nil) {
@@ -842,11 +827,9 @@ func TestNil(t *testing.T) {
 	if Nil(mockT, new(AssertionTesterConformingObject)) {
 		t.Error("Nil should return false: object is not nil")
 	}
-
 }
 
 func TestTrue(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !True(mockT, true) {
@@ -855,11 +838,9 @@ func TestTrue(t *testing.T) {
 	if True(mockT, false) {
 		t.Error("True should return false")
 	}
-
 }
 
 func TestFalse(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !False(mockT, false) {
@@ -868,11 +849,9 @@ func TestFalse(t *testing.T) {
 	if False(mockT, true) {
 		t.Error("False should return false")
 	}
-
 }
 
 func TestExactly(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	a := float32(1)
@@ -903,7 +882,6 @@ func TestExactly(t *testing.T) {
 }
 
 func TestNotEqual(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	cases := []struct {
@@ -986,7 +964,6 @@ func TestNotEqualValues(t *testing.T) {
 }
 
 func TestContainsNotContains(t *testing.T) {
-
 	type A struct {
 		Name, Value string
 	}
@@ -1167,7 +1144,6 @@ func TestSubsetNotSubset(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("SubSet: "+c.message, func(t *testing.T) {
-
 			mockT := new(mockTestingT)
 			res := Subset(mockT, c.list, c.subset)
 
@@ -1214,7 +1190,6 @@ func TestNotSubsetNil(t *testing.T) {
 }
 
 func Test_containsElement(t *testing.T) {
-
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
@@ -1445,11 +1420,9 @@ func TestCondition(t *testing.T) {
 	if Condition(mockT, func() bool { return false }, "Lie") {
 		t.Error("Condition should return false")
 	}
-
 }
 
 func TestDidPanic(t *testing.T) {
-
 	const panicMsg = "Panic!"
 
 	if funcDidPanic, msg, _ := didPanic(func() {
@@ -1468,11 +1441,9 @@ func TestDidPanic(t *testing.T) {
 	}); funcDidPanic {
 		t.Error("didPanic should return false")
 	}
-
 }
 
 func TestPanics(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !Panics(mockT, func() {
@@ -1485,11 +1456,9 @@ func TestPanics(t *testing.T) {
 	}) {
 		t.Error("Panics should return false")
 	}
-
 }
 
 func TestPanicsWithValue(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !PanicsWithValue(mockT, "Panic!", func() {
@@ -1517,7 +1486,6 @@ func TestPanicsWithValue(t *testing.T) {
 }
 
 func TestPanicsWithError(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !PanicsWithError(mockT, "panic", func() {
@@ -1545,7 +1513,6 @@ func TestPanicsWithError(t *testing.T) {
 }
 
 func TestNotPanics(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	if !NotPanics(mockT, func() {
@@ -1558,11 +1525,9 @@ func TestNotPanics(t *testing.T) {
 	}) {
 		t.Error("NotPanics should return false")
 	}
-
 }
 
 func TestNoError(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	// start with a nil error
@@ -1593,7 +1558,6 @@ type customError struct{}
 func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
-
 	mockT := new(testing.T)
 
 	// start with a nil error
@@ -1657,7 +1621,6 @@ func TestErrorContains(t *testing.T) {
 }
 
 func Test_isEmpty(t *testing.T) {
-
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
@@ -1684,7 +1647,6 @@ func Test_isEmpty(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
-
 	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
@@ -1729,7 +1691,6 @@ func TestEmpty(t *testing.T) {
 }
 
 func TestNotEmpty(t *testing.T) {
-
 	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
@@ -1843,7 +1804,6 @@ func TestLen(t *testing.T) {
 }
 
 func TestWithinDuration(t *testing.T) {
-
 	mockT := new(testing.T)
 	a := time.Now()
 	b := a.Add(10 * time.Second)
@@ -1862,7 +1822,6 @@ func TestWithinDuration(t *testing.T) {
 }
 
 func TestWithinRange(t *testing.T) {
-
 	mockT := new(testing.T)
 	n := time.Now()
 	s := n.Add(-time.Second)
@@ -2069,7 +2028,6 @@ func TestInEpsilon(t *testing.T) {
 	for _, tc := range cases {
 		False(t, InEpsilon(mockT, tc.a, tc.b, tc.epsilon, "Expected %V and %V to have a relative difference of %v", tc.a, tc.b, tc.epsilon))
 	}
-
 }
 
 func TestInEpsilonSlice(t *testing.T) {
@@ -3123,7 +3081,6 @@ func Test_validateEqualArgs(t *testing.T) {
 }
 
 func Test_truncatingFormat(t *testing.T) {
-
 	original := strings.Repeat("a", bufio.MaxScanTokenSize-102)
 	result := truncatingFormat(original)
 	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")

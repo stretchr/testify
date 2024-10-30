@@ -372,7 +372,6 @@ func TestRunSuite(t *testing.T) {
 	// called Skip()
 	assert.Equal(t, 1, suiteSkipTester.SetupSuiteRunCount)
 	assert.Equal(t, 1, suiteSkipTester.TearDownSuiteRunCount)
-
 }
 
 // This suite has no Test... methods. It's setup and teardown must be skipped.
@@ -388,7 +387,6 @@ func (s *SuiteSetupSkipTester) SetupSuite() {
 }
 
 func (s *SuiteSetupSkipTester) NonTestMethod() {
-
 }
 
 func (s *SuiteSetupSkipTester) TearDownSuite() {
@@ -486,6 +484,7 @@ func (s *CallOrderSuite) call(method string) {
 func TestSuiteCallOrder(t *testing.T) {
 	Run(t, new(CallOrderSuite))
 }
+
 func (s *CallOrderSuite) SetupSuite() {
 	s.call("SetupSuite")
 }
@@ -494,6 +493,7 @@ func (s *CallOrderSuite) TearDownSuite() {
 	s.call("TearDownSuite")
 	assert.Equal(s.T(), "SetupSuite;SetupTest;Test A;SetupSubTest;SubTest A1;TearDownSubTest;SetupSubTest;SubTest A2;TearDownSubTest;TearDownTest;SetupTest;Test B;SetupSubTest;SubTest B1;TearDownSubTest;SetupSubTest;SubTest B2;TearDownSubTest;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
 }
+
 func (s *CallOrderSuite) SetupTest() {
 	s.call("SetupTest")
 }
@@ -655,6 +655,7 @@ func TestFailfastSuiteFailFastOn(t *testing.T) {
 		t.Fail()
 	}
 }
+
 func (s *FailfastSuite) SetupSuite() {
 	s.call("SetupSuite")
 }
@@ -662,6 +663,7 @@ func (s *FailfastSuite) SetupSuite() {
 func (s *FailfastSuite) TearDownSuite() {
 	s.call("TearDownSuite")
 }
+
 func (s *FailfastSuite) SetupTest() {
 	s.call("SetupTest")
 }

@@ -6,7 +6,6 @@ import (
 
 // Deprecated: Use [net/http/httptest] instead.
 type TestResponseWriter struct {
-
 	// StatusCode is the last int written by the call to WriteHeader(int)
 	StatusCode int
 
@@ -19,7 +18,6 @@ type TestResponseWriter struct {
 
 // Deprecated: Use [net/http/httptest] instead.
 func (rw *TestResponseWriter) Header() http.Header {
-
 	if rw.header == nil {
 		rw.header = make(http.Header)
 	}
@@ -29,7 +27,6 @@ func (rw *TestResponseWriter) Header() http.Header {
 
 // Deprecated: Use [net/http/httptest] instead.
 func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
-
 	// assume 200 success if no header has been set
 	if rw.StatusCode == 0 {
 		rw.WriteHeader(200)
@@ -40,7 +37,6 @@ func (rw *TestResponseWriter) Write(bytes []byte) (int, error) {
 
 	// return normal values
 	return 0, nil
-
 }
 
 // Deprecated: Use [net/http/httptest] instead.

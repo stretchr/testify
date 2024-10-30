@@ -347,7 +347,6 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (compareResult, bool) {
 			bytesObj1, ok := obj1.([]byte)
 			if !ok {
 				bytesObj1 = obj1Value.Convert(bytesType).Interface().([]byte)
-
 			}
 			bytesObj2, ok := obj2.([]byte)
 			if !ok {

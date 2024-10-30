@@ -38,7 +38,6 @@ func (t *MockT) Errorf(format string, args ...interface{}) {
 }
 
 func TestImplements(t *testing.T) {
-
 	Implements(t, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject))
 
 	mockT := new(MockT)
@@ -49,7 +48,6 @@ func TestImplements(t *testing.T) {
 }
 
 func TestIsType(t *testing.T) {
-
 	IsType(t, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject))
 
 	mockT := new(MockT)
@@ -60,7 +58,6 @@ func TestIsType(t *testing.T) {
 }
 
 func TestEqual(t *testing.T) {
-
 	Equal(t, 1, 1)
 
 	mockT := new(MockT)
@@ -68,11 +65,9 @@ func TestEqual(t *testing.T) {
 	if !mockT.Failed {
 		t.Error("Check should fail")
 	}
-
 }
 
 func TestNotEqual(t *testing.T) {
-
 	NotEqual(t, 1, 2)
 	mockT := new(MockT)
 	NotEqual(mockT, 2, 2)
@@ -82,7 +77,6 @@ func TestNotEqual(t *testing.T) {
 }
 
 func TestExactly(t *testing.T) {
-
 	a := float32(1)
 	b := float32(1)
 	c := float64(1)
@@ -97,7 +91,6 @@ func TestExactly(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
-
 	NotNil(t, new(AssertionTesterConformingObject))
 
 	mockT := new(MockT)
@@ -108,7 +101,6 @@ func TestNotNil(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-
 	Nil(t, nil)
 
 	mockT := new(MockT)
@@ -119,7 +111,6 @@ func TestNil(t *testing.T) {
 }
 
 func TestTrue(t *testing.T) {
-
 	True(t, true)
 
 	mockT := new(MockT)
@@ -130,7 +121,6 @@ func TestTrue(t *testing.T) {
 }
 
 func TestFalse(t *testing.T) {
-
 	False(t, false)
 
 	mockT := new(MockT)
@@ -141,7 +131,6 @@ func TestFalse(t *testing.T) {
 }
 
 func TestContains(t *testing.T) {
-
 	Contains(t, "Hello World", "Hello")
 
 	mockT := new(MockT)
@@ -152,7 +141,6 @@ func TestContains(t *testing.T) {
 }
 
 func TestNotContains(t *testing.T) {
-
 	NotContains(t, "Hello World", "Hello!")
 
 	mockT := new(MockT)
@@ -163,7 +151,6 @@ func TestNotContains(t *testing.T) {
 }
 
 func TestPanics(t *testing.T) {
-
 	Panics(t, func() {
 		panic("Panic!")
 	})
@@ -176,7 +163,6 @@ func TestPanics(t *testing.T) {
 }
 
 func TestNotPanics(t *testing.T) {
-
 	NotPanics(t, func() {})
 
 	mockT := new(MockT)
@@ -189,7 +175,6 @@ func TestNotPanics(t *testing.T) {
 }
 
 func TestNoError(t *testing.T) {
-
 	NoError(t, nil)
 
 	mockT := new(MockT)
@@ -200,7 +185,6 @@ func TestNoError(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-
 	Error(t, errors.New("some error"))
 
 	mockT := new(MockT)
@@ -211,7 +195,6 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorContains(t *testing.T) {
-
 	ErrorContains(t, errors.New("some error: another error"), "some error")
 
 	mockT := new(MockT)
@@ -222,7 +205,6 @@ func TestErrorContains(t *testing.T) {
 }
 
 func TestEqualError(t *testing.T) {
-
 	EqualError(t, errors.New("some error"), "some error")
 
 	mockT := new(MockT)
@@ -233,7 +215,6 @@ func TestEqualError(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
-
 	Empty(t, "")
 
 	mockT := new(MockT)
@@ -244,7 +225,6 @@ func TestEmpty(t *testing.T) {
 }
 
 func TestNotEmpty(t *testing.T) {
-
 	NotEmpty(t, "x")
 
 	mockT := new(MockT)
@@ -255,7 +235,6 @@ func TestNotEmpty(t *testing.T) {
 }
 
 func TestWithinDuration(t *testing.T) {
-
 	a := time.Now()
 	b := a.Add(10 * time.Second)
 
@@ -269,7 +248,6 @@ func TestWithinDuration(t *testing.T) {
 }
 
 func TestInDelta(t *testing.T) {
-
 	InDelta(t, 1.001, 1, 0.01)
 
 	mockT := new(MockT)
@@ -280,7 +258,6 @@ func TestInDelta(t *testing.T) {
 }
 
 func TestZero(t *testing.T) {
-
 	Zero(t, "")
 
 	mockT := new(MockT)
@@ -291,7 +268,6 @@ func TestZero(t *testing.T) {
 }
 
 func TestNotZero(t *testing.T) {
-
 	NotZero(t, "x")
 
 	mockT := new(MockT)

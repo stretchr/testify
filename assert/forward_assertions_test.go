@@ -27,7 +27,6 @@ func TestIsTypeWrapper(t *testing.T) {
 	if assert.IsType(new(AssertionTesterConformingObject), new(AssertionTesterNonConformingObject)) {
 		t.Error("IsType should return false: AssertionTesterConformingObject is not the same type as AssertionTesterNonConformingObject")
 	}
-
 }
 
 func TestEqualWrapper(t *testing.T) {
@@ -67,7 +66,6 @@ func TestNotNilWrapper(t *testing.T) {
 	if assert.NotNil(nil) {
 		t.Error("NotNil should return false: object is nil")
 	}
-
 }
 
 func TestNilWrapper(t *testing.T) {
@@ -79,7 +77,6 @@ func TestNilWrapper(t *testing.T) {
 	if assert.Nil(new(AssertionTesterConformingObject)) {
 		t.Error("Nil should return false: object is not nil")
 	}
-
 }
 
 func TestTrueWrapper(t *testing.T) {
@@ -91,7 +88,6 @@ func TestTrueWrapper(t *testing.T) {
 	if assert.True(false) {
 		t.Error("True should return false")
 	}
-
 }
 
 func TestFalseWrapper(t *testing.T) {
@@ -103,7 +99,6 @@ func TestFalseWrapper(t *testing.T) {
 	if assert.False(true) {
 		t.Error("False should return false")
 	}
-
 }
 
 func TestExactlyWrapper(t *testing.T) {
@@ -130,11 +125,9 @@ func TestExactlyWrapper(t *testing.T) {
 	if assert.Exactly(a, nil) {
 		t.Error("Exactly should return false")
 	}
-
 }
 
 func TestNotEqualWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 
 	if !assert.NotEqual("Hello World", "Hello World!") {
@@ -155,7 +148,6 @@ func TestNotEqualWrapper(t *testing.T) {
 }
 
 func TestNotEqualValuesWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 
 	if !assert.NotEqualValues("Hello World", "Hello World!") {
@@ -179,7 +171,6 @@ func TestNotEqualValuesWrapper(t *testing.T) {
 }
 
 func TestContainsWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 	list := []string{"Foo", "Bar"}
 
@@ -196,11 +187,9 @@ func TestContainsWrapper(t *testing.T) {
 	if assert.Contains(list, "Salut") {
 		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
 	}
-
 }
 
 func TestNotContainsWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 	list := []string{"Foo", "Bar"}
 
@@ -217,11 +206,9 @@ func TestNotContainsWrapper(t *testing.T) {
 	if assert.NotContains(list, "Foo") {
 		t.Error("NotContains should return false: \"[\"Foo\", \"Bar\"]\" contains \"Foo\"")
 	}
-
 }
 
 func TestConditionWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 
 	if !assert.Condition(func() bool { return true }, "Truth") {
@@ -231,11 +218,9 @@ func TestConditionWrapper(t *testing.T) {
 	if assert.Condition(func() bool { return false }, "Lie") {
 		t.Error("Condition should return false")
 	}
-
 }
 
 func TestDidPanicWrapper(t *testing.T) {
-
 	if funcDidPanic, _, _ := didPanic(func() {
 		panic("Panic!")
 	}); !funcDidPanic {
@@ -246,11 +231,9 @@ func TestDidPanicWrapper(t *testing.T) {
 	}); funcDidPanic {
 		t.Error("didPanic should return false")
 	}
-
 }
 
 func TestPanicsWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 
 	if !assert.Panics(func() {
@@ -263,11 +246,9 @@ func TestPanicsWrapper(t *testing.T) {
 	}) {
 		t.Error("Panics should return false")
 	}
-
 }
 
 func TestNotPanicsWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 
 	if !assert.NotPanics(func() {
@@ -280,7 +261,6 @@ func TestNotPanicsWrapper(t *testing.T) {
 	}) {
 		t.Error("NotPanics should return false")
 	}
-
 }
 
 func TestNoErrorWrapper(t *testing.T) {
@@ -296,7 +276,6 @@ func TestNoErrorWrapper(t *testing.T) {
 	err = errors.New("Some error")
 
 	assert.False(mockAssert.NoError(err), "NoError with error should return False")
-
 }
 
 func TestErrorWrapper(t *testing.T) {
@@ -312,7 +291,6 @@ func TestErrorWrapper(t *testing.T) {
 	err = errors.New("Some error")
 
 	assert.True(mockAssert.Error(err), "Error with error should return True")
-
 }
 
 func TestErrorContainsWrapper(t *testing.T) {
@@ -366,7 +344,6 @@ func TestEmptyWrapper(t *testing.T) {
 	assert.False(mockAssert.Empty([]string{"something"}), "Non empty string array is not empty")
 	assert.False(mockAssert.Empty(1), "Non-zero int value is not empty")
 	assert.False(mockAssert.Empty(true), "True value is not empty")
-
 }
 
 func TestNotEmptyWrapper(t *testing.T) {
@@ -384,7 +361,6 @@ func TestNotEmptyWrapper(t *testing.T) {
 	assert.True(mockAssert.NotEmpty([]string{"something"}), "Non empty string array is not empty")
 	assert.True(mockAssert.NotEmpty(1), "Non-zero int value is not empty")
 	assert.True(mockAssert.NotEmpty(true), "True value is not empty")
-
 }
 
 func TestLenWrapper(t *testing.T) {
@@ -519,7 +495,6 @@ func TestInEpsilonWrapper(t *testing.T) {
 }
 
 func TestRegexpWrapper(t *testing.T) {
-
 	assert := New(new(testing.T))
 
 	cases := []struct {
@@ -584,7 +559,6 @@ func TestJSONEqWrapper_EqualSONString(t *testing.T) {
 	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`) {
 		t.Error("JSONEq should return true")
 	}
-
 }
 
 func TestJSONEqWrapper_EquivalentButNotEqual(t *testing.T) {
@@ -592,7 +566,6 @@ func TestJSONEqWrapper_EquivalentButNotEqual(t *testing.T) {
 	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
 		t.Error("JSONEq should return true")
 	}
-
 }
 
 func TestJSONEqWrapper_HashOfArraysAndHashes(t *testing.T) {
@@ -608,7 +581,6 @@ func TestJSONEqWrapper_Array(t *testing.T) {
 	if !assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`) {
 		t.Error("JSONEq should return true")
 	}
-
 }
 
 func TestJSONEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
@@ -658,7 +630,6 @@ func TestYAMLEqWrapper_EqualYAMLString(t *testing.T) {
 	if !assert.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`) {
 		t.Error("YAMLEq should return true")
 	}
-
 }
 
 func TestYAMLEqWrapper_EquivalentButNotEqual(t *testing.T) {
@@ -666,7 +637,6 @@ func TestYAMLEqWrapper_EquivalentButNotEqual(t *testing.T) {
 	if !assert.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
 		t.Error("YAMLEq should return true")
 	}
-
 }
 
 func TestYAMLEqWrapper_HashOfArraysAndHashes(t *testing.T) {
@@ -706,7 +676,6 @@ func TestYAMLEqWrapper_Array(t *testing.T) {
 	if !assert.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`) {
 		t.Error("YAMLEq should return true")
 	}
-
 }
 
 func TestYAMLEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
