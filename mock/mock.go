@@ -661,7 +661,7 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 			actualCalls++
 		}
 	}
-	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) does not match the actual number of calls (%d).", expectedCalls, actualCalls))
+	return assert.Equal(t, expectedCalls, actualCalls, "Expected number of calls (%d) does not match the actual number of calls (%d).", expectedCalls, actualCalls)
 }
 
 // AssertCalled asserts that the method was called.
@@ -679,10 +679,10 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 		}
 		if len(calledWithArgs) == 0 {
 			return assert.Fail(t, "Should have called with given arguments",
-				fmt.Sprintf("Expected %q to have been called with:\n%v\nbut no actual calls happened", methodName, arguments))
+				"Expected %q to have been called with:\n%v\nbut no actual calls happened", methodName, arguments)
 		}
 		return assert.Fail(t, "Should have called with given arguments",
-			fmt.Sprintf("Expected %q to have been called with:\n%v\nbut actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n")))
+			"Expected %q to have been called with:\n%v\nbut actual calls were:\n        %v", methodName, arguments, strings.Join(calledWithArgs, "\n"))
 	}
 	return true
 }
@@ -697,7 +697,7 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	defer m.mutex.Unlock()
 	if m.methodWasCalled(methodName, arguments) {
 		return assert.Fail(t, "Should not have called with given arguments",
-			fmt.Sprintf("Expected %q to not have been called with:\n%v\nbut actually it was.", methodName, arguments))
+			"Expected %q to not have been called with:\n%v\nbut actually it was.", methodName, arguments)
 	}
 	return true
 }
