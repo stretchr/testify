@@ -502,7 +502,13 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 		h.Helper()
 	}
 
-	if !samePointers(expected, actual) {
+	same, ok := samePointers(expected, actual)
+	if !ok {
+		return Fail(t, "Both arguments must be pointers", msgAndArgs...)
+	}
+
+	if !same {
+		// both are pointers but not the same type & pointing to the same address
 		return Fail(t, fmt.Sprintf("Not same: \n"+
 			"expected: %p %#v\n"+
 			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
@@ -522,7 +528,13 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 		h.Helper()
 	}
 
-	if samePointers(expected, actual) {
+	same, ok := samePointers(expected, actual)
+	if !ok {
+		//fails when the arguments are not pointers
+		return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
+	}
+
+	if same {
 		return Fail(t, fmt.Sprintf(
 			"Expected and actual point to the same object: %p %#v",
 			expected, expected), msgAndArgs...)
@@ -530,21 +542,23 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	return true
 }
 
-// samePointers compares two generic interface objects and returns whether
-// they point to the same object
-func samePointers(first, second interface{}) bool {
+// samePointers checks if two generic interface objects are pointers of the same
+// type pointing to the same object. It returns two values: same indicating if
+// they are the same type and point to the same object, and ok indicating that
+// both inputs are pointers.
+func samePointers(first, second interface{}) (same bool, ok bool) {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
 	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
-		return false
+		return false, false //not both are pointers
 	}
 
 	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
 	if firstType != secondType {
-		return false
+		return false, true // both are pointers, but of different types
 	}
 
 	// compare pointer addresses
-	return first == second
+	return first == second, true
 }
 
 // formatUnequalValues takes two values of arbitrary types and returns string
