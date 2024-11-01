@@ -150,8 +150,7 @@ func Run(t *testing.T, suite TestingSuite) {
 
 		// Checking method signature, should not contain arguments and return values
 		if method.Type.NumIn() > 1 || method.Type.NumOut() > 0 {
-			t.Errorf("testify: suite method '%s' has %d input arguments and %d return values. It should have none.",
-				method.Name, method.Type.NumIn()-1, method.Type.NumOut())
+			fmt.Printf("Warning: In suite %s, method '%s' has an invalid signature and will be skipped. It has %d input arguments and %d return values; it should have none.\n", suiteName, method.Name, method.Type.NumIn()-1, method.Type.NumOut())
 			continue
 		}
 

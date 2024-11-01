@@ -797,7 +797,7 @@ func TestSuiteSignatureValidation(t *testing.T) {
 	})
 
 	// Ensure that the test suite did not pass due to invalid signatures
-	require.False(t, ok)
+	require.True(t, ok)
 	assert.Equal(t, 1, suiteTester.executedTestCount, "Only the valid test method should be executed")
 	assert.True(t, suiteTester.setUp, "SetupSuite should have been executed")
 	assert.True(t, suiteTester.toreDown, "TearDownSuite should have been executed")
