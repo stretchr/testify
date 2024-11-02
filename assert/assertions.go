@@ -1591,10 +1591,8 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if assert.Error(t, err) {
-//		   assert.Equal(t, expectedError, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	assert.Error(t, err)
 func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	if err == nil {
 		if h, ok := t.(tHelper); ok {
