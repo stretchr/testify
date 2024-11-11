@@ -20,6 +20,7 @@ import (
 // ExampleInterface represents an example interface.
 type ExampleInterface interface {
 	TheExampleMethod(a, b, c int) (int, error)
+	TheExampleMethodFast(a, b, c int) (int, error)
 }
 
 // TestExampleImplementation is a test implementation of ExampleInterface
@@ -30,6 +31,14 @@ type TestExampleImplementation struct {
 func (i *TestExampleImplementation) TheExampleMethod(a, b, c int) (int, error) {
 	args := i.Called(a, b, c)
 	return args.Int(0), errors.New("Whoops")
+}
+
+func (i *TestExampleImplementation) TheExampleMethodFast(a, b, c int) (int, error) {
+	var r0 int
+	var r1 error
+	i.MockCall(CallSetup{Arguments: Arguments{a, b, c}, Returns: Returns{&r0, &r1}})
+
+	return r0, r1
 }
 
 type options struct {
@@ -67,6 +76,15 @@ type ExampleType struct {
 func (i *TestExampleImplementation) TheExampleMethod3(et *ExampleType) error {
 	args := i.Called(et)
 	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleMethod3Fast(et *ExampleType) (string, int, error) {
+	var r0 string
+	var r1 int
+	var r2 error
+	i.MockCall(CallSetup{Arguments: Arguments{et}, Returns: Returns{&r0, &r1, &r2}})
+
+	return r0, r1, r2
 }
 
 func (i *TestExampleImplementation) TheExampleMethod4(v ExampleInterface) error {
@@ -169,6 +187,16 @@ func Test_Mock_On(t *testing.T) {
 	assert.Equal(t, "TheExampleMethod", c.Method)
 }
 
+func Test_Mock_OnFunc(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.OnFunc(mockedService.TheExampleMethod)
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethod", c.Method)
+}
+
 func Test_Mock_Chained_On(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -200,12 +228,86 @@ func Test_Mock_Chained_On(t *testing.T) {
 	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
 }
 
+func Test_Mock_Chained_OnFunc(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, filename, line, _ := runtime.Caller(0)
+	mockedService.
+		OnFunc(mockedService.TheExampleMethod, 1, 2, 3).
+		Return(0).
+		OnFunc(mockedService.TheExampleMethod3, AnythingOfType("*mock.ExampleType")).
+		Return(nil)
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod",
+			Arguments:       []interface{}{1, 2, 3},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod3",
+			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
+			ReturnArguments: []interface{}{nil},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
+		},
+	}
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
+func Test_Mock_Chained_OnFuncFast(t *testing.T) {
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	// determine our current line number so we can assert the expected calls callerInfo properly
+	_, filename, line, _ := runtime.Caller(0)
+	mockedService.
+		OnFunc(mockedService.TheExampleMethodFast, 1, 2, 3).
+		Return(0).
+		OnFunc(mockedService.TheExampleMethod3Fast, AnythingOfType("*mock.ExampleType")).
+		Return("Quick", 1, nil)
+
+	expectedCalls := []*Call{
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethodFast",
+			Arguments:       []interface{}{1, 2, 3},
+			ReturnArguments: []interface{}{0},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
+		},
+		{
+			Parent:          &mockedService.Mock,
+			Method:          "TheExampleMethod3Fast",
+			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
+			ReturnArguments: []interface{}{"Quick", 1, nil},
+			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
+		},
+	}
+	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
+}
+
 func Test_Mock_On_WithArgs(t *testing.T) {
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
 	c := mockedService.On("TheExampleMethod", 1, 2, 3, 4)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethod", c.Method)
+	assert.Equal(t, Arguments{1, 2, 3, 4}, c.Arguments)
+}
+
+func Test_Mock_OnFunc_WithArgs(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.OnFunc(mockedService.TheExampleMethod, 1, 2, 3, 4)
 
 	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
 	assert.Equal(t, "TheExampleMethod", c.Method)
@@ -233,10 +335,54 @@ func Test_Mock_On_WithFuncArg(t *testing.T) {
 	})
 }
 
+func Test_Mock_OnFunc_WithFuncArg(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		OnFunc(mockedService.TheExampleMethodFunc, AnythingOfType("func(string) error")).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethodFunc", c.Method)
+	assert.Equal(t, 1, len(c.Arguments))
+	assert.Equal(t, AnythingOfType("func(string) error"), c.Arguments[0])
+
+	fn := func(string) error { return nil }
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodFunc(fn)
+	})
+}
+
 func Test_Mock_On_WithIntArgMatcher(t *testing.T) {
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod",
+		MatchedBy(func(a int) bool {
+			return a == 1
+		}), MatchedBy(func(b int) bool {
+			return b == 2
+		}), MatchedBy(func(c int) bool {
+			return c == 3
+		})).Return(0, nil)
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethod(1, 2, 4)
+	})
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethod(2, 2, 3)
+	})
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethod(1, 2, 3)
+	})
+}
+
+func Test_Mock_OnFunc_WithIntArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.OnFunc(mockedService.TheExampleMethod,
 		MatchedBy(func(a int) bool {
 			return a == 1
 		}), MatchedBy(func(b int) bool {
@@ -282,6 +428,32 @@ func Test_Mock_On_WithArgMatcherThatPanics(t *testing.T) {
 	})
 }
 
+func Test_Mock_OnFunc_WithArgMatcherThatPanics(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.OnFunc(mockedService.TheExampleMethod2, MatchedBy(func(_ interface{}) bool {
+		panic("try to lock mockedService")
+	})).Return()
+
+	defer func() {
+		assertedExpectations := make(chan struct{})
+		go func() {
+			tt := new(testing.T)
+			mockedService.AssertExpectations(tt)
+			close(assertedExpectations)
+		}()
+		select {
+		case <-assertedExpectations:
+		case <-time.After(time.Second):
+			t.Fatal("AssertExpectations() deadlocked, did the panic leave mockedService locked?")
+		}
+	}()
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethod2(false)
+	})
+}
+
 func TestMock_WithTest(t *testing.T) {
 	var (
 		mockedService TestExampleImplementation
@@ -290,6 +462,34 @@ func TestMock_WithTest(t *testing.T) {
 
 	mockedService.Test(&mockedTest)
 	mockedService.On("TheExampleMethod", 1, 2, 3).Return(0, nil)
+
+	// Test that on an expected call, the test was not failed
+
+	mockedService.TheExampleMethod(1, 2, 3)
+
+	// Assert that Errorf and FailNow were not called
+	assert.Equal(t, 0, mockedTest.errorfCount)
+	assert.Equal(t, 0, mockedTest.failNowCount)
+
+	// Test that on unexpected call, the mocked test was called to fail the test
+
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		mockedService.TheExampleMethod(1, 1, 1)
+	})
+
+	// Assert that Errorf and FailNow were called once
+	assert.Equal(t, 1, mockedTest.errorfCount)
+	assert.Equal(t, 1, mockedTest.failNowCount)
+}
+
+func TestMock_OnFunc_WithTest(t *testing.T) {
+	var (
+		mockedService TestExampleImplementation
+		mockedTest    MockTestingT
+	)
+
+	mockedService.Test(&mockedTest)
+	mockedService.OnFunc(mockedService.TheExampleMethod, 1, 2, 3).Return(0, nil)
 
 	// Test that on an expected call, the test was not failed
 
