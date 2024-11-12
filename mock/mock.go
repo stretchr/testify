@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// regex for GCCGO functions
-var gccgoRE = regexp.MustCompile(`\.pN\d+_`)
+// regex for GCCGO functions and "-fm"
+var gccgoRE = regexp.MustCompile(`(\.pN\d+_|-fm)`)
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -117,11 +117,10 @@ func getMethodNameFromPath(functionPath string) string {
 	// For Ex:  github_com_docker_libkv_store_mock.WatchTree.pN39_github_com_docker_libkv_store_mock.Mock
 	// uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
 	// With GCCGO we need to remove interface information starting from pN<dd>.
+	// Also, GCCGO uses .<method>-fm instead of .<method> for function names in interface pointers paths.
 	if gccgoRE.MatchString(functionPath) {
 		functionPath = gccgoRE.Split(functionPath, -1)[0]
 	}
-	replacer := strings.NewReplacer("-fm", "")
-	functionPath = replacer.Replace(functionPath)
 
 	parts := strings.Split(functionPath, ".")
 	functionName := parts[len(parts)-1]
@@ -425,21 +424,13 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 }
 
 // OnFunc starts a description of an expectation of the specified method
+// being called.
+//
+//	Mock.OnFunc(mockedService.MyMethod, arg1, arg2)
 func (m *Mock) OnFunc(method interface{}, arguments ...interface{}) *Call {
 	methodName := getFuncInterfaceMethodName(method)
 
-	for _, arg := range arguments {
-		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
-			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
-		}
-	}
-
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	c := newCall(m, methodName, assert.CallerInfo(), arguments, make([]interface{}, 0))
-	m.ExpectedCalls = append(m.ExpectedCalls, c)
-	return c
+	return m.On(methodName, arguments...)
 }
 
 // /*
