@@ -418,7 +418,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 //	require.EventuallyWithT(t, func(c *require.CollectT) {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		require.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
 func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -446,7 +446,7 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitF
 //	require.EventuallyWithTf(t, func(c *require.CollectT, "error message %s", "formatted") {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		require.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//	}, 1*time.Second, 10*time.Second, "external state has not changed to 'true'; still false")
 func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
