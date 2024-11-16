@@ -1204,31 +1204,37 @@ type tHelper interface {
 func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	expectedOpts := reflect.ValueOf(expected)
 	actualOpts := reflect.ValueOf(actual)
+
+	var expectedFuncs []*runtime.Func
 	var expectedNames []string
 	for i := 0; i < expectedOpts.Len(); i++ {
-		expectedNames = append(expectedNames, funcName(expectedOpts.Index(i).Interface()))
+		f := runtimeFunc(expectedOpts.Index(i).Interface())
+		expectedFuncs = append(expectedFuncs, f)
+		expectedNames = append(expectedNames, funcName(f))
 	}
+	var actualFuncs []*runtime.Func
 	var actualNames []string
 	for i := 0; i < actualOpts.Len(); i++ {
-		actualNames = append(actualNames, funcName(actualOpts.Index(i).Interface()))
+		f := runtimeFunc(actualOpts.Index(i).Interface())
+		actualFuncs = append(actualFuncs, f)
+		actualNames = append(actualNames, funcName(f))
 	}
-	if !assert.ObjectsAreEqual(expectedNames, actualNames) {
+
+	if expectedOpts.Len() != actualOpts.Len() {
 		expectedFmt = fmt.Sprintf("%v", expectedNames)
 		actualFmt = fmt.Sprintf("%v", actualNames)
 		return
 	}
 
 	for i := 0; i < expectedOpts.Len(); i++ {
-		expectedOpt := expectedOpts.Index(i).Interface()
-		actualOpt := actualOpts.Index(i).Interface()
-
-		expectedFunc := expectedNames[i]
-		actualFunc := actualNames[i]
-		if expectedFunc != actualFunc {
-			expectedFmt = expectedFunc
-			actualFmt = actualFunc
+		if !isFuncSame(expectedFuncs[i], actualFuncs[i]) {
+			expectedFmt = expectedNames[i]
+			actualFmt = actualNames[i]
 			return
 		}
+
+		expectedOpt := expectedOpts.Index(i).Interface()
+		actualOpt := actualOpts.Index(i).Interface()
 
 		ot := reflect.TypeOf(expectedOpt)
 		var expectedValues []reflect.Value
@@ -1247,9 +1253,9 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 		reflect.ValueOf(actualOpt).Call(actualValues)
 
 		for i := 0; i < ot.NumIn(); i++ {
-			if !assert.ObjectsAreEqual(expectedValues[i].Interface(), actualValues[i].Interface()) {
-				expectedFmt = fmt.Sprintf("%s %+v", expectedNames[i], expectedValues[i].Interface())
-				actualFmt = fmt.Sprintf("%s %+v", expectedNames[i], actualValues[i].Interface())
+			if expectedArg, actualArg := expectedValues[i].Interface(), actualValues[i].Interface(); !assert.ObjectsAreEqual(expectedArg, actualArg) {
+				expectedFmt = fmt.Sprintf("%s(%T) -> %#v", expectedNames[i], expectedArg, expectedArg)
+				actualFmt = fmt.Sprintf("%s(%T) -> %#v", expectedNames[i], actualArg, actualArg)
 				return
 			}
 		}
@@ -1258,7 +1264,25 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 	return "", ""
 }
 
-func funcName(opt interface{}) string {
-	n := runtime.FuncForPC(reflect.ValueOf(opt).Pointer()).Name()
-	return strings.TrimSuffix(path.Base(n), path.Ext(n))
+func runtimeFunc(opt interface{}) *runtime.Func {
+	return runtime.FuncForPC(reflect.ValueOf(opt).Pointer())
+}
+
+func funcName(f *runtime.Func) string {
+	name := f.Name()
+	trimmed := strings.TrimSuffix(path.Base(name), path.Ext(name))
+	splitted := strings.Split(trimmed, ".")
+
+	if len(splitted) == 0 {
+		return trimmed
+	}
+
+	return splitted[len(splitted)-1]
+}
+
+func isFuncSame(f1, f2 *runtime.Func) bool {
+	f1File, f1Loc := f1.FileLine(f1.Entry())
+	f2File, f2Loc := f2.FileLine(f2.Entry())
+
+	return f1File == f2File && f1Loc == f2Loc
 }
