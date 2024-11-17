@@ -13,4 +13,4 @@ require (
 
 // Break dependency cycle with objx.
 // See https://github.com/stretchr/objx/pull/140
-exclude github.com/stretchr/testify v1.8.2
+exclude github.com/stretchr/testify v1.8.4
