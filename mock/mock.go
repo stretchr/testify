@@ -494,7 +494,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		// expected call found, but it has already been called with repeatable times
 		if call != nil {
 			m.mutex.Unlock()
-			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(%q).Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
 		}
 		// we have to fail here - because we don't know what to do
 		// as the return arguments.  This is because:
@@ -514,7 +514,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 				assert.CallerInfo(),
 			)
 		} else {
-			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(\"%s\").Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(%q).Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
 		}
 	}
 
