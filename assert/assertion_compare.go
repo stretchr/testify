@@ -468,7 +468,7 @@ func compareTwoValues(t TestingT, e1 interface{}, e2 interface{}, allowedCompare
 
 	compareResult, isComparable := compare(e1, e2, e1Kind)
 	if !isComparable {
-		return Fail(t, fmt.Sprintf("Can not compare type %q", reflect.TypeOf(e1)), msgAndArgs...)
+		return Fail(t, fmt.Sprintf(`Can not compare type "%T"`, e1), msgAndArgs...)
 	}
 
 	if !containsValue(allowedComparesResults, compareResult) {
