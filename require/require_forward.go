@@ -25,7 +25,7 @@ func (a *Assertions) Conditionf(comp assert.Comparison, msg string, args ...inte
 	Conditionf(a.t, comp, msg, args...)
 }
 
-// Contains asserts that the specified string, list(array, slice...) or map contains the
+// Contains asserts that the specified string, list(array, slice, sequence...) or map contains the
 // specified substring or element.
 //
 //	a.Contains("Hello World", "World")
@@ -38,7 +38,7 @@ func (a *Assertions) Contains(s interface{}, contains interface{}, msgAndArgs ..
 	Contains(a.t, s, contains, msgAndArgs...)
 }
 
-// Containsf asserts that the specified string, list(array, slice...) or map contains the
+// Containsf asserts that the specified string, list(array, slice, sequence...) or map contains the
 // specified substring or element.
 //
 //	a.Containsf("Hello World", "World", "error message %s", "formatted")
@@ -1129,8 +1129,8 @@ func (a *Assertions) NotContainsf(s interface{}, contains interface{}, msg strin
 	NotContainsf(a.t, s, contains, msg, args...)
 }
 
-// NotElementsMatch asserts that the specified listA(array, slice...) is NOT equal to specified
-// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// NotElementsMatch asserts that the specified listA(array, slice, sequence...) is NOT equal to specified
+// listB(array, slice, sequence...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should not match.
 // This is an inverse of ElementsMatch.
 //
@@ -1146,8 +1146,8 @@ func (a *Assertions) NotElementsMatch(listA interface{}, listB interface{}, msgA
 	NotElementsMatch(a.t, listA, listB, msgAndArgs...)
 }
 
-// NotElementsMatchf asserts that the specified listA(array, slice...) is NOT equal to specified
-// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// NotElementsMatchf asserts that the specified listA(array, slice, sequence...) is NOT equal to specified
+// listB(array, slice, sequence...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should not match.
 // This is an inverse of ElementsMatch.
 //
