@@ -923,7 +923,7 @@ func (args Arguments) Is(objects ...interface{}) bool {
 	return true
 }
 
-type outputRenderer interface{}
+type outputRenderer func() string
 
 // Diff gets a string describing the differences between the arguments
 // and the specified objects.
@@ -989,7 +989,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				})
 			} else {
 				differences++
-				outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  %s not matched by %s\n", i, actualFmt(), matcher))
+				outputRenderers = append(outputRenderers, func() string {
+					return fmt.Sprintf("\t%d: FAIL:  %s not matched by %s\n", i, actualFmt(), matcher)
+				})
 			}
 		} else {
 			switch expected := expected.(type) {
@@ -998,13 +1000,17 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
 					// not match
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected, reflect.TypeOf(actual).Name(), actualFmt()))
+					outputRenderers = append(outputRenderers, func() string {
+						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected, reflect.TypeOf(actual).Name(), actualFmt())
+					})
 				}
 			case *IsTypeArgument:
 				actualT := reflect.TypeOf(actual)
 				if actualT != expected.t {
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected.t.Name(), actualT.Name(), actualFmt()))
+					outputRenderers = append(outputRenderers, func() string {
+						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected.t.Name(), actualT.Name(), actualFmt())
+					})
 				}
 			case *FunctionalOptionsArgument:
 				t := expected.value
@@ -1018,7 +1024,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				tName := reflect.TypeOf(t).Name()
 				if name != reflect.TypeOf(actual).String() && tValue.Len() != 0 {
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, tName, reflect.TypeOf(actual).Name(), actualFmt()))
+					outputRenderers = append(outputRenderers, func() string {
+						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, tName, reflect.TypeOf(actual).Name(), actualFmt())
+					})
 				} else {
 					if ef, af := assertOpts(t, actual); ef == "" && af == "" {
 						// match
@@ -1028,7 +1036,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 					} else {
 						// not match
 						differences++
-						outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, af, ef))
+						outputRenderers = append(outputRenderers, func() string {
+							return fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, af, ef)
+						})
 					}
 				}
 
@@ -1041,7 +1051,9 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				} else {
 					// not match
 					differences++
-					outputRenderers = append(outputRenderers, fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, actualFmt(), expectedFmt()))
+					outputRenderers = append(outputRenderers, func() string {
+						return fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, actualFmt(), expectedFmt())
+					})
 				}
 			}
 		}
@@ -1053,15 +1065,8 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 	}
 
 	outputBuilder.WriteString("\n")
-	for _, renderer := range outputRenderers {
-		switch r := renderer.(type) {
-		case string:
-			outputBuilder.WriteString(r)
-		case func() string:
-			outputBuilder.WriteString(r())
-		default:
-			panic("Invalid Output Renderer")
-		}
+	for _, r := range outputRenderers {
+		outputBuilder.WriteString(r())
 	}
 
 	return outputBuilder.String(), differences
