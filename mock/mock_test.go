@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -1234,6 +1235,24 @@ func Test_callString(t *testing.T) {
 	assert.Equal(t, `Method(int,bool,string)`, callString("Method", []interface{}{1, true, "something"}, false))
 	assert.Equal(t, `Method(<nil>)`, callString("Method", []interface{}{nil}, false))
 
+	t.Run("context", func(t *testing.T) {
+		// special treatment for context.Context to avoid data races
+		ctx, cancel := context.WithCancel(context.Background())
+		t.Cleanup(cancel)
+		done := make(chan struct{})
+		t.Cleanup(func() {
+			<-done
+		})
+		go func() {
+			defer close(done)
+			for i := 0; i < 20; i++ {
+				cancel()
+			}
+		}()
+		assert.Equal(t, fmt.Sprintf(`Method(*context.cancelCtx)
+		0: %p`, ctx),
+			callString("Method", []interface{}{ctx}, true))
+	})
 }
 
 func Test_Mock_Called(t *testing.T) {
