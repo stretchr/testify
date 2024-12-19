@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 )
@@ -211,4 +212,45 @@ func TestHttpBodyWrappers(t *testing.T) {
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "Hello, World!"))
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
 	assert.True(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
+}
+
+func httpCheckRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	_, _ = fmt.Fprintf(w, "URI: %s\n", r.RequestURI)
+	_, _ = fmt.Fprintf(w, "RawQuery: %s\n", r.URL.RawQuery)
+}
+
+func TestHTTPCheckRequest(t *testing.T) {
+	t.Run("by test-server", func(t *testing.T) {
+		assert := New(t)
+		ts := httptest.NewServer(http.HandlerFunc(httpCheckRequest))
+		defer ts.Close()
+		resp, err1 := ts.Client().Get(ts.URL + "/check?p1=World")
+		assert.NoError(err1)
+		bf, err2 := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		assert.NoError(err2)
+		assert.Contains(string(bf), "URI: /check")
+		assert.Contains(string(bf), "RawQuery: p1=World")
+	})
+
+	t.Run("by assert", func(t *testing.T) {
+		assert := New(t)
+
+		mockT1 := new(testing.T)
+		assert.Equal(HTTPSuccess(mockT1, httpCheckRequest, "GET", "/", nil), true)
+		assert.False(mockT1.Failed())
+
+		values2 := url.Values{
+			"p1": []string{"World"},
+		}
+		body2 := HTTPBody(httpCheckRequest, "GET", "/check", values2)
+		assert.Contains(body2, "URI: /check")
+
+		values3 := url.Values{
+			"p1": []string{"World"},
+		}
+		body3 := HTTPBody(httpCheckRequest, "GET", "/", values3)
+		assert.Contains(body3, "RawQuery: p1=World")
+	})
 }
