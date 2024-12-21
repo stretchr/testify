@@ -3237,13 +3237,10 @@ func TestErrorIs(t *testing.T) {
 				"in chain: \"EOF\"\n",
 		},
 		{
-			err:    nil,
-			target: io.EOF,
-			result: false,
-			resultErrMsg: "" +
-				"Target error should be in err chain:\n" +
-				"expected: \"EOF\"\n" +
-				"in chain: \n",
+			err:          nil,
+			target:       io.EOF,
+			result:       false,
+			resultErrMsg: "Expected error \"EOF\" but got nil.\n",
 		},
 		{
 			err:    io.EOF,
