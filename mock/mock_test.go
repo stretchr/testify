@@ -868,7 +868,7 @@ func Test_Mock_Return_Twice(t *testing.T) {
 		Return(1, "two", true).
 		Twice()
 
-	require.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	require.Equal(t, []*Call{c, c}, mockedService.ExpectedCalls)
 
 	call := mockedService.ExpectedCalls[0]
 
@@ -893,7 +893,7 @@ func Test_Mock_Return_Times(t *testing.T) {
 		Return(1, "two", true).
 		Times(5)
 
-	require.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	require.Equal(t, []*Call{c, c, c, c, c}, mockedService.ExpectedCalls)
 
 	call := mockedService.ExpectedCalls[0]
 
@@ -979,7 +979,7 @@ func Test_Mock_Return_NotBefore_Out_Of_Order(t *testing.T) {
 		Return().
 		NotBefore(b)
 
-	require.Equal(t, []*Call{b, c}, mockedService.ExpectedCalls)
+	require.Equal(t, []*Call{b, b, c}, mockedService.ExpectedCalls)
 
 	expectedPanicString := `mock: Unexpected Method Call
 -----------------------------
@@ -1038,7 +1038,7 @@ func Test_Mock_Return_NotBefore_Not_Enough_Times(t *testing.T) {
 		Return().
 		NotBefore(b)
 
-	require.Equal(t, []*Call{b, c}, mockedService.ExpectedCalls)
+	require.Equal(t, []*Call{b, b, c}, mockedService.ExpectedCalls)
 
 	require.NotPanics(t, func() {
 		mockedService.TheExampleMethod(1, 2, 3)
