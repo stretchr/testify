@@ -211,6 +211,7 @@ the problem actually occurred in calling code.*/
 // of each stack frame leading from the current test to the assert call that
 // failed.
 func CallerInfo() []string {
+
 	var pc uintptr
 	var ok bool
 	var file string
@@ -475,6 +476,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 	}
 
 	return true
+
 }
 
 // validateEqualArgs checks whether provided arguments can be safely used in the
@@ -529,7 +531,7 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 
 	same, ok := samePointers(expected, actual)
 	if !ok {
-		// fails when the arguments are not pointers
+		//fails when the arguments are not pointers
 		return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
 	}
 
@@ -548,7 +550,7 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 func samePointers(first, second interface{}) (same bool, ok bool) {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
 	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
-		return false, false // not both are pointers
+		return false, false //not both are pointers
 	}
 
 	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
@@ -609,6 +611,7 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 	}
 
 	return true
+
 }
 
 // EqualExportedValues asserts that the types of two objects are equal and their public
@@ -663,6 +666,7 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	}
 
 	return Equal(t, expected, actual, msgAndArgs...)
+
 }
 
 // NotNil asserts that the specified object is not nil.
@@ -712,6 +716,7 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 // isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object interface{}) bool {
+
 	// get nil case out of the way
 	if object == nil {
 		return true
@@ -752,6 +757,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	}
 
 	return pass
+
 }
 
 // NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
@@ -770,6 +776,7 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	}
 
 	return pass
+
 }
 
 // getLen tries to get the length of an object.
@@ -813,6 +820,7 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 	}
 
 	return true
+
 }
 
 // False asserts that the specified value is false.
@@ -827,6 +835,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 	}
 
 	return true
+
 }
 
 // NotEqual asserts that the specified values are NOT equal.
@@ -849,6 +858,7 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 	}
 
 	return true
+
 }
 
 // NotEqualValues asserts that two objects are not equal even when converted to the same type
@@ -871,6 +881,7 @@ func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...inte
 // return (true, false) if element was not found.
 // return (true, true) if element was found.
 func containsElement(list interface{}, element interface{}) (ok, found bool) {
+
 	listValue := reflect.ValueOf(list)
 	listType := reflect.TypeOf(list)
 	if listType == nil {
@@ -905,6 +916,7 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}
 	return true, false
+
 }
 
 // Contains asserts that the specified string, list(array, slice...) or map contains the
@@ -927,6 +939,7 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 	}
 
 	return true
+
 }
 
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
@@ -949,6 +962,7 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 	}
 
 	return true
+
 }
 
 // Subset asserts that the specified list(array, slice...) or map contains all
@@ -1654,6 +1668,7 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 	default:
 		return r.MatchString(fmt.Sprint(v))
 	}
+
 }
 
 // Regexp asserts that a specified regexp matches a string.
@@ -1689,6 +1704,7 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 	}
 
 	return !match
+
 }
 
 // Zero asserts that i is the zero value for its type.

@@ -4,8 +4,8 @@ package require
 
 import (
 	assert "github.com/stretchr/testify/assert"
-	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 	http "net/http"
+	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 	url "net/url"
 	time "time"
 )
