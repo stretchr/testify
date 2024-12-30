@@ -4,6 +4,7 @@ package require
 
 import (
 	assert "github.com/stretchr/testify/assert"
+	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 	http "net/http"
 	url "net/url"
 	time "time"
@@ -1140,6 +1141,60 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 		h.Helper()
 	}
 	if assert.JSONEqf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// JSONMatchesBy asserts that two JSON strings are equivalent using one or more custom JSON matchers.
+// the value passed into the matcher will be on of the following types:
+// - string
+// - float64
+// - bool
+// - nil
+// - []interface{}
+// - map[string]interface{}
+//
+// Can use nil for matchers to test equality of pure json.
+//
+// Note: in cases where expected and actual are not equal, the value for the matcher will be displayed as unequal,
+// regardless of the output of the matcher function.  This should be fixed in a future release.
+//
+//	require.JSONMatchesBy(t, `{ "foo": "$NOT_EMPTY" }`, `{ "foo": "baz" }`, require.ValueMatchers{
+//	    "$NOT_EMPTY": func(v interface) bool { return v != "" },
+//	})
+func JSONMatchesBy(t TestingT, expected string, actual string, matchers jsonmatch.Matchers, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JSONMatchesBy(t, expected, actual, matchers, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// JSONMatchesByf asserts that two JSON strings are equivalent using one or more custom JSON matchers.
+// the value passed into the matcher will be on of the following types:
+// - string
+// - float64
+// - bool
+// - nil
+// - []interface{}
+// - map[string]interface{}
+//
+// Can use nil for matchers to test equality of pure json.
+//
+// Note: in cases where expected and actual are not equal, the value for the matcher will be displayed as unequal,
+// regardless of the output of the matcher function.  This should be fixed in a future release.
+//
+//	require.JSONMatchesByf(t, `{ "foo": "$NOT_EMPTY" }`, `{ "foo": "baz" }`, require.ValueMatchers{
+//	    "$NOT_EMPTY": func(v interface) bool { return v != "" },
+//	})
+func JSONMatchesByf(t TestingT, expected string, actual string, matchers jsonmatch.Matchers, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JSONMatchesByf(t, expected, actual, matchers, msg, args...) {
 		return
 	}
 	t.FailNow()

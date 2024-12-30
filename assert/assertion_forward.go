@@ -3,6 +3,7 @@
 package assert
 
 import (
+	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 	http "net/http"
 	url "net/url"
 	time "time"
@@ -902,6 +903,54 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 		h.Helper()
 	}
 	return JSONEqf(a.t, expected, actual, msg, args...)
+}
+
+// JSONMatchesBy asserts that two JSON strings are equivalent using one or more custom JSON matchers.
+// the value passed into the matcher will be on of the following types:
+// - string
+// - float64
+// - bool
+// - nil
+// - []interface{}
+// - map[string]interface{}
+//
+// Can use nil for matchers to test equality of pure json.
+//
+// Note: in cases where expected and actual are not equal, the value for the matcher will be displayed as unequal,
+// regardless of the output of the matcher function.  This should be fixed in a future release.
+//
+//	a.JSONMatchesBy(`{ "foo": "$NOT_EMPTY" }`, `{ "foo": "baz" }`, assert.ValueMatchers{
+//	    "$NOT_EMPTY": func(v interface) bool { return v != "" },
+//	})
+func (a *Assertions) JSONMatchesBy(expected string, actual string, matchers jsonmatch.Matchers, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return JSONMatchesBy(a.t, expected, actual, matchers, msgAndArgs...)
+}
+
+// JSONMatchesByf asserts that two JSON strings are equivalent using one or more custom JSON matchers.
+// the value passed into the matcher will be on of the following types:
+// - string
+// - float64
+// - bool
+// - nil
+// - []interface{}
+// - map[string]interface{}
+//
+// Can use nil for matchers to test equality of pure json.
+//
+// Note: in cases where expected and actual are not equal, the value for the matcher will be displayed as unequal,
+// regardless of the output of the matcher function.  This should be fixed in a future release.
+//
+//	a.JSONMatchesByf(`{ "foo": "$NOT_EMPTY" }`, `{ "foo": "baz" }`, assert.ValueMatchers{
+//	    "$NOT_EMPTY": func(v interface) bool { return v != "" },
+//	})
+func (a *Assertions) JSONMatchesByf(expected string, actual string, matchers jsonmatch.Matchers, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return JSONMatchesByf(a.t, expected, actual, matchers, msg, args...)
 }
 
 // Len asserts that the specified object has specific length.

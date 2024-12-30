@@ -20,8 +20,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
 
+	"github.com/stretchr/testify/assert/jsonmatch"
 	// Wrapper around gopkg.in/yaml.v3
-	"github.com/stretchr/testify/assert/internal/jsonmatch"
 	"github.com/stretchr/testify/assert/yaml"
 )
 
@@ -1819,7 +1819,7 @@ type ValueMatchers = jsonmatch.Matchers
 //
 // Can use nil for matchers to test equality of pure json.
 //
-// Note: in cases where expected and actual are not equal, the value for the matcher will be displayed as unequal, 
+// Note: in cases where expected and actual are not equal, the value for the matcher will be displayed as unequal,
 // regardless of the output of the matcher function.  This should be fixed in a future release.
 //
 //	assert.JSONMatchesBy(t, `{ "foo": "$NOT_EMPTY" }`, `{ "foo": "baz" }`, assert.ValueMatchers{
