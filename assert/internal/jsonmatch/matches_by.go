@@ -1,17 +1,23 @@
 package jsonmatch
 
 import (
-	"encoding/json"
 	"errors"
 )
 
 type (
+	// reprepsents a node with a value in a json object
 	Node struct {
 		kind  Kind
 		value interface{}
 	}
 
+	// an enum of the kinds of nodes in a json object
 	Kind int
+
+	// a map of matchers with a function to determine if a value matches
+	// the key of the matchers corresponds to the value passed into
+	// the function
+	Matchers map[string]func(interface{}) bool
 )
 
 const (
@@ -25,25 +31,15 @@ const (
 
 var ErrInvalidType = errors.New("invalid data type in json object")
 
-func (n *Node) UnmarshalJSON(data []byte) error {
-	var v interface{}
-	if err := json.Unmarshal(data, &v); err != nil {
-		return err
-	}
+func MatchesBy(expected, actual interface{}, matchers Matchers) bool {
+	expectedNode := New(expected)
+	actualNode := New(actual)
 
-	newNode, err := NewNode(v)
-	if err != nil {
-		return err
-	}
-
-	n.kind = newNode.kind
-	n.value = newNode.value
-
-	return nil
+	return expectedNode.matchesBy(actualNode, matchers)
 }
 
-func NewNode(v interface{}) (*Node, error) {
-	n := &Node{}
+func New(v interface{}) Node {
+	n := Node{}
 
 	switch v := v.(type) {
 	case map[string]interface{}:
@@ -51,11 +47,7 @@ func NewNode(v interface{}) (*Node, error) {
 		val := make(map[string]Node)
 
 		for k, childVal := range v {
-			child, err := NewNode(childVal)
-			if err != nil {
-				return nil, err
-			}
-			val[k] = *child
+			val[k] = New(childVal)
 		}
 
 		n.value = val
@@ -63,11 +55,7 @@ func NewNode(v interface{}) (*Node, error) {
 		n.kind = Array
 		val := make([]Node, 0)
 		for _, childVal := range v {
-			child, err := NewNode(childVal)
-			if err != nil {
-				return nil, err
-			}
-			val = append(val, *child)
+			val = append(val, New(childVal))
 		}
 		n.value = val
 	case string:
@@ -82,20 +70,18 @@ func NewNode(v interface{}) (*Node, error) {
 	case nil:
 		n.kind = Null
 		n.value = nil
-	default:
-		return nil, ErrInvalidType
 	}
 
-	return n, nil
+	return n
 }
 
-func (n Node) Matches(other Node) bool {
-	if n.kind != other.kind {
-		return false
-	}
-
+func (n Node) matchesBy(other Node, matchers Matchers) bool {
 	switch n.kind {
 	case Object:
+		if other.kind != Object {
+			return false
+		}
+
 		val := n.value.(map[string]Node)
 		otherVal := other.value.(map[string]Node)
 
@@ -110,23 +96,30 @@ func (n Node) Matches(other Node) bool {
 			if _, ok := otherVal[k]; !ok {
 				return false
 			}
-			if !val[k].Matches(otherVal[k]) {
+			if !val[k].matchesBy(otherVal[k], matchers) {
 				return false
 			}
 		}
 	case Array:
+		if other.kind != Array {
+			return false
+		}
+
 		for i := range n.value.([]Node) {
 			val := n.value.([]Node)[i]
 			otherVal := other.value.([]Node)[i]
-			if !val.Matches(otherVal) {
+			if !val.matchesBy(otherVal, matchers) {
 				return false
 			}
 		}
 	default:
-		match := n.value == other.value
-		if !match {
-			return false
+		for val, f := range matchers {
+			if val == n.value {
+				return f(other.value)
+			}
 		}
+
+		return n.value == other.value
 	}
 
 	return true
