@@ -3,11 +3,12 @@
 package require
 
 import (
-	assert "github.com/stretchr/testify/assert"
 	http "net/http"
-	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 	url "net/url"
 	time "time"
+
+	assert "github.com/stretchr/testify/assert"
+	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 )
 
 // Condition uses a Comparison to assert a complex condition.

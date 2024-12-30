@@ -4,9 +4,10 @@ package assert
 
 import (
 	http "net/http"
-	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 	url "net/url"
 	time "time"
+
+	jsonmatch "github.com/stretchr/testify/assert/jsonmatch"
 )
 
 // Condition uses a Comparison to assert a complex condition.
