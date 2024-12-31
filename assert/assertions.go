@@ -2182,9 +2182,6 @@ func unwrapAll(err error) (errs []error) {
 		for _, err := range x.Unwrap() {
 			errs = append(errs, unwrapAll(err)...)
 		}
-		return
-	default:
-		return
 	}
 	return
 }
