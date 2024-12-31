@@ -3192,6 +3192,7 @@ func (ctt *captureTestingT) checkResultAndErrMsg(t *testing.T, expectedRes, res 
 	}
 	if res == ctt.failed {
 		t.Errorf("The test result (%t) should be reflected in the testing.T type (%t)", res, !ctt.failed)
+		return
 	}
 	contents := parseLabeledOutput(ctt.msg)
 	if res == true {
