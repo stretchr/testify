@@ -3367,7 +3367,7 @@ func TestErrorAs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Should be in error chain:\n" +
-				"expected: **assert.customError\n" +
+				"expected: *assert.customError\n" +
 				"in chain: \"EOF\" (*errors.errorString)\n",
 		},
 		{
@@ -3375,7 +3375,7 @@ func TestErrorAs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Should be in error chain:\n" +
-				"expected: **assert.customError\n" +
+				"expected: *assert.customError\n" +
 				"in chain: \n",
 		},
 		{
@@ -3383,7 +3383,7 @@ func TestErrorAs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Should be in error chain:\n" +
-				"expected: **assert.customError\n" +
+				"expected: *assert.customError\n" +
 				"in chain: \"abc: def\" (*fmt.wrapError)\n" +
 				"\t\"def\" (*errors.errorString)\n",
 		},
@@ -3410,7 +3410,7 @@ func TestNotErrorAs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Target error should not be in err chain:\n" +
-				"found: **assert.customError\n" +
+				"found: *assert.customError\n" +
 				"in chain: \"wrap: fail\" (*fmt.wrapError)\n" +
 				"\t\"fail\" (*assert.customError)\n",
 		},

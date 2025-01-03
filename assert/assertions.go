@@ -2146,8 +2146,8 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
-		"expected: %T\n"+
-		"in chain: %s", target, chain,
+		"expected: %s\n"+
+		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
 	), msgAndArgs...)
 }
 
@@ -2164,8 +2164,8 @@ func NotErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interfa
 	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
-		"found: %T\n"+
-		"in chain: %s", target, chain,
+		"found: %s\n"+
+		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
 	), msgAndArgs...)
 }
 
