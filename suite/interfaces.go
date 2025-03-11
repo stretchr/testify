@@ -18,6 +18,8 @@ type SetupAllSuite interface {
 
 // SetupTestSuite has a SetupTest method, which will run before each
 // test in the suite.
+//
+// See SetupParallelTestSuite instead if you want to write parallel tests.
 type SetupTestSuite interface {
 	SetupTest()
 }
@@ -36,6 +38,8 @@ type TearDownAllSuite interface {
 
 // TearDownTestSuite has a TearDownTest method, which will run after
 // each test in the suite.
+//
+// See TearDownParallelTestSuite instead if you want to write parallel tests.
 type TearDownTestSuite interface {
 	TearDownTest()
 }
@@ -48,6 +52,8 @@ type TearDownParallelTestSuite interface {
 
 // BeforeTest has a function to be executed right before the test
 // starts and receives the suite and test names as input
+//
+// See BeforeParallelTest instead if you want to write parallel tests.
 type BeforeTest interface {
 	BeforeTest(suiteName, testName string)
 }
@@ -60,6 +66,8 @@ type BeforeParallelTest interface {
 
 // AfterTest has a function to be executed right after the test
 // finishes and receives the suite and test names as input
+//
+// See AfterParallelTest instead if you want to write parallel tests.
 type AfterTest interface {
 	AfterTest(suiteName, testName string)
 }

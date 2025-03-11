@@ -15,13 +15,12 @@ import (
 
 type parallelSuiteData struct {
 	calls          []string
-	callsIndex     map[string]int
 	parallelSuiteT map[string]*testing.T
 }
 
 type parallelSuite struct {
 	suite.Suite
-	mutex *sync.Mutex
+	mutex sync.Mutex
 	data  *parallelSuiteData
 }
 
@@ -30,16 +29,14 @@ func (s *parallelSuite) recordCall(method string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.data.calls = append(s.data.calls, method)
-	s.data.callsIndex[method] = len(s.data.calls) - 1
 }
 
 func TestSuiteParallel(t *testing.T) {
 	data := parallelSuiteData{
 		calls:          []string{},
-		callsIndex:     make(map[string]int, 8),
-		parallelSuiteT: make(map[string]*testing.T, 2),
+		parallelSuiteT: map[string]*testing.T{},
 	}
-	s := &parallelSuite{mutex: &sync.Mutex{}, data: &data}
+	s := &parallelSuite{data: &data}
 	suite.Run(t, s)
 }
 
