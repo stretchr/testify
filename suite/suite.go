@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -29,12 +30,19 @@ type Suite struct {
 
 	// Parent suite to have access to the implemented methods of parent struct
 	s TestingSuite
+
+	runningParallelTests bool
 }
 
 // T retrieves the current *testing.T context.
 func (suite *Suite) T() *testing.T {
 	suite.mu.RLock()
 	defer suite.mu.RUnlock()
+
+	if suite.runningParallelTests {
+		panic("Avoid T() in parallel tests. Use the passed-in one instead.")
+	}
+
 	return suite.t
 }
 
@@ -132,6 +140,8 @@ func Run(t *testing.T, suite TestingSuite) {
 	}
 
 	tests := []testing.InternalTest{}
+	parallelTests := []testing.InternalTest{}
+
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
 
@@ -160,11 +170,19 @@ func Run(t *testing.T, suite TestingSuite) {
 			suiteSetupDone = true
 		}
 
+		isParallel := strings.HasPrefix(method.Name, "Parallel")
+
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
 				parentT := suite.T()
-				suite.SetT(t)
+
+				if isParallel {
+					t.Parallel()
+				} else {
+					suite.SetT(t)
+				}
+
 				defer recoverAndFailOnPanic(t)
 				defer func() {
 					t.Helper()
@@ -178,31 +196,55 @@ func Run(t *testing.T, suite TestingSuite) {
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
 						afterTestSuite.AfterTest(suiteName, method.Name)
+					} else if afterTestSuite, ok := suite.(AfterParallelTest); ok {
+						afterTestSuite.AfterTest(t, suiteName, method.Name)
 					}
 
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
 						tearDownTestSuite.TearDownTest()
+					} else if tearDownTestSuite, ok := suite.(TearDownParallelTestSuite); ok {
+						tearDownTestSuite.TearDownTest(t)
 					}
 
-					suite.SetT(parentT)
+					if !isParallel {
+						suite.SetT(parentT)
+					}
+
 					failOnPanic(t, r)
 				}()
 
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
+				} else if setupTestSuite, ok := suite.(SetupParallelTestSuite); ok {
+					setupTestSuite.SetupTest(t)
 				}
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
+				} else if beforeTestSuite, ok := suite.(BeforeParallelTest); ok {
+					beforeTestSuite.BeforeTest(t, methodFinder.Elem().Name(), method.Name)
 				}
 
 				if stats != nil {
 					stats.start(method.Name)
 				}
 
-				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+				methodArgs := []reflect.Value{
+					reflect.ValueOf(suite),
+				}
+
+				if isParallel {
+					methodArgs = append(methodArgs, reflect.ValueOf(t))
+				}
+
+				method.Func.Call(methodArgs)
 			},
 		}
-		tests = append(tests, test)
+
+		if isParallel {
+			parallelTests = append(parallelTests, test)
+		} else {
+			tests = append(tests, test)
+		}
 	}
 	if suiteSetupDone {
 		defer func() {
@@ -218,12 +260,26 @@ func Run(t *testing.T, suite TestingSuite) {
 	}
 
 	runTests(t, tests)
+
+	if len(parallelTests) > 0 {
+		runTests(
+			t,
+			[]testing.InternalTest{
+				{
+					Name: "parallel",
+					F: func(t *testing.T) {
+						runTests(t, parallelTests)
+					},
+				},
+			},
+		)
+	}
 }
 
 // Filtering method according to set regular expression
 // specified command-line argument -m
 func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Test", name); !ok {
+	if ok, _ := regexp.MatchString("^(?:Parallel)?Test", name); !ok {
 		return false, nil
 	}
 	return regexp.MatchString(*matchMethod, name)
