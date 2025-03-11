@@ -195,12 +195,21 @@ func Run(t *testing.T, suite TestingSuite) {
 					}
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
+						if isParallel {
+							t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", AfterTest(nil), method.Name, AfterParallelTest(nil))
+							t.FailNow()
+						}
 						afterTestSuite.AfterTest(suiteName, method.Name)
 					} else if afterTestSuite, ok := suite.(AfterParallelTest); ok {
 						afterTestSuite.AfterTest(t, suiteName, method.Name)
 					}
 
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
+						if isParallel {
+							t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", TearDownTestSuite(nil), method.Name, TearDownParallelTestSuite(nil))
+							t.FailNow()
+						}
+
 						tearDownTestSuite.TearDownTest()
 					} else if tearDownTestSuite, ok := suite.(TearDownParallelTestSuite); ok {
 						tearDownTestSuite.TearDownTest(t)
@@ -214,11 +223,22 @@ func Run(t *testing.T, suite TestingSuite) {
 				}()
 
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
+					if isParallel {
+						t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", SetupTestSuite(nil), method.Name, SetupParallelTestSuite(nil))
+						t.FailNow()
+					}
+
 					setupTestSuite.SetupTest()
 				} else if setupTestSuite, ok := suite.(SetupParallelTestSuite); ok {
 					setupTestSuite.SetupTest(t)
 				}
+
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
+					if isParallel {
+						t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", BeforeTest(nil), method.Name, BeforeParallelTest(nil))
+						t.FailNow()
+					}
+
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 				} else if beforeTestSuite, ok := suite.(BeforeParallelTest); ok {
 					beforeTestSuite.BeforeTest(t, methodFinder.Elem().Name(), method.Name)
