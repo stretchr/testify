@@ -38,4 +38,3 @@ func TestPassedReturnsFalseWhenAllTestsFail(t *testing.T) {
 
 	assert.False(t, sinfo.Passed())
 }
-
