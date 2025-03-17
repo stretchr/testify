@@ -6,11 +6,13 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"runtime"
 	"runtime/debug"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +33,7 @@ type Suite struct {
 	// Parent suite to have access to the implemented methods of parent struct
 	s TestingSuite
 
-	runningParallelTests bool
+	isParallelTest map[string]struct{}
 }
 
 // T retrieves the current *testing.T context.
@@ -39,7 +41,7 @@ func (suite *Suite) T() *testing.T {
 	suite.mu.RLock()
 	defer suite.mu.RUnlock()
 
-	if suite.runningParallelTests {
+	if suite.isInSuiteParallelMethod() {
 		panic("Avoid T() in parallel tests. Use the passed-in one instead.")
 	}
 
@@ -68,6 +70,11 @@ func (suite *Suite) Require() *require.Assertions {
 	if suite.require == nil {
 		panic("'Require' must not be called before 'Run' or 'SetT'")
 	}
+
+	if suite.isInSuiteParallelMethod() {
+		panic("Avoid Require() in parallel tests. Use require(t, ...) instead.")
+	}
+
 	return suite.require
 }
 
@@ -82,7 +89,33 @@ func (suite *Suite) Assert() *assert.Assertions {
 	if suite.Assertions == nil {
 		panic("'Assert' must not be called before 'Run' or 'SetT'")
 	}
+
+	if suite.isInSuiteParallelMethod() {
+		panic("Avoid Assert() in parallel tests. Use assert(t, ...) instead.")
+	}
+
 	return suite.Assertions
+}
+
+func (suite *Suite) isInSuiteParallelMethod() bool {
+	for i := 1; ; i++ {
+		pc, _, _, ok := runtime.Caller(i)
+		if !ok {
+			break
+		}
+
+		// Example rawFuncName:
+		// github.com/foo/bar/tests/e2e.(*E2ETestSuite).MyTest
+		rawFuncName := runtime.FuncForPC(pc).Name()
+		splittedFuncName := strings.Split(rawFuncName, ".")
+		funcName := splittedFuncName[len(splittedFuncName)-1]
+
+		if _, isParallel := suite.isParallelTest[funcName]; isParallel {
+			return true
+		}
+	}
+
+	return false
 }
 
 func recoverAndFailOnPanic(t *testing.T) {
@@ -157,6 +190,29 @@ func Run(t *testing.T, suite TestingSuite) {
 	tearDownTestSuite, hasTearDownTestWithoutT := suite.(TearDownTestSuite)
 	tearDownTestParallelSuite, hasTearDownTestWithT := suite.(TearDownParallelTestSuite)
 
+	testifySuiteVal := GetEmbeddedValue(suite, reflect.TypeOf(Suite{}))
+	if !testifySuiteVal.IsValid() {
+		panic("nononoo")
+	}
+
+	var isParallelTestPtr *map[string]struct{}
+
+	if testifySuiteVal.IsValid() {
+		isParalleTestVal := testifySuiteVal.FieldByName("isParallelTest")
+		if !isParalleTestVal.IsValid() {
+			panic("Should be able to get isParallelTest!")
+		}
+
+		// We need unsafe here to circumvent Go’s prevention of accessing
+		// unexported values.
+		ptr := unsafe.Pointer(isParalleTestVal.UnsafeAddr())
+		isParallelTestPtr = (*map[string]struct{})(ptr)
+
+		if *isParallelTestPtr == nil {
+			*isParallelTestPtr = map[string]struct{}{}
+		}
+	}
+
 	for i := 0; i < methodFinder.NumMethod(); i++ {
 		method := methodFinder.Method(i)
 
@@ -173,6 +229,10 @@ func Run(t *testing.T, suite TestingSuite) {
 		isParallel := strings.HasPrefix(method.Name, "Parallel")
 
 		if isParallel {
+			if isParallelTestPtr != nil {
+				(*isParallelTestPtr)[method.Name] = struct{}{}
+			}
+
 			var faultyMethods []string
 
 			if hasSetupTestWithoutT {
