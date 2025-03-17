@@ -145,6 +145,18 @@ func Run(t *testing.T, suite TestingSuite) {
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
 
+	setupTestSuite, hasSetupTestWithoutT := suite.(SetupTestSuite)
+	setupTestParallelSuite, hasSetupTestWithT := suite.(SetupParallelTestSuite)
+
+	beforeTestSuite, hasBeforeTestWithoutT := suite.(BeforeTest)
+	beforeTestParallelSuite, hasBeforeTestWithT := suite.(BeforeParallelTest)
+
+	afterTestSuite, hasAfterTestWithoutT := suite.(AfterTest)
+	afterTestParallelSuite, hasAfterTestWithT := suite.(AfterParallelTest)
+
+	tearDownTestSuite, hasTearDownTestWithoutT := suite.(TearDownTestSuite)
+	tearDownTestParallelSuite, hasTearDownTestWithT := suite.(TearDownParallelTestSuite)
+
 	for i := 0; i < methodFinder.NumMethod(); i++ {
 		method := methodFinder.Method(i)
 
@@ -158,6 +170,31 @@ func Run(t *testing.T, suite TestingSuite) {
 			continue
 		}
 
+		isParallel := strings.HasPrefix(method.Name, "Parallel")
+
+		if isParallel {
+			var faultyMethods []string
+
+			if hasSetupTestWithoutT {
+				faultyMethods = append(faultyMethods, "SetupTest")
+			}
+			if hasBeforeTestWithoutT {
+				faultyMethods = append(faultyMethods, "BeforeTest")
+			}
+			if hasAfterTestWithoutT {
+				faultyMethods = append(faultyMethods, "AfterTest")
+			}
+			if hasTearDownTestWithoutT {
+				faultyMethods = append(faultyMethods, "TearDownTest")
+			}
+
+			if len(faultyMethods) > 0 {
+				joined := strings.Join(faultyMethods, " and ")
+				t.Errorf("Suite contains a parallel test (%#q), so %s must accept a %T.", method.Name, joined, t)
+				t.FailNow()
+			}
+		}
+
 		if !suiteSetupDone {
 			if stats != nil {
 				stats.Start = time.Now()
@@ -169,8 +206,6 @@ func Run(t *testing.T, suite TestingSuite) {
 
 			suiteSetupDone = true
 		}
-
-		isParallel := strings.HasPrefix(method.Name, "Parallel")
 
 		test := testing.InternalTest{
 			Name: method.Name,
@@ -194,25 +229,16 @@ func Run(t *testing.T, suite TestingSuite) {
 						stats.end(method.Name, passed)
 					}
 
-					if afterTestSuite, ok := suite.(AfterTest); ok {
-						if isParallel {
-							t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", AfterTest(nil), method.Name, AfterParallelTest(nil))
-							t.FailNow()
-						}
+					if hasAfterTestWithoutT {
 						afterTestSuite.AfterTest(suiteName, method.Name)
-					} else if afterTestSuite, ok := suite.(AfterParallelTest); ok {
-						afterTestSuite.AfterTest(t, suiteName, method.Name)
+					} else if hasAfterTestWithT {
+						afterTestParallelSuite.AfterTest(t, suiteName, method.Name)
 					}
 
-					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-						if isParallel {
-							t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", TearDownTestSuite(nil), method.Name, TearDownParallelTestSuite(nil))
-							t.FailNow()
-						}
-
+					if hasTearDownTestWithoutT {
 						tearDownTestSuite.TearDownTest()
-					} else if tearDownTestSuite, ok := suite.(TearDownParallelTestSuite); ok {
-						tearDownTestSuite.TearDownTest(t)
+					} else if hasTearDownTestWithT {
+						tearDownTestParallelSuite.TearDownTest(t)
 					}
 
 					if !isParallel {
@@ -222,26 +248,16 @@ func Run(t *testing.T, suite TestingSuite) {
 					failOnPanic(t, r)
 				}()
 
-				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-					if isParallel {
-						t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", SetupTestSuite(nil), method.Name, SetupParallelTestSuite(nil))
-						t.FailNow()
-					}
-
+				if hasSetupTestWithoutT {
 					setupTestSuite.SetupTest()
-				} else if setupTestSuite, ok := suite.(SetupParallelTestSuite); ok {
-					setupTestSuite.SetupTest(t)
+				} else if hasSetupTestWithT {
+					setupTestParallelSuite.SetupTest(t)
 				}
 
-				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					if isParallel {
-						t.Errorf("%T implementations cannot contain parallel tests (e.g., %#q). See %T instead.", BeforeTest(nil), method.Name, BeforeParallelTest(nil))
-						t.FailNow()
-					}
-
+				if hasBeforeTestWithoutT {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
-				} else if beforeTestSuite, ok := suite.(BeforeParallelTest); ok {
-					beforeTestSuite.BeforeTest(t, methodFinder.Elem().Name(), method.Name)
+				} else if hasBeforeTestWithT {
+					beforeTestParallelSuite.BeforeTest(t, methodFinder.Elem().Name(), method.Name)
 				}
 
 				if stats != nil {
@@ -253,7 +269,10 @@ func Run(t *testing.T, suite TestingSuite) {
 				}
 
 				if isParallel {
+					verifyParallelMethod(t, method.Name, method.Type)
 					methodArgs = append(methodArgs, reflect.ValueOf(t))
+				} else {
+					verifySequentialMethod(t, method.Name, method.Type)
 				}
 
 				method.Func.Call(methodArgs)
@@ -303,6 +322,20 @@ func methodFilter(name string) (bool, error) {
 		return false, nil
 	}
 	return regexp.MatchString(*matchMethod, name)
+}
+
+func verifyParallelMethod(t *testing.T, name string, rt reflect.Type) {
+	if rt.NumIn() != 2 || rt.In(1) != reflect.TypeOf(t) {
+		t.Errorf("%#q method is parallel, so it must accept a %T (and only that)", name, &testing.T{})
+		t.FailNow()
+	}
+}
+
+func verifySequentialMethod(t *testing.T, name string, rt reflect.Type) {
+	if rt.NumIn() != 1 {
+		t.Errorf("%#q method is sequential, so it must accept no arguments", name)
+		t.FailNow()
+	}
 }
 
 func runTests(t testing.TB, tests []testing.InternalTest) {
