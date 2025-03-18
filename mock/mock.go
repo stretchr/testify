@@ -379,14 +379,14 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 	var expectedCall *Call
 
 	for i, call := range m.ExpectedCalls {
-		if call.Method == method {
-			_, diffCount := call.Arguments.Diff(arguments)
-			if diffCount == 0 {
-				expectedCall = call
-				if call.Repeatability > -1 {
-					return i, call
-				}
-			}
+		if call.Method != method {
+			continue
+		}
+		if call.Repeatability <= -1 {
+			continue
+		}
+		if _, diffCount := call.Arguments.Diff(arguments); diffCount == 0 {
+			return i, call
 		}
 	}
 
