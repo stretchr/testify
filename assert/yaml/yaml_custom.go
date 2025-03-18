@@ -15,7 +15,7 @@
 //		import assertYaml "github.com/stretchr/testify/assert/yaml"
 //
 //		func init() {
-//			assertYaml.Unmarshall = func (in []byte, out interface{}) error {
+//			assertYaml.Unmarshal = func (in []byte, out interface{}) error {
 //				// ...
 //	     			return nil
 //			}

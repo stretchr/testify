@@ -502,7 +502,13 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 		h.Helper()
 	}
 
-	if !samePointers(expected, actual) {
+	same, ok := samePointers(expected, actual)
+	if !ok {
+		return Fail(t, "Both arguments must be pointers", msgAndArgs...)
+	}
+
+	if !same {
+		// both are pointers but not the same type & pointing to the same address
 		return Fail(t, fmt.Sprintf("Not same: \n"+
 			"expected: %p %#v\n"+
 			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
@@ -522,7 +528,13 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 		h.Helper()
 	}
 
-	if samePointers(expected, actual) {
+	same, ok := samePointers(expected, actual)
+	if !ok {
+		//fails when the arguments are not pointers
+		return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
+	}
+
+	if same {
 		return Fail(t, fmt.Sprintf(
 			"Expected and actual point to the same object: %p %#v",
 			expected, expected), msgAndArgs...)
@@ -530,21 +542,23 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	return true
 }
 
-// samePointers compares two generic interface objects and returns whether
-// they point to the same object
-func samePointers(first, second interface{}) bool {
+// samePointers checks if two generic interface objects are pointers of the same
+// type pointing to the same object. It returns two values: same indicating if
+// they are the same type and point to the same object, and ok indicating that
+// both inputs are pointers.
+func samePointers(first, second interface{}) (same bool, ok bool) {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
 	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
-		return false
+		return false, false //not both are pointers
 	}
 
 	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
 	if firstType != secondType {
-		return false
+		return false, true // both are pointers, but of different types
 	}
 
 	// compare pointer addresses
-	return first == second
+	return first == second, true
 }
 
 // formatUnequalValues takes two values of arbitrary types and returns string
@@ -619,21 +633,6 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 
 	if aType != bType {
 		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
-	}
-
-	if aType.Kind() == reflect.Ptr {
-		aType = aType.Elem()
-	}
-	if bType.Kind() == reflect.Ptr {
-		bType = bType.Elem()
-	}
-
-	if aType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct or pointer to struct \n\t%v != %v", aType.Kind(), reflect.Struct), msgAndArgs...)
-	}
-
-	if bType.Kind() != reflect.Struct {
-		return Fail(t, fmt.Sprintf("Types expected to both be struct or pointer to struct \n\t%v != %v", bType.Kind(), reflect.Struct), msgAndArgs...)
 	}
 
 	expected = copyExportedFields(expected)
@@ -1527,6 +1526,9 @@ func InEpsilon(t TestingT, expected, actual interface{}, epsilon float64, msgAnd
 	if err != nil {
 		return Fail(t, err.Error(), msgAndArgs...)
 	}
+	if math.IsNaN(actualEpsilon) {
+		return Fail(t, "relative error is NaN", msgAndArgs...)
+	}
 	if actualEpsilon > epsilon {
 		return Fail(t, fmt.Sprintf("Relative error is too high: %#v (expected)\n"+
 			"        < %#v (actual)", epsilon, actualEpsilon), msgAndArgs...)
@@ -2100,7 +2102,7 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 		expectedText = target.Error()
 	}
 
-	chain := buildErrorChainString(err)
+	chain := buildErrorChainString(err, false)
 
 	return Fail(t, fmt.Sprintf("Target error should be in err chain:\n"+
 		"expected: %q\n"+
@@ -2123,7 +2125,7 @@ func NotErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 		expectedText = target.Error()
 	}
 
-	chain := buildErrorChainString(err)
+	chain := buildErrorChainString(err, false)
 
 	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
 		"found: %q\n"+
@@ -2141,24 +2143,64 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 		return true
 	}
 
-	chain := buildErrorChainString(err)
+	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
-		"expected: %q\n"+
-		"in chain: %s", target, chain,
+		"expected: %s\n"+
+		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
 	), msgAndArgs...)
 }
 
-func buildErrorChainString(err error) string {
+// NotErrorAs asserts that none of the errors in err's chain matches target,
+// but if so, sets target to that error value.
+func NotErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if !errors.As(err, target) {
+		return true
+	}
+
+	chain := buildErrorChainString(err, true)
+
+	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
+		"found: %s\n"+
+		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
+	), msgAndArgs...)
+}
+
+func unwrapAll(err error) (errs []error) {
+	errs = append(errs, err)
+	switch x := err.(type) {
+	case interface{ Unwrap() error }:
+		err = x.Unwrap()
+		if err == nil {
+			return
+		}
+		errs = append(errs, unwrapAll(err)...)
+	case interface{ Unwrap() []error }:
+		for _, err := range x.Unwrap() {
+			errs = append(errs, unwrapAll(err)...)
+		}
+	}
+	return
+}
+
+func buildErrorChainString(err error, withType bool) string {
 	if err == nil {
 		return ""
 	}
 
-	e := errors.Unwrap(err)
-	chain := fmt.Sprintf("%q", err.Error())
-	for e != nil {
-		chain += fmt.Sprintf("\n\t%q", e.Error())
-		e = errors.Unwrap(e)
+	var chain string
+	errs := unwrapAll(err)
+	for i := range errs {
+		if i != 0 {
+			chain += "\n\t"
+		}
+		chain += fmt.Sprintf("%q", errs[i].Error())
+		if withType {
+			chain += fmt.Sprintf(" (%T)", errs[i])
+		}
 	}
 	return chain
 }
