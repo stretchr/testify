@@ -51,6 +51,8 @@ var (
 		(chan interface{})(nil),
 		(<-chan interface{})(nil),
 		(chan<- interface{})(nil),
+		time.Time{},
+		time.Time{}.In(time.FixedZone("test", -1)),
 	}
 	nonZeros = []interface{}{
 		true,
@@ -82,6 +84,7 @@ var (
 		(make(chan interface{})),
 		(<-chan interface{})(make(chan interface{})),
 		(chan<- interface{})(make(chan interface{})),
+		time.Date(1, 1, 1, 1, 1, 1, 1, time.UTC),
 	}
 )
 

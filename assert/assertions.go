@@ -1707,9 +1707,16 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 }
 
 // Zero asserts that i is the zero value for its type.
+// If i implements IsZero it is preferred over checking the zero value.
 func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if zeroer, ok := i.(interface{ IsZero() bool }); ok {
+		if zeroer.IsZero() {
+			return true
+		}
+		return Fail(t, fmt.Sprintf("Should be zero, but was %v", i), msgAndArgs...)
 	}
 	if i != nil && !reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
 		return Fail(t, fmt.Sprintf("Should be zero, but was %v", i), msgAndArgs...)
@@ -1718,9 +1725,16 @@ func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 }
 
 // NotZero asserts that i is not the zero value for its type.
+// If i implements IsZero it is preferred over checking the zero value.
 func NotZero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if zeroer, ok := i.(interface{ IsZero() bool }); ok {
+		if !zeroer.IsZero() {
+			return true
+		}
+		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)
 	}
 	if i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface()) {
 		return Fail(t, fmt.Sprintf("Should not be zero, but was %v", i), msgAndArgs...)

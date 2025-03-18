@@ -707,6 +707,7 @@ func NotSubsetf(t TestingT, list interface{}, subset interface{}, msg string, ar
 }
 
 // NotZerof asserts that i is not the zero value for its type.
+// If i implements IsZero it is preferred over checking the zero value.
 func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -833,6 +834,7 @@ func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...int
 }
 
 // Zerof asserts that i is the zero value for its type.
+// If i implements IsZerof it is preferred over checking the zero value.
 func Zerof(t TestingT, i interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

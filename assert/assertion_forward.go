@@ -1405,6 +1405,7 @@ func (a *Assertions) NotSubsetf(list interface{}, subset interface{}, msg string
 }
 
 // NotZero asserts that i is not the zero value for its type.
+// If i implements IsZero it is preferred over checking the zero value.
 func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1413,6 +1414,7 @@ func (a *Assertions) NotZero(i interface{}, msgAndArgs ...interface{}) bool {
 }
 
 // NotZerof asserts that i is not the zero value for its type.
+// If i implements IsZero it is preferred over checking the zero value.
 func (a *Assertions) NotZerof(i interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1657,6 +1659,7 @@ func (a *Assertions) YAMLEqf(expected string, actual string, msg string, args ..
 }
 
 // Zero asserts that i is the zero value for its type.
+// If i implements IsZero it is preferred over checking the zero value.
 func (a *Assertions) Zero(i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1665,6 +1668,7 @@ func (a *Assertions) Zero(i interface{}, msgAndArgs ...interface{}) bool {
 }
 
 // Zerof asserts that i is the zero value for its type.
+// If i implements IsZerof it is preferred over checking the zero value.
 func (a *Assertions) Zerof(i interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
