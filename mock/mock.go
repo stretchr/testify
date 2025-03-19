@@ -332,6 +332,8 @@ func (m *Mock) TestData() objx.Map {
 */
 
 // Test sets the test struct variable of the mock object
+// Test should not be called on an object that is going to be used in a
+// goroutine other than the one running the test function.
 func (m *Mock) Test(t TestingT) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
