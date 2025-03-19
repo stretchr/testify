@@ -16,6 +16,7 @@ func httpCode(handler http.HandlerFunc, method, url string, values url.Values) (
 	if err != nil {
 		return -1, err
 	}
+	req.RequestURI = req.URL.RequestURI()
 	req.URL.RawQuery = values.Encode()
 	handler(w, req)
 	return w.Code, nil
@@ -120,6 +121,7 @@ func HTTPBody(handler http.HandlerFunc, method, url string, values url.Values) s
 	if err != nil {
 		return ""
 	}
+	req.RequestURI = req.URL.RequestURI()
 	handler(w, req)
 	return w.Body.String()
 }
