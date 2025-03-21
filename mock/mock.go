@@ -331,7 +331,8 @@ func (m *Mock) TestData() objx.Map {
 	Setting expectations
 */
 
-// Test sets the test struct variable of the mock object
+// Test sets the [TestingT] on which errors will be reported, otherwise errors
+// will cause a panic.
 // Test should not be called on an object that is going to be used in a
 // goroutine other than the one running the test function.
 func (m *Mock) Test(t TestingT) {
