@@ -211,13 +211,13 @@ func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 // Unset removes all mock handlers that satisfy the call instance arguments from being
 // called. Only supported on call instances with static input arguments.
 //
-// For example, the only handler remaining after the following would be `2, 2`:
+// For example, the only handler remaining after the following would be "MyMethod(2, 2)":
 //
-//	test.
-//	   On("func", 2, 2).Return(0).
-//	   On("func", 3, 3).Return(0).
-//	   On("func", Anything, Anything).Return(0)
-//	test.On("func", 3, 3).Unset()
+//	Mock.
+//	   On("MyMethod", 2, 2).Return(0).
+//	   On("MyMethod", 3, 3).Return(0).
+//	   On("MyMethod", Anything, Anything).Return(0)
+//	Mock.On("MyMethod", 3, 3).Unset()
 func (c *Call) Unset() *Call {
 	var unlockOnce sync.Once
 
