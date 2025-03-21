@@ -1,7 +1,9 @@
 Testify - Thou Shalt Write Tests
 ================================
 
-ℹ️ We are working on testify v2 and would love to hear what you'd like to see in it, have your say here: https://cutt.ly/testify
+> [!NOTE]
+> Testify is being maintained at v1, no breaking changes will be accepted in this repo.  
+> [See discussion about v2](https://github.com/stretchr/testify/discussions/1560).
 
 [![Build Status](https://github.com/stretchr/testify/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/stretchr/testify/actions/workflows/main.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![PkgGoDev](https://pkg.go.dev/badge/github.com/stretchr/testify)](https://pkg.go.dev/github.com/stretchr/testify)
 
@@ -18,7 +20,7 @@ Get started:
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
   * For an introduction to writing test code in Go, see https://go.dev/doc/code#Testing
   * Check out the API Documentation https://pkg.go.dev/github.com/stretchr/testify
-  * Use [testifylint](https://github.com/Antonboom/testifylint) (via [golanci-lint](https://golangci-lint.run/)) to avoid common mistakes
+  * Use [testifylint](https://github.com/Antonboom/testifylint) (via [golangci-lint](https://golangci-lint.run/)) to avoid common mistakes
   * A little about [Test-Driven Development (TDD)](https://en.wikipedia.org/wiki/Test-driven_development)
 
 [`assert`](https://pkg.go.dev/github.com/stretchr/testify/assert "API documentation") package
@@ -223,6 +225,8 @@ You can use the [mockery tool](https://vektra.github.io/mockery/latest/) to auto
 
 [`suite`](https://pkg.go.dev/github.com/stretchr/testify/suite "API documentation") package
 -----------------------------------------------------------------------------------------
+> [!WARNING]
+> The suite package does not support parallel tests. See [#934](https://github.com/stretchr/testify/issues/934).
 
 The `suite` package provides functionality that you might be used to from more common object-oriented languages.  With it, you can build a testing suite as a struct, build setup/teardown methods and testing methods on your struct, and run them with 'go test' as per normal.
 
