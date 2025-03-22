@@ -279,10 +279,8 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if require.Error(t, err) {
-//		   require.Equal(t, expectedError, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	require.Error(t, err)
 func Error(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -373,10 +371,8 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 
 // Errorf asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if require.Errorf(t, err, "error message %s", "formatted") {
-//		   require.Equal(t, expectedErrorf, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	require.Errorf(t, err, "error message %s", "formatted")
 func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
