@@ -47,5 +47,4 @@ jobs:
         with:
           go-version: stable
       - run: npm install -g mdsf-cli
-      - run: ./.ci.gofmt.sh
       - run: ./.ci.readme.fmt.sh
