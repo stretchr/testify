@@ -6,5 +6,11 @@ pull requests.
   * @boyan-soubachov
   * @dolmen
   * @MovieStoreGuy
-  * @arjunmahishi
   * @brackendawson
+
+## Approvers
+
+The individuals listed below are active in the project and have the ability to approve pull
+requests.
+
+  * @arjunmahishi
