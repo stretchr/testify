@@ -16,7 +16,6 @@ import (
 	"go/token"
 	"go/types"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -101,7 +100,7 @@ func parseTemplates() (*template.Template, *template.Template, error) {
 		return nil, nil, err
 	}
 	if *tmplFile != "" {
-		f, err := ioutil.ReadFile(*tmplFile)
+		f, err := os.ReadFile(*tmplFile)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -183,7 +182,7 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	files := make(map[string]*ast.File)
 	fileList := make([]*ast.File, len(pd.GoFiles))
 	for i, fname := range pd.GoFiles {
-		src, err := ioutil.ReadFile(path.Join(pd.Dir, fname))
+		src, err := os.ReadFile(path.Join(pd.Dir, fname))
 		if err != nil {
 			return nil, nil, err
 		}
