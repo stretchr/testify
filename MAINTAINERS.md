@@ -14,3 +14,4 @@ The individuals listed below are active in the project and have the ability to a
 requests.
 
   * @arjunmahishi
+  * @ccoVeille
