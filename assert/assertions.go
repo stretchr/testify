@@ -462,7 +462,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 	}
 
 	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
-		return Fail(t, fmt.Sprintf("Object expected to be of type %v, but was %v", reflect.TypeOf(expectedType), reflect.TypeOf(object)), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Object expected to be of type %T, but was %T", expectedType, object), msgAndArgs...)
 	}
 
 	return true
@@ -1087,7 +1087,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
 		if !ok {
-			return Fail(t, fmt.Sprintf("\"%s\" could not be applied builtin len()", list), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("%q could not be applied builtin len()", list), msgAndArgs...)
 		}
 		if !found {
 			return true

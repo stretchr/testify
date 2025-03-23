@@ -2118,7 +2118,7 @@ func TestRegexp(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		False(t, Regexp(mockT, tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, Regexp(mockT, tc.rx, tc.str), "Expected %q to not match %q", tc.rx, tc.str)
 		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), tc.str))
 		False(t, Regexp(mockT, regexp.MustCompile(tc.rx), []byte(tc.str)))
 		True(t, NotRegexp(mockT, tc.rx, tc.str))
@@ -2151,11 +2151,11 @@ func TestZero(t *testing.T) {
 	mockT := new(testing.T)
 
 	for _, test := range zeros {
-		True(t, Zero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		True(t, Zero(mockT, test, "%#v is not the %T zero value", test, test))
 	}
 
 	for _, test := range nonZeros {
-		False(t, Zero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		False(t, Zero(mockT, test, "%#v is not the %T zero value", test, test))
 	}
 }
 
@@ -2163,11 +2163,11 @@ func TestNotZero(t *testing.T) {
 	mockT := new(testing.T)
 
 	for _, test := range zeros {
-		False(t, NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		False(t, NotZero(mockT, test, "%#v is not the %T zero value", test, test))
 	}
 
 	for _, test := range nonZeros {
-		True(t, NotZero(mockT, test, "%#v is not the %v zero value", test, reflect.TypeOf(test)))
+		True(t, NotZero(mockT, test, "%#v is not the %T zero value", test, test))
 	}
 }
 
