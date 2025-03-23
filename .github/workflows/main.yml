@@ -15,8 +15,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go_version }}
+      - run: npm install -g mdsf-cli
       - run: ./.ci.gogenerate.sh
       - run: ./.ci.gofmt.sh
+      - run: ./.ci.readme.fmt.sh
       - run: ./.ci.govet.sh
       - run: go test -v -race ./...
   test:
@@ -37,14 +39,3 @@ jobs:
         with:
           go-version: ${{ matrix.go_version }}
       - run: go test -v -race ./...
-  format:
-    name: Check formatting of code snippets in markdown files
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-      - run: npm install -g mdsf-cli
-      - run: ./.ci.readme.fmt.sh
