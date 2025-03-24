@@ -942,8 +942,8 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 	outputRenderers := []outputRenderer{}
 
-	for j := 0; j < maxArgCount; j++ {
-		i := j
+	for i := 0; i < maxArgCount; i++ {
+		i := i
 		var actual, expected interface{}
 		var actualFmt, expectedFmt func() string
 
