@@ -117,10 +117,8 @@ func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg stri
 
 // Errorf asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if assert.Errorf(t, err, "error message %s", "formatted") {
-//		   assert.Equal(t, expectedErrorf, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	assert.Errorf(t, err, "error message %s", "formatted")
 func Errorf(t TestingT, err error, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
