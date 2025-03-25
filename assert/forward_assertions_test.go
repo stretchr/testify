@@ -546,7 +546,7 @@ func TestRegexpWrapper(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		False(t, assert.Regexp(tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, assert.Regexp(tc.rx, tc.str), "Expected %q to not match %q", tc.rx, tc.str)
 		False(t, assert.Regexp(regexp.MustCompile(tc.rx), tc.str))
 		True(t, assert.NotRegexp(tc.rx, tc.str))
 		True(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
