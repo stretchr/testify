@@ -1713,15 +1713,22 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 func Test_Mock_IsMethodCallable(t *testing.T) {
 	mock := new(TestExampleImplementation)
+	t.Run("Method is expected and has repeatability when called should return true", func(t *testing.T) {
+		mock.Mock.ExpectedCalls = append(mock.Mock.ExpectedCalls,
+			&Call{Method: "TestMethod", Repeatability: 1, Arguments: Arguments{"TestArg"}})
+		assert.True(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
+	})
 
-	// Case 1: Method is expected and has remaining repeatability
-	mock.Mock.ExpectedCalls = append(mock.Mock.ExpectedCalls,
-		&Call{Method: "TestMethod", Repeatability: 1, Arguments: Arguments{"TestArg"}})
-	assert.True(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
+	t.Run("Method is not expected when called should return false", func(t *testing.T) {
+		mock.Mock.ExpectedCalls = []*Call{}
+		assert.False(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
+	})
 
-	// Case 2: Method is expected but has no repeatability left
-	mock.Mock.ExpectedCalls[0].Repeatability = -1
-	assert.False(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
+	t.Run("Method is expected and has no repeatability when called should return false", func(t *testing.T) {
+		mock.Mock.ExpectedCalls = append(mock.Mock.ExpectedCalls,
+			&Call{Method: "TestMethod", Repeatability: -1, Arguments: Arguments{"TestArg"}})
+		assert.False(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
+	})
 }
 
 func TestIsArgsEqual(t *testing.T) {
