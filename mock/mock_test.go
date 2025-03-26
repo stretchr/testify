@@ -1731,19 +1731,6 @@ func Test_Mock_IsMethodCallable(t *testing.T) {
 	})
 }
 
-func TestIsArgsEqual(t *testing.T) {
-	var expected = Arguments{5, 3, 4, 6, 7, 2}
-
-	// Copy elements 1 to 5
-	args := append(([]interface{})(nil), expected[1:]...)
-	args[2] = expected[1]
-	assert.False(t, isArgsEqual(expected, args))
-
-	// Clone
-	arr := append(([]interface{})(nil), expected...)
-	assert.True(t, isArgsEqual(expected, arr))
-}
-
 func Test_Mock_AssertOptional(t *testing.T) {
 	// Optional called
 	var ms1 = new(TestExampleImplementation)

@@ -712,8 +712,7 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	return true
 }
 
-// IsMethodCallable checking that the method can be called
-// If the method was called more than `Repeatability` return false
+// IsMethodCallable returns true if the methodName and arguments are currently expected
 func (m *Mock) IsMethodCallable(_ TestingT, methodName string, arguments ...interface{}) bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -721,21 +720,7 @@ func (m *Mock) IsMethodCallable(_ TestingT, methodName string, arguments ...inte
 	if index != -1 {
 		return true
 	}
-	// return false if call was not expected
-	return m.methodWasCalled(methodName, arguments)
-}
-
-// isArgsEqual compares arguments
-func isArgsEqual(expected Arguments, args []interface{}) bool {
-	if len(expected) != len(args) {
-		return false
-	}
-	for i, v := range args {
-		if !reflect.DeepEqual(expected[i], v) {
-			return false
-		}
-	}
-	return true
+	return false
 }
 
 func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
