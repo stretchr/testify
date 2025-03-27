@@ -1713,22 +1713,47 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 func Test_Mock_IsMethodCallable(t *testing.T) {
 	mock := new(TestExampleImplementation)
-	t.Run("Method is expected and has repeatability when called should return true", func(t *testing.T) {
-		mock.Mock.ExpectedCalls = append(mock.Mock.ExpectedCalls,
-			&Call{Method: "TestMethod", Repeatability: 1, Arguments: Arguments{"TestArg"}})
-		assert.True(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
-	})
 
-	t.Run("Method is not expected when called should return false", func(t *testing.T) {
-		mock.Mock.ExpectedCalls = []*Call{}
-		assert.False(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
-	})
+	tests := []struct {
+		name          string
+		expectedCalls []*Call
+		method        string
+		args          Arguments
+		expected      bool
+	}{
+		{
+			name: "Method is expected and has repeatability when called should return true",
+			expectedCalls: []*Call{
+				{Method: "TestMethod", Repeatability: 1, Arguments: Arguments{"TestArg"}},
+			},
+			method:   "TestMethod",
+			args:     Arguments{"TestArg"},
+			expected: true,
+		},
+		{
+			name:          "Method is not expected when called should return false",
+			expectedCalls: []*Call{},
+			method:        "TestMethod",
+			args:          Arguments{"TestArg"},
+			expected:      false,
+		},
+		{
+			name: "Method is expected and has no repeatability when called should return false",
+			expectedCalls: []*Call{
+				{Method: "TestMethod", Repeatability: -1, Arguments: Arguments{"TestArg"}},
+			},
+			method:   "TestMethod",
+			args:     Arguments{"TestArg"},
+			expected: false,
+		},
+	}
 
-	t.Run("Method is expected and has no repeatability when called should return false", func(t *testing.T) {
-		mock.Mock.ExpectedCalls = append(mock.Mock.ExpectedCalls,
-			&Call{Method: "TestMethod", Repeatability: -1, Arguments: Arguments{"TestArg"}})
-		assert.False(t, mock.IsMethodCallable(t, "TestMethod", "TestArg"))
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock.Mock.ExpectedCalls = tt.expectedCalls
+			assert.Equal(t, tt.expected, mock.IsMethodCallable(t, tt.method, tt.args...))
+		})
+	}
 }
 
 func Test_Mock_AssertOptional(t *testing.T) {
