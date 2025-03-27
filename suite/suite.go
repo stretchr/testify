@@ -77,6 +77,22 @@ func (suite *Suite) Assert() *assert.Assertions {
 	return suite.Assertions
 }
 
+// Logf wraps call to testing.T Logf function. This is erquivalent to calling
+// s.T().Logf(format, args).
+func (suite *Suite) Logf(format string, args ...interface{}) {
+	suite.mu.RLock()
+	defer suite.mu.RUnlock()
+	suite.t.Logf(format, args...)
+}
+
+// Log wraps call to testing.T Log function. This is erquivalent to calling
+// s.T().Log(message).
+func (suite *Suite) Log(args ...interface{}) {
+	suite.mu.RLock()
+	defer suite.mu.RUnlock()
+	suite.t.Log(args...)
+}
+
 func recoverAndFailOnPanic(t *testing.T) {
 	t.Helper()
 	r := recover()
