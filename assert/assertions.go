@@ -927,6 +927,26 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		return true, false
 	}
 
+	if listKind == reflect.Slice {
+		elementValue := reflect.ValueOf(element)
+		if listType.Elem().Kind() == reflect.Uint8 {
+			if elementType, ok := element.(string); ok {
+				return true, bytes.Contains(listValue.Bytes(), []byte(elementType))
+			}
+			if elementType, ok := element.([]byte); ok {
+				return true, bytes.Contains(listValue.Bytes(), elementType)
+			}
+		}
+
+		if elementValue.Kind() == reflect.Slice {
+			for i := 0; i <= listValue.Len()-elementValue.Len(); i++ {
+				if ObjectsAreEqual(listValue.Slice(i, i+elementValue.Len()).Interface(), element) {
+					return true, true
+				}
+			}
+			return true, false
+		}
+	}
 	for i := 0; i < listValue.Len(); i++ {
 		if ObjectsAreEqual(listValue.Index(i).Interface(), element) {
 			return true, true

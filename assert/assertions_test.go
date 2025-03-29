@@ -1217,6 +1217,7 @@ func Test_containsElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
+	list3 := []byte(`Hello World Hello`)
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
 
 	ok, found := containsElement("Hello World", "World")
@@ -1248,6 +1249,14 @@ func Test_containsElement(t *testing.T) {
 	False(t, found)
 
 	ok, found = containsElement(list2, "1")
+	True(t, ok)
+	False(t, found)
+
+	ok, found = containsElement(list3, []byte(`World`))
+	True(t, ok)
+	True(t, found)
+
+	ok, found = containsElement(list3, []byte(`Foo`))
 	True(t, ok)
 	False(t, found)
 
