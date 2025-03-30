@@ -59,9 +59,20 @@ func OpStr(s string) OptionFn {
 		o.str = s
 	}
 }
+
+func OpBytes(b []byte) OptionFn {
+	return func(m *options) {
+		m.str = string(b)
+	}
+}
+
 func (i *TestExampleImplementation) TheExampleMethodFunctionalOptions(x string, opts ...OptionFn) error {
 	args := i.Called(x, opts)
 	return args.Error(0)
+}
+
+func TheExampleMethodFunctionalOptionsIndirect(i *TestExampleImplementation) {
+	i.TheExampleMethodFunctionalOptions("test", OpNum(1), OpStr("foo"))
 }
 
 //go:noinline
@@ -1720,6 +1731,51 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Empty(t *testing.T) {
 	// now assert expectations
 	assert.True(t, mockedService.AssertExpectations(tt))
 
+}
+
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Indirectly(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpNum(1), OpStr("foo"))).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	// make the call now
+	TheExampleMethodFunctionalOptionsIndirect(mockedService)
+
+	// now assert expectations
+	assert.True(t, mockedService.AssertExpectations(tt))
+
+}
+
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Func(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpStr("this"))).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodFunctionalOptions("test", OpBytes([]byte("this")))
+	})
+}
+
+func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Arg(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethodFunctionalOptions", "test", FunctionalOptions(OpStr("this"))).Return(nil).Once()
+
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertExpectations(tt))
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodFunctionalOptions("test", OpStr("that"))
+	})
 }
 
 func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
