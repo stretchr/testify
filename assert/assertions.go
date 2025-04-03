@@ -2101,7 +2101,7 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	if target != nil {
 		expectedText = target.Error()
 		if err == nil {
-			return Fail(t, fmt.Sprintf("Expected error %q but got nil.", expectedText), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("Expected error with %q in chain but got nil.", expectedText), msgAndArgs...)
 		}
 	}
 
