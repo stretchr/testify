@@ -3240,7 +3240,7 @@ func TestErrorIs(t *testing.T) {
 			err:          nil,
 			target:       io.EOF,
 			result:       false,
-			resultErrMsg: "Expected error \"EOF\" but got nil.\n",
+			resultErrMsg: "Expected error with \"EOF\" in chain but got nil.\n",
 		},
 		{
 			err:    io.EOF,
