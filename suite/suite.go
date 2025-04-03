@@ -166,15 +166,12 @@ func Run(t *testing.T, suite TestingSuite) {
 				parentT := suite.T()
 				suite.SetT(t)
 				defer recoverAndFailOnPanic(t)
-
-				var startedStats bool
-
 				defer func() {
 					t.Helper()
 
 					r := recover()
 
-					if startedStats {
+					if stats != nil {
 						passed := !t.Failed() && r == nil
 						stats.end(method.Name, passed)
 					}
@@ -194,14 +191,12 @@ func Run(t *testing.T, suite TestingSuite) {
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
 				}
-
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 				}
 
 				if stats != nil {
 					stats.start(method.Name)
-					startedStats = true
 				}
 
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})

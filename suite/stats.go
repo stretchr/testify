@@ -31,8 +31,14 @@ func (s SuiteInformation) start(testName string) {
 }
 
 func (s SuiteInformation) end(testName string, passed bool) {
-	s.TestStats[testName].End = time.Now()
-	s.TestStats[testName].Passed = passed
+	testStats, started := s.TestStats[testName]
+
+	if !started {
+		return
+	}
+
+	testStats.End = time.Now()
+	testStats.Passed = passed
 }
 
 func (s SuiteInformation) Passed() bool {
