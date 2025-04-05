@@ -47,9 +47,6 @@ type Call struct {
 	// this method is called.
 	ReturnArguments Arguments
 
-	//TODO add docstring and make public
-	returnFunc func(args Arguments) Arguments
-
 	// Holds the caller info for the On() call
 	callerInfo []string
 
@@ -105,27 +102,15 @@ func (c *Call) unlock() {
 	c.Parent.mutex.Unlock()
 }
 
-// If the only return arg is a function which takes and returns Arguments, invoke it instead of returning it as the value
-func (c *Call) getReturnArguments(args Arguments) Arguments {
-	if c.returnFunc != nil && len(c.ReturnArguments) > 0 {
-		panic("Cannot specify a function with Run() that returns arguments and also specify a Return() fixed set of return arguments")
-	}
-
-	if c.returnFunc != nil {
-		return c.returnFunc(args)
-	}
-
-	return c.ReturnArguments
-}
-
-// Return specifies fixed return arguments for the expectation, that will be returned for every invocation.
-// If you want to specify dynamic return values see the Run(fn) function.
+// Return specifies the return arguments for the expectation.
 //
 //	Mock.On("DoSomething").Return(errors.New("failed"))
 func (c *Call) Return(returnArguments ...interface{}) *Call {
 	c.lock()
 	defer c.unlock()
+
 	c.ReturnArguments = returnArguments
+
 	return c
 }
 
@@ -187,67 +172,18 @@ func (c *Call) After(d time.Duration) *Call {
 	return c
 }
 
-// Run sets a handler to be called before returning, possibly determining the return values of the call too.
+// Run sets a handler to be called before returning. It can be used when
+// mocking a method (such as an unmarshaler) that takes a pointer to a struct and
+// sets properties in such struct
 //
-// You can pass three types of functions to it:
-//
-// 1) func(Arguments) that will not affect what is returned (you can still call Return() to specify them)
-//
-//	Mock.On("Unmarshal", mock.AnythingOfType("*map[string]interface{}")).Return().Run(func(args Arguments) {
+//	Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}")).Return().Run(func(args Arguments) {
 //		arg := args.Get(0).(*map[string]interface{})
 //		arg["foo"] = "bar"
 //	})
-//
-// 2) A function which matches the signature of your mocked function itself, and determines the return values dynamically.
-//
-//	Mock.On("HelloWorld", mock.Anything).Run(func(name string) string {
-//		return "Hello " + name
-//	})
-//
-// 3) func(Arguments) Arguments which behaves like (2) except you need to do the typecasting yourself
-//
-//	Mock.On("HelloWorld", mock.Anything).Run(func(args mock.Arguments) mock.Arguments {
-//		return mock.Arguments([]any{"Hello " + args[0].(string)})
-//	})
-func (c *Call) Run(fn interface{}) *Call {
+func (c *Call) Run(fn func(args Arguments)) *Call {
 	c.lock()
 	defer c.unlock()
-	switch f := fn.(type) {
-	case func(Arguments):
-		c.RunFn = f
-	case func(Arguments) Arguments:
-		c.returnFunc = f
-	default:
-		fnVal := reflect.ValueOf(fn)
-		if fnVal.Kind() != reflect.Func {
-			panic(fmt.Sprintf("Invalid argument passed to Run(), must be a function, is a %T", fn))
-		}
-		fnType := fnVal.Type()
-		c.returnFunc = func(args Arguments) (resp Arguments) {
-			var argVals []reflect.Value
-			for i, arg := range args {
-				if i == len(args)-1 && fnType.IsVariadic() {
-					// splat the variadic arg back out in the call, as expected by reflect.Value#Call
-					argVal := reflect.ValueOf(arg)
-					for j := 0; j < argVal.Len(); j++ {
-						argVals = append(argVals, argVal.Index(j))
-					}
-				} else {
-					argVals = append(argVals, reflect.ValueOf(arg))
-				}
-			}
-
-			// actually call the fn
-			ret := fnVal.Call(argVals)
-
-			for _, val := range ret {
-				resp = append(resp, val.Interface())
-			}
-
-			return resp
-		}
-	}
-
+	c.RunFn = fn
 	return c
 }
 
@@ -645,7 +581,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	}
 
 	m.mutex.Lock()
-	returnArgs := call.getReturnArguments(arguments)
+	returnArgs := call.ReturnArguments
 	m.mutex.Unlock()
 
 	return returnArgs
@@ -922,8 +858,8 @@ func (f *FunctionalOptionsArgument) String() string {
 //
 // For example:
 //
-//	Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
-func FunctionalOptions(value ...interface{}) *FunctionalOptionsArgument {
+//	args.Assert(t, FunctionalOptions(foo.Opt1("strValue"), foo.Opt2(613)))
+func FunctionalOptions(values ...interface{}) *FunctionalOptionsArgument {
 	return &FunctionalOptionsArgument{
 		values: values,
 	}
