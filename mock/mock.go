@@ -71,6 +71,10 @@ type Call struct {
 	// decoders.
 	RunFn func(Arguments)
 
+	// RunFnWithReturn adds return arguments to RunFn.  implemented separately
+	// to avoid breaking the API
+	RunFnWithReturn func(Arguments) Arguments
+
 	// PanicMsg holds msg to be used to mock panic on the function call
 	//  if the PanicMsg is set to a non nil string the function call will panic
 	// irrespective of other settings
@@ -184,6 +188,15 @@ func (c *Call) Run(fn func(args Arguments)) *Call {
 	c.lock()
 	defer c.unlock()
 	c.RunFn = fn
+	return c
+}
+
+// RunWithReturn similar to Run above, but allows to return arguments
+// from the function. Implemented separately to avoid breaking the API.
+func (c *Call) RunWithReturn(fn func(args Arguments) Arguments) *Call {
+	c.lock()
+	defer c.unlock()
+	c.RunFnWithReturn = fn
 	return c
 }
 
@@ -583,6 +596,14 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	m.mutex.Lock()
 	returnArgs := call.ReturnArguments
 	m.mutex.Unlock()
+
+	m.mutex.Lock()
+	runFnWithReturn := call.RunFnWithReturn
+	m.mutex.Unlock()
+
+	if runFnWithReturn != nil {
+		returnArgs = runFnWithReturn(arguments)
+	}
 
 	return returnArgs
 }
