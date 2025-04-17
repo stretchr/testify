@@ -3,6 +3,7 @@ package require
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -668,6 +669,7 @@ func ExampleErrorAssertionFunc() {
 }
 
 func TestErrorAssertionFunc(t *testing.T) {
+	var testError = errors.New("test error")
 	tests := []struct {
 		name      string
 		err       error
@@ -675,6 +677,9 @@ func TestErrorAssertionFunc(t *testing.T) {
 	}{
 		{"noError", nil, NoError},
 		{"error", errors.New("whoops"), Error},
+		{"errorIs", testError, ErrorIsFor(testError)},
+		{"wrappedErrorIs", fmt.Errorf("This wrapped error: %w", testError),
+			ErrorIsFor(testError)},
 	}
 
 	for _, tt := range tests {
