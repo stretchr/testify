@@ -461,7 +461,7 @@ func isType(expectedType, object interface{}) bool {
 
 // IsType asserts that the specified objects are of the same type.
 //
-//	assert.IsTypef(t, &MyStruct{}, &MyStruct{})
+//	assert.IsType(t, &MyStruct{}, &MyStruct{})
 func IsType(t TestingT, expectedType, object interface{}, msgAndArgs ...interface{}) bool {
 	if isType(expectedType, object) {
 		return true
