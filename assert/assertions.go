@@ -482,7 +482,7 @@ func IsNotType(t TestingT, theType, object interface{}, msgAndArgs ...interface{
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return Fail(t, fmt.Sprintf("Object expected to not be of type %T, but was %T", theType, object), msgAndArgs...)
+	return Fail(t, fmt.Sprintf("Object type expected to be different than %T", theType), msgAndArgs...)
 }
 
 // Equal asserts that two objects are equal.
