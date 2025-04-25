@@ -1097,7 +1097,35 @@ func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interf
 	t.FailNow()
 }
 
+// IsNotType asserts that the specified objects are not of the same type.
+//
+//	require.IsNotType(t, &NotMyStruct{}, &MyStruct{})
+func IsNotType(t TestingT, theType interface{}, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNotType(t, theType, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNotTypef asserts that the specified objects are not of the same type.
+//
+//	require.IsNotTypef(t, &NotMyStruct{}, &MyStruct{}, "error message %s", "formatted")
+func IsNotTypef(t TestingT, theType interface{}, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNotTypef(t, theType, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // IsType asserts that the specified objects are of the same type.
+//
+//	require.IsTypef(t, &MyStruct{}, &MyStruct{})
 func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1109,6 +1137,8 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 }
 
 // IsTypef asserts that the specified objects are of the same type.
+//
+//	require.IsTypeff(t, &MyStruct{}, &MyStruct{})
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

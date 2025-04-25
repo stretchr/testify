@@ -438,7 +438,19 @@ func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interf
 	return IsNonIncreasing(t, object, append([]interface{}{msg}, args...)...)
 }
 
+// IsNotTypef asserts that the specified objects are not of the same type.
+//
+//	assert.IsNotTypef(t, &NotMyStruct{}, &MyStruct{}, "error message %s", "formatted")
+func IsNotTypef(t TestingT, theType interface{}, object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsNotType(t, theType, object, append([]interface{}{msg}, args...)...)
+}
+
 // IsTypef asserts that the specified objects are of the same type.
+//
+//	assert.IsTypeff(t, &MyStruct{}, &MyStruct{})
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
