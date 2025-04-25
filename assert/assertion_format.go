@@ -450,7 +450,7 @@ func IsNotTypef(t TestingT, theType interface{}, object interface{}, msg string,
 
 // IsTypef asserts that the specified objects are of the same type.
 //
-//	assert.IsTypeff(t, &MyStruct{}, &MyStruct{})
+//	assert.IsTypef(t, &MyStruct{}, &MyStruct{}, "error message %s", "formatted")
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

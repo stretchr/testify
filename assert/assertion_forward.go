@@ -890,7 +890,7 @@ func (a *Assertions) IsNotTypef(theType interface{}, object interface{}, msg str
 
 // IsType asserts that the specified objects are of the same type.
 //
-//	assert.IsTypef(t, &MyStruct{}, &MyStruct{})
+//	a.IsType(&MyStruct{}, &MyStruct{})
 func (a *Assertions) IsType(expectedType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -900,7 +900,7 @@ func (a *Assertions) IsType(expectedType interface{}, object interface{}, msgAnd
 
 // IsTypef asserts that the specified objects are of the same type.
 //
-//	assert.IsTypeff(t, &MyStruct{}, &MyStruct{})
+//	a.IsTypef(&MyStruct{}, &MyStruct{}, "error message %s", "formatted")
 func (a *Assertions) IsTypef(expectedType interface{}, object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
