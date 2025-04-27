@@ -427,6 +427,39 @@ func TestLenWrapper(t *testing.T) {
 	}
 }
 
+func TestCapWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	assert.False(mockAssert.Cap(nil, 0), "nil does not have capacity")
+	assert.False(mockAssert.Cap(0, 0), "int does not have capacity")
+	assert.False(mockAssert.Cap(true, 0), "true does not have capacity")
+	assert.False(mockAssert.Cap(false, 0), "false does not have capacity")
+	assert.False(mockAssert.Cap("ABC", 0), "String does not have capacity")
+	assert.False(mockAssert.Cap('A', 0), "Rune does not have capacity")
+	assert.False(mockAssert.Cap(struct{}{}, 0), "Struct does not have capacity")
+	assert.False(mockAssert.Cap(map[int]int{}, 0), "Map does not have capacity")
+
+	cases := []struct {
+		v interface{}
+		c int
+	}{
+		{[]int{1, 2, 3}, 3},
+		{[...]int{1, 2, 3}, 3},
+
+		{[]int{}, 0},
+		{make(chan int), 0},
+		{make(chan int, 5), 5},
+
+		{[]int(nil), 0},
+		{(chan int)(nil), 0},
+	}
+
+	for _, c := range cases {
+		assert.True(mockAssert.Cap(c.v, c.c), "%#v have capacity for %d items", c.v, c.c)
+	}
+}
+
 func TestWithinDurationWrapper(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
