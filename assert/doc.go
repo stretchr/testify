@@ -2,8 +2,8 @@
 //
 // # Note
 // All functions in this package return a bool value indicating whether the test has passed.
-	//
- // # Example Usage
+//
+// # Example Usage
 //
 // The following is a complete example using assert in a standard test function:
 //
