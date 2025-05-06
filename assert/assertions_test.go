@@ -3058,6 +3058,49 @@ func TestEventuallyWithTFailNow(t *testing.T) {
 	Len(t, mockT.errors, 1)
 }
 
+// Check that a long running condition doesn't block Eventually.
+// See issue 805 (and its long tail of following issues)
+func TestEventuallyTimeout(t *testing.T) {
+	mockT := new(testing.T)
+
+	NotPanics(t, func() {
+		done, done2 := make(chan struct{}), make(chan struct{})
+
+		// A condition function that returns after the Eventually timeout
+		condition := func() bool {
+			// Wait until Eventually times out and terminates
+			<-done
+			close(done2)
+			return true
+		}
+
+		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
+
+		close(done)
+		<-done2
+	})
+}
+
+func TestEventuallySucceedQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func() bool { return true }
+
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	True(t, Eventually(mockT, condition, 100*time.Millisecond, time.Second))
+}
+
+func TestEventuallyWithTSucceedQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func(t *CollectT) {}
+
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Second))
+}
+
 func TestNeverFalse(t *testing.T) {
 	condition := func() bool {
 		return false
@@ -3085,27 +3128,13 @@ func TestNeverTrue(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
-// Check that a long running condition doesn't block Eventually.
-// See issue 805 (and its long tail of following issues)
-func TestEventuallyTimeout(t *testing.T) {
+func TestNeverFailQuickly(t *testing.T) {
 	mockT := new(testing.T)
 
-	NotPanics(t, func() {
-		done, done2 := make(chan struct{}), make(chan struct{})
-
-		// A condition function that returns after the Eventually timeout
-		condition := func() bool {
-			// Wait until Eventually times out and terminates
-			<-done
-			close(done2)
-			return true
-		}
-
-		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
-
-		close(done)
-		<-done2
-	})
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	condition := func() bool { return true }
+	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 func Test_validateEqualArgs(t *testing.T) {
