@@ -2,7 +2,7 @@
 //
 // # Note
 //
-// All functions in this package return a bool value indicating whether the test has passed.
+// All functions in this package return a bool value indicating whether the assertion has passed.
 //
 // # Example Usage
 //
