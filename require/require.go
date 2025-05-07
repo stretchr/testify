@@ -1745,12 +1745,15 @@ func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, 
 	t.FailNow()
 }
 
-// NotSubset asserts that the specified list(array, slice...) or map does NOT
-// contain all elements given in the specified subset list(array, slice...) or
-// map.
+// NotSubset asserts that the list (array, slice, or map) does NOT contain all
+// elements given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	require.NotSubset(t, [1, 3, 4], [1, 2])
 //	require.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
+//	require.NotSubset(t, [1, 3, 4], {1: "one", 2: "two"})
+//	require.NotSubset(t, {"x": 1, "y": 2}, ["z"])
 func NotSubset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1761,12 +1764,15 @@ func NotSubset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...i
 	t.FailNow()
 }
 
-// NotSubsetf asserts that the specified list(array, slice...) or map does NOT
-// contain all elements given in the specified subset list(array, slice...) or
-// map.
+// NotSubsetf asserts that the list (array, slice, or map) does NOT contain all
+// elements given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	require.NotSubsetf(t, [1, 3, 4], [1, 2], "error message %s", "formatted")
 //	require.NotSubsetf(t, {"x": 1, "y": 2}, {"z": 3}, "error message %s", "formatted")
+//	require.NotSubsetf(t, [1, 3, 4], {1: "one", 2: "two"}, "error message %s", "formatted")
+//	require.NotSubsetf(t, {"x": 1, "y": 2}, ["z"], "error message %s", "formatted")
 func NotSubsetf(t TestingT, list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1971,11 +1977,15 @@ func Samef(t TestingT, expected interface{}, actual interface{}, msg string, arg
 	t.FailNow()
 }
 
-// Subset asserts that the specified list(array, slice...) or map contains all
-// elements given in the specified subset list(array, slice...) or map.
+// Subset asserts that the list (array, slice, or map) contains all elements
+// given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	require.Subset(t, [1, 2, 3], [1, 2])
 //	require.Subset(t, {"x": 1, "y": 2}, {"x": 1})
+//	require.Subset(t, [1, 2, 3], {1: "one", 2: "two"})
+//	require.Subset(t, {"x": 1, "y": 2}, ["x"])
 func Subset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1986,11 +1996,15 @@ func Subset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...inte
 	t.FailNow()
 }
 
-// Subsetf asserts that the specified list(array, slice...) or map contains all
-// elements given in the specified subset list(array, slice...) or map.
+// Subsetf asserts that the list (array, slice, or map) contains all elements
+// given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	require.Subsetf(t, [1, 2, 3], [1, 2], "error message %s", "formatted")
 //	require.Subsetf(t, {"x": 1, "y": 2}, {"x": 1}, "error message %s", "formatted")
+//	require.Subsetf(t, [1, 2, 3], {1: "one", 2: "two"}, "error message %s", "formatted")
+//	require.Subsetf(t, {"x": 1, "y": 2}, ["x"], "error message %s", "formatted")
 func Subsetf(t TestingT, list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
