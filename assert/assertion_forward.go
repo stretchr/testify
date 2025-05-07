@@ -224,10 +224,8 @@ func (a *Assertions) Equalf(expected interface{}, actual interface{}, msg string
 
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if a.Error(err) {
-//		   assert.Equal(t, expectedError, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	a.Error(err)
 func (a *Assertions) Error(err error, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -297,10 +295,8 @@ func (a *Assertions) ErrorIsf(err error, target error, msg string, args ...inter
 
 // Errorf asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if a.Errorf(err, "error message %s", "formatted") {
-//		   assert.Equal(t, expectedErrorf, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	a.Errorf(err, "error message %s", "formatted")
 func (a *Assertions) Errorf(err error, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
