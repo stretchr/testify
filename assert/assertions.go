@@ -2202,11 +2202,17 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 		return true
 	}
 
+	expectedText := reflect.ValueOf(target).Elem().Type().String()
+	if err == nil {
+		return Fail(t, fmt.Sprintf("An error is expected but got nil.\n"+
+			"expected: %s", expectedText), msgAndArgs...)
+	}
+
 	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
 		"expected: %s\n"+
-		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
+		"in chain: %s", expectedText, chain,
 	), msgAndArgs...)
 }
 

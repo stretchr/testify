@@ -3402,9 +3402,8 @@ func TestErrorAs(t *testing.T) {
 			err:    nil,
 			result: false,
 			resultErrMsg: "" +
-				"Should be in error chain:\n" +
-				"expected: *assert.customError\n" +
-				"in chain: \n",
+				"An error is expected but got nil.\n" +
+				`expected: *assert.customError` + "\n",
 		},
 		{
 			err:    fmt.Errorf("abc: %w", errors.New("def")),
