@@ -2135,6 +2135,9 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	var expectedText string
 	if target != nil {
 		expectedText = target.Error()
+		if err == nil {
+			return Fail(t, fmt.Sprintf("Expected error with %q in chain but got nil.", expectedText), msgAndArgs...)
+		}
 	}
 
 	chain := buildErrorChainString(err, false)
