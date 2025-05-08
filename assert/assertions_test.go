@@ -3241,10 +3241,71 @@ func (ctt *captureTestingT) checkResultAndErrMsg(t *testing.T, expectedRes, res 
 			if expectedErrMsg == content.content {
 				return
 			}
-			t.Errorf("Logged Error: %v", content.content)
+			t.Errorf("Actual Logged Error: \n%v", escapeSpecialCharacters(content.content))
 		}
 	}
-	t.Errorf("Should log Error: %v", expectedErrMsg)
+	t.Errorf("Expected Logged Error: \n%v", escapeSpecialCharacters(expectedErrMsg))
+}
+
+// escapeSpecialCharacters is an helper to spot differences in multiline strings
+func escapeSpecialCharacters(input string) string {
+	replacer := strings.NewReplacer(
+		"\t", "\\t",
+		"\r", "\\r",
+		"\n", "\\n\n", // newline are kept for readability
+	)
+	return replacer.Replace(input)
+}
+
+func Test_escapeSpecialCharacters(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "no special characters",
+			input:    "hello world",
+			expected: "hello world",
+		},
+
+		{
+			name:     "line ending with new lines",
+			input:    "hello world\n",
+			expected: `hello world\n` + "\n",
+		},
+
+		{
+			name: "multi-lines",
+			input: "" +
+				"hello world\n" +
+				"foo\n" +
+				"bar\n",
+			expected: `hello world\n` + "\n" +
+				`foo\n` + "\n" +
+				`bar\n` + "\n",
+		},
+		{
+			name: "complex cases",
+			input: "" +
+				"hello world\n" +
+				"\tfoo\n" +
+				"\rbar",
+			expected: "" +
+				`hello world\n` + "\n" +
+				`\tfoo\n` + "\n" +
+				`\rbar`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := escapeSpecialCharacters(test.input)
+			if actual != test.expected {
+				t.Errorf("expected %q, got %q", test.expected, actual)
+			}
+		})
+	}
 }
 
 func TestErrorIs(t *testing.T) {
