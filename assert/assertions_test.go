@@ -852,10 +852,12 @@ func TestTrue(t *testing.T) {
 	if !True(mockT, true) {
 		t.Error("True should return true")
 	}
-	if True(mockT, false) {
-		t.Error("True should return false")
-	}
 
+	testedValue := false
+	mockCT := new(captureTestingT)
+	res := True(mockCT, testedValue)
+	expectedResult := false // we expect a failure
+	mockCT.checkResultAndErrMsg(t, expectedResult, res, "Should be true\n")
 }
 
 func TestFalse(t *testing.T) {
@@ -865,10 +867,12 @@ func TestFalse(t *testing.T) {
 	if !False(mockT, false) {
 		t.Error("False should return true")
 	}
-	if False(mockT, true) {
-		t.Error("False should return false")
-	}
 
+	testedValue := true
+	mockCT := new(captureTestingT)
+	res := False(mockCT, testedValue)
+	expectedResult := false // we expect a failure
+	mockCT.checkResultAndErrMsg(t, expectedResult, res, "Should be false\n")
 }
 
 func TestExactly(t *testing.T) {
@@ -2585,7 +2589,7 @@ Diff:
 @@ -1,2 +1,2 @@
 -(time.Time) 2020-09-24 00:00:00 +0000 UTC
 +(time.Time) 2020-09-25 00:00:00 +0000 UTC
- 
+
 `
 
 	actual = diff(
