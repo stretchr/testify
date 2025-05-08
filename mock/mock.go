@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
+	"github.com/stretchr/testify/internal/difflib"
 
 	"github.com/stretchr/testify/assert"
 )
