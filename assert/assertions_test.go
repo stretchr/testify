@@ -814,61 +814,237 @@ func TestFormatUnequalValues(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
+	tests := []struct {
+		name         string
+		value        interface{}
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			name:         "nil",
+			value:        nil,
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:         "nil struct",
+			value:        (*struct{})(nil),
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:         "nil pointer",
+			value:        (*int)(nil),
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:         "nil channel",
+			value:        (*chan int)(nil),
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:         "nil function",
+			value:        (*func(int) int)(nil),
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:         "nil slice",
+			value:        (*[]int)(nil),
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:         "nil map",
+			value:        (*map[int]int)(nil),
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:         "nil error",
+			value:        (*error)(nil),
+			result:       false,
+			resultErrMsg: "Expected value not to be nil.\n",
+		},
+		{
+			name:   "pointer to object",
+			value:  new(AssertionTesterConformingObject),
+			result: true,
+		},
 
-	mockT := new(testing.T)
+		{
+			name:   "non-nil value",
+			value:  "42",
+			result: true,
+		},
 
-	if !NotNil(mockT, new(AssertionTesterConformingObject)) {
-		t.Error("NotNil should return true: object is not nil")
-	}
-	if NotNil(mockT, nil) {
-		t.Error("NotNil should return false: object is nil")
-	}
-	if NotNil(mockT, (*struct{})(nil)) {
-		t.Error("NotNil should return false: object is (*struct{})(nil)")
+		{
+			name:   "non-nil slice",
+			value:  []int{1, 2, 3},
+			result: true,
+		},
+
+		{
+			name:   "non-nil pointer",
+			value:  ptr(1),
+			result: true,
+		},
 	}
 
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := NotNil(mockT, tt.value)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+	}
 }
 
 func TestNil(t *testing.T) {
+	p1 := ptr(1)
 
-	mockT := new(testing.T)
+	tests := []struct {
+		name         string
+		value        interface{}
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			name:   "nil",
+			value:  nil,
+			result: true,
+		},
+		{
+			name:   "nil struct",
+			value:  (*struct{})(nil),
+			result: true,
+		},
+		{
+			name:   "nil pointer",
+			value:  (*int)(nil),
+			result: true,
+		},
+		{
+			name:   "nil channel",
+			value:  (*chan int)(nil),
+			result: true,
+		},
+		{
+			name:   "nil function",
+			value:  (*func(int) int)(nil),
+			result: true,
+		},
+		{
+			name:   "nil slice",
+			value:  (*[]int)(nil),
+			result: true,
+		},
+		{
+			name:   "nil map",
+			value:  (*map[int]int)(nil),
+			result: true,
+		},
+		{
+			name:   "nil error",
+			value:  (*error)(nil),
+			result: true,
+		},
+		{
+			name:         "pointer to object",
+			value:        new(AssertionTesterConformingObject),
+			result:       false,
+			resultErrMsg: "Expected nil, but got: &assert.AssertionTesterConformingObject{}\n",
+		},
 
-	if !Nil(mockT, nil) {
-		t.Error("Nil should return true: object is nil")
-	}
-	if !Nil(mockT, (*struct{})(nil)) {
-		t.Error("Nil should return true: object is (*struct{})(nil)")
-	}
-	if Nil(mockT, new(AssertionTesterConformingObject)) {
-		t.Error("Nil should return false: object is not nil")
+		{
+			name:         "non-nil value",
+			value:        "42",
+			result:       false,
+			resultErrMsg: `Expected nil, but got: "42"` + "\n",
+		},
+
+		{
+			name:         "non-nil slice",
+			value:        []int{1, 2, 3},
+			result:       false,
+			resultErrMsg: "Expected nil, but got: []int{1, 2, 3}\n",
+		},
+
+		{
+			name:         "non-nil pointer",
+			value:        p1,
+			result:       false,
+			resultErrMsg: fmt.Sprintf("Expected nil, but got: %#v\n", p1),
+		},
 	}
 
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := Nil(mockT, tt.value)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+	}
 }
 
 func TestTrue(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	if !True(mockT, true) {
-		t.Error("True should return true")
+	tests := []struct {
+		value        bool
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			value:  true,
+			result: true,
+		},
+		{
+			value:        false,
+			result:       false,
+			resultErrMsg: "Should be true\n",
+		},
 	}
-	if True(mockT, false) {
-		t.Error("True should return false")
-	}
 
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("True(%v)", tt.value), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := True(mockT, tt.value)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+
+	}
 }
 
 func TestFalse(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	if !False(mockT, false) {
-		t.Error("False should return true")
+	tests := []struct {
+		value        bool
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			value:  false,
+			result: true,
+		},
+		{
+			value:        true,
+			result:       false,
+			resultErrMsg: "Should be false\n",
+		},
 	}
-	if False(mockT, true) {
-		t.Error("False should return false")
-	}
 
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("False(%v)", tt.value), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := False(mockT, tt.value)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+
+	}
 }
 
 func TestExactly(t *testing.T) {
@@ -1560,34 +1736,59 @@ func TestNotPanics(t *testing.T) {
 	}) {
 		t.Error("NotPanics should return false")
 	}
-
 }
 
 func TestNoError(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	// start with a nil error
-	var err error
-
-	True(t, NoError(mockT, err), "NoError should return True for nil arg")
-
-	// now set an error
-	err = errors.New("some error")
-
-	False(t, NoError(mockT, err), "NoError with error should return False")
-
-	// returning an empty error interface
-	err = func() error {
-		var err *customError
-		return err
-	}()
-
-	if err == nil { // err is not nil here!
-		t.Errorf("Error should be nil due to empty interface: %s", err)
+	tests := []struct {
+		err          error
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			err:    nil,
+			result: true,
+		},
+		{
+			err: func() error {
+				// this is a custom error, but it's an empty error interface
+				var errEmptyCustom *customError
+				return errEmptyCustom
+			}(),
+			result: false, // it's a non-nil error
+			resultErrMsg: "" +
+				"Received unexpected error:\n" +
+				"fail\n",
+		},
+		{
+			err:    errors.New("some error"),
+			result: false,
+			resultErrMsg: "" +
+				"Received unexpected error:\n" +
+				"some error\n",
+		},
+		{
+			err:    io.EOF,
+			result: false,
+			resultErrMsg: "" +
+				"Received unexpected error:\n" +
+				"EOF\n",
+		},
+		{
+			err:    fmt.Errorf("wrapped: %w", io.EOF),
+			result: false,
+			resultErrMsg: "" +
+				"Received unexpected error:\n" +
+				"wrapped: EOF\n",
+		},
 	}
-
-	False(t, NoError(mockT, err), "NoError should fail with empty error interface")
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("NoError(%#v)", tt.err), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := NoError(mockT, tt.err)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+	}
 }
 
 type customError struct{}
@@ -1595,67 +1796,176 @@ type customError struct{}
 func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
-
-	mockT := new(testing.T)
-
-	// start with a nil error
-	var err error
-
-	False(t, Error(mockT, err), "Error should return False for nil arg")
-
-	// now set an error
-	err = errors.New("some error")
-
-	True(t, Error(mockT, err), "Error with error should return True")
-
-	// go vet check
-	True(t, Errorf(mockT, err, "example with %s", "formatted message"), "Errorf with error should return True")
-
-	// returning an empty error interface
-	err = func() error {
-		var err *customError
-		return err
-	}()
-
-	if err == nil { // err is not nil here!
-		t.Errorf("Error should be nil due to empty interface: %s", err)
+	tests := []struct {
+		err          error
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			err:    nil,
+			result: false,
+			resultErrMsg: "" +
+				"An error is expected but got nil.\n",
+		},
+		{
+			err: func() error {
+				// this is a custom error, but it's an empty error interface
+				var errEmptyCustom *customError
+				return errEmptyCustom
+			}(),
+			result: true, // it's a non-nil error
+		},
+		{
+			err:    errors.New("some error"),
+			result: true,
+		},
+		{
+			err:    io.EOF,
+			result: true,
+		},
+		{
+			err:    fmt.Errorf("wrapped: %w", io.EOF),
+			result: true,
+		},
 	}
-
-	True(t, Error(mockT, err), "Error should pass with empty error interface")
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("Error(%#v)", tt.err), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := Error(mockT, tt.err)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+	}
 }
 
 func TestEqualError(t *testing.T) {
-	mockT := new(testing.T)
-
-	// start with a nil error
-	var err error
-	False(t, EqualError(mockT, err, ""),
-		"EqualError should return false for nil arg")
-
-	// now set an error
-	err = errors.New("some error")
-	False(t, EqualError(mockT, err, "Not some error"),
-		"EqualError should return false for different error string")
-	True(t, EqualError(mockT, err, "some error"),
-		"EqualError should return true")
+	tests := []struct {
+		err          error
+		equalError   string
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			err:        nil,
+			equalError: "",
+			result:     false,
+			resultErrMsg: "" +
+				"An error is expected but got nil.\n",
+		},
+		{
+			err:        nil,
+			equalError: "some error",
+			result:     false,
+			resultErrMsg: "" +
+				"An error is expected but got nil.\n",
+		},
+		{
+			err:        errors.New("some error"),
+			equalError: "some error",
+			result:     true,
+		},
+		{
+			err:        errors.New("some error"),
+			equalError: "another error",
+			result:     false,
+			resultErrMsg: "" +
+				"Error message not equal:\n" +
+				`expected: "another error"` + "\n" +
+				`actual  : "some error"` + "\n",
+		},
+		{
+			err: func() error {
+				// this is a custom error, but it's an empty error interface
+				var errEmptyCustom *customError
+				return errEmptyCustom
+			}(),
+			equalError: "fail", // this is the error message of the custom error
+			result:     true,
+		},
+		{
+			err: func() error {
+				// this is a custom error, but it's an empty error interface
+				var errEmptyCustom *customError
+				return errEmptyCustom
+			}(),
+			equalError: "",
+			result:     false,
+			resultErrMsg: "" +
+				"Error message not equal:\n" +
+				`expected: ""` + "\n" +
+				`actual  : "fail"` + "\n",
+		},
+		{
+			err: func() error {
+				// this is a custom error, but it's an empty error interface
+				var errEmptyCustom *customError
+				return errEmptyCustom
+			}(),
+			equalError: "whatever",
+			result:     false,
+			resultErrMsg: "" +
+				"Error message not equal:\n" +
+				`expected: "whatever"` + "\n" +
+				`actual  : "fail"` + "\n",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("EqualError(%#v,%q)", tt.err, tt.equalError), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := EqualError(mockT, tt.err, tt.equalError)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+	}
 }
 
 func TestErrorContains(t *testing.T) {
-	mockT := new(testing.T)
+	tests := []struct {
+		err          error
+		contains     string
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			err:      nil,
+			contains: "",
+			result:   false,
+			resultErrMsg: "" +
+				"An error is expected but got nil.\n",
+		},
+		{
+			err:      nil,
+			contains: "some error",
+			result:   false,
+			resultErrMsg: "" +
+				"An error is expected but got nil.\n",
+		},
+		{
+			err:      errors.New("some error"),
+			contains: "some error",
+			result:   true,
+		},
+		{
+			err:      errors.New("some error: another error"),
+			contains: "another error",
+			result:   true,
+		},
+		{
+			err:          errors.New("some error"),
+			contains:     "another error",
+			result:       false,
+			resultErrMsg: `Error "some error" does not contain "another error"` + "\n",
+		},
+	}
 
-	// start with a nil error
-	var err error
-	False(t, ErrorContains(mockT, err, ""),
-		"ErrorContains should return false for nil arg")
-
-	// now set an error
-	err = errors.New("some error: another error")
-	False(t, ErrorContains(mockT, err, "bad error"),
-		"ErrorContains should return false for different error string")
-	True(t, ErrorContains(mockT, err, "some error"),
-		"ErrorContains should return true")
-	True(t, ErrorContains(mockT, err, "another error"),
-		"ErrorContains should return true")
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("ErrorContains(%#v,%q)", tt.err, tt.contains), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := ErrorContains(mockT, tt.err, tt.contains)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
+	}
 }
 
 func Test_isEmpty(t *testing.T) {
@@ -1686,8 +1996,6 @@ func Test_isEmpty(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
-
-	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 	var tiP *time.Time
@@ -1703,54 +2011,268 @@ func TestEmpty(t *testing.T) {
 		x int
 	}
 
-	True(t, Empty(mockT, ""), "Empty string is empty")
-	True(t, Empty(mockT, nil), "Nil is empty")
-	True(t, Empty(mockT, []string{}), "Empty string array is empty")
-	True(t, Empty(mockT, 0), "Zero int value is empty")
-	True(t, Empty(mockT, false), "False value is empty")
-	True(t, Empty(mockT, make(chan struct{})), "Channel without values is empty")
-	True(t, Empty(mockT, s), "Nil string pointer is empty")
-	True(t, Empty(mockT, f), "Nil os.File pointer is empty")
-	True(t, Empty(mockT, tiP), "Nil time.Time pointer is empty")
-	True(t, Empty(mockT, tiNP), "time.Time is empty")
-	True(t, Empty(mockT, TStruct{}), "struct with zero values is empty")
-	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
-	True(t, Empty(mockT, sP), "ptr to nil value is empty")
-	True(t, Empty(mockT, [1]int{}), "array is state")
+	tests := []struct {
+		name           string
+		value          interface{}
+		result         bool
+		expectedErrMsg string
+	}{
+		{
+			name:   "Empty string is empty",
+			value:  "",
+			result: true,
+		},
+		{
+			name:   "nil is empty",
+			value:  nil,
+			result: true,
+		},
+		{
+			name:   "Empty string array is empty",
+			value:  []string{},
+			result: true,
+		},
+		{
+			name:   "Zero int value is empty",
+			value:  0,
+			result: true,
+		},
+		{
+			name:   "False value is empty",
+			value:  false,
+			result: true,
+		},
+		{
+			name:   "Channel without values is empty",
+			value:  make(chan struct{}),
+			result: true,
+		},
+		{
+			name:   "nil string pointer is empty",
+			value:  s,
+			result: true,
+		},
+		{
+			name:   "nil os.File pointer is empty",
+			value:  f,
+			result: true,
+		},
+		{
+			name:   "struct with zero values is empty",
+			value:  TStruct{},
+			result: true,
+		},
+		{
+			name:   "map with zero values is empty",
+			value:  map[string]string{},
+			result: true,
+		},
+		{
+			name:   "ptr to empty string is empty",
+			value:  &s,
+			result: true,
+		},
+		{
+			name:   "ptr to empty os.File is empty",
+			value:  &f,
+			result: true,
+		},
+		{
+			name:   "string with zero values is empty",
+			value:  TString(""),
+			result: true,
+		},
+		{
+			name:   "ptr to nil value is empty",
+			value:  sP,
+			result: true,
+		},
+		{
+			name:   "nil time.Time pointer is empty",
+			value:  tiP,
+			result: true,
+		},
+		{
+			name:   "time.Time is empty",
+			value:  tiNP,
+			result: true,
+		},
+		{
+			name:   "array is state",
+			value:  [1]int{},
+			result: true,
+		},
+		{
+			name:           "Non empty string is not empty",
+			value:          "something",
+			result:         false,
+			expectedErrMsg: "Should be empty, but was something\n",
+		},
+		{
+			name:           "Non nil object is not empty",
+			value:          errors.New("something"),
+			result:         false,
+			expectedErrMsg: "Should be empty, but was something\n",
+		},
+		{
+			name:           "Non empty string array is not empty",
+			value:          []string{"something"},
+			result:         false,
+			expectedErrMsg: "Should be empty, but was [something]\n",
+		},
+		{
+			name:           "Non-zero int value is not empty",
+			value:          1,
+			result:         false,
+			expectedErrMsg: "Should be empty, but was 1\n",
+		},
+		{
+			name:           "True value is not empty",
+			value:          true,
+			result:         false,
+			expectedErrMsg: "Should be empty, but was true\n",
+		},
+		{
+			name:           "struct with initialized values is empty",
+			value:          TStruct{x: 1},
+			result:         false,
+			expectedErrMsg: "Should be empty, but was {1}\n",
+		},
+		{
+			name:           "non-empty aliased string is empty",
+			value:          TString("abc"),
+			result:         false,
+			expectedErrMsg: "Should be empty, but was abc\n",
+		},
+		{
+			name:           "array is not state",
+			value:          [1]int{42},
+			result:         false,
+			expectedErrMsg: "Should be empty, but was [42]\n",
+		},
+		{
+			name:           "channel with values is not empty",
+			value:          chWithValue,
+			result:         false,
+			expectedErrMsg: fmt.Sprintf("Should be empty, but was %v\n", chWithValue),
+		},
+		{
+			name:           "ptr to non-nil value is not empty",
+			value:          xP,
+			result:         false,
+			expectedErrMsg: fmt.Sprintf("Should be empty, but was %v\n", xP),
+		},
+	}
 
-	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
-	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
-	False(t, Empty(mockT, []string{"something"}), "Non empty string array is not empty")
-	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
-	False(t, Empty(mockT, true), "True value is not empty")
-	False(t, Empty(mockT, chWithValue), "Channel with values is not empty")
-	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
-	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
-	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
-	False(t, Empty(mockT, [1]int{42}), "array is not state")
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := Empty(mockT, tt.value)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.expectedErrMsg)
+		})
+	}
 }
 
 func TestNotEmpty(t *testing.T) {
-
-	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
-	False(t, NotEmpty(mockT, ""), "Empty string is empty")
-	False(t, NotEmpty(mockT, nil), "Nil is empty")
-	False(t, NotEmpty(mockT, []string{}), "Empty string array is empty")
-	False(t, NotEmpty(mockT, 0), "Zero int value is empty")
-	False(t, NotEmpty(mockT, false), "False value is empty")
-	False(t, NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
-	False(t, NotEmpty(mockT, [1]int{}), "array is state")
+	chEmpty := make(chan struct{})
 
-	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
-	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
-	True(t, NotEmpty(mockT, []string{"something"}), "Non empty string array is not empty")
-	True(t, NotEmpty(mockT, 1), "Non-zero int value is not empty")
-	True(t, NotEmpty(mockT, true), "True value is not empty")
-	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
-	True(t, NotEmpty(mockT, [1]int{42}), "array is not state")
+	tests := []struct {
+		name           string
+		value          interface{}
+		result         bool
+		expectedErrMsg string
+	}{
+		{
+			name:   "Non empty string",
+			value:  "something",
+			result: true,
+		},
+		{
+			name:   "Non nil object",
+			value:  errors.New("something"),
+			result: true,
+		},
+		{
+			name:   "Non empty string array",
+			value:  []string{"something"},
+			result: true,
+		},
+		{
+			name:   "Non-zero int value",
+			value:  1,
+			result: true,
+		},
+		{
+			name:   "True value",
+			value:  true,
+			result: true,
+		},
+		{
+			name:   "channel with values",
+			value:  chWithValue,
+			result: true,
+		},
+		{
+			name:   "array is not state",
+			value:  [1]int{42},
+			result: true,
+		},
+		{
+			name:           "Empty string",
+			value:          "",
+			result:         false,
+			expectedErrMsg: `Should NOT be empty, but was ` + "\n", // TODO FIX THIS
+		},
+		{
+			name:           "nil",
+			value:          nil,
+			result:         false,
+			expectedErrMsg: "Should NOT be empty, but was <nil>\n",
+		},
+		{
+			name:           "Empty string array",
+			value:          []string{},
+			result:         false,
+			expectedErrMsg: "Should NOT be empty, but was []\n",
+		},
+		{
+			name:           "Zero int value",
+			value:          0,
+			result:         false,
+			expectedErrMsg: "Should NOT be empty, but was 0\n",
+		},
+		{
+			name:           "False value",
+			value:          false,
+			result:         false,
+			expectedErrMsg: "Should NOT be empty, but was false\n",
+		},
+		{
+			name:           "array is state",
+			value:          [1]int{},
+			result:         false,
+			expectedErrMsg: "Should NOT be empty, but was [0]\n",
+		},
+		{
+			name:           "empty channel",
+			value:          chEmpty,
+			result:         false,
+			expectedErrMsg: fmt.Sprintf("Should NOT be empty, but was %v\n", chEmpty),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := NotEmpty(mockT, tt.value)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.expectedErrMsg)
+		})
+	}
 }
 
 func Test_getLen(t *testing.T) {
@@ -2150,26 +2672,44 @@ func TestCallerInfoWithAutogeneratedFunctions(t *testing.T) {
 }
 
 func TestZero(t *testing.T) {
-	mockT := new(testing.T)
-
-	for _, test := range zeros {
-		True(t, Zero(mockT, test, "%#v is not the %T zero value", test, test))
+	for _, zero := range zeros {
+		zero := zero
+		t.Run(fmt.Sprintf("Zero(%#v)", zero), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := Zero(mockT, zero)
+			mockT.checkResultAndErrMsg(t, true, res, "")
+		})
 	}
 
-	for _, test := range nonZeros {
-		False(t, Zero(mockT, test, "%#v is not the %T zero value", test, test))
+	for _, nonZero := range nonZeros {
+		nonZero := nonZero
+		t.Run(fmt.Sprintf("Zero(%#v)", nonZero), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := Zero(mockT, nonZero)
+			expectedMsg := fmt.Sprintf("Should be zero, but was %v\n", nonZero)
+			mockT.checkResultAndErrMsg(t, false, res, expectedMsg)
+		})
 	}
 }
 
 func TestNotZero(t *testing.T) {
-	mockT := new(testing.T)
-
-	for _, test := range zeros {
-		False(t, NotZero(mockT, test, "%#v is not the %T zero value", test, test))
+	for _, zero := range zeros {
+		zero := zero
+		t.Run(fmt.Sprintf("NotZero(%#v)", zero), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := NotZero(mockT, zero)
+			expectedMsg := fmt.Sprintf("Should not be zero, but was %v\n", zero)
+			mockT.checkResultAndErrMsg(t, false, res, expectedMsg)
+		})
 	}
 
-	for _, test := range nonZeros {
-		True(t, NotZero(mockT, test, "%#v is not the %T zero value", test, test))
+	for _, nonZero := range nonZeros {
+		nonZero := nonZero
+		t.Run(fmt.Sprintf("NotZero(%#v)", nonZero), func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := NotZero(mockT, nonZero)
+			mockT.checkResultAndErrMsg(t, true, res, "")
+		})
 	}
 }
 
