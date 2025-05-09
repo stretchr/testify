@@ -610,40 +610,176 @@ func ptr(i int) *int {
 }
 
 func TestSame(t *testing.T) {
+	p1 := ptr(1)
+	p1bis := ptr(1)
+	p2 := ptr(2)
 
-	mockT := new(testing.T)
+	tests := []struct {
+		name         string
+		value        interface{}
+		expected     interface{}
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			name:     "Same pointers",
+			value:    p1,
+			expected: p1,
+			result:   true,
+		},
+		{
+			name:     "Different pointers to same variable",
+			value:    p1,
+			expected: p1bis,
+			result:   false,
+			resultErrMsg: "Not same: \n" +
+				fmt.Sprintf("expected: %v %#v\n", p1, p1) +
+				fmt.Sprintf("actual  : %v %#v\n", p1bis, p1bis),
+		},
 
-	if Same(mockT, ptr(1), ptr(1)) {
-		t.Error("Same should return false")
+		{
+			name:     "Pointers to different variables",
+			value:    p1,
+			expected: p2,
+			result:   false,
+			resultErrMsg: "Not same: \n" +
+				fmt.Sprintf("expected: %v %#v\n", p1, p1) +
+				fmt.Sprintf("actual  : %v %#v\n", p2, p2),
+		},
+
+		{
+			name:         "Pointer compared to nil",
+			value:        p1,
+			expected:     nil,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "nil compared to pointer",
+			value:        nil,
+			expected:     p1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "pointer to value",
+			value:        p1,
+			expected:     *p1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "pointer to target",
+			value:        p1,
+			expected:     *p1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "Not pointers",
+			value:        1,
+			expected:     1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
 	}
-	if Same(mockT, 1, 1) {
-		t.Error("Same should return false")
-	}
-	p := ptr(2)
-	if Same(mockT, p, *p) {
-		t.Error("Same should return false")
-	}
-	if !Same(mockT, p, p) {
-		t.Error("Same should return true")
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := Same(mockT, tt.value, tt.expected)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
 	}
 }
 
 func TestNotSame(t *testing.T) {
+	p1 := ptr(1)
+	p1bis := ptr(1)
+	p2 := ptr(2)
 
-	mockT := new(testing.T)
+	tests := []struct {
+		name         string
+		value        interface{}
+		expected     interface{}
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			name:     "Same pointers",
+			value:    p1,
+			expected: p1,
+			result:   false,
+			resultErrMsg: "Expected and actual point to the same object: " +
+				fmt.Sprintf("%v %#v\n", p1, p1),
+		},
+		{
+			name:     "Different pointers to same variable",
+			value:    p1,
+			expected: p1bis,
+			result:   true,
+		},
 
-	if !NotSame(mockT, ptr(1), ptr(1)) {
-		t.Error("NotSame should return true; different pointers")
+		{
+			name:     "Pointers to different variables",
+			value:    p1,
+			expected: p2,
+			result:   true,
+		},
+
+		{
+			name:         "Pointer compared to nil",
+			value:        p1,
+			expected:     nil,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "nil compared to pointer",
+			value:        nil,
+			expected:     p1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "pointer to value",
+			value:        p1,
+			expected:     *p1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "pointer to target",
+			value:        p1,
+			expected:     *p1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
+
+		{
+			name:         "Not pointers",
+			value:        1,
+			expected:     1,
+			result:       false,
+			resultErrMsg: "Both arguments must be pointers\n",
+		},
 	}
-	if NotSame(mockT, 1, 1) {
-		t.Error("NotSame should return false; constant inputs")
-	}
-	p := ptr(2)
-	if NotSame(mockT, p, *p) {
-		t.Error("NotSame should return false; mixed-type inputs")
-	}
-	if NotSame(mockT, p, p) {
-		t.Error("NotSame should return false")
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := NotSame(mockT, tt.value, tt.expected)
+			mockT.checkResultAndErrMsg(t, tt.result, res, tt.resultErrMsg)
+		})
 	}
 }
 
