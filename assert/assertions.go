@@ -548,8 +548,8 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 
 	same, ok := samePointers(expected, actual)
 	if !ok {
-		//fails when the arguments are not pointers
-		return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
+		// fails when the arguments are not pointers
+		return Fail(t, "Both arguments must be pointers", msgAndArgs...)
 	}
 
 	if same {

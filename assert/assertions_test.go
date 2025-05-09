@@ -635,12 +635,12 @@ func TestNotSame(t *testing.T) {
 	if !NotSame(mockT, ptr(1), ptr(1)) {
 		t.Error("NotSame should return true; different pointers")
 	}
-	if !NotSame(mockT, 1, 1) {
-		t.Error("NotSame should return true; constant inputs")
+	if NotSame(mockT, 1, 1) {
+		t.Error("NotSame should return false; constant inputs")
 	}
 	p := ptr(2)
-	if !NotSame(mockT, p, *p) {
-		t.Error("NotSame should return true; mixed-type inputs")
+	if NotSame(mockT, p, *p) {
+		t.Error("NotSame should return false; mixed-type inputs")
 	}
 	if NotSame(mockT, p, p) {
 		t.Error("NotSame should return false")
