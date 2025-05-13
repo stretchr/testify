@@ -18,8 +18,16 @@ type SetupAllSuite interface {
 
 // SetupTestSuite has a SetupTest method, which will run before each
 // test in the suite.
+//
+// See SetupParallelTestSuite instead if you want to write parallel tests.
 type SetupTestSuite interface {
 	SetupTest()
+}
+
+// SetupParallelTestSuite has a SetupTest method, which will run before each
+// parallel test in the suite.
+type SetupParallelTestSuite interface {
+	SetupTest(*testing.T)
 }
 
 // TearDownAllSuite has a TearDownSuite method, which will run after
@@ -30,20 +38,44 @@ type TearDownAllSuite interface {
 
 // TearDownTestSuite has a TearDownTest method, which will run after
 // each test in the suite.
+//
+// See TearDownParallelTestSuite instead if you want to write parallel tests.
 type TearDownTestSuite interface {
 	TearDownTest()
 }
 
+// TearDownParallelTestSuite has a TearDownTest method, which will run after
+// each parallel test in the suite.
+type TearDownParallelTestSuite interface {
+	TearDownTest(*testing.T)
+}
+
 // BeforeTest has a function to be executed right before the test
 // starts and receives the suite and test names as input
+//
+// See BeforeParallelTest instead if you want to write parallel tests.
 type BeforeTest interface {
 	BeforeTest(suiteName, testName string)
 }
 
+// BeforeParallelTest has a function to be executed right before the parallel
+// test starts and receives the suite and test names as input
+type BeforeParallelTest interface {
+	BeforeTest(t *testing.T, suiteName, testName string)
+}
+
 // AfterTest has a function to be executed right after the test
 // finishes and receives the suite and test names as input
+//
+// See AfterParallelTest instead if you want to write parallel tests.
 type AfterTest interface {
 	AfterTest(suiteName, testName string)
+}
+
+// AfterParallelTest has a function to be executed right after the parallel
+// test finishes and receives the suite and test names as input
+type AfterParallelTest interface {
+	AfterTest(t *testing.T, suiteName, testName string)
 }
 
 // WithStats implements HandleStats, a function that will be executed
