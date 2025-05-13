@@ -1006,7 +1006,12 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 						}
 					}
 				}()
-				matches = matcher.Matches(actual)
+				if actualMatcher, isMatcher := actual.(argumentMatcher); isMatcher {
+
+					matches = matcher == actualMatcher
+				} else {
+					matches = matcher.Matches(actual)
+				}
 			}()
 			if matches {
 				outputRenderers = append(outputRenderers, func() string {
