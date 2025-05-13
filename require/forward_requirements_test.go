@@ -19,6 +19,18 @@ func TestImplementsWrapper(t *testing.T) {
 	}
 }
 
+func TestIsNotTypeWrapper(t *testing.T) {
+	require := New(t)
+	require.IsNotType(new(AssertionTesterNonConformingObject), new(AssertionTesterConformingObject))
+
+	mockT := new(MockT)
+	mockRequire := New(mockT)
+	mockRequire.IsNotType(new(AssertionTesterConformingObject), new(AssertionTesterConformingObject))
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestIsTypeWrapper(t *testing.T) {
 	require := New(t)
 	require.IsType(new(AssertionTesterConformingObject), new(AssertionTesterConformingObject))

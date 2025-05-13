@@ -564,6 +564,18 @@ func TestIsType(t *testing.T) {
 
 }
 
+func TestNotIsType(t *testing.T) {
+
+	mockT := new(testing.T)
+
+	if !IsNotType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterNonConformingObject)) {
+		t.Error("NotIsType should return true: AssertionTesterConformingObject is not the same type as AssertionTesterNonConformingObject")
+	}
+	if IsNotType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
+		t.Error("NotIsType should return false: AssertionTesterConformingObject is the same type as AssertionTesterConformingObject")
+	}
+}
+
 func TestEqual(t *testing.T) {
 	type myType string
 
