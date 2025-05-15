@@ -2881,7 +2881,13 @@ func ExampleErrorAssertionFunc() {
 	t := &testing.T{} // provided by test
 
 	dumbParseNum := func(input string, v interface{}) error {
-		return json.Unmarshal([]byte(input), v)
+
+		err := json.Unmarshal([]byte(input), v)
+		if err != nil {
+			return testingError{"could not Unmarshal " + input}
+		}
+
+		return nil
 	}
 
 	tests := []struct {
@@ -2891,8 +2897,8 @@ func ExampleErrorAssertionFunc() {
 	}{
 		{"1.2 is number", "1.2", NoError},
 		{"1.2.3 not number", "1.2.3", Error},
-		{"true is not number", "true", Error},
 		{"3 is number", "3", NoError},
+		{"3% is not a valid number", "3%", ErrorIsFor(testingError{"could not Unmarshal 3%"})},
 	}
 
 	for _, tt := range tests {
@@ -2903,7 +2909,16 @@ func ExampleErrorAssertionFunc() {
 	}
 }
 
+type testingError struct {
+	extraInfo string
+}
+
+func (t testingError) Error() string {
+	return t.extraInfo
+}
+
 func TestErrorAssertionFunc(t *testing.T) {
+	var testError = errors.New("test error")
 	tests := []struct {
 		name      string
 		err       error
@@ -2911,6 +2926,9 @@ func TestErrorAssertionFunc(t *testing.T) {
 	}{
 		{"noError", nil, NoError},
 		{"error", errors.New("whoops"), Error},
+		{"errorIs", testError, ErrorIsFor(testError)},
+		{"wrappedErrorIs", fmt.Errorf("This wrapped error: %w", testError),
+			ErrorIsFor(testError)},
 	}
 
 	for _, tt := range tests {
