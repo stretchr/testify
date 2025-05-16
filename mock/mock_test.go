@@ -29,7 +29,7 @@ type TestExampleImplementation struct {
 
 func (i *TestExampleImplementation) TheExampleMethod(a, b, c int) (int, error) {
 	args := i.Called(a, b, c)
-	return args.Int(0), errors.New("Whoops")
+	return args.Int(0), args.Error(1)
 }
 
 type options struct {
@@ -834,7 +834,7 @@ func Test_Mock_Return_Run_Out_Of_Order(t *testing.T) {
 	assert.NotNil(t, call.Run)
 }
 
-func Test_Mock_RunWithReturn(t *testing.T) {
+func Test_Mock_ReturnFn(t *testing.T) {
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -842,39 +842,43 @@ func Test_Mock_RunWithReturn(t *testing.T) {
 	t.Run("can dynamically set the return values", func(t *testing.T) {
 		counter := 0
 		mockedService.On("TheExampleMethod", Anything, Anything, Anything).
-			RunWithReturn(func(args Arguments) Arguments {
+			ReturnFn(func(args Arguments) Arguments {
 				counter++
 				a, b, c := args[0].(int), args[1].(int), args[2].(int)
 				assert.IsType(t, 1, a)
 				assert.IsType(t, 1, b)
 				assert.IsType(t, 1, c)
-				return Arguments{counter}
+				return Arguments{counter, nil}
 			}).
 			Twice()
 
-		answer, _ := mockedService.TheExampleMethod(2, 4, 5)
+		answer, err := mockedService.TheExampleMethod(2, 4, 5)
+		assert.NoError(t, err)
 		assert.Equal(t, 1, answer)
 
-		answer, _ = mockedService.TheExampleMethod(44, 4, 5)
+		answer, err = mockedService.TheExampleMethod(44, 4, 5)
+		assert.NoError(t, err)
 		assert.Equal(t, 2, answer)
 	})
 
 	t.Run("handles func(Args) Args style", func(t *testing.T) {
 		mockedService.On("TheExampleMethod", Anything, Anything, Anything).
-			RunWithReturn(func(args Arguments) Arguments {
+			ReturnFn(func(args Arguments) Arguments {
 				return []interface{}{args[0].(int) + 40, fmt.Errorf("hmm")}
 			}).
 			Twice()
 
-		answer, _ := mockedService.TheExampleMethod(2, 4, 5)
+		answer, err := mockedService.TheExampleMethod(2, 4, 5)
+		assert.Error(t, err, "hmm")
 		assert.Equal(t, 42, answer)
 
-		answer, _ = mockedService.TheExampleMethod(44, 4, 5)
+		answer, err = mockedService.TheExampleMethod(44, 4, 5)
+		assert.Error(t, err, "hmm")
 		assert.Equal(t, 84, answer)
 	})
 
 	t.Run("handles pointer input args", func(t *testing.T) {
-		mockedService.On("TheExampleMethod3", Anything).RunWithReturn(func(arguments Arguments) Arguments {
+		mockedService.On("TheExampleMethod3", Anything).ReturnFn(func(arguments Arguments) Arguments {
 			et := arguments[0].(*ExampleType)
 			if et == nil {
 				return Arguments{errors.New("error")}
@@ -892,7 +896,7 @@ func Test_Mock_RunWithReturn(t *testing.T) {
 	t.Run("handles variadic input args", func(t *testing.T) {
 		mockedService.
 			On("TheExampleMethodMixedVariadic", Anything, Anything).
-			RunWithReturn(func(args Arguments) Arguments {
+			ReturnFn(func(args Arguments) Arguments {
 				a, b := args[0].(int), args[1].([]int)
 				var sum = a
 				for _, v := range b {
@@ -911,16 +915,63 @@ func Test_Mock_RunWithReturn(t *testing.T) {
 				a := args[0].(int)
 				assert.IsType(t, 1, a)
 			}).
-			RunWithReturn(func(args Arguments) Arguments {
+			ReturnFn(func(args Arguments) Arguments {
 				a := args[0].(int)
 				return Arguments{a + 40, fmt.Errorf("hmm")}
 			}).
 			Return(80, nil)
 
 		answer, err := mockedService.TheExampleMethod(2, 4, 5)
-		assert.Equal(t, 42, answer)
-		assert.Error(t, err)
+		assert.Equal(t, 80, answer)
+		assert.NoError(t, err)
 	})
+}
+
+func Test_Mock_Return_RespectOrder(t *testing.T) {
+	tests := []struct {
+		name     string
+		arrange  func() *TestExampleImplementation
+		expected int
+	}{
+		{
+			name: "should take the last return value",
+			arrange: func() *TestExampleImplementation {
+				m := new(TestExampleImplementation)
+				m.On("TheExampleMethod", Anything, Anything, Anything).Return(1, nil).Return(2, nil)
+				return m
+			},
+			expected: 2,
+		},
+		{
+			name: "should take the last return value with returnFn",
+			arrange: func() *TestExampleImplementation {
+				m := new(TestExampleImplementation)
+				m.On("TheExampleMethod", Anything, Anything, Anything).Return(1, nil).ReturnFn(func(args Arguments) Arguments { return Arguments{2, nil} })
+				return m
+			},
+			expected: 2,
+		},
+		{
+			name: "should take the last return value with returnFn and return",
+			arrange: func() *TestExampleImplementation {
+				m := new(TestExampleImplementation)
+				m.On("TheExampleMethod", Anything, Anything, Anything).ReturnFn(func(args Arguments) Arguments {
+					return Arguments{1, nil}
+				}).Return(2, nil)
+				return m
+			},
+			expected: 2,
+		},
+	}
+	// run the tests
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			m := test.arrange()
+			actualResult, actualError := m.TheExampleMethod(0, 0, 0)
+			assert.NoError(t, actualError)
+			assert.Equal(t, test.expected, actualResult)
+		})
+	}
 }
 
 func Test_Mock_Return_Once(t *testing.T) {
@@ -1430,7 +1481,7 @@ func Test_Mock_Called_For_SetTime_Expectation(t *testing.T) {
 
 	var mockedService = new(TestExampleImplementation)
 
-	mockedService.On("TheExampleMethod", 1, 2, 3).Return(5, "6", true).Times(4)
+	mockedService.On("TheExampleMethod", 1, 2, 3).Return(5, nil).Times(4)
 
 	mockedService.TheExampleMethod(1, 2, 3)
 	mockedService.TheExampleMethod(1, 2, 3)
