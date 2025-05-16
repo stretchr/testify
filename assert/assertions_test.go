@@ -1142,6 +1142,7 @@ func TestSubsetNotSubset(t *testing.T) {
 			"a": "x",
 			"b": "y",
 		}, true, `map["a":"x" "b":"y"] is a subset of map["a":"x" "b":"y" "c":"z"]`},
+		{[]string{"a", "b", "c"}, map[string]int{"a": 1, "c": 3}, true, `map["a":'\x01' "c":'\x03'] is a subset of ["a" "b" "c"]`},
 
 		// cases that are expected not to contain
 		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, `[]string{"hello", "world"} does not contain "testify"`},
@@ -1163,6 +1164,7 @@ func TestSubsetNotSubset(t *testing.T) {
 			"b": "y",
 			"c": "z",
 		}, false, `map[string]string{"a":"x", "b":"y"} does not contain map[string]string{"a":"x", "b":"y", "c":"z"}`},
+		{[]string{"a", "b", "c"}, map[string]int{"c": 3, "d": 4}, false, `[]string{"a", "b", "c"} does not contain "d"`},
 	}
 
 	for _, c := range cases {
@@ -3058,6 +3060,49 @@ func TestEventuallyWithTFailNow(t *testing.T) {
 	Len(t, mockT.errors, 1)
 }
 
+// Check that a long running condition doesn't block Eventually.
+// See issue 805 (and its long tail of following issues)
+func TestEventuallyTimeout(t *testing.T) {
+	mockT := new(testing.T)
+
+	NotPanics(t, func() {
+		done, done2 := make(chan struct{}), make(chan struct{})
+
+		// A condition function that returns after the Eventually timeout
+		condition := func() bool {
+			// Wait until Eventually times out and terminates
+			<-done
+			close(done2)
+			return true
+		}
+
+		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
+
+		close(done)
+		<-done2
+	})
+}
+
+func TestEventuallySucceedQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func() bool { return true }
+
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	True(t, Eventually(mockT, condition, 100*time.Millisecond, time.Second))
+}
+
+func TestEventuallyWithTSucceedQuickly(t *testing.T) {
+	mockT := new(testing.T)
+
+	condition := func(t *CollectT) {}
+
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Second))
+}
+
 func TestNeverFalse(t *testing.T) {
 	condition := func() bool {
 		return false
@@ -3085,27 +3130,13 @@ func TestNeverTrue(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
-// Check that a long running condition doesn't block Eventually.
-// See issue 805 (and its long tail of following issues)
-func TestEventuallyTimeout(t *testing.T) {
+func TestNeverFailQuickly(t *testing.T) {
 	mockT := new(testing.T)
 
-	NotPanics(t, func() {
-		done, done2 := make(chan struct{}), make(chan struct{})
-
-		// A condition function that returns after the Eventually timeout
-		condition := func() bool {
-			// Wait until Eventually times out and terminates
-			<-done
-			close(done2)
-			return true
-		}
-
-		False(t, Eventually(mockT, condition, time.Millisecond, time.Microsecond))
-
-		close(done)
-		<-done2
-	})
+	// By making the tick longer than the total duration, we expect that this test would fail if
+	// we didn't check the condition before the first tick elapses.
+	condition := func() bool { return true }
+	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 func Test_validateEqualArgs(t *testing.T) {
@@ -3243,13 +3274,10 @@ func TestErrorIs(t *testing.T) {
 				"in chain: \"EOF\"\n",
 		},
 		{
-			err:    nil,
-			target: io.EOF,
-			result: false,
-			resultErrMsg: "" +
-				"Target error should be in err chain:\n" +
-				"expected: \"EOF\"\n" +
-				"in chain: \n",
+			err:          nil,
+			target:       io.EOF,
+			result:       false,
+			resultErrMsg: "Expected error with \"EOF\" in chain but got nil.\n",
 		},
 		{
 			err:    io.EOF,
@@ -3374,9 +3402,8 @@ func TestErrorAs(t *testing.T) {
 			err:    nil,
 			result: false,
 			resultErrMsg: "" +
-				"Should be in error chain:\n" +
-				"expected: *assert.customError\n" +
-				"in chain: \n",
+				"An error is expected but got nil.\n" +
+				`expected: *assert.customError` + "\n",
 		},
 		{
 			err:    fmt.Errorf("abc: %w", errors.New("def")),

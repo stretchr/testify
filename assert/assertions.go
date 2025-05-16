@@ -982,11 +982,15 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 
 }
 
-// Subset asserts that the specified list(array, slice...) or map contains all
-// elements given in the specified subset list(array, slice...) or map.
+// Subset asserts that the list (array, slice, or map) contains all elements
+// given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	assert.Subset(t, [1, 2, 3], [1, 2])
 //	assert.Subset(t, {"x": 1, "y": 2}, {"x": 1})
+//	assert.Subset(t, [1, 2, 3], {1: "one", 2: "two"})
+//	assert.Subset(t, {"x": 1, "y": 2}, ["x"])
 func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1001,7 +1005,7 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	}
 
 	subsetKind := reflect.TypeOf(subset).Kind()
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
@@ -1025,6 +1029,13 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	}
 
 	subsetList := reflect.ValueOf(subset)
+	if subsetKind == reflect.Map {
+		keys := make([]interface{}, subsetList.Len())
+		for idx, key := range subsetList.MapKeys() {
+			keys[idx] = key.Interface()
+		}
+		subsetList = reflect.ValueOf(keys)
+	}
 	for i := 0; i < subsetList.Len(); i++ {
 		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
@@ -1039,12 +1050,15 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	return true
 }
 
-// NotSubset asserts that the specified list(array, slice...) or map does NOT
-// contain all elements given in the specified subset list(array, slice...) or
-// map.
+// NotSubset asserts that the list (array, slice, or map) does NOT contain all
+// elements given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	assert.NotSubset(t, [1, 3, 4], [1, 2])
 //	assert.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
+//	assert.NotSubset(t, [1, 3, 4], {1: "one", 2: "two"})
+//	assert.NotSubset(t, {"x": 1, "y": 2}, ["z"])
 func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1059,7 +1073,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	}
 
 	subsetKind := reflect.TypeOf(subset).Kind()
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
@@ -1083,6 +1097,13 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	}
 
 	subsetList := reflect.ValueOf(subset)
+	if subsetKind == reflect.Map {
+		keys := make([]interface{}, subsetList.Len())
+		for idx, key := range subsetList.MapKeys() {
+			keys[idx] = key.Interface()
+		}
+		subsetList = reflect.ValueOf(keys)
+	}
 	for i := 0; i < subsetList.Len(); i++ {
 		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
@@ -1609,10 +1630,8 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if assert.Error(t, err) {
-//		   assert.Equal(t, expectedError, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	assert.Error(t, err)
 func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	if err == nil {
 		if h, ok := t.(tHelper); ok {
@@ -1951,6 +1970,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	}
 
 	ch := make(chan bool, 1)
+	checkCond := func() { ch <- condition() }
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -1958,18 +1978,23 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
-		case <-tick:
-			tick = nil
-			go func() { ch <- condition() }()
+		case <-tickC:
+			tickC = nil
+			go checkCond()
 		case v := <-ch:
 			if v {
 				return true
 			}
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
@@ -2039,35 +2064,42 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
+	checkCond := func() {
+		collect := new(CollectT)
+		defer func() {
+			ch <- collect
+		}()
+		condition(collect)
+	}
+
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
 
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			for _, err := range lastFinishedTickErrs {
 				t.Errorf("%v", err)
 			}
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
-		case <-tick:
-			tick = nil
-			go func() {
-				collect := new(CollectT)
-				defer func() {
-					ch <- collect
-				}()
-				condition(collect)
-			}()
+		case <-tickC:
+			tickC = nil
+			go checkCond()
 		case collect := <-ch:
 			if !collect.failed() {
 				return true
 			}
 			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
 			lastFinishedTickErrs = collect.errors
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
@@ -2082,6 +2114,7 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 	}
 
 	ch := make(chan bool, 1)
+	checkCond := func() { ch <- condition() }
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2089,18 +2122,23 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			return true
-		case <-tick:
-			tick = nil
-			go func() { ch <- condition() }()
+		case <-tickC:
+			tickC = nil
+			go checkCond()
 		case v := <-ch:
 			if v {
 				return Fail(t, "Condition satisfied", msgAndArgs...)
 			}
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
@@ -2118,6 +2156,9 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	var expectedText string
 	if target != nil {
 		expectedText = target.Error()
+		if err == nil {
+			return Fail(t, fmt.Sprintf("Expected error with %q in chain but got nil.", expectedText), msgAndArgs...)
+		}
 	}
 
 	chain := buildErrorChainString(err, false)
@@ -2161,11 +2202,17 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 		return true
 	}
 
+	expectedText := reflect.ValueOf(target).Elem().Type().String()
+	if err == nil {
+		return Fail(t, fmt.Sprintf("An error is expected but got nil.\n"+
+			"expected: %s", expectedText), msgAndArgs...)
+	}
+
 	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
 		"expected: %s\n"+
-		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
+		"in chain: %s", expectedText, chain,
 	), msgAndArgs...)
 }
 
