@@ -193,9 +193,9 @@ func (c *Call) Run(fn func(args Arguments)) *Call {
 
 // ReturnFn sets a handler to be called before returning.
 //
-//  Mock.On("MyMethod", arg1, arg2).ReturnFn(func(args Arguments) Arguments {
-//      return Arguments{args.Get(0) + args.Get(1)}
-//  })
+//	Mock.On("MyMethod", arg1, arg2).ReturnFn(func(args Arguments) Arguments {
+//	    return Arguments{args.Get(0) + args.Get(1)}
+//	})
 func (c *Call) ReturnFn(fn func(args Arguments) Arguments) *Call {
 	c.lock()
 	defer c.unlock()
