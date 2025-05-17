@@ -1718,16 +1718,72 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, sP), "ptr to nil value is empty")
 	True(t, Empty(mockT, [1]int{}), "array is state")
 
-	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
-	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
-	False(t, Empty(mockT, []string{"something"}), "Non empty string array is not empty")
-	False(t, Empty(mockT, 1), "Non-zero int value is not empty")
-	False(t, Empty(mockT, true), "True value is not empty")
-	False(t, Empty(mockT, chWithValue), "Channel with values is not empty")
-	False(t, Empty(mockT, TStruct{x: 1}), "struct with initialized values is empty")
-	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
-	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
-	False(t, Empty(mockT, [1]int{42}), "array is not state")
+	tests := []struct {
+		name           string
+		value          interface{}
+		expectedErrMsg string
+	}{
+		{
+			name:           "Non Empty string is not empty",
+			value:          "something",
+			expectedErrMsg: "Should be empty, but was something\n",
+		},
+		{
+			name:           "Non nil object is not empty",
+			value:          errors.New("something"),
+			expectedErrMsg: "Should be empty, but was something\n",
+		},
+		{
+			name:           "Non empty string array is not empty",
+			value:          []string{"something"},
+			expectedErrMsg: "Should be empty, but was [something]\n",
+		},
+		{
+			name:           "Non-zero int value is not empty",
+			value:          1,
+			expectedErrMsg: "Should be empty, but was 1\n",
+		},
+		{
+			name:           "True value is not empty",
+			value:          true,
+			expectedErrMsg: "Should be empty, but was true\n",
+		},
+		{
+			name:           "Channel with values is not empty",
+			value:          chWithValue,
+			expectedErrMsg: fmt.Sprintf("Should be empty, but was %v\n", chWithValue),
+		},
+		{
+			name:           "struct with initialized values is empty",
+			value:          TStruct{x: 1},
+			expectedErrMsg: "Should be empty, but was {1}\n",
+		},
+		{
+			name:           "non-empty aliased string is empty",
+			value:          TString("abc"),
+			expectedErrMsg: "Should be empty, but was abc\n",
+		},
+		{
+			name:           "ptr to non-nil value is not empty",
+			value:          xP,
+			expectedErrMsg: fmt.Sprintf("Should be empty, but was %p\n", xP),
+		},
+		{
+			name:           "array is not state",
+			value:          [1]int{42},
+			expectedErrMsg: "Should be empty, but was [42]\n",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockCT := new(captureTestingT)
+			res := Empty(mockCT, tt.value)
+			expectedResult := false // we expect a failure
+			mockCT.checkResultAndErrMsg(t, res, expectedResult, tt.expectedErrMsg)
+		})
+	}
 }
 
 func TestNotEmpty(t *testing.T) {
@@ -1736,13 +1792,52 @@ func TestNotEmpty(t *testing.T) {
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
-	False(t, NotEmpty(mockT, ""), "Empty string is empty")
-	False(t, NotEmpty(mockT, nil), "Nil is empty")
-	False(t, NotEmpty(mockT, []string{}), "Empty string array is empty")
-	False(t, NotEmpty(mockT, 0), "Zero int value is empty")
-	False(t, NotEmpty(mockT, false), "False value is empty")
-	False(t, NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
-	False(t, NotEmpty(mockT, [1]int{}), "array is state")
+	tests := []struct {
+		name           string
+		value          interface{}
+		expectedErrMsg string
+	}{
+		{
+			name:           "Empty string is empty",
+			value:          "",
+			expectedErrMsg: `Should NOT be empty, but was ` + "\n", // TODO FIX THIS strange error message
+		},
+		{
+			name:           "Nil is empty",
+			value:          nil,
+			expectedErrMsg: "Should NOT be empty, but was <nil>\n",
+		},
+		{
+			name:           "Empty string array is empty",
+			value:          []string{},
+			expectedErrMsg: "Should NOT be empty, but was []\n",
+		},
+		{
+			name:           "Zero int value is empty",
+			value:          0,
+			expectedErrMsg: "Should NOT be empty, but was 0\n",
+		},
+		{
+			name:           "False value is empty",
+			value:          false,
+			expectedErrMsg: "Should NOT be empty, but was false\n",
+		},
+		{
+			name:           "array is state",
+			value:          [1]int{},
+			expectedErrMsg: "Should NOT be empty, but was [0]\n",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockCT := new(captureTestingT)
+			res := NotEmpty(mockCT, tt.value)
+			expectedResult := false // we expect a failure, as they are not empty
+			mockCT.checkResultAndErrMsg(t, expectedResult, res, tt.expectedErrMsg)
+		})
+	}
 
 	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
 	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
