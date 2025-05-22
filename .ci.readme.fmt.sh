@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verify that the code snippets in README.md are formatted.
 # The tool https://github.com/hougesen/mdsf is used.
