@@ -671,7 +671,7 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 			actualCalls++
 		}
 	}
-	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) of method (%s) does not match the actual number of calls (%d).", expectedCalls, methodName, actualCalls))
+	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) of method %s does not match the actual number of calls (%d).", expectedCalls, methodName, actualCalls))
 }
 
 // AssertCalled asserts that the method was called.
