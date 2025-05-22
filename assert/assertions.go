@@ -454,17 +454,34 @@ func NotImplements(t TestingT, interfaceObject interface{}, object interface{}, 
 	return true
 }
 
+func isType(expectedType, object interface{}) bool {
+	return ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType))
+}
+
 // IsType asserts that the specified objects are of the same type.
-func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+//
+//	assert.IsType(t, &MyStruct{}, &MyStruct{})
+func IsType(t TestingT, expectedType, object interface{}, msgAndArgs ...interface{}) bool {
+	if isType(expectedType, object) {
+		return true
+	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	return Fail(t, fmt.Sprintf("Object expected to be of type %T, but was %T", expectedType, object), msgAndArgs...)
+}
 
-	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
-		return Fail(t, fmt.Sprintf("Object expected to be of type %T, but was %T", expectedType, object), msgAndArgs...)
+// IsNotType asserts that the specified objects are not of the same type.
+//
+//	assert.IsNotType(t, &NotMyStruct{}, &MyStruct{})
+func IsNotType(t TestingT, theType, object interface{}, msgAndArgs ...interface{}) bool {
+	if !isType(theType, object) {
+		return true
 	}
-
-	return true
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Fail(t, fmt.Sprintf("Object type expected to be different than %T", theType), msgAndArgs...)
 }
 
 // Equal asserts that two objects are equal.
