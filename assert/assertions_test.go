@@ -1704,6 +1704,142 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
 	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
 	False(t, Empty(mockT, [1]int{42}), "array is not state")
+
+	// error messages validation
+	tests := []struct {
+		name           string
+		value          interface{}
+		expectedResult bool
+		expectedErrMsg string
+	}{
+		{
+			name:           "Non Empty string is not empty",
+			value:          "something",
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was something\n",
+		},
+		{
+			name:           "Non nil object is not empty",
+			value:          errors.New("something"),
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was something\n",
+		},
+		{
+			name:           "Non empty string array is not empty",
+			value:          []string{"something"},
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was [something]\n",
+		},
+		{
+			name:           "Non-zero int value is not empty",
+			value:          1,
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was 1\n",
+		},
+		{
+			name:           "True value is not empty",
+			value:          true,
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was true\n",
+		},
+		{
+			name:           "Channel with values is not empty",
+			value:          chWithValue,
+			expectedResult: false,
+			expectedErrMsg: fmt.Sprintf("Should be empty, but was %v\n", chWithValue),
+		},
+		{
+			name:           "struct with initialized values is empty",
+			value:          TStruct{x: 1},
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was {1}\n",
+		},
+		{
+			name:           "non-empty aliased string is empty",
+			value:          TString("abc"),
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was abc\n",
+		},
+		{
+			name:           "ptr to non-nil value is not empty",
+			value:          xP,
+			expectedResult: false,
+			expectedErrMsg: fmt.Sprintf("Should be empty, but was %p\n", xP),
+		},
+		{
+			name:           "array is not state",
+			value:          [1]int{42},
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was [42]\n",
+		},
+
+		// Here are some edge cases
+		{
+			name:           "string with only spaces is not empty",
+			value:          "   ",
+			expectedResult: false,
+			expectedErrMsg: "Should be empty, but was    \n", // TODO FIX THIS strange error message
+		},
+		{
+			name:           "string with a line feed is not empty",
+			value:          "\n",
+			expectedResult: false,
+			// TODO This is the exact same error message as for an empty string
+			expectedErrMsg: "Should be empty, but was \n", // TODO FIX THIS strange error message
+		},
+		{
+			name:           "string with only tabulation and lines feed is not empty",
+			value:          "\n\t\n",
+			expectedResult: false,
+			// TODO The line feeds and tab are not helping to spot what is expected
+			expectedErrMsg: "" + // this syntax is used to show how errors are reported.
+				"Should be empty, but was \n" +
+				"\t\n",
+		},
+		{
+			name:           "string with trailing lines feed is not empty",
+			value:          "foo\n\n",
+			expectedResult: false,
+			// TODO it's not clear if one or two lines feed are expected
+			expectedErrMsg: "Should be empty, but was foo\n\n",
+		},
+		{
+			name:           "string with leading and trailing tabulation and lines feed is not empty",
+			value:          "\n\nfoo\t\n\t\n",
+			expectedResult: false,
+			// TODO The line feeds and tab are not helping to figure what is expected
+			expectedErrMsg: "" +
+				"Should be empty, but was \n" +
+				"\n" +
+				"foo\t\n" +
+				"\t\n",
+		},
+
+		{
+			name:           "non-printable character is not empty",
+			value:          "\u00a0", // NO-BREAK SPACE UNICODE CHARACTER
+			expectedResult: false,
+			// TODO here you cannot figure out what is expected
+			expectedErrMsg: "Should be empty, but was \u00a0\n",
+		},
+
+		// Here we are testing there is no error message on success
+		{
+			name:           "Empty string is empty",
+			value:          "",
+			expectedResult: true,
+			expectedErrMsg: "",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockCT := new(captureTestingT)
+			res := Empty(mockCT, tt.value)
+			mockCT.checkResultAndErrMsg(t, res, tt.expectedResult, tt.expectedErrMsg)
+		})
+	}
 }
 
 func TestNotEmpty(t *testing.T) {
@@ -1726,6 +1862,68 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, true), "True value is not empty")
 	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
 	True(t, NotEmpty(mockT, [1]int{42}), "array is not state")
+
+	// error messages validation
+	tests := []struct {
+		name           string
+		value          interface{}
+		expectedResult bool
+		expectedErrMsg string
+	}{
+		{
+			name:           "Empty string is empty",
+			value:          "",
+			expectedResult: false,
+			expectedErrMsg: `Should NOT be empty, but was ` + "\n", // TODO FIX THIS strange error message
+		},
+		{
+			name:           "Nil is empty",
+			value:          nil,
+			expectedResult: false,
+			expectedErrMsg: "Should NOT be empty, but was <nil>\n",
+		},
+		{
+			name:           "Empty string array is empty",
+			value:          []string{},
+			expectedResult: false,
+			expectedErrMsg: "Should NOT be empty, but was []\n",
+		},
+		{
+			name:           "Zero int value is empty",
+			value:          0,
+			expectedResult: false,
+			expectedErrMsg: "Should NOT be empty, but was 0\n",
+		},
+		{
+			name:           "False value is empty",
+			value:          false,
+			expectedResult: false,
+			expectedErrMsg: "Should NOT be empty, but was false\n",
+		},
+		{
+			name:           "array is state",
+			value:          [1]int{},
+			expectedResult: false,
+			expectedErrMsg: "Should NOT be empty, but was [0]\n",
+		},
+
+		// Here we are testing there is no error message on success
+		{
+			name:           "Non Empty string is not empty",
+			value:          "something",
+			expectedResult: true,
+			expectedErrMsg: "",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			mockCT := new(captureTestingT)
+			res := NotEmpty(mockCT, tt.value)
+			mockCT.checkResultAndErrMsg(t, tt.expectedResult, res, tt.expectedErrMsg)
+		})
+	}
 }
 
 func Test_getLen(t *testing.T) {
