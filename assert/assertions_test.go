@@ -3198,12 +3198,12 @@ func (ctt *captureTestingT) checkResultAndErrMsg(t *testing.T, expectedRes, res 
 	contents := parseLabeledOutput(ctt.msg)
 	if res == true {
 		if contents != nil {
-			t.Errorf("Should not log an error")
+			t.Errorf("Should not log an error. Log output: %q", ctt.msg)
 		}
 		return
 	}
 	if contents == nil {
-		t.Errorf("Should log an error. Log output: %v", ctt.msg)
+		t.Errorf("Should log an error. Log output: %q", ctt.msg)
 		return
 	}
 	for _, content := range contents {
@@ -3211,10 +3211,10 @@ func (ctt *captureTestingT) checkResultAndErrMsg(t *testing.T, expectedRes, res 
 			if expectedErrMsg == content.content {
 				return
 			}
-			t.Errorf("Logged Error: %v", content.content)
+			t.Errorf("Recorded Error: %q", content.content)
 		}
 	}
-	t.Errorf("Should log Error: %v", expectedErrMsg)
+	t.Errorf("Expected Error: %q", expectedErrMsg)
 }
 
 func TestErrorIs(t *testing.T) {
