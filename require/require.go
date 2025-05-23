@@ -1399,6 +1399,32 @@ func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// NoFieldIsEmpty asserts that object, which must be a struct or eventually
+// reference to one, has no exported field with a value that is empty (following
+// the definition of empty used in [Empty]).
+func NoFieldIsEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NoFieldIsEmpty(t, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NoFieldIsEmptyf asserts that object, which must be a struct or eventually
+// reference to one, has no exported field with a value that is empty (following
+// the definition of empty used in [Empty]).
+func NoFieldIsEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NoFieldIsEmptyf(t, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // NoFileExists checks whether a file does not exist in a given path. It fails
 // if the path points to an existing _file_ only.
 func NoFileExists(t TestingT, path string, msgAndArgs ...interface{}) {
