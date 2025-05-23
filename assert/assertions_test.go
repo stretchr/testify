@@ -100,6 +100,8 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct{}
 
 func TestObjectsAreEqual(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		expected interface{}
 		actual   interface{}
@@ -135,6 +137,8 @@ func TestObjectsAreEqual(t *testing.T) {
 }
 
 func TestObjectsAreEqualValues(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	cases := []struct {
@@ -205,6 +209,8 @@ type S6 struct {
 }
 
 func TestObjectsExportedFieldsAreEqual(t *testing.T) {
+	t.Parallel()
+
 	intValue := 1
 
 	cases := []struct {
@@ -278,6 +284,8 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 }
 
 func TestCopyExportedFields(t *testing.T) {
+	t.Parallel()
+
 	intValue := 1
 
 	cases := []struct {
@@ -365,6 +373,8 @@ func TestCopyExportedFields(t *testing.T) {
 }
 
 func TestEqualExportedValues(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		value1        interface{}
 		value2        interface{}
@@ -518,6 +528,8 @@ func TestEqualExportedValues(t *testing.T) {
 }
 
 func TestImplements(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Implements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
@@ -532,6 +544,8 @@ func TestImplements(t *testing.T) {
 }
 
 func TestNotImplements(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !NotImplements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject)) {
@@ -546,6 +560,8 @@ func TestNotImplements(t *testing.T) {
 }
 
 func TestIsType(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !IsType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
@@ -557,6 +573,7 @@ func TestIsType(t *testing.T) {
 }
 
 func TestNotIsType(t *testing.T) {
+	t.Parallel()
 
 	mockT := new(testing.T)
 
@@ -569,6 +586,8 @@ func TestNotIsType(t *testing.T) {
 }
 
 func TestEqual(t *testing.T) {
+	t.Parallel()
+
 	type myType string
 
 	mockT := new(testing.T)
@@ -614,6 +633,8 @@ func ptr(i int) *int {
 }
 
 func TestSame(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if Same(mockT, ptr(1), ptr(1)) {
@@ -632,6 +653,8 @@ func TestSame(t *testing.T) {
 }
 
 func TestNotSame(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !NotSame(mockT, ptr(1), ptr(1)) {
@@ -650,6 +673,8 @@ func TestNotSame(t *testing.T) {
 }
 
 func Test_samePointers(t *testing.T) {
+	t.Parallel()
+
 	p := ptr(2)
 
 	type args struct {
@@ -757,6 +782,8 @@ func (t *bufferT) Errorf(format string, args ...interface{}) {
 }
 
 func TestStringEqual(t *testing.T) {
+	t.Parallel()
+
 	for i, currCase := range []struct {
 		equalWant  string
 		equalGot   string
@@ -772,6 +799,8 @@ func TestStringEqual(t *testing.T) {
 }
 
 func TestEqualFormatting(t *testing.T) {
+	t.Parallel()
+
 	for i, currCase := range []struct {
 		equalWant  string
 		equalGot   string
@@ -790,6 +819,8 @@ func TestEqualFormatting(t *testing.T) {
 }
 
 func TestFormatUnequalValues(t *testing.T) {
+	t.Parallel()
+
 	expected, actual := formatUnequalValues("foo", "bar")
 	Equal(t, `"foo"`, expected, "value should not include type")
 	Equal(t, `"bar"`, actual, "value should not include type")
@@ -816,6 +847,8 @@ func TestFormatUnequalValues(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !NotNil(mockT, new(AssertionTesterConformingObject)) {
@@ -830,6 +863,8 @@ func TestNotNil(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Nil(mockT, nil) {
@@ -844,6 +879,8 @@ func TestNil(t *testing.T) {
 }
 
 func TestTrue(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !True(mockT, true) {
@@ -855,6 +892,8 @@ func TestTrue(t *testing.T) {
 }
 
 func TestFalse(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !False(mockT, false) {
@@ -866,6 +905,7 @@ func TestFalse(t *testing.T) {
 }
 
 func TestExactly(t *testing.T) {
+	t.Parallel()
 	mockT := new(testing.T)
 
 	a := float32(1)
@@ -896,6 +936,7 @@ func TestExactly(t *testing.T) {
 }
 
 func TestNotEqual(t *testing.T) {
+	t.Parallel()
 	mockT := new(testing.T)
 
 	cases := []struct {
@@ -935,6 +976,8 @@ func TestNotEqual(t *testing.T) {
 }
 
 func TestNotEqualValues(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	cases := []struct {
@@ -978,6 +1021,8 @@ func TestNotEqualValues(t *testing.T) {
 }
 
 func TestContainsNotContains(t *testing.T) {
+	t.Parallel()
+
 	type A struct {
 		Name, Value string
 	}
@@ -1041,6 +1086,8 @@ func TestContainsNotContains(t *testing.T) {
 }
 
 func TestContainsNotContainsFailMessage(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(mockTestingT)
 
 	type nonContainer struct {
@@ -1097,6 +1144,8 @@ func TestContainsNotContainsFailMessage(t *testing.T) {
 }
 
 func TestContainsNotContainsOnNilValue(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(mockTestingT)
 
 	Contains(mockT, nil, "key")
@@ -1113,6 +1162,8 @@ func TestContainsNotContainsOnNilValue(t *testing.T) {
 }
 
 func TestSubsetNotSubset(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		list    interface{}
 		subset  interface{}
@@ -1198,6 +1249,8 @@ func TestSubsetNotSubset(t *testing.T) {
 }
 
 func TestNotSubsetNil(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	NotSubset(mockT, []string{"foo"}, nil)
 	if !mockT.Failed() {
@@ -1206,6 +1259,8 @@ func TestNotSubsetNil(t *testing.T) {
 }
 
 func Test_containsElement(t *testing.T) {
+	t.Parallel()
+
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
 	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
@@ -1256,6 +1311,8 @@ func Test_containsElement(t *testing.T) {
 }
 
 func TestElementsMatch(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	cases := []struct {
@@ -1297,6 +1354,8 @@ func TestElementsMatch(t *testing.T) {
 }
 
 func TestDiffLists(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name   string
 		listA  interface{}
@@ -1381,6 +1440,8 @@ func TestDiffLists(t *testing.T) {
 }
 
 func TestNotElementsMatch(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	cases := []struct {
@@ -1427,6 +1488,8 @@ func TestNotElementsMatch(t *testing.T) {
 }
 
 func TestCondition(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Condition(mockT, func() bool { return true }, "Truth") {
@@ -1439,6 +1502,8 @@ func TestCondition(t *testing.T) {
 }
 
 func TestDidPanic(t *testing.T) {
+	t.Parallel()
+
 	const panicMsg = "Panic!"
 
 	if funcDidPanic, msg, _ := didPanic(func() {
@@ -1460,6 +1525,8 @@ func TestDidPanic(t *testing.T) {
 }
 
 func TestPanics(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Panics(mockT, func() {
@@ -1475,6 +1542,8 @@ func TestPanics(t *testing.T) {
 }
 
 func TestPanicsWithValue(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !PanicsWithValue(mockT, "Panic!", func() {
@@ -1502,6 +1571,8 @@ func TestPanicsWithValue(t *testing.T) {
 }
 
 func TestPanicsWithError(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !PanicsWithError(mockT, "panic", func() {
@@ -1529,6 +1600,8 @@ func TestPanicsWithError(t *testing.T) {
 }
 
 func TestNotPanics(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !NotPanics(mockT, func() {
@@ -1544,6 +1617,8 @@ func TestNotPanics(t *testing.T) {
 }
 
 func TestNoError(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	// start with a nil error
@@ -1574,6 +1649,8 @@ type customError struct{}
 func (*customError) Error() string { return "fail" }
 
 func TestError(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	// start with a nil error
@@ -1603,6 +1680,8 @@ func TestError(t *testing.T) {
 }
 
 func TestEqualError(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	// start with a nil error
@@ -1619,6 +1698,8 @@ func TestEqualError(t *testing.T) {
 }
 
 func TestErrorContains(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	// start with a nil error
@@ -1637,6 +1718,8 @@ func TestErrorContains(t *testing.T) {
 }
 
 func Test_isEmpty(t *testing.T) {
+	t.Parallel()
+
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
@@ -1663,6 +1746,8 @@ func Test_isEmpty(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
@@ -1707,6 +1792,8 @@ func TestEmpty(t *testing.T) {
 }
 
 func TestNotEmpty(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
@@ -1729,6 +1816,8 @@ func TestNotEmpty(t *testing.T) {
 }
 
 func Test_getLen(t *testing.T) {
+	t.Parallel()
+
 	falseCases := []interface{}{
 		nil,
 		0,
@@ -1774,6 +1863,8 @@ func Test_getLen(t *testing.T) {
 }
 
 func TestLen(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	False(t, Len(mockT, nil, 0), "nil does not have length")
@@ -1820,6 +1911,8 @@ func TestLen(t *testing.T) {
 }
 
 func TestWithinDuration(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	a := time.Now()
 	b := a.Add(10 * time.Second)
@@ -1838,6 +1931,8 @@ func TestWithinDuration(t *testing.T) {
 }
 
 func TestWithinRange(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	n := time.Now()
 	s := n.Add(-time.Second)
@@ -1856,6 +1951,8 @@ func TestWithinRange(t *testing.T) {
 }
 
 func TestInDelta(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	True(t, InDelta(mockT, 1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
@@ -1894,6 +1991,8 @@ func TestInDelta(t *testing.T) {
 }
 
 func TestInDeltaSlice(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	True(t, InDeltaSlice(mockT,
@@ -1915,6 +2014,8 @@ func TestInDeltaSlice(t *testing.T) {
 }
 
 func TestInDeltaMapValues(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	for _, tc := range []struct {
@@ -1993,6 +2094,8 @@ func TestInDeltaMapValues(t *testing.T) {
 }
 
 func TestInEpsilon(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	cases := []struct {
@@ -2047,6 +2150,8 @@ func TestInEpsilon(t *testing.T) {
 }
 
 func TestInEpsilonSlice(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	True(t, InEpsilonSlice(mockT,
@@ -2063,6 +2168,8 @@ func TestInEpsilonSlice(t *testing.T) {
 }
 
 func TestRegexp(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	cases := []struct {
@@ -2116,12 +2223,16 @@ func testAutogeneratedFunction() {
 }
 
 func TestCallerInfoWithAutogeneratedFunctions(t *testing.T) {
+	t.Parallel()
+
 	NotPanics(t, func() {
 		testAutogeneratedFunction()
 	})
 }
 
 func TestZero(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	for _, test := range zeros {
@@ -2134,6 +2245,8 @@ func TestZero(t *testing.T) {
 }
 
 func TestNotZero(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	for _, test := range zeros {
@@ -2146,6 +2259,8 @@ func TestNotZero(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
+	// FIXME t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, FileExists(mockT, "assertions.go"))
 
@@ -2180,6 +2295,8 @@ func TestFileExists(t *testing.T) {
 }
 
 func TestNoFileExists(t *testing.T) {
+	// FIXME t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, NoFileExists(mockT, "assertions.go"))
 
@@ -2231,6 +2348,8 @@ func cleanUpTempFiles(paths []string) []error {
 }
 
 func TestDirExists(t *testing.T) {
+	// FIXME t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, DirExists(mockT, "assertions.go"))
 
@@ -2265,6 +2384,8 @@ func TestDirExists(t *testing.T) {
 }
 
 func TestNoDirExists(t *testing.T) {
+	// FIXME t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, NoDirExists(mockT, "assertions.go"))
 
@@ -2299,67 +2420,93 @@ func TestNoDirExists(t *testing.T) {
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
 }
 
 func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}"))
 }
 
 func TestJSONEq_Array(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
 }
 
 func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
 }
 
 func TestJSONEq_HashesNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_ActualIsNotJSON(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `{"foo": "bar"}`, "Not JSON"))
 }
 
 func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, "Not JSON", "Not JSON"))
 }
 
 func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
 func TestYAMLEq_EqualYAMLString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
 }
 
 func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_HashOfArraysAndHashes(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	expected := `
 numeric: 1.5
@@ -2390,36 +2537,50 @@ array:
 }
 
 func TestYAMLEq_Array(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
 }
 
 func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
 }
 
 func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, YAMLEq(mockT, `{"foo": "bar"}`, "Simple String"))
 }
 
 func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`))
 }
 
 func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	True(t, YAMLEq(mockT, "Simple String", "Simple String"))
 }
 
 func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
@@ -2434,6 +2595,8 @@ func (d *diffTestingStruct) String() string {
 }
 
 func TestDiff(t *testing.T) {
+	t.Parallel()
+
 	expected := `
 
 Diff:
@@ -2568,6 +2731,8 @@ Diff:
 }
 
 func TestTimeEqualityErrorFormatting(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(mockTestingT)
 
 	Equal(mockT, time.Second*2, time.Millisecond)
@@ -2577,6 +2742,8 @@ func TestTimeEqualityErrorFormatting(t *testing.T) {
 }
 
 func TestDiffEmptyCases(t *testing.T) {
+	t.Parallel()
+
 	Equal(t, "", diff(nil, nil))
 	Equal(t, "", diff(struct{ foo string }{}, nil))
 	Equal(t, "", diff(nil, struct{ foo string }{}))
@@ -2638,6 +2805,8 @@ func (m *mockTestingT) Failed() bool {
 }
 
 func TestFailNowWithPlainTestingT(t *testing.T) {
+	t.Parallel()
+
 	mockT := &mockTestingT{}
 
 	Panics(t, func() {
@@ -2652,6 +2821,8 @@ func (m *mockFailNowTestingT) Errorf(format string, args ...interface{}) {}
 func (m *mockFailNowTestingT) FailNow() {}
 
 func TestFailNowWithFullTestingT(t *testing.T) {
+	t.Parallel()
+
 	mockT := &mockFailNowTestingT{}
 
 	NotPanics(t, func() {
@@ -2660,6 +2831,8 @@ func TestFailNowWithFullTestingT(t *testing.T) {
 }
 
 func TestBytesEqual(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		a, b []byte
 	}{
@@ -2725,6 +2898,8 @@ func ExampleComparisonAssertionFunc() {
 }
 
 func TestComparisonAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	type iface interface {
 		Name() string
 	}
@@ -2786,6 +2961,8 @@ func ExampleValueAssertionFunc() {
 }
 
 func TestValueAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		value     interface{}
@@ -2832,6 +3009,8 @@ func ExampleBoolAssertionFunc() {
 }
 
 func TestBoolAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		value     bool
@@ -2875,6 +3054,8 @@ func ExampleErrorAssertionFunc() {
 }
 
 func TestErrorAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		err       error
@@ -2911,6 +3092,8 @@ func ExamplePanicAssertionFunc() {
 }
 
 func TestPanicAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		panicFn   PanicTestFunc
@@ -2928,6 +3111,8 @@ func TestPanicAssertionFunc(t *testing.T) {
 }
 
 func TestEventuallyFalse(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	condition := func() bool {
@@ -2938,6 +3123,8 @@ func TestEventuallyFalse(t *testing.T) {
 }
 
 func TestEventuallyTrue(t *testing.T) {
+	t.Parallel()
+
 	state := 0
 	condition := func() bool {
 		defer func() {
@@ -2961,6 +3148,8 @@ func (t *errorsCapturingT) Errorf(format string, args ...interface{}) {
 func (t *errorsCapturingT) Helper() {}
 
 func TestEventuallyWithTFalse(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(errorsCapturingT)
 
 	condition := func(collect *CollectT) {
@@ -2972,6 +3161,8 @@ func TestEventuallyWithTFalse(t *testing.T) {
 }
 
 func TestEventuallyWithTTrue(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(errorsCapturingT)
 
 	counter := 0
@@ -2986,6 +3177,8 @@ func TestEventuallyWithTTrue(t *testing.T) {
 }
 
 func TestEventuallyWithT_ConcurrencySafe(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(errorsCapturingT)
 
 	condition := func(collect *CollectT) {
@@ -2998,6 +3191,8 @@ func TestEventuallyWithT_ConcurrencySafe(t *testing.T) {
 }
 
 func TestEventuallyWithT_ReturnsTheLatestFinishedConditionErrors(t *testing.T) {
+	t.Parallel()
+
 	// We'll use a channel to control whether a condition should sleep or not.
 	mustSleep := make(chan bool, 2)
 	mustSleep <- false
@@ -3021,6 +3216,8 @@ func TestEventuallyWithT_ReturnsTheLatestFinishedConditionErrors(t *testing.T) {
 }
 
 func TestEventuallyWithTFailNow(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(CollectT)
 
 	condition := func(collect *CollectT) {
@@ -3034,6 +3231,8 @@ func TestEventuallyWithTFailNow(t *testing.T) {
 // Check that a long running condition doesn't block Eventually.
 // See issue 805 (and its long tail of following issues)
 func TestEventuallyTimeout(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	NotPanics(t, func() {
@@ -3055,6 +3254,8 @@ func TestEventuallyTimeout(t *testing.T) {
 }
 
 func TestEventuallySucceedQuickly(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	condition := func() bool { return true }
@@ -3065,6 +3266,8 @@ func TestEventuallySucceedQuickly(t *testing.T) {
 }
 
 func TestEventuallyWithTSucceedQuickly(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	condition := func(t *CollectT) {}
@@ -3075,6 +3278,8 @@ func TestEventuallyWithTSucceedQuickly(t *testing.T) {
 }
 
 func TestNeverFalse(t *testing.T) {
+	t.Parallel()
+
 	condition := func() bool {
 		return false
 	}
@@ -3084,6 +3289,8 @@ func TestNeverFalse(t *testing.T) {
 
 // TestNeverTrue checks Never with a condition that returns true on second call.
 func TestNeverTrue(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	// A list of values returned by condition.
@@ -3102,6 +3309,8 @@ func TestNeverTrue(t *testing.T) {
 }
 
 func TestNeverFailQuickly(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	// By making the tick longer than the total duration, we expect that this test would fail if
@@ -3111,6 +3320,8 @@ func TestNeverFailQuickly(t *testing.T) {
 }
 
 func Test_validateEqualArgs(t *testing.T) {
+	t.Parallel()
+
 	if validateEqualArgs(func() {}, func() {}) == nil {
 		t.Error("non-nil functions should error")
 	}
@@ -3125,6 +3336,8 @@ func Test_validateEqualArgs(t *testing.T) {
 }
 
 func Test_truncatingFormat(t *testing.T) {
+	t.Parallel()
+
 	original := strings.Repeat("a", bufio.MaxScanTokenSize-102)
 	result := truncatingFormat(original)
 	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")
@@ -3218,6 +3431,8 @@ func (ctt *captureTestingT) checkResultAndErrMsg(t *testing.T, expectedRes, res 
 }
 
 func TestErrorIs(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		err          error
 		target       error
@@ -3285,6 +3500,8 @@ func TestErrorIs(t *testing.T) {
 }
 
 func TestNotErrorIs(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		err          error
 		target       error
@@ -3351,6 +3568,8 @@ func TestNotErrorIs(t *testing.T) {
 }
 
 func TestErrorAs(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		err          error
 		result       bool
@@ -3397,6 +3616,8 @@ func TestErrorAs(t *testing.T) {
 }
 
 func TestNotErrorAs(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		err          error
 		result       bool
