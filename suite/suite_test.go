@@ -746,3 +746,59 @@ func TestUnInitializedSuites(t *testing.T) {
 		})
 	})
 }
+
+// This suite tests both valid and invalid method signatures.
+type SuiteSignatureValidationTester struct {
+	Suite
+
+	executedTestCount int
+	setUp             bool
+	toreDown          bool
+}
+
+// SetupSuite is run once before any tests.
+func (s *SuiteSignatureValidationTester) SetupSuite() {
+	s.setUp = true
+}
+
+func (s *SuiteSignatureValidationTester) TestValidSignature() {
+	s.executedTestCount++
+}
+
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureReturnValue() interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureArg(somearg string) {
+	s.executedTestCount++
+}
+
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureBoth(somearg string) interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+func (s *SuiteSignatureValidationTester) TearDownSuite() {
+	s.toreDown = true
+}
+
+func TestSuiteSignatureValidation(t *testing.T) {
+	suiteTester := new(SuiteSignatureValidationTester)
+
+	// Running tests with internal testing mechanism
+	ok := testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: "signature validation",
+			F: func(t *testing.T) {
+				Run(t, suiteTester)
+			},
+		},
+	})
+
+	// Ensure that the test suite did not pass due to invalid signatures
+	require.True(t, ok)
+	assert.Equal(t, 1, suiteTester.executedTestCount, "Only the valid test method should be executed")
+	assert.True(t, suiteTester.setUp, "SetupSuite should have been executed")
+	assert.True(t, suiteTester.toreDown, "TearDownSuite should have been executed")
+}
