@@ -720,6 +720,9 @@ type bufferT struct {
 	buf bytes.Buffer
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (bufferT) Helper() {}
+
 func (t *bufferT) Errorf(format string, args ...interface{}) {
 	// implementation of decorate is copied from testing.T
 	decorate := func(s string) string {
@@ -2624,6 +2627,9 @@ type mockTestingT struct {
 	args     []interface{}
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (mockTestingT) Helper() {}
+
 func (m *mockTestingT) errorString() string {
 	return fmt.Sprintf(m.errorFmt, m.args...)
 }
@@ -2646,6 +2652,9 @@ func TestFailNowWithPlainTestingT(t *testing.T) {
 }
 
 type mockFailNowTestingT struct{}
+
+// Helper is like [testing.T.Helper] but does nothing.
+func (mockFailNowTestingT) Helper() {}
 
 func (m *mockFailNowTestingT) Errorf(format string, args ...interface{}) {}
 
@@ -2954,11 +2963,12 @@ type errorsCapturingT struct {
 	errors []error
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (errorsCapturingT) Helper() {}
+
 func (t *errorsCapturingT) Errorf(format string, args ...interface{}) {
 	t.errors = append(t.errors, fmt.Errorf(format, args...))
 }
-
-func (t *errorsCapturingT) Helper() {}
 
 func TestEventuallyWithTFalse(t *testing.T) {
 	mockT := new(errorsCapturingT)
@@ -3179,6 +3189,9 @@ type captureTestingT struct {
 	failed bool
 	msg    string
 }
+
+// Helper is like [testing.T.Helper] but does nothing.
+func (captureTestingT) Helper() {}
 
 func (ctt *captureTestingT) Errorf(format string, args ...interface{}) {
 	ctt.msg = fmt.Sprintf(format, args...)
