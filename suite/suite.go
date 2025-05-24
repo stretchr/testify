@@ -17,6 +17,7 @@ import (
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
+var repeatItem = flag.Uint("testify.r", 1, "used to repeat each test multiple times without rerunning Setup/TearDownSuite")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -119,6 +120,12 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
+	RunWithSkip(t, suite, func(_, _ string) bool { return false })
+}
+
+// RunWithSkip takes a testing suite and a skip function allowing
+// for extra filtering on tests to be run
+func RunWithSkip(t *testing.T, suite TestingSuite, skip func(string, string) bool) {
 	defer recoverAndFailOnPanic(t)
 
 	suite.SetT(t)
@@ -148,16 +155,8 @@ func Run(t *testing.T, suite TestingSuite) {
 			continue
 		}
 
-		if !suiteSetupDone {
-			if stats != nil {
-				stats.Start = time.Now()
-			}
-
-			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-				setupAllSuite.SetupSuite()
-			}
-
-			suiteSetupDone = true
+		if skip(suiteName, method.Name) {
+			continue
 		}
 
 		test := testing.InternalTest{
@@ -202,8 +201,24 @@ func Run(t *testing.T, suite TestingSuite) {
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
 		}
-		tests = append(tests, test)
+
+		for i := uint(0); i < *repeatItem; i++ {
+			tests = append(tests, test)
+		}
 	}
+
+	if len(tests) > 0 {
+		if stats != nil {
+			stats.Start = time.Now()
+		}
+
+		if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+			setupAllSuite.SetupSuite()
+		}
+
+		suiteSetupDone = true
+	}
+
 	if suiteSetupDone {
 		defer func() {
 			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
