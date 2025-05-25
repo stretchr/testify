@@ -31,6 +31,8 @@ func httpStatusCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHTTPSuccess(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 
 	mockT1 := new(testing.T)
@@ -59,6 +61,8 @@ func TestHTTPSuccess(t *testing.T) {
 }
 
 func TestHTTPRedirect(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 
 	mockT1 := new(mockTestingT)
@@ -83,6 +87,8 @@ func TestHTTPRedirect(t *testing.T) {
 }
 
 func TestHTTPError(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 
 	mockT1 := new(testing.T)
@@ -107,6 +113,8 @@ func TestHTTPError(t *testing.T) {
 }
 
 func TestHTTPStatusCode(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 
 	mockT1 := new(testing.T)
@@ -131,6 +139,8 @@ func TestHTTPStatusCode(t *testing.T) {
 }
 
 func TestHTTPStatusesWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -153,6 +163,8 @@ func httpHelloName(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHTTPRequestWithNoParams(t *testing.T) {
+	t.Parallel()
+
 	var got *http.Request
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		got = r
@@ -166,6 +178,8 @@ func TestHTTPRequestWithNoParams(t *testing.T) {
 }
 
 func TestHTTPRequestWithParams(t *testing.T) {
+	t.Parallel()
+
 	var got *http.Request
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		got = r
@@ -182,6 +196,8 @@ func TestHTTPRequestWithParams(t *testing.T) {
 }
 
 func TestHttpBody(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockT := new(mockTestingT)
 
@@ -201,6 +217,8 @@ func TestHttpBody(t *testing.T) {
 }
 
 func TestHttpBodyWrappers(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 

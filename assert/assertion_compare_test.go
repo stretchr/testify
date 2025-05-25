@@ -10,6 +10,8 @@ import (
 )
 
 func TestCompare(t *testing.T) {
+	t.Parallel()
+
 	type customString string
 	type customInt int
 	type customInt8 int8
@@ -127,6 +129,8 @@ func callerName(skip int) string {
 }
 
 func TestGreater(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Greater(mockT, 2, 1) {
@@ -171,6 +175,8 @@ func TestGreater(t *testing.T) {
 }
 
 func TestGreaterOrEqual(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !GreaterOrEqual(mockT, 2, 1) {
@@ -215,6 +221,8 @@ func TestGreaterOrEqual(t *testing.T) {
 }
 
 func TestLess(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Less(mockT, 1, 2) {
@@ -259,6 +267,8 @@ func TestLess(t *testing.T) {
 }
 
 func TestLessOrEqual(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !LessOrEqual(mockT, 1, 2) {
@@ -303,6 +313,8 @@ func TestLessOrEqual(t *testing.T) {
 }
 
 func TestPositive(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Positive(mockT, 1) {
@@ -342,6 +354,8 @@ func TestPositive(t *testing.T) {
 }
 
 func TestNegative(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !Negative(mockT, -1) {
@@ -381,6 +395,8 @@ func TestNegative(t *testing.T) {
 }
 
 func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	for _, currCase := range []struct {
@@ -399,6 +415,8 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 }
 
 func Test_compareTwoValuesNotComparableValues(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	type CompareStruct struct {
@@ -418,6 +436,8 @@ func Test_compareTwoValuesNotComparableValues(t *testing.T) {
 }
 
 func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	for _, currCase := range []struct {
@@ -438,6 +458,8 @@ func Test_compareTwoValuesCorrectCompareResult(t *testing.T) {
 }
 
 func Test_containsValue(t *testing.T) {
+	t.Parallel()
+
 	for _, currCase := range []struct {
 		values []compareResult
 		value  compareResult
