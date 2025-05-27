@@ -2008,6 +2008,9 @@ type CollectT struct {
 	errors []error
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (CollectT) Helper() {}
+
 // Errorf collects the error.
 func (c *CollectT) Errorf(format string, args ...interface{}) {
 	c.errors = append(c.errors, fmt.Errorf(format, args...))

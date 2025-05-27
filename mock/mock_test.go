@@ -132,6 +132,9 @@ type MockTestingT struct {
 	logfCount, errorfCount, failNowCount int
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (MockTestingT) Helper() {}
+
 const mockTestingTFailNowCalled = "FailNow was called"
 
 func (m *MockTestingT) Logf(string, ...interface{}) {
