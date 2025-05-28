@@ -2588,6 +2588,56 @@ func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
 	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
+func TestYAMLEq_MultipleDocs(t *testing.T) {
+	mockT := new(testing.T)
+	expected := `
+first: document
+---
+second: document
+`
+	actual := `
+first: document
+---
+second: ccc-combo-breaker
+`
+	False(t, YAMLEq(mockT, expected, actual))
+}
+
+func TestYAMLEq_MultipleDocsMismatchedNumber(t *testing.T) {
+	mockT := new(testing.T)
+	expected := `
+first: document
+---
+second: document
+`
+	actual := `
+first: document
+`
+	False(t, YAMLEq(mockT, expected, actual))
+}
+
+func TestYAMLEq_MultipleDocsInvalidYAML(t *testing.T) {
+	mockT := new(testing.T)
+	expected := `
+first: document
+---
+second: document
+  also: key
+`
+	False(t, YAMLEq(mockT, expected, expected))
+}
+
+func TestYAMLEq_MultipleDocsMatching(t *testing.T) {
+	mockT := new(testing.T)
+	expected := `
+first: document
+---
+second:
+  also: key
+`
+	True(t, YAMLEq(mockT, expected, expected))
+}
+
 type diffTestingStruct struct {
 	A string
 	B int
