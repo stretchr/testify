@@ -1876,6 +1876,11 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid yaml.\nYAML parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
+	// Shortcut if same bytes
+	if actual == expected {
+		return true
+	}
+
 	if err := yaml.Unmarshal([]byte(actual), &actualYAMLAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid yaml.\nYAML error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
