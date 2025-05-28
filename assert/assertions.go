@@ -1853,6 +1853,11 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
+	// Shortcut if same bytes
+	if actual == expected {
+		return true
+	}
+
 	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
