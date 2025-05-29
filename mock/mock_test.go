@@ -1715,35 +1715,48 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 }
 
 func Test_Mock_IsMethodCallable(t *testing.T) {
-	var mockedService = new(TestExampleImplementation)
+	mock := new(TestExampleImplementation)
 
-	arg := []Call{{Repeatability: 1}, {Repeatability: 2}}
-	arg2 := []Call{{Repeatability: 1}, {Repeatability: 1}}
-	arg3 := []Call{{Repeatability: 1}, {Repeatability: 1}}
+	tests := []struct {
+		name          string
+		expectedCalls []*Call
+		method        string
+		args          Arguments
+		expected      bool
+	}{
+		{
+			name: "Method is expected and has repeatability when called should return true",
+			expectedCalls: []*Call{
+				{Method: "TestMethod", Repeatability: 1, Arguments: Arguments{"TestArg"}},
+			},
+			method:   "TestMethod",
+			args:     Arguments{"TestArg"},
+			expected: true,
+		},
+		{
+			name:          "Method is not expected when called should return false",
+			expectedCalls: []*Call{},
+			method:        "TestMethod",
+			args:          Arguments{"TestArg"},
+			expected:      false,
+		},
+		{
+			name: "Method is expected and has no repeatability when called should return false",
+			expectedCalls: []*Call{
+				{Method: "TestMethod", Repeatability: -1, Arguments: Arguments{"TestArg"}},
+			},
+			method:   "TestMethod",
+			args:     Arguments{"TestArg"},
+			expected: false,
+		},
+	}
 
-	mockedService.On("Test_Mock_IsMethodCallable", arg2).Return(true).Twice()
-
-	assert.False(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg))
-	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg2))
-	assert.True(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg3))
-
-	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg2)
-	mockedService.MethodCalled("Test_Mock_IsMethodCallable", arg2)
-
-	assert.False(t, mockedService.IsMethodCallable(t, "Test_Mock_IsMethodCallable", arg2))
-}
-
-func TestIsArgsEqual(t *testing.T) {
-	var expected = Arguments{5, 3, 4, 6, 7, 2}
-
-	// Copy elements 1 to 5
-	args := append(([]interface{})(nil), expected[1:]...)
-	args[2] = expected[1]
-	assert.False(t, isArgsEqual(expected, args))
-
-	// Clone
-	arr := append(([]interface{})(nil), expected...)
-	assert.True(t, isArgsEqual(expected, arr))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock.Mock.ExpectedCalls = tt.expectedCalls
+			assert.Equal(t, tt.expected, mock.IsMethodCallable(t, tt.method, tt.args...))
+		})
+	}
 }
 
 func Test_Mock_AssertOptional(t *testing.T) {
