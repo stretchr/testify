@@ -2276,11 +2276,11 @@ func buildErrorChainString(err error, withType bool) string {
 }
 
 // NoFieldIsZero asserts that object, which must be a struct or eventually
-// reference to one, has no exported field with a value that is zero.
+// reference to one, has no field with a value that is zero.
 //
-// The assertion is not recursive, meaning it only checks that the exported
-// fields of the struct (including any embedded structs) are not zero values.
-// It does not check any fields of nested or embedded structs.
+// The assertion is not recursive, meaning it only checks that the fields
+// of the struct (embedded structs are considered fields) are not zero values.
+// It does not check the fields of nested or embedded structs.
 func NoFieldIsZero(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2299,10 +2299,6 @@ func NoFieldIsZero(t TestingT, object interface{}, msgAndArgs ...interface{}) bo
 	objectValue := reflect.ValueOf(object)
 	for i := 0; i < objectType.NumField(); i++ {
 		field := objectType.Field(i)
-		if !field.IsExported() {
-			continue
-		}
-
 		if objectValue.Field(i).IsZero() {
 			emptyFields = append(emptyFields, field.Name)
 		}

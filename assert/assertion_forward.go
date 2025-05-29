@@ -1105,11 +1105,11 @@ func (a *Assertions) NoErrorf(err error, msg string, args ...interface{}) bool {
 }
 
 // NoFieldIsZero asserts that object, which must be a struct or eventually
-// reference to one, has no exported field with a value that is zero.
+// reference to one, has no field with a value that is zero.
 //
-// The assertion is not recursive, meaning it only checks that the exported
-// fields of the struct (including any embedded structs) are not zero values.
-// It does not check any fields of nested or embedded structs.
+// The assertion is not recursive, meaning it only checks that the fields
+// of the struct (embedded structs are considered fields) are not zero values.
+// It does not check the fields of nested or embedded structs.
 func (a *Assertions) NoFieldIsZero(object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1118,11 +1118,11 @@ func (a *Assertions) NoFieldIsZero(object interface{}, msgAndArgs ...interface{}
 }
 
 // NoFieldIsZerof asserts that object, which must be a struct or eventually
-// reference to one, has no exported field with a value that is zero.
+// reference to one, has no field with a value that is zero.
 //
-// The assertion is not recursive, meaning it only checks that the exported
-// fields of the struct (including any embedded structs) are not zero values.
-// It does not check any fields of nested or embedded structs.
+// The assertion is not recursive, meaning it only checks that the fields
+// of the struct (embedded structs are considered fields) are not zero values.
+// It does not check the fields of nested or embedded structs.
 func (a *Assertions) NoFieldIsZerof(object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
