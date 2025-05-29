@@ -1399,27 +1399,33 @@ func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
-// NoFieldIsEmpty asserts that object, which must be a struct or eventually
-// reference to one, has no exported field with a value that is empty (following
-// the definition of empty used in [Empty]).
-func NoFieldIsEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
+// NoFieldIsZero asserts that object, which must be a struct or eventually
+// reference to one, has no exported field with a value that is zero.
+//
+// The assertion is not recursive, meaning it only checks that the exported
+// fields of the struct (including any embedded structs) are not zero values.
+// It does not check any fields of nested or embedded structs.
+func NoFieldIsZero(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if assert.NoFieldIsEmpty(t, object, msgAndArgs...) {
+	if assert.NoFieldIsZero(t, object, msgAndArgs...) {
 		return
 	}
 	t.FailNow()
 }
 
-// NoFieldIsEmptyf asserts that object, which must be a struct or eventually
-// reference to one, has no exported field with a value that is empty (following
-// the definition of empty used in [Empty]).
-func NoFieldIsEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
+// NoFieldIsZerof asserts that object, which must be a struct or eventually
+// reference to one, has no exported field with a value that is zero.
+//
+// The assertion is not recursive, meaning it only checks that the exported
+// fields of the struct (including any embedded structs) are not zero values.
+// It does not check any fields of nested or embedded structs.
+func NoFieldIsZerof(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if assert.NoFieldIsEmptyf(t, object, msg, args...) {
+	if assert.NoFieldIsZerof(t, object, msg, args...) {
 		return
 	}
 	t.FailNow()

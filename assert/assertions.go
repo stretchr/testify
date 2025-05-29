@@ -2275,16 +2275,19 @@ func buildErrorChainString(err error, withType bool) string {
 	return chain
 }
 
-// NoFieldIsEmpty asserts that object, which must be a struct or eventually
-// reference to one, has no exported field with a value that is empty (following
-// the definition of empty used in [Empty]).
-func NoFieldIsEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
-	if reflect.TypeOf(object).Kind() == reflect.Ptr {
-		return NoFieldIsEmpty(t, reflect.ValueOf(object).Elem().Interface(), msgAndArgs)
-	}
-
+// NoFieldIsZero asserts that object, which must be a struct or eventually
+// reference to one, has no exported field with a value that is zero.
+//
+// The assertion is not recursive, meaning it only checks that the exported
+// fields of the struct (including any embedded structs) are not zero values.
+// It does not check any fields of nested or embedded structs.
+func NoFieldIsZero(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+
+	if reflect.TypeOf(object).Kind() == reflect.Ptr {
+		return NoFieldIsZero(t, reflect.ValueOf(object).Elem().Interface(), msgAndArgs)
 	}
 
 	objectType := reflect.TypeOf(object)
@@ -2300,13 +2303,13 @@ func NoFieldIsEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) b
 			continue
 		}
 
-		if isEmpty(objectValue.Field(i).Interface()) {
+		if objectValue.Field(i).IsZero() {
 			emptyFields = append(emptyFields, field.Name)
 		}
 	}
 
 	if len(emptyFields) > 0 {
-		return Fail(t, fmt.Sprintf("Object contained empty fields: %s", strings.Join(emptyFields, ", ")), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("Object contained fields with zero values: %s", strings.Join(emptyFields, ", ")), msgAndArgs...)
 	}
 
 	return true
