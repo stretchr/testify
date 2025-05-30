@@ -1029,7 +1029,11 @@ func TestContainsNotContains(t *testing.T) {
 	type A struct {
 		Name, Value string
 	}
-	list := []string{"Foo", "Bar"}
+	list := []string{"Hello", "World"}
+
+	byteSliceList := [][]byte{
+		[]byte("Hello"), []byte("World"),
+	}
 
 	complexList := []*A{
 		{"b", "c"},
@@ -1037,7 +1041,11 @@ func TestContainsNotContains(t *testing.T) {
 		{"g", "h"},
 		{"j", "k"},
 	}
-	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
+
+	interfaceList := []interface{}{"Hello World", 5, 2, []byte("Goodbye")}
+
+	simpleMap := map[interface{}]interface{}{"Hello": "World"}
+	strMap := map[string]string{"Hello": "World"}
 	var zeroMap map[interface{}]interface{}
 
 	cases := []struct {
@@ -1045,14 +1053,23 @@ func TestContainsNotContains(t *testing.T) {
 		actual   interface{}
 		result   bool
 	}{
-		{"Hello World", "Hello", true},
-		{"Hello World", "Salut", false},
-		{list, "Bar", true},
-		{list, "Salut", false},
+		{"Hello World", "World", true},
+		{"Hello World", "Earth", false},
+		{[]byte("Hello World"), []byte("World"), true},
+		{[]byte("Hello World"), []byte("Earth"), false},
+		{list, "World", true},
+		{list, "Earth", false},
+		{byteSliceList, []byte("World"), true},
+		{byteSliceList, []byte("Earth"), false},
 		{complexList, &A{"g", "h"}, true},
 		{complexList, &A{"g", "e"}, false},
-		{simpleMap, "Foo", true},
-		{simpleMap, "Bar", false},
+		{interfaceList, 5, true},
+		{interfaceList, []byte("Goodbye"), true},
+		{interfaceList, "World", false},
+		{simpleMap, "Hello", true},
+		{simpleMap, "Earth", false},
+		{strMap, "Hello", true},
+		{strMap, "Earth", false},
 		{zeroMap, "Bar", false},
 	}
 
@@ -1062,7 +1079,7 @@ func TestContainsNotContains(t *testing.T) {
 			res := Contains(mockT, c.expected, c.actual)
 
 			if res != c.result {
-				if res {
+				if c.result {
 					t.Errorf("Contains(%#v, %#v) should return true:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
 				} else {
 					t.Errorf("Contains(%#v, %#v) should return false:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
@@ -1079,7 +1096,7 @@ func TestContainsNotContains(t *testing.T) {
 			// NotContains should be inverse of Contains. If it's not, something is wrong
 			if res == Contains(mockT, c.expected, c.actual) {
 				if res {
-					t.Errorf("NotContains(%#v, %#v) should return true:\n\t%#v does not contains %#v", c.expected, c.actual, c.expected, c.actual)
+					t.Errorf("NotContains(%#v, %#v) should return true:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
 				} else {
 					t.Errorf("NotContains(%#v, %#v) should return false:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
 				}
