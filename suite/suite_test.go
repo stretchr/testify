@@ -751,3 +751,169 @@ func TestUnInitializedSuites(t *testing.T) {
 		})
 	})
 }
+
+var register = map[string]bool{"SuiteTesterTestTwo": true}
+
+func skip(suiteName, testName string) bool {
+	return register[suiteName+testName]
+}
+
+// TestRunSuiteWithSkip will be run by the 'go test' command, so within it, we
+// can run our suite using the Run(*testing.T, TestingSuite) function.
+func TestRunSuiteWithSkip(t *testing.T) {
+	suiteTester := new(SuiteTester)
+	RunWithSkip(t, suiteTester, skip)
+
+	// Normally, the test would end here.  The following are simply
+	// some assertions to ensure that the Run function is working as
+	// intended - they are not part of the example.
+
+	// The suite was only run once, so the SetupSuite and TearDownSuite
+	// methods should have each been run only once.
+	assert.Equal(t, 1, suiteTester.SetupSuiteRunCount)
+	assert.Equal(t, 1, suiteTester.TearDownSuiteRunCount)
+
+	assert.Len(t, suiteTester.SuiteNameAfter, 3)
+	assert.Len(t, suiteTester.SuiteNameBefore, 3)
+	assert.Len(t, suiteTester.TestNameAfter, 3)
+	assert.Len(t, suiteTester.TestNameBefore, 3)
+
+	assert.Contains(t, suiteTester.TestNameAfter, "TestOne")
+	assert.NotContains(t, suiteTester.TestNameAfter, "TestTwo")
+	assert.Contains(t, suiteTester.TestNameAfter, "TestSkip")
+	assert.Contains(t, suiteTester.TestNameAfter, "TestSubtest")
+
+	assert.Contains(t, suiteTester.TestNameBefore, "TestOne")
+	assert.NotContains(t, suiteTester.TestNameBefore, "TestTwo")
+	assert.Contains(t, suiteTester.TestNameBefore, "TestSkip")
+	assert.Contains(t, suiteTester.TestNameBefore, "TestSubtest")
+
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuiteWithSkip/TestSubtest/first")
+	assert.Contains(t, suiteTester.SetupSubTestNames, "TestRunSuiteWithSkip/TestSubtest/second")
+
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuiteWithSkip/TestSubtest/first")
+	assert.Contains(t, suiteTester.TearDownSubTestNames, "TestRunSuiteWithSkip/TestSubtest/second")
+
+	for _, suiteName := range suiteTester.SuiteNameAfter {
+		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
+	for _, suiteName := range suiteTester.SuiteNameBefore {
+		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
+	for _, when := range suiteTester.TimeAfter {
+		assert.False(t, when.IsZero())
+	}
+
+	for _, when := range suiteTester.TimeBefore {
+		assert.False(t, when.IsZero())
+	}
+
+	// There are four test methods (TestOne, TestTwo, TestSkip, and TestSubtest), so
+	// the SetupTest and TearDownTest methods (which should be run once for
+	// each test) should have been run four times.
+	assert.Equal(t, 3, suiteTester.SetupTestRunCount)
+	assert.Equal(t, 3, suiteTester.TearDownTestRunCount)
+
+	// Each test should have been run once.
+	assert.Equal(t, 1, suiteTester.TestOneRunCount)
+	assert.Equal(t, 0, suiteTester.TestTwoRunCount)
+	assert.Equal(t, 1, suiteTester.TestSubtestRunCount)
+
+	assert.Equal(t, 2, suiteTester.TearDownSubTestRunCount)
+	assert.Equal(t, 2, suiteTester.SetupSubTestRunCount)
+
+	// Methods that don't match the test method identifier shouldn't
+	// have been run at all.
+	assert.Equal(t, 0, suiteTester.NonTestMethodRunCount)
+
+	suiteSkipTester := new(SuiteSkipTester)
+	Run(t, suiteSkipTester)
+
+	// The suite was only run once, so the SetupSuite and TearDownSuite
+	// methods should have each been run only once, even though SetupSuite
+	// called Skip()
+	assert.Equal(t, 1, suiteSkipTester.SetupSuiteRunCount)
+	assert.Equal(t, 1, suiteSkipTester.TearDownSuiteRunCount)
+
+}
+
+// TestRunSuiteWithSkip will be run by the 'go test' command, so within it, we
+// can run our suite using the Run(*testing.T, TestingSuite) function.
+func TestRunSuiteWithSkipAll(t *testing.T) {
+	suiteTester := new(SuiteTester)
+	RunWithSkip(t, suiteTester, func(_, _ string) bool { return true })
+
+	// Normally, the test would end here.  The following are simply
+	// some assertions to ensure that the Run function is working as
+	// intended - they are not part of the example.
+
+	// The suite was only run once, so the SetupSuite and TearDownSuite
+	// methods should have each been run only once.
+	assert.Equal(t, 0, suiteTester.SetupSuiteRunCount)
+	assert.Equal(t, 0, suiteTester.TearDownSuiteRunCount)
+
+	assert.Len(t, suiteTester.SuiteNameAfter, 0)
+	assert.Len(t, suiteTester.SuiteNameBefore, 0)
+	assert.Len(t, suiteTester.TestNameAfter, 0)
+	assert.Len(t, suiteTester.TestNameBefore, 0)
+
+	assert.NotContains(t, suiteTester.TestNameAfter, "TestOne")
+	assert.NotContains(t, suiteTester.TestNameAfter, "TestTwo")
+	assert.NotContains(t, suiteTester.TestNameAfter, "TestSkip")
+	assert.NotContains(t, suiteTester.TestNameAfter, "TestSubtest")
+
+	assert.NotContains(t, suiteTester.TestNameBefore, "TestOne")
+	assert.NotContains(t, suiteTester.TestNameBefore, "TestTwo")
+	assert.NotContains(t, suiteTester.TestNameBefore, "TestSkip")
+	assert.NotContains(t, suiteTester.TestNameBefore, "TestSubtest")
+
+	assert.NotContains(t, suiteTester.SetupSubTestNames, "TestRunSuiteWithSkipAll/TestSubtest/first")
+	assert.NotContains(t, suiteTester.SetupSubTestNames, "TestRunSuiteWithSkipAll/TestSubtest/second")
+
+	assert.NotContains(t, suiteTester.TearDownSubTestNames, "TestRunSuiteWithSkipAll/TestSubtest/first")
+	assert.NotContains(t, suiteTester.TearDownSubTestNames, "TestRunSuiteWithSkipAll/TestSubtest/second")
+
+	for _, suiteName := range suiteTester.SuiteNameAfter {
+		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
+	for _, suiteName := range suiteTester.SuiteNameBefore {
+		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
+	for _, when := range suiteTester.TimeAfter {
+		assert.False(t, when.IsZero())
+	}
+
+	for _, when := range suiteTester.TimeBefore {
+		assert.False(t, when.IsZero())
+	}
+
+	// There are four test methods (TestOne, TestTwo, TestSkip, and TestSubtest), so
+	// the SetupTest and TearDownTest methods (which should be run once for
+	// each test) should have been run four times.
+	assert.Equal(t, 0, suiteTester.SetupTestRunCount)
+	assert.Equal(t, 0, suiteTester.TearDownTestRunCount)
+
+	// Each test should have been run once.
+	assert.Equal(t, 0, suiteTester.TestOneRunCount)
+	assert.Equal(t, 0, suiteTester.TestTwoRunCount)
+	assert.Equal(t, 0, suiteTester.TestSubtestRunCount)
+
+	assert.Equal(t, 0, suiteTester.TearDownSubTestRunCount)
+	assert.Equal(t, 0, suiteTester.SetupSubTestRunCount)
+
+	// Methods that don't match the test method identifier shouldn't
+	// have been run at all.
+	assert.Equal(t, 0, suiteTester.NonTestMethodRunCount)
+
+	suiteSkipTester := new(SuiteSkipTester)
+	Run(t, suiteSkipTester)
+
+	// All tests were skipped via skip function, so Setup/TearDownSuite should not run
+	assert.Equal(t, 0, suiteSkipTester.SetupSuiteRunCount)
+	assert.Equal(t, 0, suiteSkipTester.TearDownSuiteRunCount)
+
+}
