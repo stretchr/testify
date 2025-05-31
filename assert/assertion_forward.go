@@ -92,10 +92,19 @@ func (a *Assertions) ElementsMatchf(listA interface{}, listB interface{}, msg st
 	return ElementsMatchf(a.t, listA, listB, msg, args...)
 }
 
-// Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// Empty asserts that the given value is "empty".
+//
+// [Zero values] are "empty".
+//
+// Arrays are "empty" if every element is the zero value of the type (stricter than "empty").
+//
+// Slices, maps and channels with zero length are "empty".
+//
+// Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
 //	a.Empty(obj)
+//
+// [Zero values]: https://go.dev/ref/spec#The_zero_value
 func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -103,10 +112,19 @@ func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) bool {
 	return Empty(a.t, object, msgAndArgs...)
 }
 
-// Emptyf asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// Emptyf asserts that the given value is "empty".
+//
+// [Zero values] are "empty".
+//
+// Arrays are "empty" if every element is the zero value of the type (stricter than "empty").
+//
+// Slices, maps and channels with zero length are "empty".
+//
+// Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
 //	a.Emptyf(obj, "error message %s", "formatted")
+//
+// [Zero values]: https://go.dev/ref/spec#The_zero_value
 func (a *Assertions) Emptyf(object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1182,8 +1200,7 @@ func (a *Assertions) NotElementsMatchf(listA interface{}, listB interface{}, msg
 	return NotElementsMatchf(a.t, listA, listB, msg, args...)
 }
 
-// NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// NotEmpty asserts that the specified object is NOT [Empty].
 //
 //	if a.NotEmpty(obj) {
 //	  assert.Equal(t, "two", obj[1])
@@ -1195,8 +1212,7 @@ func (a *Assertions) NotEmpty(object interface{}, msgAndArgs ...interface{}) boo
 	return NotEmpty(a.t, object, msgAndArgs...)
 }
 
-// NotEmptyf asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// NotEmptyf asserts that the specified object is NOT [Empty].
 //
 //	if a.NotEmptyf(obj, "error message %s", "formatted") {
 //	  assert.Equal(t, "two", obj[1])
