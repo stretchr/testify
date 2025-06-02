@@ -1587,61 +1587,34 @@ func TestPanicsWithValue(t *testing.T) {
 func TestPanicsWithError(t *testing.T) {
 	t.Parallel()
 
-	type NestedErr struct {
-		Err error
-	}
-
-	mockT := new(CollectT)
-	if !PanicsWithError(mockT, "panic", func() {
+	mockT := new(captureTestingT)
+	succeeded := PanicsWithError(mockT, "panic", func() {
 		panic(errors.New("panic"))
-	}) {
-		t.Error("PanicsWithError should return true")
-	}
-	Len(t, mockT.errors, 0)
+	})
+	mockT.checkResultAndErrMsg(t, true, succeeded, "")
 
-	mockT = new(CollectT)
-	if PanicsWithError(mockT, "Panic!", func() {
-	}) {
-		t.Error("PanicsWithError should return false")
-	}
-	if Len(t, mockT.errors, 1) {
-		actual := mockT.errors[0].Error()
-		Contains(t, actual, "Panic value:	<nil>")
-	}
+	succeeded = PanicsWithError(mockT, "Panic!", func() {})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, "Panic value:\t<nil>")
 
-	mockT = new(CollectT)
-	if PanicsWithError(mockT, "at the disco", func() {
-		panic(errors.New("actual err msg"))
-	}) {
-		t.Error("PanicsWithError should return false")
-	}
-	if Len(t, mockT.errors, 1) {
-		actual := mockT.errors[0].Error()
-		Contains(t, actual, `Error message:	"actual err msg"`)
-	}
+	succeeded = PanicsWithError(mockT, "expected panic err msg", func() {
+		panic(errors.New("actual panic err msg"))
+	})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, `Error message:	"actual panic err msg"`)
 
-	mockT = new(CollectT)
-	if PanicsWithError(mockT, "at the disco", func() {
-		panic(&PanicsWithErrorWrapper{"wrapped", errors.New("other err msg")})
-	}) {
-		t.Error("PanicsWithError should return false")
-	}
-	if Len(t, mockT.errors, 1) {
-		actual := mockT.errors[0].Error()
-		Contains(t, actual, `Error message:	"wrapped: other err msg"`)
-	}
+	succeeded = PanicsWithError(mockT, "expected panic err msg", func() {
+		panic(&PanicsWithErrorWrapper{"wrapped", errors.New("actual panic err msg")})
+	})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, `Error message:	"wrapped: actual panic err msg"`)
 
-	mockT = new(CollectT)
-	if PanicsWithError(mockT, "Panic!", func() {
-		panic("panic")
-	}) {
-		t.Error("PanicsWithError should return false")
-	}
-	if Len(t, mockT.errors, 1) {
-		actual := mockT.errors[0].Error()
-		Contains(t, actual, `Panic value:	"panic"`)
-		NotContains(t, actual, "Error message:", "PanicsWithError should not report error message if not due an error")
-	}
+	succeeded = PanicsWithError(mockT, "expected panic msg", func() {
+		panic("actual panic msg")
+	})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, `Panic value:	"actual panic msg"`)
+	NotContains(t, mockT.msg, "Error message:", "PanicsWithError should not report error message if not due an error")
 }
 
 type PanicsWithErrorWrapper struct {
