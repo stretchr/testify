@@ -197,7 +197,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				case 1:
 					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 				case 2:
-					if method.Type.In(1) == reflect.TypeOf(&testing.T{}) {
+					if method.Type.In(1) == reflect.TypeOf((*testing.T)(nil)) {
 						method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
 						break
 					}
