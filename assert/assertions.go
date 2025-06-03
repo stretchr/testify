@@ -752,8 +752,11 @@ func isEmpty(object interface{}) bool {
 		return true
 	}
 
-	objValue := reflect.ValueOf(object)
+	return isEmptyValue(reflect.ValueOf(object))
+}
 
+// isEmptyValue gets whether the specified reflect.Value is considered empty or not.
+func isEmptyValue(objValue reflect.Value) bool {
 	switch objValue.Kind() {
 	// collection types are empty when they have no element
 	case reflect.Chan, reflect.Map, reflect.Slice:
@@ -763,13 +766,12 @@ func isEmpty(object interface{}) bool {
 		if objValue.IsNil() {
 			return true
 		}
-		deref := objValue.Elem().Interface()
-		return isEmpty(deref)
+		return isEmptyValue(objValue.Elem())
 	// for all other types, compare against the zero value
 	// array types are empty when they match their zero-initialized state
 	default:
 		zero := reflect.Zero(objValue.Type())
-		return reflect.DeepEqual(object, zero.Interface())
+		return reflect.DeepEqual(objValue.Interface(), zero.Interface())
 	}
 }
 
