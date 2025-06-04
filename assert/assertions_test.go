@@ -1843,6 +1843,19 @@ func Test_isEmpty(t *testing.T) {
 	}{a: 42, B: 0}))
 }
 
+func Benchmark_isEmpty(b *testing.B) {
+	b.ReportAllocs()
+
+	v := new(int)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		isEmpty("")
+		isEmpty(42)
+		isEmpty(v)
+	}
+}
+
 func TestEmpty(t *testing.T) {
 	t.Parallel()
 
