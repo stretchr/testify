@@ -978,15 +978,15 @@ func TestNotEqual(t *testing.T) {
 	}
 }
 
-func TestNotEqualValues(t *testing.T) {
+func TestEqualValuesAndNotEqualValues(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(testing.T)
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
-		result   bool
+		expected       interface{}
+		actual         interface{}
+		notEqualResult bool // result for NotEqualValues
 	}{
 		// cases that are expected not to match
 		{"Hello World", "Hello World!", true},
@@ -1013,11 +1013,22 @@ func TestNotEqualValues(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		// Test NotEqualValues
 		t.Run(fmt.Sprintf("NotEqualValues(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
 			res := NotEqualValues(mockT, c.expected, c.actual)
 
-			if res != c.result {
-				t.Errorf("NotEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			if res != c.notEqualResult {
+				t.Errorf("NotEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.notEqualResult)
+			}
+		})
+
+		// Test EqualValues (inverse of NotEqualValues)
+		t.Run(fmt.Sprintf("EqualValues(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+			expectedEqualResult := !c.notEqualResult // EqualValues should return opposite of NotEqualValues
+			res := EqualValues(mockT, c.expected, c.actual)
+
+			if res != expectedEqualResult {
+				t.Errorf("EqualValues(%#v, %#v) should return %#v", c.expected, c.actual, expectedEqualResult)
 			}
 		})
 	}
