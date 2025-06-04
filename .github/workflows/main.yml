@@ -15,8 +15,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go_version }}
+      - run: npm install -g mdsf-cli
       - run: ./.ci.gogenerate.sh
       - run: ./.ci.gofmt.sh
+      - run: ./.ci.readme.fmt.sh
       - run: ./.ci.govet.sh
       - run: go test -v -race ./...
   test:
