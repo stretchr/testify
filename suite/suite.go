@@ -177,7 +177,8 @@ func Run(t *testing.T, suite TestingSuite) {
 
 					if stats != nil {
 						passed := !t.Failed() && r == nil
-						stats.end(method.Name, passed)
+						skipped := t.Skipped()
+						stats.end(method.Name, passed, skipped)
 					}
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
