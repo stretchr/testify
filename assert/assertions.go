@@ -761,25 +761,25 @@ func isEmpty(object interface{}) bool {
 		return true
 	}
 
-	objValue := reflect.ValueOf(object)
+	return isEmptyValue(reflect.ValueOf(object))
+}
 
+// isEmptyValue gets whether the specified reflect.Value is considered empty or not.
+func isEmptyValue(objValue reflect.Value) bool {
+	if objValue.IsZero() {
+		return true
+	}
+	// Special cases of non-zero values that we consider empty
 	switch objValue.Kind() {
 	// collection types are empty when they have no element
+	// Note: array types are empty when they match their zero-initialized state.
 	case reflect.Chan, reflect.Map, reflect.Slice:
 		return objValue.Len() == 0
-	// pointers are empty if nil or if the value they point to is empty
+	// non-nil pointers are empty if the value they point to is empty
 	case reflect.Ptr:
-		if objValue.IsNil() {
-			return true
-		}
-		deref := objValue.Elem().Interface()
-		return isEmpty(deref)
-	// for all other types, compare against the zero value
-	// array types are empty when they match their zero-initialized state
-	default:
-		zero := reflect.Zero(objValue.Type())
-		return reflect.DeepEqual(object, zero.Interface())
+		return isEmptyValue(objValue.Elem())
 	}
+	return false
 }
 
 // Empty asserts that the given value is "empty".
@@ -2234,17 +2234,17 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 		return true
 	}
 
-	expectedText := reflect.ValueOf(target).Elem().Type().String()
+	expectedType := reflect.TypeOf(target).Elem().String()
 	if err == nil {
 		return Fail(t, fmt.Sprintf("An error is expected but got nil.\n"+
-			"expected: %s", expectedText), msgAndArgs...)
+			"expected: %s", expectedType), msgAndArgs...)
 	}
 
 	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
 		"expected: %s\n"+
-		"in chain: %s", expectedText, chain,
+		"in chain: %s", expectedType, chain,
 	), msgAndArgs...)
 }
 
@@ -2262,7 +2262,7 @@ func NotErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interfa
 
 	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
 		"found: %s\n"+
-		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
+		"in chain: %s", reflect.TypeOf(target).Elem().String(), chain,
 	), msgAndArgs...)
 }
 
