@@ -56,6 +56,15 @@ type PanicAssertionFunc = func(t TestingT, f PanicTestFunc, msgAndArgs ...interf
 // Comparison is a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
+// FieldDiff represents a single difference between two compared values.
+// It stores the path to the differing field, along with the expected and actual values.
+// This is used by the Match function to provide detailed information about differences.
+type FieldDiff struct {
+	Path     string      // The path to the field, using dot notation for nested fields
+	Expected interface{} // The expected value at this path
+	Actual   interface{} // The actual value at this path
+}
+
 /*
 	Helper functions
 */
@@ -2291,4 +2300,358 @@ func buildErrorChainString(err error, withType bool) string {
 		}
 	}
 	return chain
+}
+
+// Match asserts that two arrays or slices contain exactly the same elements
+// in the same order, with the same number of occurrences of each element.
+// Every element in the expected array must be present in the actual array
+// at the same index, and vice versa. It also performs deep equality checks
+// on each element's fields.
+//
+//	assert.Match(t, []Employee{e1, e2}, []Employee{e1, e2})
+func Match(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if !isSliceOrArray(expected) || !isSliceOrArray(actual) {
+		return Fail(t, "Match function works only with slices or arrays", msgAndArgs...)
+	}
+
+	return inspectSlices(t, expected, actual, msgAndArgs...)
+}
+
+// isSliceOrArray checks if the provided value is a slice or an array.
+// It handles nil values by returning false.
+func isSliceOrArray(v interface{}) bool {
+	if v == nil {
+		return false
+	}
+	kind := reflect.TypeOf(v).Kind()
+	return kind == reflect.Slice || kind == reflect.Array
+}
+
+// inspectSlices compares each element of two slices or arrays for deep equality.
+// It provides detailed error messages when differences are found, including the specific fields that differ.
+func inspectSlices(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+
+	expectedLen := expectedValue.Len()
+	actualLen := actualValue.Len()
+	
+	minLen := expectedLen
+	if actualLen < minLen {
+		minLen = actualLen
+	}
+
+	var differences []string
+
+	if actualLen != expectedLen {
+		Fail(t, fmt.Sprintf("Lengths not equal:\nexpected: %d\nactual  : %d", expectedLen, actualLen), msgAndArgs...)
+		return false
+	}
+
+	for i := 0; i < minLen; i++ {
+		expectedItem := expectedValue.Index(i).Interface()
+		actualItem := actualValue.Index(i).Interface()
+
+		if !ObjectsAreEqual(expectedItem, actualItem) {
+			message := messageFromMsgAndArgs(msgAndArgs...)
+			diffs := findDifferences(expectedItem, actualItem)
+
+			differencesOutput := "Field differences:\n"
+			for _, diff := range diffs {
+				differencesOutput += fmt.Sprintf("  └─ %s: %s ≠ %s\n", diff.Path, formatDiffValue(diff.Expected), formatDiffValue(diff.Actual))
+			}
+
+			if message != "" {
+				differences = append(differences, fmt.Sprintf(
+					"MATCH: %s\n[index %d] Not equal:\nexpected: %v\nactual  : %v",
+					message, i, formatComparisonValue(expectedItem), formatComparisonValue(actualItem)))
+				differences = append(differences, differencesOutput)
+			} else {
+				differences = append(differences, fmt.Sprintf(
+					"MATCH: [index %d] Not equal:\nexpected: %v\nactual  : %v",
+					i, formatComparisonValue(expectedItem), formatComparisonValue(actualItem)))
+				differences = append(differences, differencesOutput)
+			}
+		}
+	}
+
+	if len(differences) > 0 {
+		diffMessage := strings.Join(differences, "\n")
+		Fail(t, fmt.Sprintf("Differences found:\n%s", diffMessage), msgAndArgs...)
+		return false
+	}
+
+	return true
+}
+
+// formatComparisonValue formats an arbitrary value for human-readable comparison.
+// It applies proper formatting based on the value's type.
+func formatComparisonValue(obj interface{}) string {
+	return formatValueComparison(reflect.ValueOf(obj))
+}
+
+// formatValueComparison handles the formatting logic for different reflect.Value types
+// to provide consistent and readable output for comparison purposes.
+func formatValueComparison(v reflect.Value) string {
+	switch v.Kind() {
+	case reflect.Struct:
+		var parts []string
+		t := v.Type()
+		for i := 0; i < v.NumField(); i++ {
+			field := t.Field(i)
+			if !field.IsExported() {
+				continue
+			}
+			fieldValue := v.Field(i)
+			parts = append(parts, fmt.Sprintf("%s: %s", field.Name, formatValueComparison(fieldValue)))
+		}
+		return fmt.Sprintf("{%s}", strings.Join(parts, ", "))
+	
+	case reflect.String:
+		return fmt.Sprintf(`"%s"`, v.String())
+	
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return fmt.Sprintf("%d", v.Int())
+	
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return fmt.Sprintf("%d", v.Uint())
+	
+	case reflect.Float32, reflect.Float64:
+		return fmt.Sprintf("%g", v.Float())
+	
+	case reflect.Bool:
+		return fmt.Sprintf("%t", v.Bool())
+	
+	case reflect.Ptr:
+		if v.IsNil() {
+			return "nil"
+		}
+		return formatValueComparison(v.Elem())
+	
+	case reflect.Slice, reflect.Array:
+		if v.IsNil() {
+			return "nil"
+		}
+		var elements []string
+		for i := 0; i < v.Len(); i++ {
+			elements = append(elements, formatValueComparison(v.Index(i)))
+		}
+		return fmt.Sprintf("[%s]", strings.Join(elements, ", "))
+	
+	case reflect.Map:
+		if v.IsNil() {
+			return "nil"
+		}
+		var pairs []string
+		for _, key := range v.MapKeys() {
+			value := v.MapIndex(key)
+			pairs = append(pairs, fmt.Sprintf("%s: %s", formatValueComparison(key), formatValueComparison(value)))
+		}
+		return fmt.Sprintf("map[%s]", strings.Join(pairs, ", "))
+	
+	default:
+		return fmt.Sprintf("%v", v.Interface())
+	}
+}
+
+// formatDiffValue formats a value specifically for showing differences.
+// It handles basic types differently than complex types for better readability.
+func formatDiffValue(value interface{}) string {
+	if value == nil {
+		return "<nil>"
+	}
+
+	switch v := value.(type) {
+	case string:
+		return fmt.Sprintf("%q", v)
+	case bool:
+		return fmt.Sprintf("%t", v)
+	case int, int8, int16, int32, int64:
+		return fmt.Sprintf("%v", v)
+	case uint, uint8, uint16, uint32, uint64:
+		return fmt.Sprintf("%v", v)
+	case float32, float64:
+		return fmt.Sprintf("%v", v)
+	default:
+		// for complex types, use our comparison formatter
+		return formatComparisonValue(v)
+	}
+}
+
+// findDifferences locates all differences between two values and returns them as a slice of FieldDiff.
+// The function works recursively for nested structures.
+func findDifferences(expected, actual interface{}) []FieldDiff {
+	var diffs []FieldDiff
+	compareExpectedActual(expected, actual, "", &diffs)
+	return diffs
+}
+
+// compareExpectedActual compares two values recursively and records any differences in the provided diffs slice.
+// It handles complex structures like structs, maps, slices, and arrays.
+func compareExpectedActual(expected, actual interface{}, path string, diffs *[]FieldDiff) {
+	expectedValue := reflect.ValueOf(expected)
+	actualValue := reflect.ValueOf(actual)
+
+	if expectedValue.Kind() != actualValue.Kind() {
+		*diffs = append(*diffs, FieldDiff{
+			Path:     path,
+			Expected: expectedValue.Kind(),
+			Actual:   actualValue.Kind(),
+		})
+		return
+	}
+
+	switch expectedValue.Kind() {
+	case reflect.Struct:
+		typeOfT := expectedValue.Type()
+		for i := 0; i < expectedValue.NumField(); i++ {
+			field := typeOfT.Field(i)
+			newPath := buildPath(path, field.Name)
+
+			expectedField := expectedValue.Field(i).Interface()
+			actualField := actualValue.Field(i).Interface()
+
+			compareExpectedActual(expectedField, actualField, newPath, diffs)
+		}
+
+	case reflect.String:
+		if expectedValue.String() != actualValue.String() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.String(),
+				Actual:   actualValue.String(),
+			})
+		}
+
+	case reflect.Bool:
+		if expectedValue.Bool() != actualValue.Bool() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Bool(),
+				Actual:   actualValue.Bool(),
+			})
+		}
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if expectedValue.Int() != actualValue.Int() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+		}
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if expectedValue.Uint() != actualValue.Uint() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+		}
+
+	case reflect.Float32, reflect.Float64:
+		if expectedValue.Float() != actualValue.Float() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+		}
+
+	case reflect.Ptr:
+		if expectedValue.IsNil() != actualValue.IsNil() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+			return
+		}
+		if !expectedValue.IsNil() {
+			compareExpectedActual(expectedValue.Elem().Interface(), actualValue.Elem().Interface(), path, diffs)
+		}
+
+	case reflect.Slice, reflect.Array:
+		if expectedValue.IsNil() != actualValue.IsNil() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+			return
+		}
+
+		if expectedValue.Len() == 0 && actualValue.Len() == 0 {
+			return
+		}
+
+		if expectedValue.Len() != actualValue.Len() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+			return
+		}
+
+		//compare elements one by one
+		for i := 0; i < expectedValue.Len(); i++ {
+			if !reflect.DeepEqual(expectedValue.Index(i).Interface(), actualValue.Index(i).Interface()) {
+				elementPath := buildPath(path, fmt.Sprintf("[%d]", i))
+				compareExpectedActual(expectedValue.Index(i).Interface(), actualValue.Index(i).Interface(), elementPath, diffs)
+			}
+		}
+
+	case reflect.Map:
+		if expectedValue.IsNil() != actualValue.IsNil() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+			return
+		}
+
+		if expectedValue.IsNil() {
+			return
+		}
+
+		if expectedValue.Len() != actualValue.Len() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expectedValue.Interface(),
+				Actual:   actualValue.Interface(),
+			})
+			return
+		}
+
+		for _, key := range expectedValue.MapKeys() {
+			actualVal := actualValue.MapIndex(key)
+			if !actualVal.IsValid() {
+				*diffs = append(*diffs, FieldDiff{
+					Path:     buildPath(path, fmt.Sprintf("[%v]", key.Interface())),
+					Expected: expectedValue.MapIndex(key).Interface(),
+					Actual:   nil,
+				})
+				continue
+			}
+
+			keyPath := buildPath(path, fmt.Sprintf("[%v]", key.Interface()))
+			compareExpectedActual(expectedValue.MapIndex(key).Interface(), actualVal.Interface(), keyPath, diffs)
+		}
+	}
+}
+
+// buildPath creates a dotted path for nested fields to provide clear identification
+// of where differences occur in complex structures.
+func buildPath(parent, field string) string {
+	if parent == "" {
+		return field
+	}
+	return parent + "." + field
 }
