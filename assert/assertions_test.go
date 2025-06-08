@@ -3970,3 +3970,373 @@ func TestNotErrorAs(t *testing.T) {
 		})
 	}
 }
+
+func TestMatch_WithBasicTypes_ShouldSucceed(t *testing.T) {
+	t.Parallel()
+
+	expected := []int{1, 2, 3}
+	actual := []int{1, 2, 3}
+	
+	match := Match(t, expected, actual)
+	True(t, match)
+}
+
+func TestMatch_WithDifferentBasicTypes_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	
+	expected := []int{1, 2, 3}
+	actual := []int{1, 2, 4}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Differences found:")
+}
+
+func TestMatch_WithDifferentLengths_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	
+	expected := []int{1, 2, 3}
+	actual := []int{1, 2}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Lengths not equal:")
+}
+
+func TestMatch_WithNonSliceOrArray_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	
+	expected := 1
+	actual := []int{1}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Match function works only with slices or arrays")
+}
+
+func TestMatch_WithNestedStructs_ShouldSucceed(t *testing.T) {
+	t.Parallel()
+
+	type Address struct {
+		City    string
+		ZipCode string
+	}
+	
+	type Department struct {
+		Name     string
+		Budget   float64
+		Manager  *string
+		Metadata map[string]string
+	}
+	
+	type Employee struct {
+		Name       string
+		Age        int
+		Contacts   []string
+		Address    Address
+		Department Department
+	}
+	
+	managerName := "Alice"
+	
+	expected := []Employee{
+		{
+			Name:     "Alice",
+			Age:      30,
+			Contacts: []string{"alice@example.com", "123456789"},
+			Address:  Address{City: "New York", ZipCode: "10001"},
+			Department: Department{
+				Name:     "Engineering",
+				Budget:   100000.50,
+				Manager:  &managerName,
+				Metadata: map[string]string{"priority": "high", "region": "us-east"},
+			},
+		},
+	}
+	
+	actual := []Employee{
+		{
+			Name:     "Alice",
+			Age:      30,
+			Contacts: []string{"alice@example.com", "123456789"},
+			Address:  Address{City: "New York", ZipCode: "10001"},
+			Department: Department{
+				Name:     "Engineering",
+				Budget:   100000.50,
+				Manager:  &managerName,
+				Metadata: map[string]string{"priority": "high", "region": "us-east"},
+			},
+		},
+	}
+	
+	match := Match(t, expected, actual)
+	True(t, match)
+}
+
+func TestMatch_WithDifferentNestedStructs_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	type Address struct {
+		City    string
+		ZipCode string
+	}
+	
+	type Department struct {
+		Name     string
+		Budget   float64
+		Manager  *string
+		Metadata map[string]string
+	}
+	
+	type Employee struct {
+		Name       string
+		Age        int
+		Contacts   []string
+		Address    Address
+		Department Department
+	}
+	
+	mockT := new(mockTestingT)
+	
+	managerAlice := "Alice"
+	managerBob := "Bob"
+	
+	expected := []Employee{
+		{
+			Name:     "Alice",
+			Age:      30,
+			Contacts: []string{"alice@example.com", "123456789"},
+			Address:  Address{City: "New York", ZipCode: "10001"},
+			Department: Department{
+				Name:     "Engineering",
+				Budget:   100000.50,
+				Manager:  &managerAlice,
+				Metadata: map[string]string{"priority": "high", "region": "us-east"},
+			},
+		},
+	}
+	
+	actual := []Employee{
+		{
+			Name:     "Alice",
+			Age:      30,
+			Contacts: []string{"alice@example.com", "123456789"},
+			Address:  Address{City: "New York", ZipCode: "10001"},
+			Department: Department{
+				Name:     "Engineering",
+				Budget:   100000.50,
+				Manager:  &managerBob, // Different manager
+				Metadata: map[string]string{"priority": "high", "region": "us-east"},
+			},
+		},
+	}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Department.Manager")
+}
+
+func TestMatch_WithMaps_ShouldSucceed(t *testing.T) {
+	t.Parallel()
+	
+	expected := []map[string]int{
+		{"a": 1, "b": 2, "c": 3},
+	}
+	
+	actual := []map[string]int{
+		{"a": 1, "b": 2, "c": 3},
+	}
+	
+	match := Match(t, expected, actual)
+	True(t, match)
+}
+
+func TestMatch_WithDifferentMaps_ShouldFail(t *testing.T) {
+	t.Parallel()
+	
+	mockT := new(mockTestingT)
+	
+	expected := []map[string]int{
+		{"a": 1, "b": 2, "c": 3},
+	}
+	
+	actual := []map[string]int{
+		{"a": 1, "b": 5, "c": 3}, // "b" has different value
+	}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "b")
+}
+
+func TestMatch_WithPointers_ShouldSucceed(t *testing.T) {
+	t.Parallel()
+	
+	value1 := 42
+	value2 := 42
+	
+	expected := []*int{&value1, &value2}
+	actual := []*int{&value1, &value2}
+	
+	match := Match(t, expected, actual)
+	True(t, match)
+}
+
+func TestMatch_WithDifferentPointers_ShouldFail(t *testing.T) {
+	t.Parallel()
+	
+	mockT := new(mockTestingT)
+	
+	value1 := 42
+	value2 := 42
+	value3 := 43
+	
+	expected := []*int{&value1, &value2}
+	actual := []*int{&value1, &value3}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Differences found:")
+}
+
+func TestMatch_WithArrays_ShouldSucceed(t *testing.T) {
+	t.Parallel()
+	
+	expected := [3]int{1, 2, 3}
+	actual := [3]int{1, 2, 3}
+	
+	match := Match(t, expected, actual)
+	True(t, match)
+}
+
+func TestMatch_WithDifferentArrays_ShouldFail(t *testing.T) {
+	t.Parallel()
+	
+	mockT := new(mockTestingT)
+	
+	expected := [3]int{1, 2, 3}
+	actual := [3]int{1, 2, 4}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Differences found:")
+}
+
+func TestMatch_WithNestedSlicesAndArrays_ShouldSucceed(t *testing.T) {
+	t.Parallel()
+	
+	expected := [][]int{{1, 2}, {3, 4}}
+	actual := [][]int{{1, 2}, {3, 4}}
+	
+	match := Match(t, expected, actual)
+	True(t, match)
+}
+
+func TestMatch_WithDifferentNestedSlicesAndArrays_ShouldFail(t *testing.T) {
+	t.Parallel()
+	
+	mockT := new(mockTestingT)
+	
+	expected := [][]int{{1, 2}, {3, 4}}
+	actual := [][]int{{1, 2}, {3, 5}}
+	
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Differences found:")
+}
+
+func TestMatch_WithNilValues_ShouldSucceed(t *testing.T) {
+	t.Parallel()
+	
+	var nilSlice []int = nil
+	
+	// Two nil slices are considered equal
+	match := Match(t, nilSlice, nilSlice)
+	True(t, match)
+	
+	// Slices containing nil
+	type Person struct {
+		Name string
+		Age  *int
+	}
+	
+	expected := []Person{
+		{Name: "Alice", Age: nil},
+	}
+	
+	actual := []Person{
+		{Name: "Alice", Age: nil},
+	}
+	
+	match = Match(t, expected, actual)
+	True(t, match)
+	
+	// Test with different values
+	mockT := new(mockTestingT)
+	age := 30
+	differentActual := []Person{
+		{Name: "Alice", Age: &age},
+	}
+	
+	match = Match(mockT, expected, differentActual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Differences found:")
+}
+
+func TestMatch_OrderMatters(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+
+	expected := []int{1, 2, 3}
+	actual := []int{3, 2, 1}
+
+	// This Match should fail because the order is different
+	match := Match(mockT, expected, actual)
+	False(t, match)
+	Contains(t, mockT.errorString(), "Differences found:")
+	
+	// Additional verification to compare with ElementsMatch
+	// ElementsMatch should pass for the same data
+	elementsMatch := ElementsMatch(t, expected, actual)
+	True(t, elementsMatch)
+}
+
+func TestMatch_NilVsEmptySlices(t *testing.T) {
+	t.Parallel()
+
+	// This test documents the current behavior of comparing nil and empty slices.
+	// Maintainers should decide whether this behavior is desirable.
+
+	var nilSlice []int = nil
+	emptySlice := []int{}
+
+	// In Go, nil and empty slices are technically different:
+	// - nil: no underlying array
+	// - empty: zero-length allocated array
+	//
+	// This matters because:
+	// 1. They behave the same in some cases (e.g., len(), for range)
+	// 2. They differ in others (e.g., reflection, comparison with nil)
+
+	mockT := new(mockTestingT)
+	result := Match(mockT, nilSlice, emptySlice)
+
+	// Logs the current behavior for reference
+	if result {
+		t.Logf("CURRENT: nil and empty slices are treated as EQUAL by Match()")
+	} else {
+		t.Logf("CURRENT: nil and empty slices are treated as DIFFERENT by Match()")
+	}
+}
+
+
+
+
+
