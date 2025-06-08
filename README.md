@@ -18,7 +18,7 @@ Features include:
 Get started:
 
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
-  * For an introduction to writing test code in Go, see https://go.dev/doc/code#Testing
+  * For an introduction to writing test code in Go using its default testing framework, see https://go.dev/doc/code#Testing
   * Check out the API Documentation https://pkg.go.dev/github.com/stretchr/testify
   * Use [testifylint](https://github.com/Antonboom/testifylint) (via [golangci-lint](https://golangci-lint.run/)) to avoid common mistakes
   * A little about [Test-Driven Development (TDD)](https://en.wikipedia.org/wiki/Test-driven_development)
