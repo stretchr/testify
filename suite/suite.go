@@ -123,12 +123,6 @@ type test = struct {
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
-	RunWithSkip(t, suite, func(_, _ string) bool { return false })
-}
-
-// RunWithSkip takes a testing suite and a skip function allowing
-// for extra filtering on tests to be run
-func RunWithSkip(t *testing.T, suite TestingSuite, skip func(string, string) bool) {
 	defer recoverAndFailOnPanic(t)
 
 	suite.SetT(t)
@@ -156,8 +150,10 @@ func RunWithSkip(t *testing.T, suite TestingSuite, skip func(string, string) boo
 			continue
 		}
 
-		if skip(suiteName, method.Name) {
-			continue
+		if skipTest, ok := suite.(SkipTest); ok {
+			if skipTest.SkipTest(suiteName, method.Name) {
+				continue
+			}
 		}
 
 		test := test{
