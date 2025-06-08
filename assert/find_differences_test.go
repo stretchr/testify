@@ -14,19 +14,19 @@ func TestFindDifferences_BasicTypes(t *testing.T) {
 		name     string
 		expected interface{}
 		actual   interface{}
-		want     []FieldDiff
+		want     []fieldDiff
 	}{
 		{
 			name:     "Equal strings",
 			expected: "test",
 			actual:   "test",
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 		{
 			name:     "Different strings",
 			expected: "test",
 			actual:   "other",
-			want: []FieldDiff{{
+			want: []fieldDiff{{
 				Path:     "",
 				Expected: "test",
 				Actual:   "other",
@@ -36,13 +36,13 @@ func TestFindDifferences_BasicTypes(t *testing.T) {
 			name:     "Equal integers",
 			expected: 42,
 			actual:   42,
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 		{
 			name:     "Different integers",
 			expected: 42,
 			actual:   24,
-			want: []FieldDiff{{
+			want: []fieldDiff{{
 				Path:     "",
 				Expected: 42,
 				Actual:   24,
@@ -52,13 +52,13 @@ func TestFindDifferences_BasicTypes(t *testing.T) {
 			name:     "Equal booleans",
 			expected: true,
 			actual:   true,
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 		{
 			name:     "Different booleans",
 			expected: true,
 			actual:   false,
-			want: []FieldDiff{{
+			want: []fieldDiff{{
 				Path:     "",
 				Expected: true,
 				Actual:   false,
@@ -68,7 +68,7 @@ func TestFindDifferences_BasicTypes(t *testing.T) {
 			name:     "Different types",
 			expected: 42,
 			actual:   "42",
-			want: []FieldDiff{{
+			want: []fieldDiff{{
 				Path:     "",
 				Expected: reflect.Int,
 				Actual:   reflect.String,
@@ -78,7 +78,7 @@ func TestFindDifferences_BasicTypes(t *testing.T) {
 			name:     "nil values",
 			expected: nil,
 			actual:   nil,
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 	}
 
@@ -101,13 +101,13 @@ func TestFindDifferences_SpecialValues(t *testing.T) {
 		name     string
 		expected interface{}
 		actual   interface{}
-		want     []FieldDiff
+		want     []fieldDiff
 	}{
 		{
 			name:     "NaN vs NaN",
 			expected: math.NaN(),
 			actual:   math.NaN(),
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "",
 					Expected: math.NaN(),
@@ -119,13 +119,13 @@ func TestFindDifferences_SpecialValues(t *testing.T) {
 			name:     "Inf vs Inf",
 			expected: math.Inf(1),
 			actual:   math.Inf(1),
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 		{
 			name:     "Inf vs -Inf",
 			expected: math.Inf(1),
 			actual:   math.Inf(-1),
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "",
 					Expected: math.Inf(1),
@@ -137,7 +137,7 @@ func TestFindDifferences_SpecialValues(t *testing.T) {
 			name:     "Float vs NaN",
 			expected: 1.0,
 			actual:   math.NaN(),
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "",
 					Expected: 1.0,
@@ -198,7 +198,7 @@ func TestFindDifferences_Structs(t *testing.T) {
 		name     string
 		expected interface{}
 		actual   interface{}
-		want     []FieldDiff
+		want     []fieldDiff
 	}{
 		{
 			name: "Equal simple structs",
@@ -210,7 +210,7 @@ func TestFindDifferences_Structs(t *testing.T) {
 				Name: "John",
 				Age:  30,
 			},
-			want: []FieldDiff{},
+			want: []fieldDiff{},
 		},
 		{
 			name: "Different simple structs",
@@ -222,7 +222,7 @@ func TestFindDifferences_Structs(t *testing.T) {
 				Name: "Jane",
 				Age:  25,
 			},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "Name",
 					Expected: "John",
@@ -255,7 +255,7 @@ func TestFindDifferences_Structs(t *testing.T) {
 					ZipCode: "10001",
 				},
 			},
-			want: []FieldDiff{},
+			want: []fieldDiff{},
 		},
 		{
 			name: "Different nested structs",
@@ -277,7 +277,7 @@ func TestFindDifferences_Structs(t *testing.T) {
 					ZipCode: "10001",
 				},
 			},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "Address.Street",
 					Expected: "123 Main St",
@@ -308,7 +308,7 @@ func TestFindDifferences_Structs(t *testing.T) {
 				Department: "Engineering",
 				Salary:     90000,
 			},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "Person.Age",
 					Expected: 30,
@@ -350,7 +350,7 @@ func TestFindDifferences_PointersAndNil(t *testing.T) {
 		name     string
 		expected interface{}
 		actual   interface{}
-		want     []FieldDiff
+		want     []fieldDiff
 	}{
 		{
 			name: "Both pointers equal",
@@ -362,7 +362,7 @@ func TestFindDifferences_PointersAndNil(t *testing.T) {
 				Name:    "John",
 				Address: &addressA,
 			},
-			want: []FieldDiff{},
+			want: []fieldDiff{},
 		},
 		{
 			name: "Pointers to different values",
@@ -374,7 +374,7 @@ func TestFindDifferences_PointersAndNil(t *testing.T) {
 				Name:    "John",
 				Address: &addressB,
 			},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "Address",
 					Expected: "123 Main St",
@@ -392,7 +392,7 @@ func TestFindDifferences_PointersAndNil(t *testing.T) {
 				Name:    "John",
 				Address: nil,
 			},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "Address",
 					Expected: &addressA,
@@ -404,7 +404,7 @@ func TestFindDifferences_PointersAndNil(t *testing.T) {
 			name:     "Equal pointers to nil",
 			expected: (*string)(nil),
 			actual:   (*string)(nil),
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 	}
 
@@ -427,19 +427,19 @@ func TestFindDifferences_SlicesAndArrays(t *testing.T) {
 		name     string
 		expected interface{}
 		actual   interface{}
-		want     []FieldDiff
+		want     []fieldDiff
 	}{
 		{
 			name:     "Equal slices",
 			expected: []int{1, 2, 3},
 			actual:   []int{1, 2, 3},
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 		{
 			name:     "Different slice values",
 			expected: []int{1, 2, 3},
 			actual:   []int{1, 4, 3},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "[1]",
 					Expected: 2,
@@ -451,7 +451,7 @@ func TestFindDifferences_SlicesAndArrays(t *testing.T) {
 			name:     "Different slice lengths",
 			expected: []int{1, 2, 3},
 			actual:   []int{1, 2},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "",
 					Expected: []int{1, 2, 3},
@@ -463,13 +463,13 @@ func TestFindDifferences_SlicesAndArrays(t *testing.T) {
 			name:     "Equal arrays",
 			expected: []int{1, 2, 3},
 			actual:   []int{1, 2, 3},
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 		{
 			name:     "Different array values",
 			expected: []int{1, 2, 3},
 			actual:   []int{1, 5, 3},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "[1]",
 					Expected: 2,
@@ -481,7 +481,7 @@ func TestFindDifferences_SlicesAndArrays(t *testing.T) {
 			name:     "nil vs empty slice",
 			expected: []int(nil),
 			actual:   []int{},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "",
 					Expected: []int(nil),
@@ -493,7 +493,7 @@ func TestFindDifferences_SlicesAndArrays(t *testing.T) {
 			name:     "Nested slices",
 			expected: [][]int{{1, 2}, {3, 4}},
 			actual:   [][]int{{1, 2}, {3, 5}},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "[1].[1]",
 					Expected: 4,
@@ -522,19 +522,19 @@ func TestFindDifferences_Maps(t *testing.T) {
 		name     string
 		expected interface{}
 		actual   interface{}
-		want     []FieldDiff
+		want     []fieldDiff
 	}{
 		{
 			name:     "Equal maps",
 			expected: map[string]int{"a": 1, "b": 2},
 			actual:   map[string]int{"a": 1, "b": 2},
-			want:     []FieldDiff{},
+			want:     []fieldDiff{},
 		},
 		{
 			name:     "Different map values",
 			expected: map[string]int{"a": 1, "b": 2},
 			actual:   map[string]int{"a": 1, "b": 3},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "[b]",
 					Expected: 2,
@@ -546,11 +546,11 @@ func TestFindDifferences_Maps(t *testing.T) {
 			name:     "Missing keys",
 			expected: map[string]int{"a": 1, "b": 2, "c": 3},
 			actual:   map[string]int{"a": 1, "b": 2},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
-					Path:     "",
-					Expected: map[string]int{"a": 1, "b": 2, "c": 3},
-					Actual:   map[string]int{"a": 1, "b": 2},
+					Path:     "[c]",
+					Expected: 3,
+					Actual:   "<missing>",
 				},
 			},
 		},
@@ -558,11 +558,11 @@ func TestFindDifferences_Maps(t *testing.T) {
 			name:     "Extra keys",
 			expected: map[string]int{"a": 1, "b": 2},
 			actual:   map[string]int{"a": 1, "b": 2, "c": 3},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
-					Path:     "",
-					Expected: map[string]int{"a": 1, "b": 2},
-					Actual:   map[string]int{"a": 1, "b": 2, "c": 3},
+					Path:     "[c]",
+					Expected: "<missing>",
+					Actual:   3,
 				},
 			},
 		},
@@ -570,7 +570,7 @@ func TestFindDifferences_Maps(t *testing.T) {
 			name:     "nil vs empty map",
 			expected: map[string]int(nil),
 			actual:   map[string]int{},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "",
 					Expected: map[string]int(nil),
@@ -582,11 +582,119 @@ func TestFindDifferences_Maps(t *testing.T) {
 			name:     "Nested maps",
 			expected: map[string]map[string]int{"x": {"a": 1, "b": 2}},
 			actual:   map[string]map[string]int{"x": {"a": 1, "b": 3}},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "[x].[b]",
 					Expected: 2,
 					Actual:   3,
+				},
+			},
+		},
+		{
+			name: "Multiple different keys and values",
+			expected: map[string]interface{}{
+				"name":  "Alice",
+				"age":   30,
+				"email": "alice@example.com",
+			},
+			actual: map[string]interface{}{
+				"name":    "Bob",
+				"age":     25,
+				"address": "123 Main St",
+			},
+			want: []fieldDiff{
+				{
+					Path:     "[name]",
+					Expected: "Alice",
+					Actual:   "Bob",
+				},
+				{
+					Path:     "[age]",
+					Expected: 30,
+					Actual:   25,
+				},
+				{
+					Path:     "[email]",
+					Expected: "alice@example.com",
+					Actual:   "<missing>",
+				},
+				{
+					Path:     "[address]",
+					Expected: "<missing>",
+					Actual:   "123 Main St",
+				},
+			},
+		},
+		{
+			name: "Complex nested maps",
+			expected: map[string]interface{}{
+				"user": map[string]interface{}{
+					"profile": map[string]interface{}{
+						"settings": map[string]interface{}{
+							"theme":      "dark",
+							"fontSize":   12,
+							"showAvatar": true,
+						},
+					},
+				},
+			},
+			actual: map[string]interface{}{
+				"user": map[string]interface{}{
+					"profile": map[string]interface{}{
+						"settings": map[string]interface{}{
+							"theme":         "light",
+							"fontSize":      14,
+							"showAvatar":    true,
+							"notifications": true,
+						},
+					},
+				},
+			},
+			want: []fieldDiff{
+				{
+					Path:     "[user].[profile].[settings].[theme]",
+					Expected: "dark",
+					Actual:   "light",
+				},
+				{
+					Path:     "[user].[profile].[settings].[fontSize]",
+					Expected: 12,
+					Actual:   14,
+				},
+				{
+					Path:     "[user].[profile].[settings].[notifications]",
+					Expected: "<missing>",
+					Actual:   true,
+				},
+			},
+		},
+		{
+			name: "Maps with numeric keys",
+			expected: map[int]string{
+				1: "one",
+				2: "two",
+				3: "three",
+			},
+			actual: map[int]string{
+				1: "one",
+				2: "deux",
+				4: "four",
+			},
+			want: []fieldDiff{
+				{
+					Path:     "[2]",
+					Expected: "two",
+					Actual:   "deux",
+				},
+				{
+					Path:     "[3]",
+					Expected: "three",
+					Actual:   "<missing>",
+				},
+				{
+					Path:     "[4]",
+					Expected: "<missing>",
+					Actual:   "four",
 				},
 			},
 		},
@@ -623,7 +731,7 @@ func TestFindDifferences_ComplexNesting(t *testing.T) {
 		name     string
 		expected interface{}
 		actual   interface{}
-		want     []FieldDiff
+		want     []fieldDiff
 	}{
 		{
 			name: "Complex equal structures",
@@ -651,7 +759,7 @@ func TestFindDifferences_ComplexNesting(t *testing.T) {
 					"level":      "Senior",
 				},
 			},
-			want: []FieldDiff{},
+			want: []fieldDiff{},
 		},
 		{
 			name: "Complex different structures",
@@ -679,7 +787,7 @@ func TestFindDifferences_ComplexNesting(t *testing.T) {
 					"level":      "Lead",
 				},
 			},
-			want: []FieldDiff{
+			want: []fieldDiff{
 				{
 					Path:     "Age",
 					Expected: 30,
@@ -711,15 +819,15 @@ func TestFindDifferences_ComplexNesting(t *testing.T) {
 	}
 }
 
-// Helper function to compare FieldDiff slices without relying on order
-func diffsAreEqual(a, b []FieldDiff) bool {
+// Helper function to compare fieldDiff slices without relying on order
+func diffsAreEqual(a, b []fieldDiff) bool {
 	if len(a) != len(b) {
 		return false
 	}
 
 	// Create maps for easier comparison
-	mapA := make(map[string]FieldDiff)
-	mapB := make(map[string]FieldDiff)
+	mapA := make(map[string]fieldDiff)
+	mapB := make(map[string]fieldDiff)
 
 	for _, diff := range a {
 		mapA[diff.Path] = diff

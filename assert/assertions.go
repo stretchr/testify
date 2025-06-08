@@ -56,10 +56,10 @@ type PanicAssertionFunc = func(t TestingT, f PanicTestFunc, msgAndArgs ...interf
 // Comparison is a custom function that returns true on success and false on failure
 type Comparison func() (success bool)
 
-// FieldDiff represents a single difference between two compared values.
+// fieldDiff represents a single difference between two compared values.
 // It stores the path to the differing field, along with the expected and actual values.
 // This is used by the Match function to provide detailed information about differences.
-type FieldDiff struct {
+type fieldDiff struct {
 	Path     string      // The path to the field, using dot notation for nested fields
 	Expected interface{} // The expected value at this path
 	Actual   interface{} // The actual value at this path
@@ -2348,8 +2348,7 @@ func inspectSlices(t TestingT, expected, actual interface{}, msgAndArgs ...inter
 	var differences []string
 
 	if actualLen != expectedLen {
-		Fail(t, fmt.Sprintf("Lengths not equal:\nexpected: %d\nactual  : %d", expectedLen, actualLen), msgAndArgs...)
-		return false
+		return Fail(t, fmt.Sprintf("Lengths not equal:\nexpected: %d\nactual  : %d", expectedLen, actualLen), msgAndArgs...)
 	}
 
 	for i := 0; i < minLen; i++ {
@@ -2454,9 +2453,9 @@ func formatValueComparison(v reflect.Value) string {
 
 	default:
 		if v.CanInterface() {
-			return fmt.Sprintf("%v", v.Interface())
+			return fmt.Sprint(v.Interface())
 		}
-		return fmt.Sprintf("%v", v)
+		return fmt.Sprint(v)
 	}
 }
 
@@ -2478,23 +2477,21 @@ func formatDiffValue(value interface{}) string {
 	}
 }
 
-// findDifferences locates all differences between two values and returns them as a slice of FieldDiff.
+// findDifferences locates all differences between two values and returns them as a slice of fieldDiff.
 // The function works recursively for nested structures.
-func findDifferences(expected, actual interface{}) []FieldDiff {
-	var diffs []FieldDiff
-	compareExpectedActual(expected, actual, "", &diffs)
-	return diffs
+func findDifferences(expected, actual interface{}) []fieldDiff {
+	return compareExpectedActual(expected, actual, "")
 }
 
 // compareExpectedActual compares two values recursively and records any differences in the provided diffs slice.
 // It handles complex structures like structs, maps, slices, and arrays.
-func compareExpectedActual(expected, actual interface{}, path string, diffs *[]FieldDiff) {
+func compareExpectedActual(expected, actual interface{}, path string) (diffs []fieldDiff) {
 	expectedValue := reflect.ValueOf(expected)
 	actualValue := reflect.ValueOf(actual)
 
 	if !expectedValue.IsValid() || !actualValue.IsValid() {
 		if expectedValue.IsValid() != actualValue.IsValid() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expected,
 				Actual:   actual,
@@ -2504,7 +2501,7 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 	}
 
 	if expectedValue.Kind() != actualValue.Kind() {
-		*diffs = append(*diffs, FieldDiff{
+		diffs = append(diffs, fieldDiff{
 			Path:     path,
 			Expected: expectedValue.Kind(),
 			Actual:   actualValue.Kind(),
@@ -2522,12 +2519,12 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 			expectedField := expectedValue.Field(i).Interface()
 			actualField := actualValue.Field(i).Interface()
 
-			compareExpectedActual(expectedField, actualField, newPath, diffs)
+			diffs = append(diffs, compareExpectedActual(expectedField, actualField, newPath)...)
 		}
 
 	case reflect.String:
 		if expectedValue.String() != actualValue.String() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.String(),
 				Actual:   actualValue.String(),
@@ -2536,7 +2533,7 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 
 	case reflect.Bool:
 		if expectedValue.Bool() != actualValue.Bool() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Bool(),
 				Actual:   actualValue.Bool(),
@@ -2545,7 +2542,7 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if expectedValue.Int() != actualValue.Int() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Interface(),
 				Actual:   actualValue.Interface(),
@@ -2554,7 +2551,7 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		if expectedValue.Uint() != actualValue.Uint() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Interface(),
 				Actual:   actualValue.Interface(),
@@ -2563,7 +2560,7 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 
 	case reflect.Float32, reflect.Float64:
 		if expectedValue.Float() != actualValue.Float() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Interface(),
 				Actual:   actualValue.Interface(),
@@ -2572,7 +2569,7 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 
 	case reflect.Ptr:
 		if expectedValue.IsNil() != actualValue.IsNil() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Interface(),
 				Actual:   actualValue.Interface(),
@@ -2580,12 +2577,12 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 			return
 		}
 		if !expectedValue.IsNil() {
-			compareExpectedActual(expectedValue.Elem().Interface(), actualValue.Elem().Interface(), path, diffs)
+			diffs = append(diffs, compareExpectedActual(expectedValue.Elem().Interface(), actualValue.Elem().Interface(), path)...)
 		}
 
 	case reflect.Slice, reflect.Array:
 		if expectedValue.IsNil() != actualValue.IsNil() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Interface(),
 				Actual:   actualValue.Interface(),
@@ -2598,7 +2595,7 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 		}
 
 		if expectedValue.Len() != actualValue.Len() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Interface(),
 				Actual:   actualValue.Interface(),
@@ -2610,13 +2607,13 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 		for i := 0; i < expectedValue.Len(); i++ {
 			if !reflect.DeepEqual(expectedValue.Index(i).Interface(), actualValue.Index(i).Interface()) {
 				elementPath := buildPath(path, fmt.Sprintf("[%d]", i))
-				compareExpectedActual(expectedValue.Index(i).Interface(), actualValue.Index(i).Interface(), elementPath, diffs)
+				diffs = append(diffs, compareExpectedActual(expectedValue.Index(i).Interface(), actualValue.Index(i).Interface(), elementPath)...)
 			}
 		}
 
 	case reflect.Map:
 		if expectedValue.IsNil() != actualValue.IsNil() {
-			*diffs = append(*diffs, FieldDiff{
+			diffs = append(diffs, fieldDiff{
 				Path:     path,
 				Expected: expectedValue.Interface(),
 				Actual:   actualValue.Interface(),
@@ -2628,30 +2625,44 @@ func compareExpectedActual(expected, actual interface{}, path string, diffs *[]F
 			return
 		}
 
-		if expectedValue.Len() != actualValue.Len() {
-			*diffs = append(*diffs, FieldDiff{
-				Path:     path,
-				Expected: expectedValue.Interface(),
-				Actual:   actualValue.Interface(),
-			})
-			return
-		}
-
 		for _, key := range expectedValue.MapKeys() {
 			actualVal := actualValue.MapIndex(key)
+			keyStr := fmt.Sprint(key.Interface())
+			keyPath := buildPath(path, fmt.Sprintf("[%s]", keyStr))
+
 			if !actualVal.IsValid() {
-				*diffs = append(*diffs, FieldDiff{
-					Path:     buildPath(path, fmt.Sprintf("[%v]", key.Interface())),
+				diffs = append(diffs, fieldDiff{
+					Path:     keyPath,
 					Expected: expectedValue.MapIndex(key).Interface(),
-					Actual:   nil,
+					Actual:   "<missing>",
 				})
 				continue
 			}
 
-			keyPath := buildPath(path, fmt.Sprintf("[%v]", key.Interface()))
-			compareExpectedActual(expectedValue.MapIndex(key).Interface(), actualVal.Interface(), keyPath, diffs)
+			if !reflect.DeepEqual(expectedValue.MapIndex(key).Interface(), actualVal.Interface()) {
+				diffs = append(diffs, compareExpectedActual(
+					expectedValue.MapIndex(key).Interface(),
+					actualVal.Interface(),
+					keyPath,
+				)...)
+			}
+		}
+
+		for _, key := range actualValue.MapKeys() {
+			expectedVal := expectedValue.MapIndex(key)
+			if !expectedVal.IsValid() {
+				keyStr := fmt.Sprint(key.Interface())
+				keyPath := buildPath(path, fmt.Sprintf("[%s]", keyStr))
+
+				diffs = append(diffs, fieldDiff{
+					Path:     keyPath,
+					Expected: "<missing>",
+					Actual:   actualValue.MapIndex(key).Interface(),
+				})
+			}
 		}
 	}
+	return
 }
 
 // buildPath creates a dotted path for nested fields to provide clear identification
