@@ -119,18 +119,10 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
-	RunWithSkip(t, suite, func(_, _ string) bool { return false })
-}
-
-// RunWithSkip takes a testing suite and a skip function allowing
-// for extra filtering on tests to be run
-func RunWithSkip(t *testing.T, suite TestingSuite, skip func(string, string) bool) {
 	defer recoverAndFailOnPanic(t)
 
 	suite.SetT(t)
 	suite.SetS(suite)
-
-	var suiteSetupDone bool
 
 	var stats *SuiteInformation
 	if _, ok := suite.(WithStats); ok {
@@ -154,8 +146,10 @@ func RunWithSkip(t *testing.T, suite TestingSuite, skip func(string, string) boo
 			continue
 		}
 
-		if skip(suiteName, method.Name) {
-			continue
+		if skipTest, ok := suite.(SkipTest); ok {
+			if skipTest.SkipTest(suiteName, method.Name) {
+				continue
+			}
 		}
 
 		test := testing.InternalTest{
@@ -203,30 +197,28 @@ func RunWithSkip(t *testing.T, suite TestingSuite, skip func(string, string) boo
 		tests = append(tests, test)
 	}
 
-	if len(tests) > 0 {
-		if stats != nil {
-			stats.Start = time.Now()
-		}
-
-		if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-			setupAllSuite.SetupSuite()
-		}
-
-		suiteSetupDone = true
+	if len(tests) == 0 {
+		return
 	}
 
-	if suiteSetupDone {
-		defer func() {
-			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-				tearDownAllSuite.TearDownSuite()
-			}
-
-			if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-				stats.End = time.Now()
-				suiteWithStats.HandleStats(suiteName, stats)
-			}
-		}()
+	if stats != nil {
+		stats.Start = time.Now()
 	}
+
+	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+		setupAllSuite.SetupSuite()
+	}
+
+	defer func() {
+		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+			tearDownAllSuite.TearDownSuite()
+		}
+
+		if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+			stats.End = time.Now()
+			suiteWithStats.HandleStats(suiteName, stats)
+		}
+	}()
 
 	runTests(t, tests)
 }
