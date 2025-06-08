@@ -3976,7 +3976,7 @@ func TestMatch_WithBasicTypes_ShouldSucceed(t *testing.T) {
 
 	expected := []int{1, 2, 3}
 	actual := []int{1, 2, 3}
-	
+
 	match := Match(t, expected, actual)
 	True(t, match)
 }
@@ -3985,10 +3985,10 @@ func TestMatch_WithDifferentBasicTypes_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(mockTestingT)
-	
+
 	expected := []int{1, 2, 3}
 	actual := []int{1, 2, 4}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Differences found:")
@@ -3998,10 +3998,10 @@ func TestMatch_WithDifferentLengths_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(mockTestingT)
-	
+
 	expected := []int{1, 2, 3}
 	actual := []int{1, 2}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Lengths not equal:")
@@ -4011,10 +4011,10 @@ func TestMatch_WithNonSliceOrArray_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(mockTestingT)
-	
+
 	expected := 1
 	actual := []int{1}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Match function works only with slices or arrays")
@@ -4027,14 +4027,14 @@ func TestMatch_WithNestedStructs_ShouldSucceed(t *testing.T) {
 		City    string
 		ZipCode string
 	}
-	
+
 	type Department struct {
 		Name     string
 		Budget   float64
 		Manager  *string
 		Metadata map[string]string
 	}
-	
+
 	type Employee struct {
 		Name       string
 		Age        int
@@ -4042,9 +4042,9 @@ func TestMatch_WithNestedStructs_ShouldSucceed(t *testing.T) {
 		Address    Address
 		Department Department
 	}
-	
+
 	managerName := "Alice"
-	
+
 	expected := []Employee{
 		{
 			Name:     "Alice",
@@ -4059,7 +4059,7 @@ func TestMatch_WithNestedStructs_ShouldSucceed(t *testing.T) {
 			},
 		},
 	}
-	
+
 	actual := []Employee{
 		{
 			Name:     "Alice",
@@ -4074,7 +4074,7 @@ func TestMatch_WithNestedStructs_ShouldSucceed(t *testing.T) {
 			},
 		},
 	}
-	
+
 	match := Match(t, expected, actual)
 	True(t, match)
 }
@@ -4086,14 +4086,14 @@ func TestMatch_WithDifferentNestedStructs_ShouldFail(t *testing.T) {
 		City    string
 		ZipCode string
 	}
-	
+
 	type Department struct {
 		Name     string
 		Budget   float64
 		Manager  *string
 		Metadata map[string]string
 	}
-	
+
 	type Employee struct {
 		Name       string
 		Age        int
@@ -4101,12 +4101,12 @@ func TestMatch_WithDifferentNestedStructs_ShouldFail(t *testing.T) {
 		Address    Address
 		Department Department
 	}
-	
+
 	mockT := new(mockTestingT)
-	
+
 	managerAlice := "Alice"
 	managerBob := "Bob"
-	
+
 	expected := []Employee{
 		{
 			Name:     "Alice",
@@ -4121,7 +4121,7 @@ func TestMatch_WithDifferentNestedStructs_ShouldFail(t *testing.T) {
 			},
 		},
 	}
-	
+
 	actual := []Employee{
 		{
 			Name:     "Alice",
@@ -4136,7 +4136,7 @@ func TestMatch_WithDifferentNestedStructs_ShouldFail(t *testing.T) {
 			},
 		},
 	}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Department.Manager")
@@ -4144,32 +4144,32 @@ func TestMatch_WithDifferentNestedStructs_ShouldFail(t *testing.T) {
 
 func TestMatch_WithMaps_ShouldSucceed(t *testing.T) {
 	t.Parallel()
-	
+
 	expected := []map[string]int{
 		{"a": 1, "b": 2, "c": 3},
 	}
-	
+
 	actual := []map[string]int{
 		{"a": 1, "b": 2, "c": 3},
 	}
-	
+
 	match := Match(t, expected, actual)
 	True(t, match)
 }
 
 func TestMatch_WithDifferentMaps_ShouldFail(t *testing.T) {
 	t.Parallel()
-	
+
 	mockT := new(mockTestingT)
-	
+
 	expected := []map[string]int{
 		{"a": 1, "b": 2, "c": 3},
 	}
-	
+
 	actual := []map[string]int{
 		{"a": 1, "b": 5, "c": 3}, // "b" has different value
 	}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "b")
@@ -4177,29 +4177,29 @@ func TestMatch_WithDifferentMaps_ShouldFail(t *testing.T) {
 
 func TestMatch_WithPointers_ShouldSucceed(t *testing.T) {
 	t.Parallel()
-	
+
 	value1 := 42
 	value2 := 42
-	
+
 	expected := []*int{&value1, &value2}
 	actual := []*int{&value1, &value2}
-	
+
 	match := Match(t, expected, actual)
 	True(t, match)
 }
 
 func TestMatch_WithDifferentPointers_ShouldFail(t *testing.T) {
 	t.Parallel()
-	
+
 	mockT := new(mockTestingT)
-	
+
 	value1 := 42
 	value2 := 42
 	value3 := 43
-	
+
 	expected := []*int{&value1, &value2}
 	actual := []*int{&value1, &value3}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Differences found:")
@@ -4207,22 +4207,22 @@ func TestMatch_WithDifferentPointers_ShouldFail(t *testing.T) {
 
 func TestMatch_WithArrays_ShouldSucceed(t *testing.T) {
 	t.Parallel()
-	
+
 	expected := [3]int{1, 2, 3}
 	actual := [3]int{1, 2, 3}
-	
+
 	match := Match(t, expected, actual)
 	True(t, match)
 }
 
 func TestMatch_WithDifferentArrays_ShouldFail(t *testing.T) {
 	t.Parallel()
-	
+
 	mockT := new(mockTestingT)
-	
+
 	expected := [3]int{1, 2, 3}
 	actual := [3]int{1, 2, 4}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Differences found:")
@@ -4230,22 +4230,22 @@ func TestMatch_WithDifferentArrays_ShouldFail(t *testing.T) {
 
 func TestMatch_WithNestedSlicesAndArrays_ShouldSucceed(t *testing.T) {
 	t.Parallel()
-	
+
 	expected := [][]int{{1, 2}, {3, 4}}
 	actual := [][]int{{1, 2}, {3, 4}}
-	
+
 	match := Match(t, expected, actual)
 	True(t, match)
 }
 
 func TestMatch_WithDifferentNestedSlicesAndArrays_ShouldFail(t *testing.T) {
 	t.Parallel()
-	
+
 	mockT := new(mockTestingT)
-	
+
 	expected := [][]int{{1, 2}, {3, 4}}
 	actual := [][]int{{1, 2}, {3, 5}}
-	
+
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Differences found:")
@@ -4253,37 +4253,37 @@ func TestMatch_WithDifferentNestedSlicesAndArrays_ShouldFail(t *testing.T) {
 
 func TestMatch_WithNilValues_ShouldSucceed(t *testing.T) {
 	t.Parallel()
-	
+
 	var nilSlice []int = nil
-	
+
 	// Two nil slices are considered equal
 	match := Match(t, nilSlice, nilSlice)
 	True(t, match)
-	
+
 	// Slices containing nil
 	type Person struct {
 		Name string
 		Age  *int
 	}
-	
+
 	expected := []Person{
 		{Name: "Alice", Age: nil},
 	}
-	
+
 	actual := []Person{
 		{Name: "Alice", Age: nil},
 	}
-	
+
 	match = Match(t, expected, actual)
 	True(t, match)
-	
+
 	// Test with different values
 	mockT := new(mockTestingT)
 	age := 30
 	differentActual := []Person{
 		{Name: "Alice", Age: &age},
 	}
-	
+
 	match = Match(mockT, expected, differentActual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Differences found:")
@@ -4301,7 +4301,7 @@ func TestMatch_OrderMatters(t *testing.T) {
 	match := Match(mockT, expected, actual)
 	False(t, match)
 	Contains(t, mockT.errorString(), "Differences found:")
-	
+
 	// Additional verification to compare with ElementsMatch
 	// ElementsMatch should pass for the same data
 	elementsMatch := ElementsMatch(t, expected, actual)
@@ -4335,8 +4335,3 @@ func TestMatch_NilVsEmptySlices(t *testing.T) {
 		t.Logf("CURRENT: nil and empty slices are treated as DIFFERENT by Match()")
 	}
 }
-
-
-
-
-

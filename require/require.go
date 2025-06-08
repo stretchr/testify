@@ -34,9 +34,9 @@ func Conditionf(t TestingT, comp assert.Comparison, msg string, args ...interfac
 // Contains asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //
-// 	require.Contains(t, "Hello World", "World")
-// 	require.Contains(t, ["Hello", "World"], "World")
-// 	require.Contains(t, {"Hello": "World"}, "Hello")
+//	require.Contains(t, "Hello World", "World")
+//	require.Contains(t, ["Hello", "World"], "World")
+//	require.Contains(t, {"Hello": "World"}, "Hello")
 func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -50,9 +50,9 @@ func Contains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...int
 // Containsf asserts that the specified string, list(array, slice...) or map contains the
 // specified substring or element.
 //
-// 	require.Containsf(t, "Hello World", "World", "error message %s", "formatted")
-// 	require.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
-// 	require.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
+//	require.Containsf(t, "Hello World", "World", "error message %s", "formatted")
+//	require.Containsf(t, ["Hello", "World"], "World", "error message %s", "formatted")
+//	require.Containsf(t, {"Hello": "World"}, "Hello", "error message %s", "formatted")
 func Containsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -127,7 +127,7 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 //
 // Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
-// 	require.Empty(t, obj)
+//	require.Empty(t, obj)
 //
 // [Zero values]: https://go.dev/ref/spec#The_zero_value
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
@@ -150,7 +150,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 //
 // Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
-// 	require.Emptyf(t, obj, "error message %s", "formatted")
+//	require.Emptyf(t, obj, "error message %s", "formatted")
 //
 // [Zero values]: https://go.dev/ref/spec#The_zero_value
 func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
@@ -165,7 +165,7 @@ func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 
 // Equal asserts that two objects are equal.
 //
-// 	require.Equal(t, 123, 123)
+//	require.Equal(t, 123, 123)
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
@@ -183,8 +183,8 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...i
 // EqualError asserts that a function returned an error (i.e. not `nil`)
 // and that it is equal to the provided error.
 //
-// 	actualObj, err := SomeFunction()
-// 	require.EqualError(t, err,  expectedErrorString)
+//	actualObj, err := SomeFunction()
+//	require.EqualError(t, err,  expectedErrorString)
 func EqualError(t TestingT, theError error, errString string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -198,8 +198,8 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 // EqualErrorf asserts that a function returned an error (i.e. not `nil`)
 // and that it is equal to the provided error.
 //
-// 	actualObj, err := SomeFunction()
-// 	require.EqualErrorf(t, err,  expectedErrorString, "error message %s", "formatted")
+//	actualObj, err := SomeFunction()
+//	require.EqualErrorf(t, err,  expectedErrorString, "error message %s", "formatted")
 func EqualErrorf(t TestingT, theError error, errString string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -214,12 +214,12 @@ func EqualErrorf(t TestingT, theError error, errString string, msg string, args 
 // fields are also equal. This is useful for comparing structs that have private fields
 // that could potentially differ.
 //
-// 	 type S struct {
-// 		Exported     	int
-// 		notExported   	int
-// 	 }
-// 	 require.EqualExportedValues(t, S{1, 2}, S{1, 3}) => true
-// 	 require.EqualExportedValues(t, S{1, 2}, S{2, 3}) => false
+//	 type S struct {
+//		Exported     	int
+//		notExported   	int
+//	 }
+//	 require.EqualExportedValues(t, S{1, 2}, S{1, 3}) => true
+//	 require.EqualExportedValues(t, S{1, 2}, S{2, 3}) => false
 func EqualExportedValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -234,12 +234,12 @@ func EqualExportedValues(t TestingT, expected interface{}, actual interface{}, m
 // fields are also equal. This is useful for comparing structs that have private fields
 // that could potentially differ.
 //
-// 	 type S struct {
-// 		Exported     	int
-// 		notExported   	int
-// 	 }
-// 	 require.EqualExportedValuesf(t, S{1, 2}, S{1, 3}, "error message %s", "formatted") => true
-// 	 require.EqualExportedValuesf(t, S{1, 2}, S{2, 3}, "error message %s", "formatted") => false
+//	 type S struct {
+//		Exported     	int
+//		notExported   	int
+//	 }
+//	 require.EqualExportedValuesf(t, S{1, 2}, S{1, 3}, "error message %s", "formatted") => true
+//	 require.EqualExportedValuesf(t, S{1, 2}, S{2, 3}, "error message %s", "formatted") => false
 func EqualExportedValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -253,7 +253,7 @@ func EqualExportedValuesf(t TestingT, expected interface{}, actual interface{}, 
 // EqualValues asserts that two objects are equal or convertible to the larger
 // type and equal.
 //
-// 	require.EqualValues(t, uint32(123), int32(123))
+//	require.EqualValues(t, uint32(123), int32(123))
 func EqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -267,7 +267,7 @@ func EqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArg
 // EqualValuesf asserts that two objects are equal or convertible to the larger
 // type and equal.
 //
-// 	require.EqualValuesf(t, uint32(123), int32(123), "error message %s", "formatted")
+//	require.EqualValuesf(t, uint32(123), int32(123), "error message %s", "formatted")
 func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -280,7 +280,7 @@ func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg stri
 
 // Equalf asserts that two objects are equal.
 //
-// 	require.Equalf(t, 123, 123, "error message %s", "formatted")
+//	require.Equalf(t, 123, 123, "error message %s", "formatted")
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
@@ -297,8 +297,8 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
-// 	actualObj, err := SomeFunction()
-// 	require.Error(t, err)
+//	actualObj, err := SomeFunction()
+//	require.Error(t, err)
 func Error(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -336,8 +336,8 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 // ErrorContains asserts that a function returned an error (i.e. not `nil`)
 // and that the error contains the specified substring.
 //
-// 	actualObj, err := SomeFunction()
-// 	require.ErrorContains(t, err,  expectedErrorSubString)
+//	actualObj, err := SomeFunction()
+//	require.ErrorContains(t, err,  expectedErrorSubString)
 func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -351,8 +351,8 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 // ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
 // and that the error contains the specified substring.
 //
-// 	actualObj, err := SomeFunction()
-// 	require.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
+//	actualObj, err := SomeFunction()
+//	require.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
 func ErrorContainsf(t TestingT, theError error, contains string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -389,8 +389,8 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 
 // Errorf asserts that a function returned an error (i.e. not `nil`).
 //
-// 	actualObj, err := SomeFunction()
-// 	require.Errorf(t, err, "error message %s", "formatted")
+//	actualObj, err := SomeFunction()
+//	require.Errorf(t, err, "error message %s", "formatted")
 func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -404,7 +404,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 // Eventually asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //
-// 	require.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
+//	require.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -424,15 +424,15 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
-// 	externalValue := false
-// 	go func() {
-// 		time.Sleep(8*time.Second)
-// 		externalValue = true
-// 	}()
-// 	require.EventuallyWithT(t, func(c *require.CollectT) {
-// 		// add assertions as needed; any assertion failure will fail the current tick
-// 		require.True(c, externalValue, "expected 'externalValue' to be true")
-// 	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	require.EventuallyWithT(t, func(c *require.CollectT) {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		require.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -452,15 +452,15 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitF
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
-// 	externalValue := false
-// 	go func() {
-// 		time.Sleep(8*time.Second)
-// 		externalValue = true
-// 	}()
-// 	require.EventuallyWithTf(t, func(c *require.CollectT, "error message %s", "formatted") {
-// 		// add assertions as needed; any assertion failure will fail the current tick
-// 		require.True(c, externalValue, "expected 'externalValue' to be true")
-// 	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//	externalValue := false
+//	go func() {
+//		time.Sleep(8*time.Second)
+//		externalValue = true
+//	}()
+//	require.EventuallyWithTf(t, func(c *require.CollectT, "error message %s", "formatted") {
+//		// add assertions as needed; any assertion failure will fail the current tick
+//		require.True(c, externalValue, "expected 'externalValue' to be true")
+//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -474,7 +474,7 @@ func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), wait
 // Eventuallyf asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //
-// 	require.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+//	require.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -487,7 +487,7 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 
 // Exactly asserts that two objects are equal in value and type.
 //
-// 	require.Exactly(t, int32(123), int64(123))
+//	require.Exactly(t, int32(123), int64(123))
 func Exactly(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -500,7 +500,7 @@ func Exactly(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 
 // Exactlyf asserts that two objects are equal in value and type.
 //
-// 	require.Exactlyf(t, int32(123), int64(123), "error message %s", "formatted")
+//	require.Exactlyf(t, int32(123), int64(123), "error message %s", "formatted")
 func Exactlyf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -557,7 +557,7 @@ func Failf(t TestingT, failureMessage string, msg string, args ...interface{}) {
 
 // False asserts that the specified value is false.
 //
-// 	require.False(t, myBool)
+//	require.False(t, myBool)
 func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -570,7 +570,7 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) {
 
 // Falsef asserts that the specified value is false.
 //
-// 	require.Falsef(t, myBool, "error message %s", "formatted")
+//	require.Falsef(t, myBool, "error message %s", "formatted")
 func Falsef(t TestingT, value bool, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -607,9 +607,9 @@ func FileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 
 // Greater asserts that the first element is greater than the second
 //
-// 	require.Greater(t, 2, 1)
-// 	require.Greater(t, float64(2), float64(1))
-// 	require.Greater(t, "b", "a")
+//	require.Greater(t, 2, 1)
+//	require.Greater(t, float64(2), float64(1))
+//	require.Greater(t, "b", "a")
 func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -622,10 +622,10 @@ func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface
 
 // GreaterOrEqual asserts that the first element is greater than or equal to the second
 //
-// 	require.GreaterOrEqual(t, 2, 1)
-// 	require.GreaterOrEqual(t, 2, 2)
-// 	require.GreaterOrEqual(t, "b", "a")
-// 	require.GreaterOrEqual(t, "b", "b")
+//	require.GreaterOrEqual(t, 2, 1)
+//	require.GreaterOrEqual(t, 2, 2)
+//	require.GreaterOrEqual(t, "b", "a")
+//	require.GreaterOrEqual(t, "b", "b")
 func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -638,10 +638,10 @@ func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...in
 
 // GreaterOrEqualf asserts that the first element is greater than or equal to the second
 //
-// 	require.GreaterOrEqualf(t, 2, 1, "error message %s", "formatted")
-// 	require.GreaterOrEqualf(t, 2, 2, "error message %s", "formatted")
-// 	require.GreaterOrEqualf(t, "b", "a", "error message %s", "formatted")
-// 	require.GreaterOrEqualf(t, "b", "b", "error message %s", "formatted")
+//	require.GreaterOrEqualf(t, 2, 1, "error message %s", "formatted")
+//	require.GreaterOrEqualf(t, 2, 2, "error message %s", "formatted")
+//	require.GreaterOrEqualf(t, "b", "a", "error message %s", "formatted")
+//	require.GreaterOrEqualf(t, "b", "b", "error message %s", "formatted")
 func GreaterOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -654,9 +654,9 @@ func GreaterOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, arg
 
 // Greaterf asserts that the first element is greater than the second
 //
-// 	require.Greaterf(t, 2, 1, "error message %s", "formatted")
-// 	require.Greaterf(t, float64(2), float64(1), "error message %s", "formatted")
-// 	require.Greaterf(t, "b", "a", "error message %s", "formatted")
+//	require.Greaterf(t, 2, 1, "error message %s", "formatted")
+//	require.Greaterf(t, float64(2), float64(1), "error message %s", "formatted")
+//	require.Greaterf(t, "b", "a", "error message %s", "formatted")
 func Greaterf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -670,7 +670,7 @@ func Greaterf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...in
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 //
-// 	require.HTTPBodyContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
+//	require.HTTPBodyContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
@@ -686,7 +686,7 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url s
 // HTTPBodyContainsf asserts that a specified handler returns a
 // body that contains a string.
 //
-// 	require.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
+//	require.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
@@ -702,7 +702,7 @@ func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url 
 // HTTPBodyNotContains asserts that a specified handler returns a
 // body that does not contain a string.
 //
-// 	require.HTTPBodyNotContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
+//	require.HTTPBodyNotContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
@@ -718,7 +718,7 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, ur
 // HTTPBodyNotContainsf asserts that a specified handler returns a
 // body that does not contain a string.
 //
-// 	require.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
+//	require.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
@@ -733,7 +733,7 @@ func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, u
 
 // HTTPError asserts that a specified handler returns an error status code.
 //
-// 	require.HTTPError(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
+//	require.HTTPError(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPError(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
@@ -748,7 +748,7 @@ func HTTPError(t TestingT, handler http.HandlerFunc, method string, url string, 
 
 // HTTPErrorf asserts that a specified handler returns an error status code.
 //
-// 	require.HTTPErrorf(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
+//	require.HTTPErrorf(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
@@ -763,7 +763,7 @@ func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string,
 
 // HTTPRedirect asserts that a specified handler returns a redirect status code.
 //
-// 	require.HTTPRedirect(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
+//	require.HTTPRedirect(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPRedirect(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
@@ -778,7 +778,7 @@ func HTTPRedirect(t TestingT, handler http.HandlerFunc, method string, url strin
 
 // HTTPRedirectf asserts that a specified handler returns a redirect status code.
 //
-// 	require.HTTPRedirectf(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
+//	require.HTTPRedirectf(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
@@ -793,7 +793,7 @@ func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url stri
 
 // HTTPStatusCode asserts that a specified handler returns a specified status code.
 //
-// 	require.HTTPStatusCode(t, myHandler, "GET", "/notImplemented", nil, 501)
+//	require.HTTPStatusCode(t, myHandler, "GET", "/notImplemented", nil, 501)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msgAndArgs ...interface{}) {
@@ -808,7 +808,7 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method string, url str
 
 // HTTPStatusCodef asserts that a specified handler returns a specified status code.
 //
-// 	require.HTTPStatusCodef(t, myHandler, "GET", "/notImplemented", nil, 501, "error message %s", "formatted")
+//	require.HTTPStatusCodef(t, myHandler, "GET", "/notImplemented", nil, 501, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPStatusCodef(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msg string, args ...interface{}) {
@@ -823,7 +823,7 @@ func HTTPStatusCodef(t TestingT, handler http.HandlerFunc, method string, url st
 
 // HTTPSuccess asserts that a specified handler returns a success status code.
 //
-// 	require.HTTPSuccess(t, myHandler, "POST", "http://www.google.com", nil)
+//	require.HTTPSuccess(t, myHandler, "POST", "http://www.google.com", nil)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPSuccess(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
@@ -838,7 +838,7 @@ func HTTPSuccess(t TestingT, handler http.HandlerFunc, method string, url string
 
 // HTTPSuccessf asserts that a specified handler returns a success status code.
 //
-// 	require.HTTPSuccessf(t, myHandler, "POST", "http://www.google.com", nil, "error message %s", "formatted")
+//	require.HTTPSuccessf(t, myHandler, "POST", "http://www.google.com", nil, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
@@ -853,7 +853,7 @@ func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url strin
 
 // Implements asserts that an object is implemented by the specified interface.
 //
-// 	require.Implements(t, (*MyInterface)(nil), new(MyObject))
+//	require.Implements(t, (*MyInterface)(nil), new(MyObject))
 func Implements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -866,7 +866,7 @@ func Implements(t TestingT, interfaceObject interface{}, object interface{}, msg
 
 // Implementsf asserts that an object is implemented by the specified interface.
 //
-// 	require.Implementsf(t, (*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
+//	require.Implementsf(t, (*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
 func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -879,7 +879,7 @@ func Implementsf(t TestingT, interfaceObject interface{}, object interface{}, ms
 
 // InDelta asserts that the two numerals are within delta of each other.
 //
-// 	require.InDelta(t, math.Pi, 22/7.0, 0.01)
+//	require.InDelta(t, math.Pi, 22/7.0, 0.01)
 func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -936,7 +936,7 @@ func InDeltaSlicef(t TestingT, expected interface{}, actual interface{}, delta f
 
 // InDeltaf asserts that the two numerals are within delta of each other.
 //
-// 	require.InDeltaf(t, math.Pi, 22/7.0, 0.01, "error message %s", "formatted")
+//	require.InDeltaf(t, math.Pi, 22/7.0, 0.01, "error message %s", "formatted")
 func InDeltaf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -993,9 +993,9 @@ func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon fl
 
 // IsDecreasing asserts that the collection is decreasing
 //
-// 	require.IsDecreasing(t, []int{2, 1, 0})
-// 	require.IsDecreasing(t, []float{2, 1})
-// 	require.IsDecreasing(t, []string{"b", "a"})
+//	require.IsDecreasing(t, []int{2, 1, 0})
+//	require.IsDecreasing(t, []float{2, 1})
+//	require.IsDecreasing(t, []string{"b", "a"})
 func IsDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1008,9 +1008,9 @@ func IsDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 
 // IsDecreasingf asserts that the collection is decreasing
 //
-// 	require.IsDecreasingf(t, []int{2, 1, 0}, "error message %s", "formatted")
-// 	require.IsDecreasingf(t, []float{2, 1}, "error message %s", "formatted")
-// 	require.IsDecreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
+//	require.IsDecreasingf(t, []int{2, 1, 0}, "error message %s", "formatted")
+//	require.IsDecreasingf(t, []float{2, 1}, "error message %s", "formatted")
+//	require.IsDecreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
 func IsDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1023,9 +1023,9 @@ func IsDecreasingf(t TestingT, object interface{}, msg string, args ...interface
 
 // IsIncreasing asserts that the collection is increasing
 //
-// 	require.IsIncreasing(t, []int{1, 2, 3})
-// 	require.IsIncreasing(t, []float{1, 2})
-// 	require.IsIncreasing(t, []string{"a", "b"})
+//	require.IsIncreasing(t, []int{1, 2, 3})
+//	require.IsIncreasing(t, []float{1, 2})
+//	require.IsIncreasing(t, []string{"a", "b"})
 func IsIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1038,9 +1038,9 @@ func IsIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 
 // IsIncreasingf asserts that the collection is increasing
 //
-// 	require.IsIncreasingf(t, []int{1, 2, 3}, "error message %s", "formatted")
-// 	require.IsIncreasingf(t, []float{1, 2}, "error message %s", "formatted")
-// 	require.IsIncreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
+//	require.IsIncreasingf(t, []int{1, 2, 3}, "error message %s", "formatted")
+//	require.IsIncreasingf(t, []float{1, 2}, "error message %s", "formatted")
+//	require.IsIncreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
 func IsIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1053,9 +1053,9 @@ func IsIncreasingf(t TestingT, object interface{}, msg string, args ...interface
 
 // IsNonDecreasing asserts that the collection is not decreasing
 //
-// 	require.IsNonDecreasing(t, []int{1, 1, 2})
-// 	require.IsNonDecreasing(t, []float{1, 2})
-// 	require.IsNonDecreasing(t, []string{"a", "b"})
+//	require.IsNonDecreasing(t, []int{1, 1, 2})
+//	require.IsNonDecreasing(t, []float{1, 2})
+//	require.IsNonDecreasing(t, []string{"a", "b"})
 func IsNonDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1068,9 +1068,9 @@ func IsNonDecreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) 
 
 // IsNonDecreasingf asserts that the collection is not decreasing
 //
-// 	require.IsNonDecreasingf(t, []int{1, 1, 2}, "error message %s", "formatted")
-// 	require.IsNonDecreasingf(t, []float{1, 2}, "error message %s", "formatted")
-// 	require.IsNonDecreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
+//	require.IsNonDecreasingf(t, []int{1, 1, 2}, "error message %s", "formatted")
+//	require.IsNonDecreasingf(t, []float{1, 2}, "error message %s", "formatted")
+//	require.IsNonDecreasingf(t, []string{"a", "b"}, "error message %s", "formatted")
 func IsNonDecreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1083,9 +1083,9 @@ func IsNonDecreasingf(t TestingT, object interface{}, msg string, args ...interf
 
 // IsNonIncreasing asserts that the collection is not increasing
 //
-// 	require.IsNonIncreasing(t, []int{2, 1, 1})
-// 	require.IsNonIncreasing(t, []float{2, 1})
-// 	require.IsNonIncreasing(t, []string{"b", "a"})
+//	require.IsNonIncreasing(t, []int{2, 1, 1})
+//	require.IsNonIncreasing(t, []float{2, 1})
+//	require.IsNonIncreasing(t, []string{"b", "a"})
 func IsNonIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1098,9 +1098,9 @@ func IsNonIncreasing(t TestingT, object interface{}, msgAndArgs ...interface{}) 
 
 // IsNonIncreasingf asserts that the collection is not increasing
 //
-// 	require.IsNonIncreasingf(t, []int{2, 1, 1}, "error message %s", "formatted")
-// 	require.IsNonIncreasingf(t, []float{2, 1}, "error message %s", "formatted")
-// 	require.IsNonIncreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
+//	require.IsNonIncreasingf(t, []int{2, 1, 1}, "error message %s", "formatted")
+//	require.IsNonIncreasingf(t, []float{2, 1}, "error message %s", "formatted")
+//	require.IsNonIncreasingf(t, []string{"b", "a"}, "error message %s", "formatted")
 func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1113,7 +1113,7 @@ func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interf
 
 // IsNotType asserts that the specified objects are not of the same type.
 //
-// 	require.IsNotType(t, &NotMyStruct{}, &MyStruct{})
+//	require.IsNotType(t, &NotMyStruct{}, &MyStruct{})
 func IsNotType(t TestingT, theType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1126,7 +1126,7 @@ func IsNotType(t TestingT, theType interface{}, object interface{}, msgAndArgs .
 
 // IsNotTypef asserts that the specified objects are not of the same type.
 //
-// 	require.IsNotTypef(t, &NotMyStruct{}, &MyStruct{}, "error message %s", "formatted")
+//	require.IsNotTypef(t, &NotMyStruct{}, &MyStruct{}, "error message %s", "formatted")
 func IsNotTypef(t TestingT, theType interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1139,7 +1139,7 @@ func IsNotTypef(t TestingT, theType interface{}, object interface{}, msg string,
 
 // IsType asserts that the specified objects are of the same type.
 //
-// 	require.IsType(t, &MyStruct{}, &MyStruct{})
+//	require.IsType(t, &MyStruct{}, &MyStruct{})
 func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1152,7 +1152,7 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 
 // IsTypef asserts that the specified objects are of the same type.
 //
-// 	require.IsTypef(t, &MyStruct{}, &MyStruct{}, "error message %s", "formatted")
+//	require.IsTypef(t, &MyStruct{}, &MyStruct{}, "error message %s", "formatted")
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1165,7 +1165,7 @@ func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg strin
 
 // JSONEq asserts that two JSON strings are equivalent.
 //
-// 	require.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+//	require.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
 func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1178,7 +1178,7 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 
 // JSONEqf asserts that two JSON strings are equivalent.
 //
-// 	require.JSONEqf(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, "error message %s", "formatted")
+//	require.JSONEqf(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, "error message %s", "formatted")
 func JSONEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1192,7 +1192,7 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
-// 	require.Len(t, mySlice, 3)
+//	require.Len(t, mySlice, 3)
 func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1206,7 +1206,7 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 // Lenf asserts that the specified object has specific length.
 // Lenf also fails if the object has a type that len() not accept.
 //
-// 	require.Lenf(t, mySlice, 3, "error message %s", "formatted")
+//	require.Lenf(t, mySlice, 3, "error message %s", "formatted")
 func Lenf(t TestingT, object interface{}, length int, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1219,9 +1219,9 @@ func Lenf(t TestingT, object interface{}, length int, msg string, args ...interf
 
 // Less asserts that the first element is less than the second
 //
-// 	require.Less(t, 1, 2)
-// 	require.Less(t, float64(1), float64(2))
-// 	require.Less(t, "a", "b")
+//	require.Less(t, 1, 2)
+//	require.Less(t, float64(1), float64(2))
+//	require.Less(t, "a", "b")
 func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1234,10 +1234,10 @@ func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{})
 
 // LessOrEqual asserts that the first element is less than or equal to the second
 //
-// 	require.LessOrEqual(t, 1, 2)
-// 	require.LessOrEqual(t, 2, 2)
-// 	require.LessOrEqual(t, "a", "b")
-// 	require.LessOrEqual(t, "b", "b")
+//	require.LessOrEqual(t, 1, 2)
+//	require.LessOrEqual(t, 2, 2)
+//	require.LessOrEqual(t, "a", "b")
+//	require.LessOrEqual(t, "b", "b")
 func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1250,10 +1250,10 @@ func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...inter
 
 // LessOrEqualf asserts that the first element is less than or equal to the second
 //
-// 	require.LessOrEqualf(t, 1, 2, "error message %s", "formatted")
-// 	require.LessOrEqualf(t, 2, 2, "error message %s", "formatted")
-// 	require.LessOrEqualf(t, "a", "b", "error message %s", "formatted")
-// 	require.LessOrEqualf(t, "b", "b", "error message %s", "formatted")
+//	require.LessOrEqualf(t, 1, 2, "error message %s", "formatted")
+//	require.LessOrEqualf(t, 2, 2, "error message %s", "formatted")
+//	require.LessOrEqualf(t, "a", "b", "error message %s", "formatted")
+//	require.LessOrEqualf(t, "b", "b", "error message %s", "formatted")
 func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1266,9 +1266,9 @@ func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args .
 
 // Lessf asserts that the first element is less than the second
 //
-// 	require.Lessf(t, 1, 2, "error message %s", "formatted")
-// 	require.Lessf(t, float64(1), float64(2), "error message %s", "formatted")
-// 	require.Lessf(t, "a", "b", "error message %s", "formatted")
+//	require.Lessf(t, 1, 2, "error message %s", "formatted")
+//	require.Lessf(t, float64(1), float64(2), "error message %s", "formatted")
+//	require.Lessf(t, "a", "b", "error message %s", "formatted")
 func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1285,7 +1285,7 @@ func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...inter
 // at the same index, and vice versa. It also performs deep equality checks
 // on each element's fields.
 //
-// 	require.Match(t, []Employee{e1, e2}, []Employee{e1, e2})
+//	require.Match(t, []Employee{e1, e2}, []Employee{e1, e2})
 func Match(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1302,7 +1302,7 @@ func Match(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...i
 // at the same index, and vice versa. It also performs deep equality checks
 // on each element's fields.
 //
-// 	require.Matchf(t, []Employee{e1, e2}, []Employee{e1, e2}, "error message %s", "formatted")
+//	require.Matchf(t, []Employee{e1, e2}, []Employee{e1, e2}, "error message %s", "formatted")
 func Matchf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1315,8 +1315,8 @@ func Matchf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 
 // Negative asserts that the specified element is negative
 //
-// 	require.Negative(t, -1)
-// 	require.Negative(t, -1.23)
+//	require.Negative(t, -1)
+//	require.Negative(t, -1.23)
 func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1329,8 +1329,8 @@ func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 
 // Negativef asserts that the specified element is negative
 //
-// 	require.Negativef(t, -1, "error message %s", "formatted")
-// 	require.Negativef(t, -1.23, "error message %s", "formatted")
+//	require.Negativef(t, -1, "error message %s", "formatted")
+//	require.Negativef(t, -1.23, "error message %s", "formatted")
 func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1344,7 +1344,7 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) {
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
-// 	require.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
+//	require.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1358,7 +1358,7 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 // Neverf asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
-// 	require.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+//	require.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1371,7 +1371,7 @@ func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.
 
 // Nil asserts that the specified object is nil.
 //
-// 	require.Nil(t, err)
+//	require.Nil(t, err)
 func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1384,7 +1384,7 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 
 // Nilf asserts that the specified object is nil.
 //
-// 	require.Nilf(t, err, "error message %s", "formatted")
+//	require.Nilf(t, err, "error message %s", "formatted")
 func Nilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1421,10 +1421,10 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 
 // NoError asserts that a function returned no error (i.e. `nil`).
 //
-// 	  actualObj, err := SomeFunction()
-// 	  if require.NoError(t, err) {
-// 		   require.Equal(t, expectedObj, actualObj)
-// 	  }
+//	  actualObj, err := SomeFunction()
+//	  if require.NoError(t, err) {
+//		   require.Equal(t, expectedObj, actualObj)
+//	  }
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1437,10 +1437,10 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 
 // NoErrorf asserts that a function returned no error (i.e. `nil`).
 //
-// 	  actualObj, err := SomeFunction()
-// 	  if require.NoErrorf(t, err, "error message %s", "formatted") {
-// 		   require.Equal(t, expectedObj, actualObj)
-// 	  }
+//	  actualObj, err := SomeFunction()
+//	  if require.NoErrorf(t, err, "error message %s", "formatted") {
+//		   require.Equal(t, expectedObj, actualObj)
+//	  }
 func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1478,9 +1478,9 @@ func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
 //
-// 	require.NotContains(t, "Hello World", "Earth")
-// 	require.NotContains(t, ["Hello", "World"], "Earth")
-// 	require.NotContains(t, {"Hello": "World"}, "Earth")
+//	require.NotContains(t, "Hello World", "Earth")
+//	require.NotContains(t, ["Hello", "World"], "Earth")
+//	require.NotContains(t, {"Hello": "World"}, "Earth")
 func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1494,9 +1494,9 @@ func NotContains(t TestingT, s interface{}, contains interface{}, msgAndArgs ...
 // NotContainsf asserts that the specified string, list(array, slice...) or map does NOT contain the
 // specified substring or element.
 //
-// 	require.NotContainsf(t, "Hello World", "Earth", "error message %s", "formatted")
-// 	require.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
-// 	require.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
+//	require.NotContainsf(t, "Hello World", "Earth", "error message %s", "formatted")
+//	require.NotContainsf(t, ["Hello", "World"], "Earth", "error message %s", "formatted")
+//	require.NotContainsf(t, {"Hello": "World"}, "Earth", "error message %s", "formatted")
 func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1549,9 +1549,9 @@ func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg str
 
 // NotEmpty asserts that the specified object is NOT [Empty].
 //
-// 	if require.NotEmpty(t, obj) {
-// 	  require.Equal(t, "two", obj[1])
-// 	}
+//	if require.NotEmpty(t, obj) {
+//	  require.Equal(t, "two", obj[1])
+//	}
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1564,9 +1564,9 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 
 // NotEmptyf asserts that the specified object is NOT [Empty].
 //
-// 	if require.NotEmptyf(t, obj, "error message %s", "formatted") {
-// 	  require.Equal(t, "two", obj[1])
-// 	}
+//	if require.NotEmptyf(t, obj, "error message %s", "formatted") {
+//	  require.Equal(t, "two", obj[1])
+//	}
 func NotEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1579,7 +1579,7 @@ func NotEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) 
 
 // NotEqual asserts that the specified values are NOT equal.
 //
-// 	require.NotEqual(t, obj1, obj2)
+//	require.NotEqual(t, obj1, obj2)
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
@@ -1595,7 +1595,7 @@ func NotEqual(t TestingT, expected interface{}, actual interface{}, msgAndArgs .
 
 // NotEqualValues asserts that two objects are not equal even when converted to the same type
 //
-// 	require.NotEqualValues(t, obj1, obj2)
+//	require.NotEqualValues(t, obj1, obj2)
 func NotEqualValues(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1608,7 +1608,7 @@ func NotEqualValues(t TestingT, expected interface{}, actual interface{}, msgAnd
 
 // NotEqualValuesf asserts that two objects are not equal even when converted to the same type
 //
-// 	require.NotEqualValuesf(t, obj1, obj2, "error message %s", "formatted")
+//	require.NotEqualValuesf(t, obj1, obj2, "error message %s", "formatted")
 func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1621,7 +1621,7 @@ func NotEqualValuesf(t TestingT, expected interface{}, actual interface{}, msg s
 
 // NotEqualf asserts that the specified values are NOT equal.
 //
-// 	require.NotEqualf(t, obj1, obj2, "error message %s", "formatted")
+//	require.NotEqualf(t, obj1, obj2, "error message %s", "formatted")
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses).
@@ -1685,7 +1685,7 @@ func NotErrorIsf(t TestingT, err error, target error, msg string, args ...interf
 
 // NotImplements asserts that an object does not implement the specified interface.
 //
-// 	require.NotImplements(t, (*MyInterface)(nil), new(MyObject))
+//	require.NotImplements(t, (*MyInterface)(nil), new(MyObject))
 func NotImplements(t TestingT, interfaceObject interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1698,7 +1698,7 @@ func NotImplements(t TestingT, interfaceObject interface{}, object interface{}, 
 
 // NotImplementsf asserts that an object does not implement the specified interface.
 //
-// 	require.NotImplementsf(t, (*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
+//	require.NotImplementsf(t, (*MyInterface)(nil), new(MyObject), "error message %s", "formatted")
 func NotImplementsf(t TestingT, interfaceObject interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1711,7 +1711,7 @@ func NotImplementsf(t TestingT, interfaceObject interface{}, object interface{},
 
 // NotNil asserts that the specified object is not nil.
 //
-// 	require.NotNil(t, err)
+//	require.NotNil(t, err)
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1724,7 +1724,7 @@ func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 
 // NotNilf asserts that the specified object is not nil.
 //
-// 	require.NotNilf(t, err, "error message %s", "formatted")
+//	require.NotNilf(t, err, "error message %s", "formatted")
 func NotNilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1737,7 +1737,7 @@ func NotNilf(t TestingT, object interface{}, msg string, args ...interface{}) {
 
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
-// 	require.NotPanics(t, func(){ RemainCalm() })
+//	require.NotPanics(t, func(){ RemainCalm() })
 func NotPanics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1750,7 +1750,7 @@ func NotPanics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 
 // NotPanicsf asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
-// 	require.NotPanicsf(t, func(){ RemainCalm() }, "error message %s", "formatted")
+//	require.NotPanicsf(t, func(){ RemainCalm() }, "error message %s", "formatted")
 func NotPanicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1763,8 +1763,8 @@ func NotPanicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interfac
 
 // NotRegexp asserts that a specified regexp does not match a string.
 //
-// 	require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
-// 	require.NotRegexp(t, "^start", "it's not starting")
+//	require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
+//	require.NotRegexp(t, "^start", "it's not starting")
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1777,8 +1777,8 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 
 // NotRegexpf asserts that a specified regexp does not match a string.
 //
-// 	require.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
-// 	require.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
+//	require.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
+//	require.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
 func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1791,7 +1791,7 @@ func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ..
 
 // NotSame asserts that two pointers do not reference the same object.
 //
-// 	require.NotSame(t, ptr1, ptr2)
+//	require.NotSame(t, ptr1, ptr2)
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
@@ -1807,7 +1807,7 @@ func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 
 // NotSamef asserts that two pointers do not reference the same object.
 //
-// 	require.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
+//	require.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
@@ -1826,10 +1826,10 @@ func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, 
 // Map elements are key-value pairs unless compared with an array or slice where
 // only the map key is evaluated.
 //
-// 	require.NotSubset(t, [1, 3, 4], [1, 2])
-// 	require.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
-// 	require.NotSubset(t, [1, 3, 4], {1: "one", 2: "two"})
-// 	require.NotSubset(t, {"x": 1, "y": 2}, ["z"])
+//	require.NotSubset(t, [1, 3, 4], [1, 2])
+//	require.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
+//	require.NotSubset(t, [1, 3, 4], {1: "one", 2: "two"})
+//	require.NotSubset(t, {"x": 1, "y": 2}, ["z"])
 func NotSubset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1845,10 +1845,10 @@ func NotSubset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...i
 // Map elements are key-value pairs unless compared with an array or slice where
 // only the map key is evaluated.
 //
-// 	require.NotSubsetf(t, [1, 3, 4], [1, 2], "error message %s", "formatted")
-// 	require.NotSubsetf(t, {"x": 1, "y": 2}, {"z": 3}, "error message %s", "formatted")
-// 	require.NotSubsetf(t, [1, 3, 4], {1: "one", 2: "two"}, "error message %s", "formatted")
-// 	require.NotSubsetf(t, {"x": 1, "y": 2}, ["z"], "error message %s", "formatted")
+//	require.NotSubsetf(t, [1, 3, 4], [1, 2], "error message %s", "formatted")
+//	require.NotSubsetf(t, {"x": 1, "y": 2}, {"z": 3}, "error message %s", "formatted")
+//	require.NotSubsetf(t, [1, 3, 4], {1: "one", 2: "two"}, "error message %s", "formatted")
+//	require.NotSubsetf(t, {"x": 1, "y": 2}, ["z"], "error message %s", "formatted")
 func NotSubsetf(t TestingT, list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1883,7 +1883,7 @@ func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
 //
-// 	require.Panics(t, func(){ GoCrazy() })
+//	require.Panics(t, func(){ GoCrazy() })
 func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1898,7 +1898,7 @@ func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 // panics, and that the recovered panic value is an error that satisfies the
 // EqualError comparison.
 //
-// 	require.PanicsWithError(t, "crazy error", func(){ GoCrazy() })
+//	require.PanicsWithError(t, "crazy error", func(){ GoCrazy() })
 func PanicsWithError(t TestingT, errString string, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1913,7 +1913,7 @@ func PanicsWithError(t TestingT, errString string, f assert.PanicTestFunc, msgAn
 // panics, and that the recovered panic value is an error that satisfies the
 // EqualError comparison.
 //
-// 	require.PanicsWithErrorf(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
+//	require.PanicsWithErrorf(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
 func PanicsWithErrorf(t TestingT, errString string, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1927,7 +1927,7 @@ func PanicsWithErrorf(t TestingT, errString string, f assert.PanicTestFunc, msg 
 // PanicsWithValue asserts that the code inside the specified PanicTestFunc panics, and that
 // the recovered panic value equals the expected panic value.
 //
-// 	require.PanicsWithValue(t, "crazy error", func(){ GoCrazy() })
+//	require.PanicsWithValue(t, "crazy error", func(){ GoCrazy() })
 func PanicsWithValue(t TestingT, expected interface{}, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1941,7 +1941,7 @@ func PanicsWithValue(t TestingT, expected interface{}, f assert.PanicTestFunc, m
 // PanicsWithValuef asserts that the code inside the specified PanicTestFunc panics, and that
 // the recovered panic value equals the expected panic value.
 //
-// 	require.PanicsWithValuef(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
+//	require.PanicsWithValuef(t, "crazy error", func(){ GoCrazy() }, "error message %s", "formatted")
 func PanicsWithValuef(t TestingT, expected interface{}, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1954,7 +1954,7 @@ func PanicsWithValuef(t TestingT, expected interface{}, f assert.PanicTestFunc, 
 
 // Panicsf asserts that the code inside the specified PanicTestFunc panics.
 //
-// 	require.Panicsf(t, func(){ GoCrazy() }, "error message %s", "formatted")
+//	require.Panicsf(t, func(){ GoCrazy() }, "error message %s", "formatted")
 func Panicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1967,8 +1967,8 @@ func Panicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}
 
 // Positive asserts that the specified element is positive
 //
-// 	require.Positive(t, 1)
-// 	require.Positive(t, 1.23)
+//	require.Positive(t, 1)
+//	require.Positive(t, 1.23)
 func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1981,8 +1981,8 @@ func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) {
 
 // Positivef asserts that the specified element is positive
 //
-// 	require.Positivef(t, 1, "error message %s", "formatted")
-// 	require.Positivef(t, 1.23, "error message %s", "formatted")
+//	require.Positivef(t, 1, "error message %s", "formatted")
+//	require.Positivef(t, 1.23, "error message %s", "formatted")
 func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1995,8 +1995,8 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
 
 // Regexp asserts that a specified regexp matches a string.
 //
-// 	require.Regexp(t, regexp.MustCompile("start"), "it's starting")
-// 	require.Regexp(t, "start...$", "it's not starting")
+//	require.Regexp(t, regexp.MustCompile("start"), "it's starting")
+//	require.Regexp(t, "start...$", "it's not starting")
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2009,8 +2009,8 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 
 // Regexpf asserts that a specified regexp matches a string.
 //
-// 	require.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
-// 	require.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
+//	require.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
+//	require.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
 func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2023,7 +2023,7 @@ func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...in
 
 // Same asserts that two pointers reference the same object.
 //
-// 	require.Same(t, ptr1, ptr2)
+//	require.Same(t, ptr1, ptr2)
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
@@ -2039,7 +2039,7 @@ func Same(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...in
 
 // Samef asserts that two pointers reference the same object.
 //
-// 	require.Samef(t, ptr1, ptr2, "error message %s", "formatted")
+//	require.Samef(t, ptr1, ptr2, "error message %s", "formatted")
 //
 // Both arguments must be pointer variables. Pointer variable sameness is
 // determined based on the equality of both type and value.
@@ -2058,10 +2058,10 @@ func Samef(t TestingT, expected interface{}, actual interface{}, msg string, arg
 // Map elements are key-value pairs unless compared with an array or slice where
 // only the map key is evaluated.
 //
-// 	require.Subset(t, [1, 2, 3], [1, 2])
-// 	require.Subset(t, {"x": 1, "y": 2}, {"x": 1})
-// 	require.Subset(t, [1, 2, 3], {1: "one", 2: "two"})
-// 	require.Subset(t, {"x": 1, "y": 2}, ["x"])
+//	require.Subset(t, [1, 2, 3], [1, 2])
+//	require.Subset(t, {"x": 1, "y": 2}, {"x": 1})
+//	require.Subset(t, [1, 2, 3], {1: "one", 2: "two"})
+//	require.Subset(t, {"x": 1, "y": 2}, ["x"])
 func Subset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2077,10 +2077,10 @@ func Subset(t TestingT, list interface{}, subset interface{}, msgAndArgs ...inte
 // Map elements are key-value pairs unless compared with an array or slice where
 // only the map key is evaluated.
 //
-// 	require.Subsetf(t, [1, 2, 3], [1, 2], "error message %s", "formatted")
-// 	require.Subsetf(t, {"x": 1, "y": 2}, {"x": 1}, "error message %s", "formatted")
-// 	require.Subsetf(t, [1, 2, 3], {1: "one", 2: "two"}, "error message %s", "formatted")
-// 	require.Subsetf(t, {"x": 1, "y": 2}, ["x"], "error message %s", "formatted")
+//	require.Subsetf(t, [1, 2, 3], [1, 2], "error message %s", "formatted")
+//	require.Subsetf(t, {"x": 1, "y": 2}, {"x": 1}, "error message %s", "formatted")
+//	require.Subsetf(t, [1, 2, 3], {1: "one", 2: "two"}, "error message %s", "formatted")
+//	require.Subsetf(t, {"x": 1, "y": 2}, ["x"], "error message %s", "formatted")
 func Subsetf(t TestingT, list interface{}, subset interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2093,7 +2093,7 @@ func Subsetf(t TestingT, list interface{}, subset interface{}, msg string, args 
 
 // True asserts that the specified value is true.
 //
-// 	require.True(t, myBool)
+//	require.True(t, myBool)
 func True(t TestingT, value bool, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2106,7 +2106,7 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) {
 
 // Truef asserts that the specified value is true.
 //
-// 	require.Truef(t, myBool, "error message %s", "formatted")
+//	require.Truef(t, myBool, "error message %s", "formatted")
 func Truef(t TestingT, value bool, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2119,7 +2119,7 @@ func Truef(t TestingT, value bool, msg string, args ...interface{}) {
 
 // WithinDuration asserts that the two times are within duration delta of each other.
 //
-// 	require.WithinDuration(t, time.Now(), time.Now(), 10*time.Second)
+//	require.WithinDuration(t, time.Now(), time.Now(), 10*time.Second)
 func WithinDuration(t TestingT, expected time.Time, actual time.Time, delta time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2132,7 +2132,7 @@ func WithinDuration(t TestingT, expected time.Time, actual time.Time, delta time
 
 // WithinDurationf asserts that the two times are within duration delta of each other.
 //
-// 	require.WithinDurationf(t, time.Now(), time.Now(), 10*time.Second, "error message %s", "formatted")
+//	require.WithinDurationf(t, time.Now(), time.Now(), 10*time.Second, "error message %s", "formatted")
 func WithinDurationf(t TestingT, expected time.Time, actual time.Time, delta time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2145,7 +2145,7 @@ func WithinDurationf(t TestingT, expected time.Time, actual time.Time, delta tim
 
 // WithinRange asserts that a time is within a time range (inclusive).
 //
-// 	require.WithinRange(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second))
+//	require.WithinRange(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second))
 func WithinRange(t TestingT, actual time.Time, start time.Time, end time.Time, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2158,7 +2158,7 @@ func WithinRange(t TestingT, actual time.Time, start time.Time, end time.Time, m
 
 // WithinRangef asserts that a time is within a time range (inclusive).
 //
-// 	require.WithinRangef(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second), "error message %s", "formatted")
+//	require.WithinRangef(t, time.Now(), time.Now().Add(-time.Second), time.Now().Add(time.Second), "error message %s", "formatted")
 func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

@@ -85,7 +85,7 @@ func TestFormatComparisonValue_Structs(t *testing.T) {
 		Age  int
 	}
 
-/* 	type Address struct {
+	/* 	type Address struct {
 		Street string
 		City   string
 	} */
@@ -262,12 +262,12 @@ func TestFormatComparisonValue_Collections(t *testing.T) {
 		{
 			name:     "Map with string keys",
 			input:    map[string]int{"a": 1, "b": 2},
-			expected: "map",  
+			expected: "map",
 		},
 		{
 			name:     "Map with int keys",
 			input:    map[int]string{1: "a", 2: "b"},
-			expected: "map",  
+			expected: "map",
 		},
 		{
 			name:     "Nested slice",
@@ -281,7 +281,7 @@ func TestFormatComparisonValue_Collections(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := formatComparisonValue(tt.input)
-			
+
 			// For map, we only check the prefix because the order of elements can vary
 			if strings.HasPrefix(tt.expected, "map") && len(tt.expected) <= 4 {
 				if !strings.HasPrefix(result, "map") {
@@ -309,22 +309,22 @@ func TestFormatComparisonValue_ComplexTypes(t *testing.T) {
 		{
 			name:     "Time",
 			input:    time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
-			expected: "non-empty",  
+			expected: "non-empty",
 		},
 		{
 			name:     "Channel",
 			input:    ch,
-			expected: "non-empty", 
+			expected: "non-empty",
 		},
 		{
 			name:     "Function",
 			input:    TestFormatComparisonValue_ComplexTypes, // Use a test function instead of fmt.Println
-			expected: "non-empty", 
+			expected: "non-empty",
 		},
 		{
 			name:     "Custom type with String()",
 			input:    CustomStringer{"test"},
-			expected: "non-empty",  
+			expected: "non-empty",
 		},
 	}
 
@@ -333,7 +333,7 @@ func TestFormatComparisonValue_ComplexTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := formatComparisonValue(tt.input)
-			
+
 			//  for complex types, we only check that the result is not empty
 			if result == "" {
 				t.Errorf("formatComparisonValue(%v) returned empty string", tt.input)

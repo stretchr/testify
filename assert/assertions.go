@@ -2339,7 +2339,7 @@ func inspectSlices(t TestingT, expected, actual interface{}, msgAndArgs ...inter
 
 	expectedLen := expectedValue.Len()
 	actualLen := actualValue.Len()
-	
+
 	minLen := expectedLen
 	if actualLen < minLen {
 		minLen = actualLen
@@ -2410,28 +2410,28 @@ func formatValueComparison(v reflect.Value) string {
 			parts = append(parts, fmt.Sprintf("%s: %s", field.Name, formatValueComparison(fieldValue)))
 		}
 		return fmt.Sprintf("{%s}", strings.Join(parts, ", "))
-	
+
 	case reflect.String:
 		return fmt.Sprintf(`"%s"`, v.String())
-	
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return fmt.Sprintf("%d", v.Int())
-	
+
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return fmt.Sprintf("%d", v.Uint())
-	
+
 	case reflect.Float32, reflect.Float64:
 		return fmt.Sprintf("%g", v.Float())
-	
+
 	case reflect.Bool:
 		return fmt.Sprintf("%t", v.Bool())
-	
+
 	case reflect.Ptr:
 		if v.IsNil() {
 			return "nil"
 		}
 		return formatValueComparison(v.Elem())
-	
+
 	case reflect.Slice, reflect.Array:
 		if v.IsNil() {
 			return "nil"
@@ -2441,7 +2441,7 @@ func formatValueComparison(v reflect.Value) string {
 			elements = append(elements, formatValueComparison(v.Index(i)))
 		}
 		return fmt.Sprintf("[%s]", strings.Join(elements, ", "))
-	
+
 	case reflect.Map:
 		if v.IsNil() {
 			return "nil"
@@ -2452,7 +2452,7 @@ func formatValueComparison(v reflect.Value) string {
 			pairs = append(pairs, fmt.Sprintf("%s: %s", formatValueComparison(key), formatValueComparison(value)))
 		}
 		return fmt.Sprintf("map[%s]", strings.Join(pairs, ", "))
-	
+
 	default:
 		return fmt.Sprintf("%v", v.Interface())
 	}

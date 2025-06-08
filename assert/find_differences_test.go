@@ -152,7 +152,7 @@ func TestFindDifferences_SpecialValues(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := findDifferences(tt.expected, tt.actual)
-			
+
 			//  NaN we need a special check
 			if tt.name == "NaN vs NaN" {
 				if len(got) != 1 {
@@ -160,7 +160,7 @@ func TestFindDifferences_SpecialValues(t *testing.T) {
 				}
 				return
 			}
-			
+
 			if !diffsAreEqual(got, tt.want) {
 				t.Errorf("findDifferences() = %v, want %v", got, tt.want)
 			}
@@ -745,4 +745,4 @@ func diffsAreEqual(a, b []FieldDiff) bool {
 	}
 
 	return true
-} 
+}
