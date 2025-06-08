@@ -3984,14 +3984,29 @@ func TestMatch_WithBasicTypes_ShouldSucceed(t *testing.T) {
 func TestMatch_WithDifferentBasicTypes_ShouldFail(t *testing.T) {
 	t.Parallel()
 
-	mockT := new(mockTestingT)
+	t.Run("different integers", func(t *testing.T) {
+		mockT := new(mockTestingT)
 
-	expected := []int{1, 2, 3}
-	actual := []int{1, 2, 4}
+		expected := []int{1, 2, 3}
+		actual := []int{1, 2, 4}
 
-	match := Match(mockT, expected, actual)
-	False(t, match)
-	Contains(t, mockT.errorString(), "Differences found:")
+		match := Match(mockT, expected, actual)
+		False(t, match)
+		Contains(t, mockT.errorString(), "Differences found:")
+	})
+
+	t.Run("nil vs non-nil", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		expected := []interface{}{nil}
+		actual := []interface{}{"not nil"}
+
+		match := Match(mockT, expected, actual)
+		False(t, match)
+		Contains(t, mockT.errorString(), "Differences found:")
+		Contains(t, mockT.errorString(), "expected: nil")
+		Contains(t, mockT.errorString(), `actual  : "not nil"`)
+		Contains(t, mockT.errorString(), `└─ : nil ≠ "not nil"`)
+	})
 }
 
 func TestMatch_WithDifferentLengths_ShouldFail(t *testing.T) {

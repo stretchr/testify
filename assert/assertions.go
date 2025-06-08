@@ -2356,36 +2356,37 @@ func inspectSlices(t TestingT, expected, actual interface{}, msgAndArgs ...inter
 		expectedItem := expectedValue.Index(i).Interface()
 		actualItem := actualValue.Index(i).Interface()
 
-		if !ObjectsAreEqual(expectedItem, actualItem) {
-			message := messageFromMsgAndArgs(msgAndArgs...)
-			diffs := findDifferences(expectedItem, actualItem)
+		if ObjectsAreEqual(expectedItem, actualItem) {
+			continue
+		}
 
-			differencesOutput := "Field differences:\n"
-			for _, diff := range diffs {
-				differencesOutput += fmt.Sprintf("  └─ %s: %s ≠ %s\n", diff.Path, formatDiffValue(diff.Expected), formatDiffValue(diff.Actual))
-			}
+		message := messageFromMsgAndArgs(msgAndArgs...)
+		diffs := findDifferences(expectedItem, actualItem)
 
-			if message != "" {
-				differences = append(differences, fmt.Sprintf(
-					"MATCH: %s\n[index %d] Not equal:\nexpected: %v\nactual  : %v",
-					message, i, formatComparisonValue(expectedItem), formatComparisonValue(actualItem)))
-				differences = append(differences, differencesOutput)
-			} else {
-				differences = append(differences, fmt.Sprintf(
-					"MATCH: [index %d] Not equal:\nexpected: %v\nactual  : %v",
-					i, formatComparisonValue(expectedItem), formatComparisonValue(actualItem)))
-				differences = append(differences, differencesOutput)
-			}
+		differencesOutput := "Field differences:\n"
+		for _, diff := range diffs {
+			differencesOutput += fmt.Sprintf("  └─ %s: %s ≠ %s\n", diff.Path, formatDiffValue(diff.Expected), formatDiffValue(diff.Actual))
+		}
+
+		if message != "" {
+			differences = append(differences, fmt.Sprintf(
+				"MATCH: %s\n[index %d] Not equal:\nexpected: %v\nactual  : %v",
+				message, i, formatComparisonValue(expectedItem), formatComparisonValue(actualItem)))
+			differences = append(differences, differencesOutput)
+		} else {
+			differences = append(differences, fmt.Sprintf(
+				"MATCH: [index %d] Not equal:\nexpected: %v\nactual  : %v",
+				i, formatComparisonValue(expectedItem), formatComparisonValue(actualItem)))
+			differences = append(differences, differencesOutput)
 		}
 	}
 
-	if len(differences) > 0 {
-		diffMessage := strings.Join(differences, "\n")
-		Fail(t, fmt.Sprintf("Differences found:\n%s", diffMessage), msgAndArgs...)
-		return false
+	if len(differences) == 0 {
+		return true
 	}
 
-	return true
+	diffMessage := strings.Join(differences, "\n")
+	return Fail(t, fmt.Sprintf("Differences found:\n%s", diffMessage), msgAndArgs...)
 }
 
 // formatComparisonValue formats an arbitrary value for human-readable comparison.
@@ -2397,6 +2398,10 @@ func formatComparisonValue(obj interface{}) string {
 // formatValueComparison handles the formatting logic for different reflect.Value types
 // to provide consistent and readable output for comparison purposes.
 func formatValueComparison(v reflect.Value) string {
+	if !v.IsValid() {
+		return "nil"
+	}
+
 	switch v.Kind() {
 	case reflect.Struct:
 		var parts []string
@@ -2414,17 +2419,11 @@ func formatValueComparison(v reflect.Value) string {
 	case reflect.String:
 		return fmt.Sprintf(`"%s"`, v.String())
 
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return fmt.Sprintf("%d", v.Int())
-
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return fmt.Sprintf("%d", v.Uint())
-
-	case reflect.Float32, reflect.Float64:
-		return fmt.Sprintf("%g", v.Float())
-
-	case reflect.Bool:
-		return fmt.Sprintf("%t", v.Bool())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64,
+		reflect.Bool:
+		return fmt.Sprint(v.Interface())
 
 	case reflect.Ptr:
 		if v.IsNil() {
@@ -2454,7 +2453,10 @@ func formatValueComparison(v reflect.Value) string {
 		return fmt.Sprintf("map[%s]", strings.Join(pairs, ", "))
 
 	default:
-		return fmt.Sprintf("%v", v.Interface())
+		if v.CanInterface() {
+			return fmt.Sprintf("%v", v.Interface())
+		}
+		return fmt.Sprintf("%v", v)
 	}
 }
 
@@ -2462,20 +2464,14 @@ func formatValueComparison(v reflect.Value) string {
 // It handles basic types differently than complex types for better readability.
 func formatDiffValue(value interface{}) string {
 	if value == nil {
-		return "<nil>"
+		return "nil"
 	}
 
 	switch v := value.(type) {
 	case string:
 		return fmt.Sprintf("%q", v)
-	case bool:
-		return fmt.Sprintf("%t", v)
-	case int, int8, int16, int32, int64:
-		return fmt.Sprintf("%v", v)
-	case uint, uint8, uint16, uint32, uint64:
-		return fmt.Sprintf("%v", v)
-	case float32, float64:
-		return fmt.Sprintf("%v", v)
+	case bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		return fmt.Sprint(v)
 	default:
 		// for complex types, use our comparison formatter
 		return formatComparisonValue(v)
@@ -2495,6 +2491,17 @@ func findDifferences(expected, actual interface{}) []FieldDiff {
 func compareExpectedActual(expected, actual interface{}, path string, diffs *[]FieldDiff) {
 	expectedValue := reflect.ValueOf(expected)
 	actualValue := reflect.ValueOf(actual)
+
+	if !expectedValue.IsValid() || !actualValue.IsValid() {
+		if expectedValue.IsValid() != actualValue.IsValid() {
+			*diffs = append(*diffs, FieldDiff{
+				Path:     path,
+				Expected: expected,
+				Actual:   actual,
+			})
+		}
+		return
+	}
 
 	if expectedValue.Kind() != actualValue.Kind() {
 		*diffs = append(*diffs, FieldDiff{
