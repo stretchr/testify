@@ -819,6 +819,171 @@ func TestFindDifferences_ComplexNesting(t *testing.T) {
 	}
 }
 
+func TestCompareExpectedActual_ConsistentResultsDespiteMapKeyOrder(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		expected interface{}
+		actual   interface{}
+		want     []fieldDiff
+	}{
+		{
+			name: "Identical maps with different key insertion order should be equal",
+			expected: map[string]interface{}{
+				"a": 1,
+				"b": 2,
+				"c": 3,
+				"d": 4,
+			},
+			actual: map[string]interface{}{
+				"d": 4,
+				"a": 1,
+				"c": 3,
+				"b": 2,
+			},
+			want: []fieldDiff{},
+		},
+		{
+			name: "Simple nested maps with different insertion order should be equal",
+			expected: map[string]interface{}{
+				"user": map[string]string{
+					"name":  "John",
+					"email": "john@example.com",
+				},
+				"settings": map[string]interface{}{
+					"theme":    "dark",
+					"fontSize": 14,
+				},
+			},
+			actual: map[string]interface{}{
+				"settings": map[string]interface{}{
+					"fontSize": 14,
+					"theme":    "dark",
+				},
+				"user": map[string]string{
+					"email": "john@example.com",
+					"name":  "John",
+				},
+			},
+			want: []fieldDiff{},
+		},
+		{
+			name: "Maps with different values should show appropriate diffs",
+			expected: map[string]interface{}{
+				"config": map[string]interface{}{
+					"host":    "localhost",
+					"port":    8080,
+					"debug":   true,
+					"timeout": 30,
+				},
+				"data": []string{"a", "b", "c"},
+			},
+			actual: map[string]interface{}{
+				"data": []string{"a", "b", "d"},
+				"config": map[string]interface{}{
+					"timeout": 60,
+					"port":    8080,
+					"debug":   false,
+					"host":    "127.0.0.1",
+				},
+			},
+			want: []fieldDiff{
+				{
+					Path:     "[config].[debug]",
+					Expected: true,
+					Actual:   false,
+				},
+				{
+					Path:     "[config].[host]",
+					Expected: "localhost",
+					Actual:   "127.0.0.1",
+				},
+				{
+					Path:     "[config].[timeout]",
+					Expected: 30,
+					Actual:   60,
+				},
+				{
+					Path:     "[data].[2]",
+					Expected: "c",
+					Actual:   "d",
+				},
+			},
+		},
+		{
+			name: "Maps with missing and extra keys",
+			expected: map[string]interface{}{
+				"user": map[string]interface{}{
+					"id":    123,
+					"name":  "Alice",
+					"email": "alice@example.com",
+				},
+			},
+			actual: map[string]interface{}{
+				"user": map[string]interface{}{
+					"id":   123,
+					"name": "Alice",
+					// email missing
+					"address": "123 Main St", // extra key
+				},
+			},
+			want: []fieldDiff{
+				{
+					Path:     "[user].[email]",
+					Expected: "alice@example.com",
+					Actual:   "<missing>",
+				},
+				{
+					Path:     "[user].[address]",
+					Expected: "<missing>",
+					Actual:   "123 Main St",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Run the comparison multiple times to ensure deterministic results
+			var results [][]fieldDiff
+			for i := 0; i < 3; i++ {
+				got := compareExpectedActual(tt.expected, tt.actual, "")
+				results = append(results, got)
+			}
+
+			// Verify all runs produce the same result (ignoring order)
+			for i := 1; i < len(results); i++ {
+				if !diffsAreEqual(results[0], results[i]) {
+					t.Errorf("Run %d produced different results than run 0. This indicates non-deterministic behavior.", i)
+					t.Errorf("Run 0: %v", results[0])
+					t.Errorf("Run %d: %v", i, results[i])
+				}
+			}
+
+			// Compare with expected results (ignoring order)
+			got := results[0]
+			if !diffsAreEqual(got, tt.want) {
+				t.Errorf("compareExpectedActual() returned unexpected differences:")
+				t.Errorf("Got %d differences, want %d", len(got), len(tt.want))
+
+				t.Errorf("Actual differences found:")
+				for i, diff := range got {
+					t.Errorf("  [%d] Path: %s, Expected: %v, Actual: %v", i, diff.Path, diff.Expected, diff.Actual)
+				}
+
+				t.Errorf("Expected differences:")
+				for i, diff := range tt.want {
+					t.Errorf("  [%d] Path: %s, Expected: %v, Actual: %v", i, diff.Path, diff.Expected, diff.Actual)
+				}
+			}
+		})
+	}
+}
+
 // Helper function to compare fieldDiff slices without relying on order
 func diffsAreEqual(a, b []fieldDiff) bool {
 	if len(a) != len(b) {
