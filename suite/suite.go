@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
 
 // Suite is a basic testing suite with methods for storing and
@@ -116,6 +115,11 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 	})
 }
 
+type test = struct {
+	name string
+	run  func(t *testing.T)
+}
+
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
@@ -131,7 +135,7 @@ func Run(t *testing.T, suite TestingSuite) {
 		stats = newSuiteInformation()
 	}
 
-	tests := []testing.InternalTest{}
+	var tests []test
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
 
@@ -160,9 +164,9 @@ func Run(t *testing.T, suite TestingSuite) {
 			suiteSetupDone = true
 		}
 
-		test := testing.InternalTest{
-			Name: method.Name,
-			F: func(t *testing.T) {
+		test := test{
+			name: method.Name,
+			run: func(t *testing.T) {
 				parentT := suite.T()
 				suite.SetT(t)
 				defer recoverAndFailOnPanic(t)
@@ -229,25 +233,13 @@ func methodFilter(name string) (bool, error) {
 	return regexp.MatchString(*matchMethod, name)
 }
 
-func runTests(t testing.TB, tests []testing.InternalTest) {
+func runTests(t *testing.T, tests []test) {
 	if len(tests) == 0 {
 		t.Log("warning: no tests to run")
 		return
 	}
 
-	r, ok := t.(runner)
-	if !ok { // backwards compatibility with Go 1.6 and below
-		if !testing.RunTests(allTestsFilter, tests) {
-			t.Fail()
-		}
-		return
-	}
-
 	for _, test := range tests {
-		r.Run(test.Name, test.F)
+		t.Run(test.name, test.run)
 	}
-}
-
-type runner interface {
-	Run(name string, f func(t *testing.T)) bool
 }

@@ -8,6 +8,8 @@ import (
 )
 
 func TestImplementsWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.Implements((*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject)) {
@@ -19,6 +21,8 @@ func TestImplementsWrapper(t *testing.T) {
 }
 
 func TestIsTypeWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.IsType(new(AssertionTesterConformingObject), new(AssertionTesterConformingObject)) {
@@ -31,6 +35,8 @@ func TestIsTypeWrapper(t *testing.T) {
 }
 
 func TestEqualWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.Equal("Hello World", "Hello World") {
@@ -51,6 +57,8 @@ func TestEqualWrapper(t *testing.T) {
 }
 
 func TestEqualValuesWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.EqualValues(uint32(10), int32(10)) {
@@ -59,6 +67,8 @@ func TestEqualValuesWrapper(t *testing.T) {
 }
 
 func TestNotNilWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.NotNil(new(AssertionTesterConformingObject)) {
@@ -71,6 +81,8 @@ func TestNotNilWrapper(t *testing.T) {
 }
 
 func TestNilWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.Nil(nil) {
@@ -83,6 +95,8 @@ func TestNilWrapper(t *testing.T) {
 }
 
 func TestTrueWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.True(true) {
@@ -95,6 +109,8 @@ func TestTrueWrapper(t *testing.T) {
 }
 
 func TestFalseWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	if !assert.False(false) {
@@ -107,6 +123,8 @@ func TestFalseWrapper(t *testing.T) {
 }
 
 func TestExactlyWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	a := float32(1)
@@ -134,6 +152,7 @@ func TestExactlyWrapper(t *testing.T) {
 }
 
 func TestNotEqualWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 
@@ -155,6 +174,7 @@ func TestNotEqualWrapper(t *testing.T) {
 }
 
 func TestNotEqualValuesWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 
@@ -179,6 +199,7 @@ func TestNotEqualValuesWrapper(t *testing.T) {
 }
 
 func TestContainsWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 	list := []string{"Foo", "Bar"}
@@ -200,6 +221,7 @@ func TestContainsWrapper(t *testing.T) {
 }
 
 func TestNotContainsWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 	list := []string{"Foo", "Bar"}
@@ -221,6 +243,7 @@ func TestNotContainsWrapper(t *testing.T) {
 }
 
 func TestConditionWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 
@@ -235,6 +258,7 @@ func TestConditionWrapper(t *testing.T) {
 }
 
 func TestDidPanicWrapper(t *testing.T) {
+	t.Parallel()
 
 	if funcDidPanic, _, _ := didPanic(func() {
 		panic("Panic!")
@@ -250,6 +274,7 @@ func TestDidPanicWrapper(t *testing.T) {
 }
 
 func TestPanicsWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 
@@ -267,6 +292,7 @@ func TestPanicsWrapper(t *testing.T) {
 }
 
 func TestNotPanicsWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 
@@ -284,6 +310,8 @@ func TestNotPanicsWrapper(t *testing.T) {
 }
 
 func TestNoErrorWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -300,6 +328,8 @@ func TestNoErrorWrapper(t *testing.T) {
 }
 
 func TestErrorWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -316,6 +346,8 @@ func TestErrorWrapper(t *testing.T) {
 }
 
 func TestErrorContainsWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -335,6 +367,8 @@ func TestErrorContainsWrapper(t *testing.T) {
 }
 
 func TestEqualErrorWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -352,6 +386,8 @@ func TestEqualErrorWrapper(t *testing.T) {
 }
 
 func TestEmptyWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -370,6 +406,8 @@ func TestEmptyWrapper(t *testing.T) {
 }
 
 func TestNotEmptyWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -388,6 +426,8 @@ func TestNotEmptyWrapper(t *testing.T) {
 }
 
 func TestLenWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -428,6 +468,8 @@ func TestLenWrapper(t *testing.T) {
 }
 
 func TestWithinDurationWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 	a := time.Now()
@@ -447,6 +489,8 @@ func TestWithinDurationWrapper(t *testing.T) {
 }
 
 func TestInDeltaWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	True(t, assert.InDelta(1.001, 1, 0.01), "|1.001 - 1| <= 0.01")
@@ -481,6 +525,8 @@ func TestInDeltaWrapper(t *testing.T) {
 }
 
 func TestInEpsilonWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 
 	cases := []struct {
@@ -519,6 +565,7 @@ func TestInEpsilonWrapper(t *testing.T) {
 }
 
 func TestRegexpWrapper(t *testing.T) {
+	t.Parallel()
 
 	assert := New(new(testing.T))
 
@@ -546,7 +593,7 @@ func TestRegexpWrapper(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		False(t, assert.Regexp(tc.rx, tc.str), "Expected \"%s\" to not match \"%s\"", tc.rx, tc.str)
+		False(t, assert.Regexp(tc.rx, tc.str), "Expected %q to not match %q", tc.rx, tc.str)
 		False(t, assert.Regexp(regexp.MustCompile(tc.rx), tc.str))
 		True(t, assert.NotRegexp(tc.rx, tc.str))
 		True(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
@@ -554,6 +601,8 @@ func TestRegexpWrapper(t *testing.T) {
 }
 
 func TestZeroWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -567,6 +616,8 @@ func TestZeroWrapper(t *testing.T) {
 }
 
 func TestNotZeroWrapper(t *testing.T) {
+	t.Parallel()
+
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
@@ -580,6 +631,8 @@ func TestNotZeroWrapper(t *testing.T) {
 }
 
 func TestJSONEqWrapper_EqualSONString(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`) {
 		t.Error("JSONEq should return true")
@@ -588,6 +641,8 @@ func TestJSONEqWrapper_EqualSONString(t *testing.T) {
 }
 
 func TestJSONEqWrapper_EquivalentButNotEqual(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
 		t.Error("JSONEq should return true")
@@ -596,6 +651,8 @@ func TestJSONEqWrapper_EquivalentButNotEqual(t *testing.T) {
 }
 
 func TestJSONEqWrapper_HashOfArraysAndHashes(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.JSONEq("{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}") {
@@ -604,6 +661,8 @@ func TestJSONEqWrapper_HashOfArraysAndHashes(t *testing.T) {
 }
 
 func TestJSONEqWrapper_Array(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`) {
 		t.Error("JSONEq should return true")
@@ -612,6 +671,8 @@ func TestJSONEqWrapper_Array(t *testing.T) {
 }
 
 func TestJSONEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`) {
 		t.Error("JSONEq should return false")
@@ -619,6 +680,8 @@ func TestJSONEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
 }
 
 func TestJSONEqWrapper_HashesNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.JSONEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
 		t.Error("JSONEq should return false")
@@ -626,6 +689,8 @@ func TestJSONEqWrapper_HashesNotEquivalent(t *testing.T) {
 }
 
 func TestJSONEqWrapper_ActualIsNotJSON(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.JSONEq(`{"foo": "bar"}`, "Not JSON") {
 		t.Error("JSONEq should return false")
@@ -633,6 +698,8 @@ func TestJSONEqWrapper_ActualIsNotJSON(t *testing.T) {
 }
 
 func TestJSONEqWrapper_ExpectedIsNotJSON(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.JSONEq("Not JSON", `{"foo": "bar", "hello": "world"}`) {
 		t.Error("JSONEq should return false")
@@ -640,6 +707,8 @@ func TestJSONEqWrapper_ExpectedIsNotJSON(t *testing.T) {
 }
 
 func TestJSONEqWrapper_ExpectedAndActualNotJSON(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.JSONEq("Not JSON", "Not JSON") {
 		t.Error("JSONEq should return false")
@@ -647,6 +716,8 @@ func TestJSONEqWrapper_ExpectedAndActualNotJSON(t *testing.T) {
 }
 
 func TestJSONEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`) {
 		t.Error("JSONEq should return false")
@@ -654,6 +725,8 @@ func TestJSONEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_EqualYAMLString(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`) {
 		t.Error("YAMLEq should return true")
@@ -662,6 +735,8 @@ func TestYAMLEqWrapper_EqualYAMLString(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_EquivalentButNotEqual(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
 		t.Error("YAMLEq should return true")
@@ -670,6 +745,8 @@ func TestYAMLEqWrapper_EquivalentButNotEqual(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_HashOfArraysAndHashes(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	expected := `
 numeric: 1.5
@@ -702,6 +779,8 @@ array:
 }
 
 func TestYAMLEqWrapper_Array(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`) {
 		t.Error("YAMLEq should return true")
@@ -710,6 +789,8 @@ func TestYAMLEqWrapper_Array(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`) {
 		t.Error("YAMLEq should return false")
@@ -717,6 +798,8 @@ func TestYAMLEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_HashesNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.YAMLEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
 		t.Error("YAMLEq should return false")
@@ -724,6 +807,8 @@ func TestYAMLEqWrapper_HashesNotEquivalent(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_ActualIsSimpleString(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.YAMLEq(`{"foo": "bar"}`, "Simple String") {
 		t.Error("YAMLEq should return false")
@@ -731,6 +816,8 @@ func TestYAMLEqWrapper_ActualIsSimpleString(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_ExpectedIsSimpleString(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.YAMLEq("Simple String", `{"foo": "bar", "hello": "world"}`) {
 		t.Error("YAMLEq should return false")
@@ -738,6 +825,8 @@ func TestYAMLEqWrapper_ExpectedIsSimpleString(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_ExpectedAndActualSimpleString(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if !assert.YAMLEq("Simple String", "Simple String") {
 		t.Error("YAMLEq should return true")
@@ -745,6 +834,8 @@ func TestYAMLEqWrapper_ExpectedAndActualSimpleString(t *testing.T) {
 }
 
 func TestYAMLEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
+	t.Parallel()
+
 	assert := New(new(testing.T))
 	if assert.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`) {
 		t.Error("YAMLEq should return false")

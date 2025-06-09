@@ -16,6 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// allTestsFilter is a yes filter for testing.RunTests
+func allTestsFilter(pat, str string) (bool, error) {
+	return true, nil
+}
+
 // SuiteRequireTwice is intended to test the usage of suite.Require in two
 // different tests
 type SuiteRequireTwice struct{ Suite }
