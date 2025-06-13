@@ -2,6 +2,8 @@
 // maintenance of downstream forks that remove that dependency.
 // See https://github.com/stretchr/testify/issues/1752
 
+//go:build !testify_no_objx && !testify_no_deps
+
 package mock
 
 import "github.com/stretchr/objx"
