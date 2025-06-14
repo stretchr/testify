@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// regex for GCCGO functions
-var gccgoRE = regexp.MustCompile(`\.pN\d+_`)
+// regex for GCCGO functions and "-fm"
+var gccgoRE = regexp.MustCompile(`(\.pN\d+_|-fm)`)
 
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
@@ -31,6 +31,11 @@ type TestingT interface {
 /*
 	Call
 */
+
+type CallSetup struct {
+	Arguments Arguments
+	Returns   Returns
+}
 
 // Call represents a method call and is used for setting expectations,
 // as well as recording activity.
@@ -100,6 +105,40 @@ func (c *Call) lock() {
 
 func (c *Call) unlock() {
 	c.Parent.mutex.Unlock()
+}
+
+// Returns the function name from the function path
+func getMethodNameFromPath(functionPath string) string {
+	if functionPath == "" {
+		panic("method name could not be empty")
+	}
+
+	// Next four lines are required to use GCCGO function naming conventions.
+	// For Ex:  github_com_docker_libkv_store_mock.WatchTree.pN39_github_com_docker_libkv_store_mock.Mock
+	// uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
+	// With GCCGO we need to remove interface information starting from pN<dd>.
+	// Also, GCCGO uses .<method>-fm instead of .<method> for function names in interface pointers paths.
+	if gccgoRE.MatchString(functionPath) {
+		functionPath = gccgoRE.Split(functionPath, -1)[0]
+	}
+
+	parts := strings.Split(functionPath, ".")
+	functionName := parts[len(parts)-1]
+
+	return functionName
+}
+
+// Returns the function name from the function method interface
+func getFuncInterfaceMethodName(method interface{}) string {
+	methodValue := reflect.ValueOf(method)
+	methodType := methodValue.Type()
+	if methodType.Kind() != reflect.Func {
+		panic("method must be a function")
+	}
+
+	functionPath := runtime.FuncForPC(methodValue.Pointer()).Name()
+
+	return getMethodNameFromPath(functionPath)
 }
 
 // Return specifies the return arguments for the expectation.
@@ -205,6 +244,19 @@ func (c *Call) Maybe() *Call {
 //
 //go:noinline
 func (c *Call) On(methodName string, arguments ...interface{}) *Call {
+	return c.Parent.On(methodName, arguments...)
+}
+
+// OnFunc chains a new expectation description onto the mocked interface. This
+// allows syntax like.
+//
+//	Mock.
+//	   OnFunc(mockedService.MyMethod, 1).Return(nil).
+//	   OnFunc(mockedService.MyOtherMethod, 'a', 'b', 'c').Return(errors.New("Some Error"))
+//
+//go:noinline
+func (c *Call) OnFunc(method interface{}, arguments ...interface{}) *Call {
+	methodName := getFuncInterfaceMethodName(method)
 	return c.Parent.On(methodName, arguments...)
 }
 
@@ -381,6 +433,16 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
+// OnFunc starts a description of an expectation of the specified method
+// being called.
+//
+//	Mock.OnFunc(mockedService.MyMethod, arg1, arg2)
+func (m *Mock) OnFunc(method interface{}, arguments ...interface{}) *Call {
+	methodName := getFuncInterfaceMethodName(method)
+
+	return m.On(methodName, arguments...)
+}
+
 // /*
 // 	Recording and responding to activity
 // */
@@ -479,16 +541,39 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 		panic("Couldn't get the caller information")
 	}
 	functionPath := runtime.FuncForPC(pc).Name()
-	// Next four lines are required to use GCCGO function naming conventions.
-	// For Ex:  github_com_docker_libkv_store_mock.WatchTree.pN39_github_com_docker_libkv_store_mock.Mock
-	// uses interface information unlike golang github.com/docker/libkv/store/mock.(*Mock).WatchTree
-	// With GCCGO we need to remove interface information starting from pN<dd>.
-	if gccgoRE.MatchString(functionPath) {
-		functionPath = gccgoRE.Split(functionPath, -1)[0]
-	}
-	parts := strings.Split(functionPath, ".")
-	functionName := parts[len(parts)-1]
+	functionName := getMethodNameFromPath(functionPath)
+
 	return m.MethodCalled(functionName, arguments...)
+}
+
+func (m *Mock) assignIfNotNil(returnValue interface{}, target interface{}) {
+	if returnValue != nil {
+		reflect.ValueOf(target).Elem().Set(reflect.ValueOf(returnValue))
+	}
+}
+
+// MockCall is a helper function to mock a method call with the given setup.
+// It is useful when you want to mock a method call in a easier way in few lines using syntax like.
+//
+//	var r0 *SomeType0
+//	var r1 *SomeType1
+//	var rN error
+//	i.MockCall(CallSetup{Arguments: Arguments{args...}, Returns: Returns{&r0, &r1, &rN}})
+//
+//	return r0, r1, rN
+func (m *Mock) MockCall(setup CallSetup) {
+	pc, _, _, ok := runtime.Caller(1)
+	if !ok {
+		panic("Couldn't get the caller information")
+	}
+	functionPath := runtime.FuncForPC(pc).Name()
+	functionName := getMethodNameFromPath(functionPath)
+
+	returns := m.MethodCalled(functionName, setup.Arguments...)
+
+	for ind, target := range setup.Returns {
+		m.assignIfNotNil(returns[ind], target)
+	}
 }
 
 // MethodCalled tells the mock object that the given method has been called, and gets
@@ -782,6 +867,7 @@ func (m *Mock) calls() []Call {
 
 // Arguments holds an array of method arguments or return values.
 type Arguments []interface{}
+type Returns []interface{}
 
 const (
 	// Anything is used in Diff and Assert when the argument being tested
