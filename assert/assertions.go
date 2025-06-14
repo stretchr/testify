@@ -212,7 +212,6 @@ the problem actually occurred in calling code.*/
 // of each stack frame leading from the current test to the assert call that
 // failed.
 func CallerInfo() []string {
-
 	var pc uintptr
 	var file string
 	var line int
@@ -455,17 +454,34 @@ func NotImplements(t TestingT, interfaceObject interface{}, object interface{}, 
 	return true
 }
 
+func isType(expectedType, object interface{}) bool {
+	return ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType))
+}
+
 // IsType asserts that the specified objects are of the same type.
-func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) bool {
+//
+//	assert.IsType(t, &MyStruct{}, &MyStruct{})
+func IsType(t TestingT, expectedType, object interface{}, msgAndArgs ...interface{}) bool {
+	if isType(expectedType, object) {
+		return true
+	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	return Fail(t, fmt.Sprintf("Object expected to be of type %T, but was %T", expectedType, object), msgAndArgs...)
+}
 
-	if !ObjectsAreEqual(reflect.TypeOf(object), reflect.TypeOf(expectedType)) {
-		return Fail(t, fmt.Sprintf("Object expected to be of type %T, but was %T", expectedType, object), msgAndArgs...)
+// IsNotType asserts that the specified objects are not of the same type.
+//
+//	assert.IsNotType(t, &NotMyStruct{}, &MyStruct{})
+func IsNotType(t TestingT, theType, object interface{}, msgAndArgs ...interface{}) bool {
+	if !isType(theType, object) {
+		return true
 	}
-
-	return true
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Fail(t, fmt.Sprintf("Object type expected to be different than %T", theType), msgAndArgs...)
 }
 
 // Equal asserts that two objects are equal.
@@ -493,7 +509,6 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 	}
 
 	return true
-
 }
 
 // validateEqualArgs checks whether provided arguments can be safely used in the
@@ -528,8 +543,9 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 	if !same {
 		// both are pointers but not the same type & pointing to the same address
 		return Fail(t, fmt.Sprintf("Not same: \n"+
-			"expected: %p %#v\n"+
-			"actual  : %p %#v", expected, expected, actual, actual), msgAndArgs...)
+			"expected: %p %#[1]v\n"+
+			"actual  : %p %#[2]v",
+			expected, actual), msgAndArgs...)
 	}
 
 	return true
@@ -548,14 +564,14 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 
 	same, ok := samePointers(expected, actual)
 	if !ok {
-		//fails when the arguments are not pointers
+		// fails when the arguments are not pointers
 		return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
 	}
 
 	if same {
 		return Fail(t, fmt.Sprintf(
-			"Expected and actual point to the same object: %p %#v",
-			expected, expected), msgAndArgs...)
+			"Expected and actual point to the same object: %p %#[1]v",
+			expected), msgAndArgs...)
 	}
 	return true
 }
@@ -567,7 +583,7 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 func samePointers(first, second interface{}) (same bool, ok bool) {
 	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
 	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
-		return false, false //not both are pointers
+		return false, false // not both are pointers
 	}
 
 	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
@@ -628,7 +644,6 @@ func EqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...interfa
 	}
 
 	return true
-
 }
 
 // EqualExportedValues asserts that the types of two objects are equal and their public
@@ -683,7 +698,6 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	}
 
 	return Equal(t, expected, actual, msgAndArgs...)
-
 }
 
 // NotNil asserts that the specified object is not nil.
@@ -733,37 +747,45 @@ func Nil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 
 // isEmpty gets whether the specified object is considered empty or not.
 func isEmpty(object interface{}) bool {
-
 	// get nil case out of the way
 	if object == nil {
 		return true
 	}
 
-	objValue := reflect.ValueOf(object)
-
-	switch objValue.Kind() {
-	// collection types are empty when they have no element
-	case reflect.Chan, reflect.Map, reflect.Slice:
-		return objValue.Len() == 0
-	// pointers are empty if nil or if the value they point to is empty
-	case reflect.Ptr:
-		if objValue.IsNil() {
-			return true
-		}
-		deref := objValue.Elem().Interface()
-		return isEmpty(deref)
-	// for all other types, compare against the zero value
-	// array types are empty when they match their zero-initialized state
-	default:
-		zero := reflect.Zero(objValue.Type())
-		return reflect.DeepEqual(object, zero.Interface())
-	}
+	return isEmptyValue(reflect.ValueOf(object))
 }
 
-// Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// isEmptyValue gets whether the specified reflect.Value is considered empty or not.
+func isEmptyValue(objValue reflect.Value) bool {
+	if objValue.IsZero() {
+		return true
+	}
+	// Special cases of non-zero values that we consider empty
+	switch objValue.Kind() {
+	// collection types are empty when they have no element
+	// Note: array types are empty when they match their zero-initialized state.
+	case reflect.Chan, reflect.Map, reflect.Slice:
+		return objValue.Len() == 0
+	// non-nil pointers are empty if the value they point to is empty
+	case reflect.Ptr:
+		return isEmptyValue(objValue.Elem())
+	}
+	return false
+}
+
+// Empty asserts that the given value is "empty".
+//
+// [Zero values] are "empty".
+//
+// Arrays are "empty" if every element is the zero value of the type (stricter than "empty").
+//
+// Slices, maps and channels with zero length are "empty".
+//
+// Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
 //	assert.Empty(t, obj)
+//
+// [Zero values]: https://go.dev/ref/spec#The_zero_value
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	pass := isEmpty(object)
 	if !pass {
@@ -774,11 +796,9 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	}
 
 	return pass
-
 }
 
-// NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// NotEmpty asserts that the specified object is NOT [Empty].
 //
 //	if assert.NotEmpty(t, obj) {
 //	  assert.Equal(t, "two", obj[1])
@@ -793,7 +813,6 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 	}
 
 	return pass
-
 }
 
 // getLen tries to get the length of an object.
@@ -837,7 +856,6 @@ func True(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 	}
 
 	return true
-
 }
 
 // False asserts that the specified value is false.
@@ -852,7 +870,6 @@ func False(t TestingT, value bool, msgAndArgs ...interface{}) bool {
 	}
 
 	return true
-
 }
 
 // NotEqual asserts that the specified values are NOT equal.
@@ -875,7 +892,6 @@ func NotEqual(t TestingT, expected, actual interface{}, msgAndArgs ...interface{
 	}
 
 	return true
-
 }
 
 // NotEqualValues asserts that two objects are not equal even when converted to the same type
@@ -898,7 +914,6 @@ func NotEqualValues(t TestingT, expected, actual interface{}, msgAndArgs ...inte
 // return (true, false) if element was not found.
 // return (true, true) if element was found.
 func containsElement(list interface{}, element interface{}) (ok, found bool) {
-
 	listValue := reflect.ValueOf(list)
 	listType := reflect.TypeOf(list)
 	if listType == nil {
@@ -933,7 +948,6 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}
 	return true, false
-
 }
 
 // Contains asserts that the specified string, list(array, slice...) or map contains the
@@ -956,7 +970,6 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 	}
 
 	return true
-
 }
 
 // NotContains asserts that the specified string, list(array, slice...) or map does NOT contain the
@@ -979,14 +992,17 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 	}
 
 	return true
-
 }
 
-// Subset asserts that the specified list(array, slice...) or map contains all
-// elements given in the specified subset list(array, slice...) or map.
+// Subset asserts that the list (array, slice, or map) contains all elements
+// given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	assert.Subset(t, [1, 2, 3], [1, 2])
 //	assert.Subset(t, {"x": 1, "y": 2}, {"x": 1})
+//	assert.Subset(t, [1, 2, 3], {1: "one", 2: "two"})
+//	assert.Subset(t, {"x": 1, "y": 2}, ["x"])
 func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1001,7 +1017,7 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	}
 
 	subsetKind := reflect.TypeOf(subset).Kind()
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
@@ -1025,6 +1041,13 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	}
 
 	subsetList := reflect.ValueOf(subset)
+	if subsetKind == reflect.Map {
+		keys := make([]interface{}, subsetList.Len())
+		for idx, key := range subsetList.MapKeys() {
+			keys[idx] = key.Interface()
+		}
+		subsetList = reflect.ValueOf(keys)
+	}
 	for i := 0; i < subsetList.Len(); i++ {
 		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
@@ -1039,12 +1062,15 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 	return true
 }
 
-// NotSubset asserts that the specified list(array, slice...) or map does NOT
-// contain all elements given in the specified subset list(array, slice...) or
-// map.
+// NotSubset asserts that the list (array, slice, or map) does NOT contain all
+// elements given in the subset (array, slice, or map).
+// Map elements are key-value pairs unless compared with an array or slice where
+// only the map key is evaluated.
 //
 //	assert.NotSubset(t, [1, 3, 4], [1, 2])
 //	assert.NotSubset(t, {"x": 1, "y": 2}, {"z": 3})
+//	assert.NotSubset(t, [1, 3, 4], {1: "one", 2: "two"})
+//	assert.NotSubset(t, {"x": 1, "y": 2}, ["z"])
 func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok bool) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1059,7 +1085,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	}
 
 	subsetKind := reflect.TypeOf(subset).Kind()
-	if subsetKind != reflect.Array && subsetKind != reflect.Slice && listKind != reflect.Map {
+	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
@@ -1083,6 +1109,13 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	}
 
 	subsetList := reflect.ValueOf(subset)
+	if subsetKind == reflect.Map {
+		keys := make([]interface{}, subsetList.Len())
+		for idx, key := range subsetList.MapKeys() {
+			keys[idx] = key.Interface()
+		}
+		subsetList = reflect.ValueOf(keys)
+	}
 	for i := 0; i < subsetList.Len(); i++ {
 		element := subsetList.Index(i).Interface()
 		ok, found := containsElement(list, element)
@@ -1609,10 +1642,8 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 
 // Error asserts that a function returned an error (i.e. not `nil`).
 //
-//	  actualObj, err := SomeFunction()
-//	  if assert.Error(t, err) {
-//		   assert.Equal(t, expectedError, err)
-//	  }
+//	actualObj, err := SomeFunction()
+//	assert.Error(t, err)
 func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	if err == nil {
 		if h, ok := t.(tHelper); ok {
@@ -1685,7 +1716,6 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 	default:
 		return r.MatchString(fmt.Sprint(v))
 	}
-
 }
 
 // Regexp asserts that a specified regexp matches a string.
@@ -1721,7 +1751,6 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 	}
 
 	return !match
-
 }
 
 // Zero asserts that i is the zero value for its type.
@@ -1832,6 +1861,11 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
+	// Shortcut if same bytes
+	if actual == expected {
+		return true
+	}
+
 	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
@@ -1848,6 +1882,11 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 
 	if err := yaml.Unmarshal([]byte(expected), &expectedYAMLAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid yaml.\nYAML parsing error: '%s'", expected, err.Error()), msgAndArgs...)
+	}
+
+	// Shortcut if same bytes
+	if actual == expected {
+		return true
 	}
 
 	if err := yaml.Unmarshal([]byte(actual), &actualYAMLAsInterface); err != nil {
@@ -1951,6 +1990,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	}
 
 	ch := make(chan bool, 1)
+	checkCond := func() { ch <- condition() }
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -1958,18 +1998,23 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
-		case <-tick:
-			tick = nil
-			go func() { ch <- condition() }()
+		case <-tickC:
+			tickC = nil
+			go checkCond()
 		case v := <-ch:
 			if v {
 				return true
 			}
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
@@ -1981,6 +2026,9 @@ type CollectT struct {
 	// obtained by direct c.FailNow() call.
 	errors []error
 }
+
+// Helper is like [testing.T.Helper] but does nothing.
+func (CollectT) Helper() {}
 
 // Errorf collects the error.
 func (c *CollectT) Errorf(format string, args ...interface{}) {
@@ -2039,35 +2087,42 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
+	checkCond := func() {
+		collect := new(CollectT)
+		defer func() {
+			ch <- collect
+		}()
+		condition(collect)
+	}
+
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
 
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			for _, err := range lastFinishedTickErrs {
 				t.Errorf("%v", err)
 			}
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
-		case <-tick:
-			tick = nil
-			go func() {
-				collect := new(CollectT)
-				defer func() {
-					ch <- collect
-				}()
-				condition(collect)
-			}()
+		case <-tickC:
+			tickC = nil
+			go checkCond()
 		case collect := <-ch:
 			if !collect.failed() {
 				return true
 			}
 			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
 			lastFinishedTickErrs = collect.errors
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
@@ -2082,6 +2137,7 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 	}
 
 	ch := make(chan bool, 1)
+	checkCond := func() { ch <- condition() }
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2089,18 +2145,23 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	for tick := ticker.C; ; {
+	var tickC <-chan time.Time
+
+	// Check the condition once first on the initial call.
+	go checkCond()
+
+	for {
 		select {
 		case <-timer.C:
 			return true
-		case <-tick:
-			tick = nil
-			go func() { ch <- condition() }()
+		case <-tickC:
+			tickC = nil
+			go checkCond()
 		case v := <-ch:
 			if v {
 				return Fail(t, "Condition satisfied", msgAndArgs...)
 			}
-			tick = ticker.C
+			tickC = ticker.C
 		}
 	}
 }
@@ -2118,6 +2179,9 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	var expectedText string
 	if target != nil {
 		expectedText = target.Error()
+		if err == nil {
+			return Fail(t, fmt.Sprintf("Expected error with %q in chain but got nil.", expectedText), msgAndArgs...)
+		}
 	}
 
 	chain := buildErrorChainString(err, false)
@@ -2161,11 +2225,17 @@ func ErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interface{
 		return true
 	}
 
+	expectedType := reflect.TypeOf(target).Elem().String()
+	if err == nil {
+		return Fail(t, fmt.Sprintf("An error is expected but got nil.\n"+
+			"expected: %s", expectedType), msgAndArgs...)
+	}
+
 	chain := buildErrorChainString(err, true)
 
 	return Fail(t, fmt.Sprintf("Should be in error chain:\n"+
 		"expected: %s\n"+
-		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
+		"in chain: %s", expectedType, chain,
 	), msgAndArgs...)
 }
 
@@ -2183,7 +2253,7 @@ func NotErrorAs(t TestingT, err error, target interface{}, msgAndArgs ...interfa
 
 	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
 		"found: %s\n"+
-		"in chain: %s", reflect.ValueOf(target).Elem().Type(), chain,
+		"in chain: %s", reflect.TypeOf(target).Elem().String(), chain,
 	), msgAndArgs...)
 }
 

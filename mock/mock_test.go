@@ -150,6 +150,9 @@ type MockTestingT struct {
 	logfCount, errorfCount, failNowCount int
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (MockTestingT) Helper() {}
+
 const mockTestingTFailNowCalled = "FailNow was called"
 
 func (m *MockTestingT) Logf(string, ...interface{}) {
@@ -178,6 +181,7 @@ func (m *MockTestingT) FailNow() {
 */
 
 func Test_Mock_TestData(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -189,6 +193,7 @@ func Test_Mock_TestData(t *testing.T) {
 }
 
 func Test_Mock_On(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -209,6 +214,8 @@ func Test_Mock_OnFunc(t *testing.T) {
 }
 
 func Test_Mock_Chained_On(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -302,6 +309,7 @@ func Test_Mock_Chained_OnFuncFast(t *testing.T) {
 }
 
 func Test_Mock_On_WithArgs(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -326,6 +334,7 @@ func Test_Mock_OnFunc_WithArgs(t *testing.T) {
 }
 
 func Test_Mock_On_WithFuncArg(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -368,6 +377,8 @@ func Test_Mock_OnFunc_WithFuncArg(t *testing.T) {
 }
 
 func Test_Mock_On_WithIntArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod",
@@ -414,6 +425,8 @@ func Test_Mock_OnFunc_WithIntArgMatcher(t *testing.T) {
 }
 
 func Test_Mock_On_WithArgMatcherThatPanics(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod2", MatchedBy(func(_ interface{}) bool {
@@ -466,6 +479,8 @@ func Test_Mock_OnFunc_WithArgMatcherThatPanics(t *testing.T) {
 }
 
 func TestMock_WithTest(t *testing.T) {
+	t.Parallel()
+
 	var (
 		mockedService TestExampleImplementation
 		mockedTest    MockTestingT
@@ -522,6 +537,8 @@ func TestMock_OnFunc_WithTest(t *testing.T) {
 }
 
 func Test_Mock_On_WithPtrArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod3",
@@ -542,6 +559,8 @@ func Test_Mock_On_WithPtrArgMatcher(t *testing.T) {
 }
 
 func Test_Mock_On_WithFuncArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	fixture1, fixture2 := errors.New("fixture1"), errors.New("fixture2")
@@ -566,6 +585,8 @@ func Test_Mock_On_WithFuncArgMatcher(t *testing.T) {
 }
 
 func Test_Mock_On_WithInterfaceArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod4",
@@ -576,6 +597,8 @@ func Test_Mock_On_WithInterfaceArgMatcher(t *testing.T) {
 }
 
 func Test_Mock_On_WithChannelArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod5",
@@ -586,6 +609,8 @@ func Test_Mock_On_WithChannelArgMatcher(t *testing.T) {
 }
 
 func Test_Mock_On_WithMapArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod6",
@@ -596,6 +621,8 @@ func Test_Mock_On_WithMapArgMatcher(t *testing.T) {
 }
 
 func Test_Mock_On_WithSliceArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod7",
@@ -606,6 +633,7 @@ func Test_Mock_On_WithSliceArgMatcher(t *testing.T) {
 }
 
 func Test_Mock_On_WithVariadicFunc(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -628,6 +656,7 @@ func Test_Mock_On_WithVariadicFunc(t *testing.T) {
 }
 
 func Test_Mock_On_WithMixedVariadicFunc(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -651,6 +680,7 @@ func Test_Mock_On_WithMixedVariadicFunc(t *testing.T) {
 }
 
 func Test_Mock_On_WithVariadicFuncWithInterface(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -672,6 +702,7 @@ func Test_Mock_On_WithVariadicFuncWithInterface(t *testing.T) {
 }
 
 func Test_Mock_On_WithVariadicFuncWithEmptyInterfaceArray(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -695,6 +726,8 @@ func Test_Mock_On_WithVariadicFuncWithEmptyInterfaceArray(t *testing.T) {
 }
 
 func Test_Mock_On_WithFuncPanics(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -704,6 +737,7 @@ func Test_Mock_On_WithFuncPanics(t *testing.T) {
 }
 
 func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -723,6 +757,8 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 }
 
 func Test_Mock_Unset(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -751,6 +787,8 @@ func Test_Mock_Unset(t *testing.T) {
 // Since every time you call On it creates a new object
 // the last time you call Unset it will only unset the last call
 func Test_Mock_Chained_UnsetOnlyUnsetsLastCall(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -785,6 +823,8 @@ func Test_Mock_Chained_UnsetOnlyUnsetsLastCall(t *testing.T) {
 }
 
 func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -804,6 +844,8 @@ func Test_Mock_UnsetIfAlreadyUnsetFails(t *testing.T) {
 }
 
 func Test_Mock_UnsetByOnMethodSpec(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -825,6 +867,8 @@ func Test_Mock_UnsetByOnMethodSpec(t *testing.T) {
 }
 
 func Test_Mock_UnsetByOnMethodSpecAmongOthers(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
@@ -867,6 +911,8 @@ func Test_Mock_UnsetByOnMethodSpecAmongOthers(t *testing.T) {
 }
 
 func Test_Mock_Unset_WithFuncPanics(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 	mock1 := mockedService.On("TheExampleMethod", 1)
@@ -878,6 +924,7 @@ func Test_Mock_Unset_WithFuncPanics(t *testing.T) {
 }
 
 func Test_Mock_Return(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -902,6 +949,7 @@ func Test_Mock_Return(t *testing.T) {
 }
 
 func Test_Mock_Panic(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -925,6 +973,7 @@ func Test_Mock_Panic(t *testing.T) {
 }
 
 func Test_Mock_Return_WaitUntil(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -952,6 +1001,7 @@ func Test_Mock_Return_WaitUntil(t *testing.T) {
 }
 
 func Test_Mock_Return_After(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -978,6 +1028,7 @@ func Test_Mock_Return_After(t *testing.T) {
 }
 
 func Test_Mock_Return_Run(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -1010,6 +1061,8 @@ func Test_Mock_Return_Run(t *testing.T) {
 }
 
 func Test_Mock_Return_Run_Out_Of_Order(t *testing.T) {
+	t.Parallel()
+
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 	f := func(args Arguments) {
@@ -1035,6 +1088,7 @@ func Test_Mock_Return_Run_Out_Of_Order(t *testing.T) {
 }
 
 func Test_Mock_Return_Once(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -1059,6 +1113,7 @@ func Test_Mock_Return_Once(t *testing.T) {
 }
 
 func Test_Mock_Return_Twice(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -1084,6 +1139,7 @@ func Test_Mock_Return_Twice(t *testing.T) {
 }
 
 func Test_Mock_Return_Times(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -1109,6 +1165,7 @@ func Test_Mock_Return_Times(t *testing.T) {
 }
 
 func Test_Mock_Return_Nothing(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -1129,6 +1186,8 @@ func Test_Mock_Return_Nothing(t *testing.T) {
 }
 
 func Test_Mock_Return_NotBefore_In_Order(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	b := mockedService.
@@ -1149,6 +1208,8 @@ func Test_Mock_Return_NotBefore_In_Order(t *testing.T) {
 }
 
 func Test_Mock_Return_InOrder_Uses_NotBefore(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	InOrder(
@@ -1169,6 +1230,8 @@ func Test_Mock_Return_InOrder_Uses_NotBefore(t *testing.T) {
 }
 
 func Test_Mock_Return_NotBefore_Out_Of_Order(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	b := mockedService.
@@ -1199,6 +1262,8 @@ TheExampleMethod(int,int,int)
 }
 
 func Test_Mock_Return_InOrder_Uses_NotBefore_Out_Of_Order(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	InOrder(
@@ -1228,6 +1293,8 @@ TheExampleMethod(int,int,int)
 }
 
 func Test_Mock_Return_NotBefore_Not_Enough_Times(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	b := mockedService.
@@ -1261,6 +1328,8 @@ TheExampleMethod(int,int,int)
 }
 
 func Test_Mock_Return_NotBefore_Different_Mock_In_Order(t *testing.T) {
+	t.Parallel()
+
 	var (
 		mockedService1 = new(TestExampleImplementation)
 		mockedService2 = new(TestExampleImplementation)
@@ -1284,6 +1353,8 @@ func Test_Mock_Return_NotBefore_Different_Mock_In_Order(t *testing.T) {
 }
 
 func Test_Mock_Return_NotBefore_Different_Mock_Out_Of_Order(t *testing.T) {
+	t.Parallel()
+
 	var (
 		mockedService1 = new(TestExampleImplementation)
 		mockedService2 = new(TestExampleImplementation)
@@ -1317,6 +1388,8 @@ TheExampleMethod(int,int,int)
 }
 
 func Test_Mock_Return_NotBefore_In_Order_With_Non_Dependant(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	a := mockedService.
@@ -1357,6 +1430,8 @@ func Test_Mock_Return_NotBefore_In_Order_With_Non_Dependant(t *testing.T) {
 }
 
 func Test_Mock_Return_NotBefore_Orphan_Call(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	require.PanicsWithValue(t, "not before calls must be created with Mock.On()", func() {
@@ -1368,6 +1443,7 @@ func Test_Mock_Return_NotBefore_Orphan_Call(t *testing.T) {
 }
 
 func Test_Mock_findExpectedCall(t *testing.T) {
+	t.Parallel()
 
 	m := new(Mock)
 	m.On("One", 1).Return("one")
@@ -1387,6 +1463,7 @@ func Test_Mock_findExpectedCall(t *testing.T) {
 }
 
 func Test_Mock_findExpectedCall_For_Unknown_Method(t *testing.T) {
+	t.Parallel()
 
 	m := new(Mock)
 	m.On("One", 1).Return("one")
@@ -1400,6 +1477,7 @@ func Test_Mock_findExpectedCall_For_Unknown_Method(t *testing.T) {
 }
 
 func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
+	t.Parallel()
 
 	m := new(Mock)
 	m.On("One", 1).Return("one")
@@ -1430,6 +1508,7 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 }
 
 func Test_callString(t *testing.T) {
+	t.Parallel()
 
 	assert.Equal(t, `Method(int,bool,string)`, callString("Method", []interface{}{1, true, "something"}, false))
 	assert.Equal(t, `Method(<nil>)`, callString("Method", []interface{}{nil}, false))
@@ -1437,6 +1516,7 @@ func Test_callString(t *testing.T) {
 }
 
 func Test_Mock_Called(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1464,6 +1544,7 @@ func asyncCall(m *Mock, ch chan Arguments) {
 }
 
 func Test_Mock_Called_blocks(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1497,6 +1578,7 @@ func Test_Mock_Called_blocks(t *testing.T) {
 }
 
 func Test_Mock_Called_For_Bounded_Repeatability(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1538,6 +1620,7 @@ func Test_Mock_Called_For_Bounded_Repeatability(t *testing.T) {
 }
 
 func Test_Mock_Called_For_SetTime_Expectation(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1554,6 +1637,7 @@ func Test_Mock_Called_For_SetTime_Expectation(t *testing.T) {
 }
 
 func Test_Mock_Called_Unexpected(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1565,6 +1649,7 @@ func Test_Mock_Called_Unexpected(t *testing.T) {
 }
 
 func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
+	t.Parallel()
 
 	var mockedService1 = new(TestExampleImplementation)
 	var mockedService2 = new(TestExampleImplementation)
@@ -1585,6 +1670,7 @@ func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
 }
 
 func Test_AssertExpectationsForObjects_Helper_Failed(t *testing.T) {
+	t.Parallel()
 
 	var mockedService1 = new(TestExampleImplementation)
 	var mockedService2 = new(TestExampleImplementation)
@@ -1604,6 +1690,7 @@ func Test_AssertExpectationsForObjects_Helper_Failed(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectations(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1621,6 +1708,7 @@ func Test_Mock_AssertExpectations(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectations_Placeholder_NoArgs(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1639,6 +1727,7 @@ func Test_Mock_AssertExpectations_Placeholder_NoArgs(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectations_Placeholder(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1662,6 +1751,7 @@ func Test_Mock_AssertExpectations_Placeholder(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectations_With_Pointers(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1683,6 +1773,7 @@ func Test_Mock_AssertExpectations_With_Pointers(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectationsCustomType(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1700,6 +1791,7 @@ func Test_Mock_AssertExpectationsCustomType(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectationsFunctionalOptionsType(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1717,6 +1809,7 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectationsFunctionalOptionsType_Empty(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1734,6 +1827,7 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Empty(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectationsFunctionalOptionsType_Indirectly(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1751,6 +1845,7 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Indirectly(t *testing.T) 
 }
 
 func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Func(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1765,6 +1860,7 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Func(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Arg(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1779,6 +1875,7 @@ func Test_Mock_AssertExpectationsFunctionalOptionsType_Diff_Arg(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1800,6 +1897,7 @@ func Test_Mock_AssertExpectations_With_Repeatability(t *testing.T) {
 }
 
 func Test_Mock_AssertExpectations_Skipped_Test(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1810,6 +1908,7 @@ func Test_Mock_AssertExpectations_Skipped_Test(t *testing.T) {
 }
 
 func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1829,6 +1928,7 @@ func Test_Mock_TwoCallsWithDifferentArguments(t *testing.T) {
 }
 
 func Test_Mock_AssertNumberOfCalls(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1843,6 +1943,7 @@ func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 }
 
 func Test_Mock_AssertCalled(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1855,6 +1956,7 @@ func Test_Mock_AssertCalled(t *testing.T) {
 }
 
 func Test_Mock_AssertCalled_WithAnythingOfTypeArgument(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1869,6 +1971,7 @@ func Test_Mock_AssertCalled_WithAnythingOfTypeArgument(t *testing.T) {
 }
 
 func Test_Mock_AssertCalled_WithArguments(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1883,6 +1986,7 @@ func Test_Mock_AssertCalled_WithArguments(t *testing.T) {
 }
 
 func Test_Mock_AssertCalled_WithArguments_With_Repeatability(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1900,6 +2004,7 @@ func Test_Mock_AssertCalled_WithArguments_With_Repeatability(t *testing.T) {
 }
 
 func Test_Mock_AssertNotCalled(t *testing.T) {
+	t.Parallel()
 
 	var mockedService = new(TestExampleImplementation)
 
@@ -1912,6 +2017,8 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 }
 
 func Test_Mock_IsMethodCallable(t *testing.T) {
+	t.Parallel()
+
 	var mockedService = new(TestExampleImplementation)
 
 	arg := []Call{{Repeatability: 1}, {Repeatability: 2}}
@@ -1931,6 +2038,8 @@ func Test_Mock_IsMethodCallable(t *testing.T) {
 }
 
 func TestIsArgsEqual(t *testing.T) {
+	t.Parallel()
+
 	var expected = Arguments{5, 3, 4, 6, 7, 2}
 
 	// Copy elements 1 to 5
@@ -1944,6 +2053,8 @@ func TestIsArgsEqual(t *testing.T) {
 }
 
 func Test_Mock_AssertOptional(t *testing.T) {
+	t.Parallel()
+
 	// Optional called
 	var ms1 = new(TestExampleImplementation)
 	ms1.On("TheExampleMethod", 1, 2, 3).Maybe().Return(4, nil)
@@ -1972,6 +2083,7 @@ func Test_Mock_AssertOptional(t *testing.T) {
 Arguments helper methods
 */
 func Test_Arguments_Get(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 
@@ -1982,6 +2094,7 @@ func Test_Arguments_Get(t *testing.T) {
 }
 
 func Test_Arguments_Is(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 
@@ -1991,6 +2104,7 @@ func Test_Arguments_Is(t *testing.T) {
 }
 
 func Test_Arguments_Diff(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"Hello World", 123, true})
 	var diff string
@@ -2004,6 +2118,7 @@ func Test_Arguments_Diff(t *testing.T) {
 }
 
 func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 	var diff string
@@ -2016,6 +2131,7 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 }
 
 func Test_Arguments_Diff_WithAnythingArgument(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 	var count int
@@ -2026,6 +2142,7 @@ func Test_Arguments_Diff_WithAnythingArgument(t *testing.T) {
 }
 
 func Test_Arguments_Diff_WithAnythingArgument_InActualToo(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", Anything, true})
 	var count int
@@ -2036,6 +2153,7 @@ func Test_Arguments_Diff_WithAnythingArgument_InActualToo(t *testing.T) {
 }
 
 func Test_Arguments_Diff_WithAnythingOfTypeArgument(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", AnythingOfType("int"), true})
 	var count int
@@ -2046,6 +2164,7 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument(t *testing.T) {
 }
 
 func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", AnythingOfType("string"), true})
 	var count int
@@ -2058,6 +2177,8 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 }
 
 func Test_Arguments_Diff_WithIsTypeArgument(t *testing.T) {
+	t.Parallel()
+
 	var args = Arguments([]interface{}{"string", IsType(0), true})
 	var count int
 	_, count = args.Diff([]interface{}{"string", 123, true})
@@ -2066,6 +2187,8 @@ func Test_Arguments_Diff_WithIsTypeArgument(t *testing.T) {
 }
 
 func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
+	t.Parallel()
+
 	var args = Arguments([]interface{}{"string", IsType(""), true})
 	var count int
 	var diff string
@@ -2076,6 +2199,8 @@ func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
 }
 
 func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
+	t.Parallel()
+
 	matchFn := func(a int) bool {
 		return a == 123
 	}
@@ -2099,6 +2224,7 @@ func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 }
 
 func Test_Arguments_Assert(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 
@@ -2107,6 +2233,7 @@ func Test_Arguments_Assert(t *testing.T) {
 }
 
 func Test_Arguments_String_Representation(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 	assert.Equal(t, `string,int,bool`, args.String())
@@ -2114,6 +2241,7 @@ func Test_Arguments_String_Representation(t *testing.T) {
 }
 
 func Test_Arguments_String(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 	assert.Equal(t, "string", args.String(0))
@@ -2121,6 +2249,7 @@ func Test_Arguments_String(t *testing.T) {
 }
 
 func Test_Arguments_Error(t *testing.T) {
+	t.Parallel()
 
 	var err = errors.New("An Error")
 	var args = Arguments([]interface{}{"string", 123, true, err})
@@ -2129,6 +2258,7 @@ func Test_Arguments_Error(t *testing.T) {
 }
 
 func Test_Arguments_Error_Nil(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true, nil})
 	assert.Equal(t, nil, args.Error(3))
@@ -2136,6 +2266,7 @@ func Test_Arguments_Error_Nil(t *testing.T) {
 }
 
 func Test_Arguments_Int(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 	assert.Equal(t, 123, args.Int(1))
@@ -2143,6 +2274,7 @@ func Test_Arguments_Int(t *testing.T) {
 }
 
 func Test_Arguments_Bool(t *testing.T) {
+	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
 	assert.Equal(t, true, args.Bool(2))
@@ -2150,6 +2282,7 @@ func Test_Arguments_Bool(t *testing.T) {
 }
 
 func Test_WaitUntil_Parallel(t *testing.T) {
+	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
@@ -2176,6 +2309,8 @@ func Test_WaitUntil_Parallel(t *testing.T) {
 }
 
 func Test_MockMethodCalled(t *testing.T) {
+	t.Parallel()
+
 	m := new(Mock)
 	m.On("foo", "hello").Return("world")
 
@@ -2186,6 +2321,8 @@ func Test_MockMethodCalled(t *testing.T) {
 }
 
 func Test_MockMethodCalled_Panic(t *testing.T) {
+	t.Parallel()
+
 	m := new(Mock)
 	m.On("foo", "hello").Panic("world panics")
 
@@ -2195,6 +2332,8 @@ func Test_MockMethodCalled_Panic(t *testing.T) {
 
 // Test to validate fix for racy concurrent call access in MethodCalled()
 func Test_MockReturnAndCalledConcurrent(t *testing.T) {
+	t.Parallel()
+
 	iterations := 1000
 	m := &Mock{}
 	call := m.On("ConcurrencyTestMethod")
@@ -2245,6 +2384,8 @@ func (tc *tCustomLogger) Errorf(format string, args ...interface{}) {
 func (tc *tCustomLogger) FailNow() {}
 
 func TestLoggingAssertExpectations(t *testing.T) {
+	t.Parallel()
+
 	m := new(timer)
 	m.On("GetTime", 0).Return("")
 	tcl := &tCustomLogger{t, []string{}, []string{}}
@@ -2259,6 +2400,8 @@ func TestLoggingAssertExpectations(t *testing.T) {
 }
 
 func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
+	t.Parallel()
+
 	waitDuration := 1
 	total, waitMs := 5, time.Millisecond*time.Duration(waitDuration)
 	aTimer := new(timer)
@@ -2283,6 +2426,8 @@ func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 }
 
 func TestArgumentMatcherToPrintMismatch(t *testing.T) {
+	t.Parallel()
+
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(
@@ -2300,6 +2445,8 @@ func TestArgumentMatcherToPrintMismatch(t *testing.T) {
 }
 
 func TestArgumentMatcherToPrintMismatchWithReferenceType(t *testing.T) {
+	t.Parallel()
+
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(
@@ -2317,6 +2464,8 @@ func TestArgumentMatcherToPrintMismatchWithReferenceType(t *testing.T) {
 }
 
 func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
+	t.Parallel()
+
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod(int,int,int)`, `0: 1\s+1: 1\s+2: 2`, `0: 1\s+1: 1\s+2: 1`, `Diff: 0: PASS:  \(int=1\) == \(int=1\)\s+1: PASS:  \(int=1\) == \(int=1\)\s+2: FAIL:  \(int=2\) != \(int=1\)`))
@@ -2332,6 +2481,8 @@ func TestClosestCallMismatchedArgumentInformationShowsTheClosest(t *testing.T) {
 }
 
 func TestClosestCallFavorsFirstMock(t *testing.T) {
+	t.Parallel()
+
 	defer func() {
 		if r := recover(); r != nil {
 			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -2,4 \+2,4 @@\s+\(bool\) true,\s+- \(bool\) true,\s+- \(bool\) true\s+\+ \(bool\) false,\s+\+ \(bool\) false\s+}\s+Diff: 0: FAIL:  \(\[\]bool=\[(true\s?|false\s?){3}]\) != \(\[\]bool=\[(true\s?|false\s?){3}\]\)`
@@ -2348,6 +2499,8 @@ func TestClosestCallFavorsFirstMock(t *testing.T) {
 }
 
 func TestClosestCallUsesRepeatabilityToFindClosest(t *testing.T) {
+	t.Parallel()
+
 	defer func() {
 		if r := recover(); r != nil {
 			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -1,4 \+1,4 @@\s+\(\[\]bool\) \(len=3\) {\s+- \(bool\) false,\s+- \(bool\) false,\s+\+ \(bool\) true,\s+\+ \(bool\) true,\s+\(bool\) false\s+Diff: 0: FAIL:  \(\[\]bool=\[(true\s?|false\s?){3}]\) != \(\[\]bool=\[(true\s?|false\s?){3}\]\)`
@@ -2368,6 +2521,8 @@ func TestClosestCallUsesRepeatabilityToFindClosest(t *testing.T) {
 }
 
 func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
+	t.Parallel()
+
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(unexpectedCallRegex(`GetTime(int)`, "0: 1", "0: 999", `Diff: 0: FAIL:  \(int=1\) != \(int=999\)`))
@@ -2382,26 +2537,38 @@ func TestClosestCallMismatchedArgumentValueInformation(t *testing.T) {
 }
 
 func Test_isBetterMatchThanReturnsFalseIfCandidateCallIsNil(t *testing.T) {
+	t.Parallel()
+
 	assert.False(t, matchCandidate{}.isBetterMatchThan(matchCandidate{}))
 }
 
 func Test_isBetterMatchThanReturnsTrueIfOtherCandidateCallIsNil(t *testing.T) {
+	t.Parallel()
+
 	assert.True(t, matchCandidate{call: &Call{}}.isBetterMatchThan(matchCandidate{}))
 }
 
 func Test_isBetterMatchThanReturnsFalseIfDiffCountIsGreaterThanOther(t *testing.T) {
+	t.Parallel()
+
 	assert.False(t, matchCandidate{call: &Call{}, diffCount: 2}.isBetterMatchThan(matchCandidate{call: &Call{}, diffCount: 1}))
 }
 
 func Test_isBetterMatchThanReturnsTrueIfDiffCountIsLessThanOther(t *testing.T) {
+	t.Parallel()
+
 	assert.True(t, matchCandidate{call: &Call{}, diffCount: 1}.isBetterMatchThan(matchCandidate{call: &Call{}, diffCount: 2}))
 }
 
 func Test_isBetterMatchThanReturnsTrueIfRepeatabilityIsGreaterThanOther(t *testing.T) {
+	t.Parallel()
+
 	assert.True(t, matchCandidate{call: &Call{Repeatability: 1}, diffCount: 1}.isBetterMatchThan(matchCandidate{call: &Call{Repeatability: -1}, diffCount: 1}))
 }
 
 func Test_isBetterMatchThanReturnsFalseIfRepeatabilityIsLessThanOrEqualToOther(t *testing.T) {
+	t.Parallel()
+
 	assert.False(t, matchCandidate{call: &Call{Repeatability: 1}, diffCount: 1}.isBetterMatchThan(matchCandidate{call: &Call{Repeatability: 1}, diffCount: 1}))
 }
 
@@ -2417,6 +2584,8 @@ func ConcurrencyTestMethod(m *Mock) {
 }
 
 func TestConcurrentArgumentRead(t *testing.T) {
+	t.Parallel()
+
 	methodUnderTest := func(c caller, u user) {
 		go u.Use(c)
 		c.Call()

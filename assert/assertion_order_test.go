@@ -6,6 +6,8 @@ import (
 )
 
 func TestIsIncreasing(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !IsIncreasing(mockT, []int{1, 2}) {
@@ -51,6 +53,8 @@ func TestIsIncreasing(t *testing.T) {
 }
 
 func TestIsNonIncreasing(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !IsNonIncreasing(mockT, []int{2, 1}) {
@@ -96,6 +100,8 @@ func TestIsNonIncreasing(t *testing.T) {
 }
 
 func TestIsDecreasing(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !IsDecreasing(mockT, []int{2, 1}) {
@@ -141,6 +147,8 @@ func TestIsDecreasing(t *testing.T) {
 }
 
 func TestIsNonDecreasing(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(testing.T)
 
 	if !IsNonDecreasing(mockT, []int{1, 2}) {
@@ -186,6 +194,8 @@ func TestIsNonDecreasing(t *testing.T) {
 }
 
 func TestOrderingMsgAndArgsForwarding(t *testing.T) {
+	t.Parallel()
+
 	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
 	expectedOutput := "format this c001\n"
 	collection := []int{1, 2, 1}
