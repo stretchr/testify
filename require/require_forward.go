@@ -1123,6 +1123,32 @@ func (a *Assertions) NoErrorf(err error, msg string, args ...interface{}) {
 	NoErrorf(a.t, err, msg, args...)
 }
 
+// NoFieldIsZero asserts that object, which must be a struct or eventually
+// reference to one, has no field with a value that is zero.
+//
+// The assertion is not recursive, meaning it only checks that the fields
+// of the struct (embedded structs are considered fields) are not zero values.
+// It does not check the fields of nested or embedded structs.
+func (a *Assertions) NoFieldIsZero(object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NoFieldIsZero(a.t, object, msgAndArgs...)
+}
+
+// NoFieldIsZerof asserts that object, which must be a struct or eventually
+// reference to one, has no field with a value that is zero.
+//
+// The assertion is not recursive, meaning it only checks that the fields
+// of the struct (embedded structs are considered fields) are not zero values.
+// It does not check the fields of nested or embedded structs.
+func (a *Assertions) NoFieldIsZerof(object interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NoFieldIsZerof(a.t, object, msg, args...)
+}
+
 // NoFileExists checks whether a file does not exist in a given path. It fails
 // if the path points to an existing _file_ only.
 func (a *Assertions) NoFileExists(path string, msgAndArgs ...interface{}) {
