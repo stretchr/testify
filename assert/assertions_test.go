@@ -2626,7 +2626,7 @@ func getTempSymlinkPath(t *testing.T, file string) string {
 	tempDir := t.TempDir()
 	link := filepath.Join(tempDir, file+"_symlink")
 	if err := os.Symlink(file, link); err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
+		t.Fatalf("could not create temp symlink %q pointing to %q: %v", link, file, err)
 	}
 	return link
 }
