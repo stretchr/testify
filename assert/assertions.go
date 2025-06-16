@@ -266,8 +266,8 @@ func CallerInfo() []string {
 			}
 
 			// Drop the package
-			segments := strings.Split(name, ".")
-			name = segments[len(segments)-1]
+			dotPos := strings.LastIndexByte(name, '.')
+			name = name[dotPos+1:]
 			if isTest(name, "Test") ||
 				isTest(name, "Benchmark") ||
 				isTest(name, "Example") {
