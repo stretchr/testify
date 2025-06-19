@@ -128,8 +128,6 @@ func Run(t *testing.T, suite TestingSuite) {
 	suite.SetT(t)
 	suite.SetS(suite)
 
-	var suiteSetupDone bool
-
 	var stats *SuiteInformation
 	if _, ok := suite.(WithStats); ok {
 		stats = newSuiteInformation()
@@ -150,18 +148,6 @@ func Run(t *testing.T, suite TestingSuite) {
 
 		if !ok {
 			continue
-		}
-
-		if !suiteSetupDone {
-			if stats != nil {
-				stats.Start = time.Now()
-			}
-
-			if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-				setupAllSuite.SetupSuite()
-			}
-
-			suiteSetupDone = true
 		}
 
 		test := test{
@@ -208,18 +194,29 @@ func Run(t *testing.T, suite TestingSuite) {
 		}
 		tests = append(tests, test)
 	}
-	if suiteSetupDone {
-		defer func() {
-			if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-				tearDownAllSuite.TearDownSuite()
-			}
 
-			if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-				stats.End = time.Now()
-				suiteWithStats.HandleStats(suiteName, stats)
-			}
-		}()
+	if len(tests) == 0 {
+		return
 	}
+
+	if stats != nil {
+		stats.Start = time.Now()
+	}
+
+	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
+		setupAllSuite.SetupSuite()
+	}
+
+	defer func() {
+		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
+			tearDownAllSuite.TearDownSuite()
+		}
+
+		if suiteWithStats, measureStats := suite.(WithStats); measureStats {
+			stats.End = time.Now()
+			suiteWithStats.HandleStats(suiteName, stats)
+		}
+	}()
 
 	runTests(t, tests)
 }
