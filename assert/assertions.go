@@ -927,12 +927,11 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}()
 
-	if listKind == reflect.String {
+	switch listKind {
+	case reflect.String:
 		elementValue := reflect.ValueOf(element)
 		return true, strings.Contains(listValue.String(), elementValue.String())
-	}
-
-	if listKind == reflect.Map {
+	case reflect.Map:
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
 			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
@@ -940,6 +939,13 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 			}
 		}
 		return true, false
+	case reflect.Slice:
+		switch element := element.(type) {
+		case []byte:
+			if list, ok := list.([]byte); ok {
+				return true, bytes.Contains(list, element)
+			}
+		}
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
@@ -954,8 +960,10 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 // specified substring or element.
 //
 //	assert.Contains(t, "Hello World", "World")
-//	assert.Contains(t, ["Hello", "World"], "World")
-//	assert.Contains(t, {"Hello": "World"}, "Hello")
+//	assert.Contains(t, []string{"Hello", "World"}, "World")
+//	assert.Contains(t, map[string]string{"Hello": "World"}, "Hello")
+//	assert.Contains(t, []byte("Hello World"), []byte("World"))
+//	assert.Contains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("World"))
 func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -976,8 +984,10 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 // specified substring or element.
 //
 //	assert.NotContains(t, "Hello World", "Earth")
-//	assert.NotContains(t, ["Hello", "World"], "Earth")
-//	assert.NotContains(t, {"Hello": "World"}, "Earth")
+//	assert.NotContains(t, []string{"Hello", "World"}, "Earth")
+//	assert.NotContains(t, map[string]string{"Hello": "World"}, "Earth")
+//	assert.NotContains(t, []byte("Hello World"), []byte("Earth"))
+//	assert.NotContains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"))
 func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
