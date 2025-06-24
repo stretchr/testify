@@ -149,7 +149,19 @@ func Run(t *testing.T, suite TestingSuite) {
 		if !ok {
 			continue
 		}
-
+		// Check method signature
+		if method.Type.NumIn() > 1 || method.Type.NumOut() > 0 {
+			tests = append(tests, test{
+				name: method.Name,
+				run: func(t *testing.T) {
+					t.Errorf(
+						"testify: suite method %q has invalid signature: expected no inputs or return values (has %d inputs, %d outputs)",
+						method.Name, method.Type.NumIn()-1, method.Type.NumOut(),
+					)
+				},
+			})
+			continue
+		}
 		test := test{
 			name: method.Name,
 			run: func(t *testing.T) {

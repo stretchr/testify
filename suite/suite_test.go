@@ -751,3 +751,65 @@ func TestUnInitializedSuites(t *testing.T) {
 		})
 	})
 }
+
+// SuiteSignatureValidationTester tests valid and invalid method signatures.
+type SuiteSignatureValidationTester struct {
+	Suite
+
+	executedTestCount int
+	setUp             bool
+	toreDown          bool
+}
+
+// SetupSuite runs once before any tests.
+func (s *SuiteSignatureValidationTester) SetupSuite() {
+	s.setUp = true
+}
+
+// TearDownSuite runs once after all tests.
+func (s *SuiteSignatureValidationTester) TearDownSuite() {
+	s.toreDown = true
+}
+
+// Valid test method — should run.
+func (s *SuiteSignatureValidationTester) TestValidSignature() {
+	s.executedTestCount++
+}
+
+// Invalid: has return value.
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureReturnValue() interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+// Invalid: has input arg.
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureArg(somearg string) {
+	s.executedTestCount++
+}
+
+// Invalid: both input arg and return value.
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureBoth(somearg string) interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+// TestSuiteSignatureValidation ensures that invalid signature methods fail and valid method runs.
+func TestSuiteSignatureValidation(t *testing.T) {
+	suiteTester := new(SuiteSignatureValidationTester)
+
+	ok := testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: "signature validation",
+			F: func(t *testing.T) {
+				Run(t, suiteTester)
+			},
+		},
+	})
+
+	require.False(t, ok, "Suite should fail due to invalid method signatures")
+
+	assert.Equal(t, 1, suiteTester.executedTestCount, "Only the valid test method should have been executed")
+
+	assert.True(t, suiteTester.setUp, "SetupSuite should have been executed")
+	assert.True(t, suiteTester.toreDown, "TearDownSuite should have been executed")
+}
