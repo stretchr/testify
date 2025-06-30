@@ -161,10 +161,7 @@ func Run(t *testing.T, suite TestingSuite) {
 
 					r := recover()
 
-					if stats != nil {
-						passed := !t.Failed() && r == nil
-						stats.end(method.Name, passed)
-					}
+					stats.end(method.Name, !t.Failed() && r == nil)
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
 						afterTestSuite.AfterTest(suiteName, method.Name)
@@ -185,9 +182,7 @@ func Run(t *testing.T, suite TestingSuite) {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 				}
 
-				if stats != nil {
-					stats.start(method.Name)
-				}
+				stats.start(method.Name)
 
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
