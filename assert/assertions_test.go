@@ -2579,7 +2579,7 @@ func TestNotZero(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
-	// FIXME t.Parallel()
+	t.Parallel()
 
 	mockT := new(testing.T)
 	True(t, FileExists(mockT, "assertions.go"))
@@ -2590,32 +2590,17 @@ func TestFileExists(t *testing.T) {
 	mockT = new(testing.T)
 	False(t, FileExists(mockT, "../_codegen"))
 
-	var tempFiles []string
-
-	link, err := getTempSymlinkPath("assertions.go")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link := getTempSymlinkPath(t, "assertions.go")
 	mockT = new(testing.T)
 	True(t, FileExists(mockT, link))
 
-	link, err = getTempSymlinkPath("non_existent_file")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link = getTempSymlinkPath(t, "non_existent_file")
 	mockT = new(testing.T)
 	True(t, FileExists(mockT, link))
-
-	errs := cleanUpTempFiles(tempFiles)
-	if len(errs) > 0 {
-		t.Fatal("could not clean up temporary files")
-	}
 }
 
 func TestNoFileExists(t *testing.T) {
-	// FIXME t.Parallel()
+	t.Parallel()
 
 	mockT := new(testing.T)
 	False(t, NoFileExists(mockT, "assertions.go"))
@@ -2626,49 +2611,28 @@ func TestNoFileExists(t *testing.T) {
 	mockT = new(testing.T)
 	True(t, NoFileExists(mockT, "../_codegen"))
 
-	var tempFiles []string
-
-	link, err := getTempSymlinkPath("assertions.go")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link := getTempSymlinkPath(t, "assertions.go")
 	mockT = new(testing.T)
 	False(t, NoFileExists(mockT, link))
 
-	link, err = getTempSymlinkPath("non_existent_file")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link = getTempSymlinkPath(t, "non_existent_file")
 	mockT = new(testing.T)
 	False(t, NoFileExists(mockT, link))
-
-	errs := cleanUpTempFiles(tempFiles)
-	if len(errs) > 0 {
-		t.Fatal("could not clean up temporary files")
-	}
 }
 
-func getTempSymlinkPath(file string) (string, error) {
-	link := file + "_symlink"
-	err := os.Symlink(file, link)
-	return link, err
-}
+func getTempSymlinkPath(t *testing.T, file string) string {
+	t.Helper()
 
-func cleanUpTempFiles(paths []string) []error {
-	var res []error
-	for _, path := range paths {
-		err := os.Remove(path)
-		if err != nil {
-			res = append(res, err)
-		}
+	tempDir := t.TempDir()
+	link := filepath.Join(tempDir, file+"_symlink")
+	if err := os.Symlink(file, link); err != nil {
+		t.Fatalf("could not create temp symlink %q pointing to %q: %v", link, file, err)
 	}
-	return res
+	return link
 }
 
 func TestDirExists(t *testing.T) {
-	// FIXME t.Parallel()
+	t.Parallel()
 
 	mockT := new(testing.T)
 	False(t, DirExists(mockT, "assertions.go"))
@@ -2679,32 +2643,17 @@ func TestDirExists(t *testing.T) {
 	mockT = new(testing.T)
 	True(t, DirExists(mockT, "../_codegen"))
 
-	var tempFiles []string
-
-	link, err := getTempSymlinkPath("assertions.go")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link := getTempSymlinkPath(t, "assertions.go")
 	mockT = new(testing.T)
 	False(t, DirExists(mockT, link))
 
-	link, err = getTempSymlinkPath("non_existent_dir")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link = getTempSymlinkPath(t, "non_existent_dir")
 	mockT = new(testing.T)
 	False(t, DirExists(mockT, link))
-
-	errs := cleanUpTempFiles(tempFiles)
-	if len(errs) > 0 {
-		t.Fatal("could not clean up temporary files")
-	}
 }
 
 func TestNoDirExists(t *testing.T) {
-	// FIXME t.Parallel()
+	t.Parallel()
 
 	mockT := new(testing.T)
 	True(t, NoDirExists(mockT, "assertions.go"))
@@ -2715,28 +2664,13 @@ func TestNoDirExists(t *testing.T) {
 	mockT = new(testing.T)
 	False(t, NoDirExists(mockT, "../_codegen"))
 
-	var tempFiles []string
-
-	link, err := getTempSymlinkPath("assertions.go")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link := getTempSymlinkPath(t, "assertions.go")
 	mockT = new(testing.T)
 	True(t, NoDirExists(mockT, link))
 
-	link, err = getTempSymlinkPath("non_existent_dir")
-	if err != nil {
-		t.Fatal("could not create temp symlink, err:", err)
-	}
-	tempFiles = append(tempFiles, link)
+	link = getTempSymlinkPath(t, "non_existent_dir")
 	mockT = new(testing.T)
 	True(t, NoDirExists(mockT, link))
-
-	errs := cleanUpTempFiles(tempFiles)
-	if len(errs) > 0 {
-		t.Fatal("could not clean up temporary files")
-	}
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
