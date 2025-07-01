@@ -778,11 +778,6 @@ type testRegistration struct {
 	features []string
 }
 
-var testRegistrations = map[string]testRegistration{
-	"SuiteWithSkipTestOne": {buildVersion{1, 2}, []string{"myOldFeature"}},
-	"SuiteWithSkipTestTwo": {buildVersion{2, 0}, []string{"myNewFeature"}},
-}
-
 func contains(s []string, v string) bool {
 	for i := range s {
 		if v == s[i] {
@@ -799,6 +794,11 @@ type SuiteWithSkip struct {
 
 // SkipTest Implements the SkipTest interface
 func (s *SuiteWithSkip) SkipTest(testSuiteName string, testName string) bool {
+	var testRegistrations = map[string]testRegistration{
+		"SuiteWithSkipTestOne": {buildVersion{1, 2}, []string{"myOldFeature"}},
+		"SuiteWithSkipTestTwo": {buildVersion{2, 0}, []string{"myNewFeature"}},
+	}
+
 	testRegister, ok := testRegistrations[testSuiteName+testName]
 	if !ok {
 		return false
