@@ -20,7 +20,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
 
-	// Wrapper around gopkg.in/yaml.v3
+	// Wrapper around go.yaml.in/yaml/v3
 	"github.com/stretchr/testify/assert/yaml"
 )
 
