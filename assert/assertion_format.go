@@ -565,6 +565,19 @@ func NoErrorf(t TestingT, err error, msg string, args ...interface{}) bool {
 	return NoError(t, err, append([]interface{}{msg}, args...)...)
 }
 
+// NoFieldIsZerof asserts that object, which must be a struct or eventually
+// reference to one, has no field with a value that is zero.
+//
+// The assertion is not recursive, meaning it only checks that the fields
+// of the struct (embedded structs are considered fields) are not zero values.
+// It does not check the fields of nested or embedded structs.
+func NoFieldIsZerof(t TestingT, object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NoFieldIsZero(t, object, append([]interface{}{msg}, args...)...)
+}
+
 // NoFileExistsf checks whether a file does not exist in a given path. It fails
 // if the path points to an existing _file_ only.
 func NoFileExistsf(t TestingT, path string, msg string, args ...interface{}) bool {
