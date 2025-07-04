@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -137,16 +138,24 @@ func Run(t *testing.T, suite TestingSuite) {
 	methodFinder := reflect.TypeOf(suite)
 	suiteName := methodFinder.Elem().Name()
 
-	for i := 0; i < methodFinder.NumMethod(); i++ {
-		method := methodFinder.Method(i)
-
-		ok, err := methodFilter(method.Name)
+	var matchMethodRE *regexp.Regexp
+	if *matchMethod != "" {
+		var err error
+		matchMethodRE, err = regexp.Compile(*matchMethod)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "testify: invalid regexp for -m: %s\n", err)
 			os.Exit(1)
 		}
+	}
 
-		if !ok {
+	for i := 0; i < methodFinder.NumMethod(); i++ {
+		method := methodFinder.Method(i)
+
+		if !strings.HasPrefix(method.Name, "Test") {
+			continue
+		}
+		// Apply -testify.m filter
+		if matchMethodRE != nil && !matchMethodRE.MatchString(method.Name) {
 			continue
 		}
 		// Check method signature
@@ -173,10 +182,7 @@ func Run(t *testing.T, suite TestingSuite) {
 
 					r := recover()
 
-					if stats != nil {
-						passed := !t.Failed() && r == nil
-						stats.end(method.Name, passed)
-					}
+					stats.end(method.Name, !t.Failed() && r == nil)
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
 						afterTestSuite.AfterTest(suiteName, method.Name)
@@ -197,9 +203,7 @@ func Run(t *testing.T, suite TestingSuite) {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 				}
 
-				if stats != nil {
-					stats.start(method.Name)
-				}
+				stats.start(method.Name)
 
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
@@ -231,15 +235,6 @@ func Run(t *testing.T, suite TestingSuite) {
 	}()
 
 	runTests(t, tests)
-}
-
-// Filtering method according to set regular expression
-// specified command-line argument -m
-func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Test", name); !ok {
-		return false, nil
-	}
-	return regexp.MatchString(*matchMethod, name)
 }
 
 func runTests(t *testing.T, tests []test) {
