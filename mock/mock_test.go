@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -229,6 +230,95 @@ func Test_Mock_On_WithArgs(t *testing.T) {
 	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
 	assert.Equal(t, "TheExampleMethod", c.Method)
 	assert.Equal(t, Arguments{1, 2, 3, 4}, c.Arguments)
+}
+
+func Test_Mock_On_With_GoCmpArgument(t *testing.T) {
+	t.Parallel()
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethod6", GoCmp(map[string]bool{
+			"test": true,
+		})).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethod6", c.Method)
+	assert.Equal(t, 1, len(c.Arguments))
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethod6(map[string]bool{
+			"test": true,
+		})
+	})
+}
+
+func Test_Mock_On_With_GoCmpArgument_Nils_Matched(t *testing.T) {
+	t.Parallel()
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	var expected *ExampleType
+	c := mockedService.
+		On("TheExampleMethod3", GoCmp(expected)).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethod3", c.Method)
+	assert.Equal(t, 1, len(c.Arguments))
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethod3(nil)
+	})
+}
+
+func Test_Mock_On_With_GoCmpArgument_Panics_Without_Correct_Compare_Options(t *testing.T) {
+	t.Parallel()
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethod3", GoCmp(&ExampleType{
+			ran: false,
+		})).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethod3", c.Method)
+	assert.Equal(t, 1, len(c.Arguments))
+
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethod3(&ExampleType{
+			ran: false,
+		})
+	})
+}
+
+func Test_Mock_On_With_GoCmpArgument_Options(t *testing.T) {
+	t.Parallel()
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethod3", GoCmp(&ExampleType{
+			ran: false,
+		}, cmp.AllowUnexported(ExampleType{}))).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, "TheExampleMethod3", c.Method)
+	assert.Equal(t, 1, len(c.Arguments))
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethod3(&ExampleType{
+			ran: false,
+		})
+	})
 }
 
 func Test_Mock_On_WithFuncArg(t *testing.T) {

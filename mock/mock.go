@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/google/go-cmp/cmp"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
 
@@ -807,6 +808,18 @@ type AnythingOfTypeArgument = anythingOfTypeArgument
 // for use when type checking.  Used in Diff and Assert.
 type anythingOfTypeArgument string
 
+type goCmpArgument struct {
+	value interface{}
+	opts  []cmp.Option
+}
+
+func GoCmp(expected interface{}, opts ...cmp.Option) goCmpArgument {
+	return goCmpArgument{
+		value: expected,
+		opts:  opts,
+	}
+}
+
 // AnythingOfType returns a special value containing the
 // name of the type to check for. The type name will be matched against the type name returned by [reflect.Type.String].
 //
@@ -1063,7 +1076,20 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 						})
 					}
 				}
-
+			case goCmpArgument:
+				diff := cmp.Diff(expected.value, actual, expected.opts...)
+				if diff == "" {
+					// match
+					outputRenderers = append(outputRenderers, func() string {
+						return fmt.Sprintf("\t%d: PASS:  %s == %s\n", i, actualFmt(), expectedFmt())
+					})
+				} else {
+					// match
+					differences++
+					outputRenderers = append(outputRenderers, func() string {
+						return fmt.Sprintf("\t%d: FAIL:  (-want +got): \n%s\n", i, diff)
+					})
+				}
 			default:
 				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 					// match
