@@ -1034,7 +1034,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				if actualT != expected.t {
 					differences++
 					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, args.SafeName(expected.t), actualT, actualFmt())
+						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, safeTypeName(expected.t), actualT, actualFmt())
 					})
 				}
 			case *FunctionalOptionsArgument:
@@ -1179,11 +1179,9 @@ func (args Arguments) Bool(index int) bool {
 	return s
 }
 
-// SafeName returns the short name of a reflect.Type without causing a panic.
-// If the provided reflect.Type is nil, it returns the placeholder string "<nil>".
-// This helper is useful when formatting type information in diffs or error messages,
-// ensuring that code never attempts to call Name() on a nil reflect.Type
-func (args Arguments) SafeName(t reflect.Type) string {
+// safeTypeName returns the reflect.Type's name without causing a panic.
+// If the provided reflect.Type is nil, it returns the placeholder string "<nil>"
+func safeTypeName(t reflect.Type) string {
 	if t == nil {
 		return "<nil>"
 	}
