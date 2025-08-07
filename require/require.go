@@ -1759,7 +1759,8 @@ func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ..
 //
 //	require.NotSame(t, ptr1, ptr2)
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
@@ -1775,7 +1776,8 @@ func NotSame(t TestingT, expected interface{}, actual interface{}, msgAndArgs ..
 //
 //	require.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
@@ -1991,7 +1993,8 @@ func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...in
 //
 //	require.Same(t, ptr1, ptr2)
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func Same(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
@@ -2007,7 +2010,8 @@ func Same(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...in
 //
 //	require.Samef(t, ptr1, ptr2, "error message %s", "formatted")
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func Samef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
