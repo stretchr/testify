@@ -833,6 +833,10 @@ type IsTypeArgument struct {
 // For example:
 //
 //	args.Assert(t, IsType(""), IsType(0))
+//
+// Note: IsType checks for the exact type you give it.
+// If you pass a nil interface, it has no type and will never match.
+// To match an interface value, pass a non-nil value of the concrete type you expect.
 func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
