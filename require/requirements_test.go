@@ -788,3 +788,22 @@ func TestEventuallyWithTTrue(t *testing.T) {
 	False(t, mockT.Failed, "Check should pass")
 	Equal(t, 2, counter, "Condition is expected to be called 2 times")
 }
+
+func TestEventuallyTimeout(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(MockT)
+
+	counter := 0
+	condition := func() bool {
+		counter += 1
+		// this is here to check for data race conditions.
+		time.Sleep(20 * time.Millisecond)
+		return false
+	}
+	//Done to check for data race
+	counter += 1
+	Eventually(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
+	True(t, mockT.Failed, "check should fail")
+	Greater(t, counter, 2, "we should have more than one iteration")
+}

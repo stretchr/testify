@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -1989,9 +1990,9 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-
 	ch := make(chan bool, 1)
-	checkCond := func() { ch <- condition() }
+	wg := &sync.WaitGroup{}
+	checkCond := func() { defer wg.Done(); ch <- condition() }
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2002,14 +2003,17 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	var tickC <-chan time.Time
 
 	// Check the condition once first on the initial call.
+	wg.Add(1)
 	go checkCond()
 
 	for {
 		select {
 		case <-timer.C:
+			wg.Wait()
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
 		case <-tickC:
 			tickC = nil
+			wg.Add(1)
 			go checkCond()
 		case v := <-ch:
 			if v {
