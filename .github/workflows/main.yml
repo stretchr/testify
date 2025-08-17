@@ -10,7 +10,7 @@ jobs:
           - stable
           - oldstable
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -33,7 +33,7 @@ jobs:
           - "1.21"
           - "1.22"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
