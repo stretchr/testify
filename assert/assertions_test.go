@@ -3719,14 +3719,14 @@ func TestErrorIs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Target error should be in err chain:\n" +
-				"expected: \"io: read/write on closed pipe\"\n" +
-				"in chain: \"EOF\"\n",
+				"expected: `io: read/write on closed pipe`\n" +
+				"in chain: `EOF`\n",
 		},
 		{
 			err:          nil,
 			target:       io.EOF,
 			result:       false,
-			resultErrMsg: "Expected error with \"EOF\" in chain but got nil.\n",
+			resultErrMsg: "Expected error with `EOF` in chain but got nil.\n",
 		},
 		{
 			err:    io.EOF,
@@ -3734,8 +3734,8 @@ func TestErrorIs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Target error should be in err chain:\n" +
-				"expected: \"\"\n" +
-				"in chain: \"EOF\"\n",
+				"expected: ``\n" +
+				"in chain: `EOF`\n",
 		},
 		{
 			err:    nil,
@@ -3748,9 +3748,9 @@ func TestErrorIs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Target error should be in err chain:\n" +
-				"expected: \"EOF\"\n" +
-				"in chain: \"abc: def\"\n" +
-				"\t\"def\"\n",
+				"expected: `EOF`\n" +
+				"in chain: `abc: def`\n" +
+				"\t`def`\n",
 		},
 	}
 	for _, tt := range tests {
@@ -3778,8 +3778,8 @@ func TestNotErrorIs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Target error should not be in err chain:\n" +
-				"found: \"EOF\"\n" +
-				"in chain: \"EOF\"\n",
+				"found: `EOF`\n" +
+				"in chain: `EOF`\n",
 		},
 		{
 			err:    fmt.Errorf("wrap: %w", io.EOF),
@@ -3787,9 +3787,9 @@ func TestNotErrorIs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Target error should not be in err chain:\n" +
-				"found: \"EOF\"\n" +
-				"in chain: \"wrap: EOF\"\n" +
-				"\t\"EOF\"\n",
+				"found: `EOF`\n" +
+				"in chain: `wrap: EOF`\n" +
+				"\t`EOF`\n",
 		},
 		{
 			err:    io.EOF,
@@ -3812,7 +3812,7 @@ func TestNotErrorIs(t *testing.T) {
 			result: false,
 			resultErrMsg: "" +
 				"Target error should not be in err chain:\n" +
-				"found: \"\"\n" +
+				"found: ``\n" +
 				"in chain: \n",
 		},
 		{
@@ -3849,7 +3849,7 @@ func TestErrorAs(t *testing.T) {
 			resultErrMsg: "" +
 				"Should be in error chain:\n" +
 				"expected: *assert.customError\n" +
-				"in chain: \"EOF\" (*errors.errorString)\n",
+				"in chain: `EOF` (*errors.errorString)\n",
 		},
 		{
 			err:    nil,
@@ -3864,8 +3864,8 @@ func TestErrorAs(t *testing.T) {
 			resultErrMsg: "" +
 				"Should be in error chain:\n" +
 				"expected: *assert.customError\n" +
-				"in chain: \"abc: def\" (*fmt.wrapError)\n" +
-				"\t\"def\" (*errors.errorString)\n",
+				"in chain: `abc: def` (*fmt.wrapError)\n" +
+				"\t`def` (*errors.errorString)\n",
 		},
 	}
 	for _, tt := range tests {
@@ -3893,8 +3893,8 @@ func TestNotErrorAs(t *testing.T) {
 			resultErrMsg: "" +
 				"Target error should not be in err chain:\n" +
 				"found: *assert.customError\n" +
-				"in chain: \"wrap: fail\" (*fmt.wrapError)\n" +
-				"\t\"fail\" (*assert.customError)\n",
+				"in chain: `wrap: fail` (*fmt.wrapError)\n" +
+				"\t`fail` (*assert.customError)\n",
 		},
 		{
 			err:    io.EOF,
