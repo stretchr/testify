@@ -833,6 +833,10 @@ type IsTypeArgument struct {
 // For example:
 //
 //	args.Assert(t, IsType(""), IsType(0))
+//
+// Mock cannot match interface types because the contained type will be  passed
+// to both IsType and Mock.Called, for the zero value of all interfaces this
+// will be <nil> type.
 func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
@@ -1034,7 +1038,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				if actualT != expected.t {
 					differences++
 					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected.t.Name(), actualT.Name(), actualFmt())
+						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, safeTypeName(expected.t), actualT, actualFmt())
 					})
 				}
 			case *FunctionalOptionsArgument:
@@ -1177,6 +1181,15 @@ func (args Arguments) Bool(index int) bool {
 		panic(fmt.Sprintf("assert: arguments: Bool(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
 	}
 	return s
+}
+
+// safeTypeName returns the reflect.Type's name without causing a panic.
+// If the provided reflect.Type is nil, it returns the placeholder string "<nil>"
+func safeTypeName(t reflect.Type) string {
+	if t == nil {
+		return "<nil>"
+	}
+	return t.Name()
 }
 
 func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
