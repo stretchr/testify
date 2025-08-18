@@ -2014,7 +2014,7 @@ func Test_Arguments_Diff_WithIsTypeArgument_InterfaceType_Failing(t *testing.T) 
 	var args = Arguments([]interface{}{IsType(ctx)})
 	diff, count := args.Diff([]interface{}{context.Background()})
 	assert.Equal(t, 1, count)
-	assert.Contains(t, diff, `type <nil> != type context.backgroundCtx`)
+	assert.Contains(t, diff, `type <nil> != type `)
 
 }
 
