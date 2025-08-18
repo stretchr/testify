@@ -1015,6 +1015,22 @@ func (a *Assertions) Lessf(e1 interface{}, e2 interface{}, msg string, args ...i
 	Lessf(a.t, e1, e2, msg, args...)
 }
 
+// Matches asserts that the actual value meets the condition specified by matcher.
+func (a *Assertions) Matches(matcher assert.Matcher, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Matches(a.t, matcher, actual, msgAndArgs...)
+}
+
+// Matchesf asserts that the actual value meets the condition specified by matcher.
+func (a *Assertions) Matchesf(matcher assert.Matcher, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Matchesf(a.t, matcher, actual, msg, args...)
+}
+
 // Negative asserts that the specified element is negative
 //
 //	a.Negative(-1)
