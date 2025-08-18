@@ -834,9 +834,9 @@ type IsTypeArgument struct {
 //
 //	args.Assert(t, IsType(""), IsType(0))
 //
-// Note: IsType checks for the exact type you give it.
-// If you pass a nil interface, it has no type and will never match.
-// To match an interface value, pass a non-nil value of the concrete type you expect.
+// Mock cannot match interface types because the contained type will be  passed
+// to both IsType and Mock.Called, for the zero value of all interfaces this
+// will be <nil> type.
 func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
