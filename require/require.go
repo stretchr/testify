@@ -1388,8 +1388,9 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 // NoError asserts that a function returned no error (i.e. `nil`).
 //
 //	  actualObj, err := SomeFunction()
-//	  require.NoError(t, err)
-//	  require.Equal(t, expectedObj, actualObj)
+//	  if require.NoError(t, err) {
+//		   require.Equal(t, expectedObj, actualObj)
+//	  }
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
