@@ -107,7 +107,8 @@ func parseTemplates() (*template.Template, *template.Template, error) {
 		funcTemplate = string(f)
 	}
 	tmpl, err := template.New("function").Funcs(template.FuncMap{
-		"replace": strings.ReplaceAll,
+		"replace":               strings.ReplaceAll,
+		"requireCommentParseIf": requireCommentParseIf,
 	}).Parse(funcTemplate)
 	if err != nil {
 		return nil, nil, err
@@ -296,6 +297,61 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 	search := fmt.Sprintf("assert.%s(t, ", f.DocInfo.Name)
 	replace := fmt.Sprintf("%s.%s(", receiver, f.DocInfo.Name)
 	return strings.Replace(f.Comment(), search, replace, -1)
+}
+
+func requireCommentParseIf(s string) string {
+	lines := strings.Split(s, "\n")
+	out := make([]string, 0, len(lines))
+	inIf := false
+	var commentPrefix string
+
+	for _, line := range lines {
+		trim := strings.TrimSpace(line)
+
+		if !inIf {
+			slash := strings.Index(line, "//")
+			if slash < 0 {
+				out = append(out, line)
+				continue
+			}
+
+			trimmed := strings.TrimSpace(line[slash+2:])
+
+			if strings.HasPrefix(trimmed, "if require.") && strings.HasSuffix(trimmed, "{") {
+				commentPrefix = line[:slash] + "//\t  "
+
+				h := strings.TrimPrefix(trimmed, "if ")
+				h = strings.TrimSpace(h)
+				if strings.HasSuffix(h, "{") {
+					h = strings.TrimSuffix(h, "{")
+				}
+				h = strings.TrimSpace(h)
+
+				out = append(out, commentPrefix+strings.TrimLeft(h, "\t"))
+				inIf = true
+				continue
+			}
+			out = append(out, line)
+		} else {
+			if strings.HasPrefix(trim, "//") {
+				body := strings.TrimSpace(strings.TrimPrefix(trim, "//"))
+				if body == "}" {
+					inIf = false
+					continue
+				}
+			}
+
+			slash := strings.Index(line, "//")
+			if slash >= 0 {
+				body := strings.TrimLeft(line[slash+2:], " \t")
+				out = append(out, commentPrefix+body)
+			} else {
+				out = append(out, line)
+			}
+		}
+	}
+
+	return strings.Join(out, "\n")
 }
 
 // Standard header https://go.dev/s/generatedcode.
