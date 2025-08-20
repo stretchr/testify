@@ -1388,9 +1388,8 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 // NoError asserts that a function returned no error (i.e. `nil`).
 //
 //	  actualObj, err := SomeFunction()
-//	  if require.NoError(t, err) {
-//		   require.Equal(t, expectedObj, actualObj)
-//	  }
+//	  require.NoError(t, err)
+//	  require.Equal(t, expectedObj, actualObj)
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1404,9 +1403,8 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 // NoErrorf asserts that a function returned no error (i.e. `nil`).
 //
 //	  actualObj, err := SomeFunction()
-//	  if require.NoErrorf(t, err, "error message %s", "formatted") {
-//		   require.Equal(t, expectedObj, actualObj)
-//	  }
+//	  require.NoErrorf(t, err, "error message %s", "formatted")
+//	  require.Equal(t, expectedObj, actualObj)
 func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
