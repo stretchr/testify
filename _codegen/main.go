@@ -302,53 +302,42 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 func requireCommentParseIf(s string) string {
 	lines := strings.Split(s, "\n")
 	out := make([]string, 0, len(lines))
-	inIf := false
-	var commentPrefix string
+	rePrefix := regexp.MustCompile(`//[ \t]*`)
+	ifDepth := 0
+	existsIfRequire := false
+	SomeFunctionLineIdx := 0
 
-	for _, line := range lines {
-		trim := strings.TrimSpace(line)
+	for i, line := range lines {
+		commentPrefix := rePrefix.FindString(line)
+		comment := strings.TrimSpace(line[2:])
 
-		if !inIf {
-			slash := strings.Index(line, "//")
-			if slash < 0 {
-				out = append(out, line)
-				continue
-			}
-
-			trimmed := strings.TrimSpace(line[slash+2:])
-
-			if strings.HasPrefix(trimmed, "if require.") && strings.HasSuffix(trimmed, "{") {
-				commentPrefix = line[:slash] + "//\t  "
-
-				h := strings.TrimPrefix(trimmed, "if ")
-				h = strings.TrimSpace(h)
-				if strings.HasSuffix(h, "{") {
-					h = strings.TrimSuffix(h, "{")
-				}
-				h = strings.TrimSpace(h)
-
-				out = append(out, commentPrefix+strings.TrimLeft(h, "\t"))
-				inIf = true
-				continue
-			}
-			out = append(out, line)
-		} else {
-			if strings.HasPrefix(trim, "//") {
-				body := strings.TrimSpace(strings.TrimPrefix(trim, "//"))
-				if body == "}" {
-					inIf = false
-					continue
-				}
-			}
-
-			slash := strings.Index(line, "//")
-			if slash >= 0 {
-				body := strings.TrimLeft(line[slash+2:], " \t")
-				out = append(out, commentPrefix+body)
-			} else {
-				out = append(out, line)
-			}
+		if strings.HasSuffix(comment, "SomeFunction()") {
+			SomeFunctionLineIdx = i
 		}
+
+		if ifDepth > 0 && strings.HasPrefix(comment, "}") {
+			ifDepth = ifDepth - 1
+			continue
+		}
+
+		if strings.HasPrefix(comment, "if require.") && strings.HasSuffix(comment, "{") {
+			ifDepth = ifDepth + 1
+			existsIfRequire = true
+			comment = strings.TrimPrefix(comment, "if ")
+			comment = strings.TrimSpace(comment)
+			comment = strings.TrimSuffix(comment, "{")
+		}
+
+		if ifDepth > 0 {
+			commentPrefix = "//\t"
+		}
+
+		out = append(out, commentPrefix+comment)
+	}
+
+	if existsIfRequire && SomeFunctionLineIdx != 0 {
+		comment := out[SomeFunctionLineIdx][2:]
+		out[SomeFunctionLineIdx] = "//\t" + strings.TrimSpace(comment)
 	}
 
 	return strings.Join(out, "\n")
