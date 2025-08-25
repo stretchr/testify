@@ -1060,6 +1060,7 @@ func TestContainsNotContains(t *testing.T) {
 		{[]byte("ABC"), 'B', false},
 		{[]byte("ABC"), rune('B'), false},
 		{[]byte("ABC"), byte('B'), true},
+		{[]byte("ABC"), []byte("B"), true},
 		{list, "World", true},
 		{list, "Earth", false},
 		{byteSliceList, []byte("World"), true},
@@ -1074,6 +1075,10 @@ func TestContainsNotContains(t *testing.T) {
 		{strMap, "Hello", true},
 		{strMap, "Earth", false},
 		{zeroMap, "Bar", false},
+
+		// These tests mirror the types and values from the documented examples
+		{map[string]string{"Hello": "World"}, "Hello", true},
+		{map[string]string{"Hello": "World"}, "Earth", false},
 	}
 
 	for _, c := range cases {
