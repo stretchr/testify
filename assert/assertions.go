@@ -928,12 +928,11 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 	}()
 
-	if listKind == reflect.String {
+	switch listKind {
+	case reflect.String:
 		elementValue := reflect.ValueOf(element)
 		return true, strings.Contains(listValue.String(), elementValue.String())
-	}
-
-	if listKind == reflect.Map {
+	case reflect.Map:
 		mapKeys := listValue.MapKeys()
 		for i := 0; i < len(mapKeys); i++ {
 			if ObjectsAreEqual(mapKeys[i].Interface(), element) {
@@ -941,6 +940,25 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 			}
 		}
 		return true, false
+	case reflect.Slice:
+		// []byte ([]uint8) behaves the same as string, otherwise generic slice
+		// behavior is implemented after this switch.
+		if listType.Elem().Kind() == reflect.Uint8 {
+			elementValue := reflect.ValueOf(element)
+			if elementValue.Type().Kind() == reflect.Slice &&
+				elementValue.Type().Elem().Kind() == reflect.Uint8 {
+
+				listBytes := make([]byte, listValue.Len())
+				for i := 0; i < listValue.Len(); i++ {
+					reflect.ValueOf(&listBytes[i]).Elem().Set(listValue.Index(i).Convert(reflect.TypeOf(uint8(0))))
+				}
+				elementBytes := make([]byte, elementValue.Len())
+				for i := 0; i < elementValue.Len(); i++ {
+					reflect.ValueOf(&elementBytes[i]).Elem().Set(elementValue.Index(i).Convert(reflect.TypeOf(uint8(0))))
+				}
+				return true, bytes.Contains(listBytes, elementBytes)
+			}
+		}
 	}
 
 	for i := 0; i < listValue.Len(); i++ {
@@ -955,8 +973,10 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 // specified substring or element.
 //
 //	assert.Contains(t, "Hello World", "World")
-//	assert.Contains(t, ["Hello", "World"], "World")
-//	assert.Contains(t, {"Hello": "World"}, "Hello")
+//	assert.Contains(t, []string{"Hello", "World"}, "World")
+//	assert.Contains(t, map[string]string{"Hello": "World"}, "Hello")
+//	assert.Contains(t, []byte("Hello World"), []byte("World"))
+//	assert.Contains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("World"))
 func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -977,8 +997,10 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 // specified substring or element.
 //
 //	assert.NotContains(t, "Hello World", "Earth")
-//	assert.NotContains(t, ["Hello", "World"], "Earth")
-//	assert.NotContains(t, {"Hello": "World"}, "Earth")
+//	assert.NotContains(t, []string{"Hello", "World"}, "Earth")
+//	assert.NotContains(t, map[string]string{"Hello": "World"}, "Earth")
+//	assert.NotContains(t, []byte("Hello World"), []byte("Earth"))
+//	assert.NotContains(t, [][]byte{[]byte("Hello"), []byte("World")}, []byte("Earth"))
 func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

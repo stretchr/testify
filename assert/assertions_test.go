@@ -1040,7 +1040,11 @@ func TestContainsNotContains(t *testing.T) {
 	type A struct {
 		Name, Value string
 	}
-	list := []string{"Foo", "Bar"}
+	list := []string{"Hello", "World"}
+
+	byteSliceList := [][]byte{
+		[]byte("Hello"), []byte("World"),
+	}
 
 	complexList := []*A{
 		{"b", "c"},
@@ -1048,51 +1052,98 @@ func TestContainsNotContains(t *testing.T) {
 		{"g", "h"},
 		{"j", "k"},
 	}
-	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
+
+	mixedList := []interface{}{"Hello World", 5, 2, []byte("Goodbye")}
+
+	simpleMap := map[interface{}]interface{}{"Hello": "World"}
+	strMap := map[string]string{"Hello": "World"}
 	var zeroMap map[interface{}]interface{}
 
+	type customString string
+	type customByte byte
+	type customByteSlice []byte
+
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
-		result   bool
+		list    interface{}
+		element interface{}
+		result  bool
 	}{
-		{"Hello World", "Hello", true},
-		{"Hello World", "Salut", false},
-		{list, "Bar", true},
-		{list, "Salut", false},
+		{"Hello World", "World", true},
+		{"Hello World", "Earth", false},
+		{[]byte("Hello World"), []byte("World"), true},
+		{[]byte("Hello World"), []byte("Earth"), false},
+		{[]byte("ABC"), 'B', false},
+		{[]byte("ABC"), rune('B'), false},
+		{[]byte("ABC"), byte('B'), true},
+		{[]byte("ABC"), []byte("B"), true},
+		{list, "World", true},
+		{list, "Earth", false},
+		{byteSliceList, []byte("World"), true},
+		{byteSliceList, []byte("Earth"), false},
 		{complexList, &A{"g", "h"}, true},
 		{complexList, &A{"g", "e"}, false},
-		{simpleMap, "Foo", true},
-		{simpleMap, "Bar", false},
+		{mixedList, 5, true},
+		{mixedList, []byte("Goodbye"), true},
+		{mixedList, "World", false},
+		{simpleMap, "Hello", true},
+		{simpleMap, "Earth", false},
+		{strMap, "Hello", true},
+		{strMap, "Earth", false},
 		{zeroMap, "Bar", false},
+		{zeroMap, "Bar", false},
+
+		{customString("Hello World"), "World", true},
+		{customString("Hello World"), "Earth", false},
+		{"Hello World", customString("World"), true},
+		{"Hello World", customString("Earth"), false},
+		{customString("Hello World"), customString("World"), true},
+		{customString("Hello World"), customString("Earth"), false},
+
+		{[]customByte("Hello World"), []byte("World"), true},
+		{[]customByte("Hello World"), []byte("Earth"), false},
+		{[]byte("Hello World"), []customByte("World"), true},
+		{[]byte("Hello World"), []customByte("Earth"), false},
+		{[]customByte("Hello World"), []customByte("World"), true},
+		{[]customByte("Hello World"), []customByte("Earth"), false},
+
+		{customByteSlice([]byte("Hello World")), []byte("World"), true},
+		{customByteSlice([]byte("Hello World")), []byte("Earth"), false},
+		{[]byte("Hello World"), customByteSlice([]byte("World")), true},
+		{[]byte("Hello World"), customByteSlice([]byte("Earth")), false},
+		{customByteSlice([]byte("Hello World")), customByteSlice([]byte("World")), true},
+		{customByteSlice([]byte("Hello World")), customByteSlice([]byte("Earth")), false},
+
+		// These tests mirror the types and values from the documented examples
+		{map[string]string{"Hello": "World"}, "Hello", true},
+		{map[string]string{"Hello": "World"}, "Earth", false},
 	}
 
 	for _, c := range cases {
-		t.Run(fmt.Sprintf("Contains(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+		t.Run(fmt.Sprintf("Contains(%#v, %#v)", c.list, c.element), func(t *testing.T) {
 			mockT := new(testing.T)
-			res := Contains(mockT, c.expected, c.actual)
+			res := Contains(mockT, c.list, c.element)
 
 			if res != c.result {
-				if res {
-					t.Errorf("Contains(%#v, %#v) should return true:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
+				if c.result {
+					t.Errorf("Contains(%#[1]v, %#[2]v) should return true:\n\t%#[1]v (%[1]s) contains %#[2]v (%[2]s)", c.list, c.element)
 				} else {
-					t.Errorf("Contains(%#v, %#v) should return false:\n\t%#v does not contain %#v", c.expected, c.actual, c.expected, c.actual)
+					t.Errorf("Contains(%#[1]v, %#[2]v) should return false:\n\t%#[1]v (%[1]s) does not contain %#[2]v (%[2]s)", c.list, c.element)
 				}
 			}
 		})
 	}
 
 	for _, c := range cases {
-		t.Run(fmt.Sprintf("NotContains(%#v, %#v)", c.expected, c.actual), func(t *testing.T) {
+		t.Run(fmt.Sprintf("NotContains(%#v, %#v)", c.list, c.element), func(t *testing.T) {
 			mockT := new(testing.T)
-			res := NotContains(mockT, c.expected, c.actual)
+			res := NotContains(mockT, c.list, c.element)
 
 			// NotContains should be inverse of Contains. If it's not, something is wrong
-			if res == Contains(mockT, c.expected, c.actual) {
+			if res == Contains(mockT, c.list, c.element) {
 				if res {
-					t.Errorf("NotContains(%#v, %#v) should return true:\n\t%#v does not contains %#v", c.expected, c.actual, c.expected, c.actual)
+					t.Errorf("NotContains(%#[1]v, %#[2]v) should return true:\n\t%#[1]v (%[1]s) does not contain %#[2]v (%[2]s)", c.list, c.element)
 				} else {
-					t.Errorf("NotContains(%#v, %#v) should return false:\n\t%#v contains %#v", c.expected, c.actual, c.expected, c.actual)
+					t.Errorf("NotContains(%#[1]v, %#[2]v) should return false:\n\t%#[1]v (%[1]s) contains %#[2]v (%[2]s)", c.list, c.element)
 				}
 			}
 		})
