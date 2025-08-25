@@ -941,10 +941,22 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 		}
 		return true, false
 	case reflect.Slice:
-		switch element := element.(type) {
-		case []byte:
-			if list, ok := list.([]byte); ok {
-				return true, bytes.Contains(list, element)
+		// []byte ([]uint8) behaves the same as string, otherwise generic slice
+		// behavior is implemented after this switch.
+		if listType.Elem().Kind() == reflect.Uint8 {
+			elementValue := reflect.ValueOf(element)
+			if elementValue.Type().Kind() == reflect.Slice &&
+				elementValue.Type().Elem().Kind() == reflect.Uint8 {
+
+				listBytes := make([]byte, listValue.Len())
+				for i := 0; i < listValue.Len(); i++ {
+					reflect.ValueOf(&listBytes[i]).Elem().Set(listValue.Index(i).Convert(reflect.TypeOf(uint8(0))))
+				}
+				elementBytes := make([]byte, elementValue.Len())
+				for i := 0; i < elementValue.Len(); i++ {
+					reflect.ValueOf(&elementBytes[i]).Elem().Set(elementValue.Index(i).Convert(reflect.TypeOf(uint8(0))))
+				}
+				return true, bytes.Contains(listBytes, elementBytes)
 			}
 		}
 	}
