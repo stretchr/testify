@@ -107,7 +107,8 @@ func parseTemplates() (*template.Template, *template.Template, error) {
 		funcTemplate = string(f)
 	}
 	tmpl, err := template.New("function").Funcs(template.FuncMap{
-		"replace": strings.ReplaceAll,
+		"replace":               strings.ReplaceAll,
+		"requireCommentParseIf": requireCommentParseIf,
 	}).Parse(funcTemplate)
 	if err != nil {
 		return nil, nil, err
@@ -296,6 +297,50 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 	search := fmt.Sprintf("assert.%s(t, ", f.DocInfo.Name)
 	replace := fmt.Sprintf("%s.%s(", receiver, f.DocInfo.Name)
 	return strings.Replace(f.Comment(), search, replace, -1)
+}
+
+func requireCommentParseIf(s string) string {
+	lines := strings.Split(s, "\n")
+	out := make([]string, 0, len(lines))
+	rePrefix := regexp.MustCompile(`//[ \t]*`)
+	ifDepth := 0
+	existsIfRequire := false
+	SomeFunctionLineIdx := 0
+
+	for i, line := range lines {
+		commentPrefix := rePrefix.FindString(line)
+		comment := strings.TrimSpace(line[2:])
+
+		if strings.HasSuffix(comment, "SomeFunction()") {
+			SomeFunctionLineIdx = i
+		}
+
+		if ifDepth > 0 && strings.HasPrefix(comment, "}") {
+			ifDepth = ifDepth - 1
+			continue
+		}
+
+		if strings.HasPrefix(comment, "if require.") && strings.HasSuffix(comment, "{") {
+			ifDepth = ifDepth + 1
+			existsIfRequire = true
+			comment = strings.TrimPrefix(comment, "if ")
+			comment = strings.TrimSpace(comment)
+			comment = strings.TrimSuffix(comment, "{")
+		}
+
+		if ifDepth > 0 {
+			commentPrefix = "//\t"
+		}
+
+		out = append(out, commentPrefix+comment)
+	}
+
+	if existsIfRequire && SomeFunctionLineIdx != 0 {
+		comment := out[SomeFunctionLineIdx][2:]
+		out[SomeFunctionLineIdx] = "//\t" + strings.TrimSpace(comment)
+	}
+
+	return strings.Join(out, "\n")
 }
 
 // Standard header https://go.dev/s/generatedcode.
