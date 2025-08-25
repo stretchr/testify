@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -1996,6 +1997,25 @@ func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
 
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `string != type int - (int=123)`)
+}
+
+func Test_Arguments_Diff_WithIsTypeArgument_InterfaceType(t *testing.T) {
+	t.Parallel()
+	var ctx = context.Background()
+	args := Arguments([]interface{}{IsType(ctx)})
+	_, count := args.Diff([]interface{}{context.Background()})
+	assert.Equal(t, 0, count)
+}
+
+func Test_Arguments_Diff_WithIsTypeArgument_InterfaceType_Failing(t *testing.T) {
+	t.Parallel()
+
+	var ctx context.Context
+	var args = Arguments([]interface{}{IsType(ctx)})
+	diff, count := args.Diff([]interface{}{context.Background()})
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `type <nil> != type `)
+
 }
 
 func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
