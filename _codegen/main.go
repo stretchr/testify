@@ -302,42 +302,32 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 func requireCommentParseIf(s string) string {
 	lines := strings.Split(s, "\n")
 	out := make([]string, 0, len(lines))
-	rePrefix := regexp.MustCompile(`//[ \t]*`)
-	ifDepth := 0
-	existsIfRequire := false
-	SomeFunctionLineIdx := 0
+	rePrefix := regexp.MustCompile(`//[[:blank:]]+`)
+	ifBlock := false
+	prePrefix := " "
 
-	for i, line := range lines {
+	for _, line := range lines {
 		commentPrefix := rePrefix.FindString(line)
 		comment := strings.TrimSpace(line[2:])
 
-		if strings.HasSuffix(comment, "SomeFunction()") {
-			SomeFunctionLineIdx = i
-		}
-
-		if ifDepth > 0 && strings.HasPrefix(comment, "}") {
-			ifDepth = ifDepth - 1
+		if ifBlock && strings.HasPrefix(comment, "}") {
+			ifBlock = false
 			continue
 		}
 
 		if strings.HasPrefix(comment, "if require.") && strings.HasSuffix(comment, "{") {
-			ifDepth = ifDepth + 1
-			existsIfRequire = true
+			ifBlock = true
 			comment = strings.TrimPrefix(comment, "if ")
 			comment = strings.TrimSpace(comment)
 			comment = strings.TrimSuffix(comment, "{")
 		}
 
-		if ifDepth > 0 {
-			commentPrefix = "//\t"
+		if ifBlock {
+			commentPrefix = prePrefix
 		}
 
+		prePrefix = commentPrefix
 		out = append(out, commentPrefix+comment)
-	}
-
-	if existsIfRequire && SomeFunctionLineIdx != 0 {
-		comment := out[SomeFunctionLineIdx][2:]
-		out[SomeFunctionLineIdx] = "//\t" + strings.TrimSpace(comment)
 	}
 
 	return strings.Join(out, "\n")

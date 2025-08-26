@@ -1513,8 +1513,8 @@ func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg str
 
 // NotEmpty asserts that the specified object is NOT [Empty].
 //
-//	require.NotEmpty(t, obj)
-//	require.Equal(t, "two", obj[1])
+// require.NotEmpty(t, obj)
+// require.Equal(t, "two", obj[1])
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1527,8 +1527,8 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 
 // NotEmptyf asserts that the specified object is NOT [Empty].
 //
-//	require.NotEmptyf(t, obj, "error message %s", "formatted")
-//	require.Equal(t, "two", obj[1])
+// require.NotEmptyf(t, obj, "error message %s", "formatted")
+// require.Equal(t, "two", obj[1])
 func NotEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
