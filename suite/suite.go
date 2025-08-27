@@ -159,6 +159,12 @@ func Run(t *testing.T, suite TestingSuite) {
 			continue
 		}
 
+		if skipTest, ok := suite.(SkipTest); ok {
+			if skipTest.SkipTest(suiteName, method.Name) {
+				continue
+			}
+		}
+
 		test := test{
 			name: method.Name,
 			run: func(t *testing.T) {

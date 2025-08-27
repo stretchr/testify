@@ -64,3 +64,9 @@ type SetupSubTest interface {
 type TearDownSubTest interface {
 	TearDownSubTest()
 }
+
+// SkipTest has a SkipTest method, which will run for every test during the
+// collection phase.
+type SkipTest interface {
+	SkipTest(testSuiteName, testName string) bool
+}
