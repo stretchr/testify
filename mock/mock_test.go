@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"runtime"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -2421,3 +2422,22 @@ type user interface {
 type mockUser struct{ Mock }
 
 func (m *mockUser) Use(c caller) { m.Called(c) }
+
+type mutatingStringer struct {
+	N int
+	s string
+}
+
+func (m *mutatingStringer) String() string {
+	m.s = strconv.Itoa(m.N)
+	return m.s
+}
+
+func TestIssue1785ArgumentWithMutatingStringer(t *testing.T) {
+	m := &Mock{}
+	m.On("Method", &mutatingStringer{N: 2})
+	m.On("Method", &mutatingStringer{N: 1})
+	m.MethodCalled("Method", &mutatingStringer{N: 1})
+	m.MethodCalled("Method", &mutatingStringer{N: 2})
+	m.AssertExpectations(t)
+}
