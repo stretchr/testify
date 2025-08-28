@@ -164,7 +164,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				name: method.Name,
 				run: func(t *testing.T) {
 					t.Errorf(
-						"testify: suite method %q has invalid signature: expected no inputs or return values (has %d inputs, %d outputs)",
+						"testify: suite method %q has invalid signature: expected no input or output parameters, method has %d input parameters and %d output parameters",
 						method.Name, method.Type.NumIn()-1, method.Type.NumOut(),
 					)
 				},
