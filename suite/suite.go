@@ -158,7 +158,19 @@ func Run(t *testing.T, suite TestingSuite) {
 		if matchMethodRE != nil && !matchMethodRE.MatchString(method.Name) {
 			continue
 		}
-
+		// Check method signature
+		if method.Type.NumIn() > 1 || method.Type.NumOut() > 0 {
+			tests = append(tests, test{
+				name: method.Name,
+				run: func(t *testing.T) {
+					t.Errorf(
+						"testify: suite method %q has invalid signature: expected no input or output parameters, method has %d input parameters and %d output parameters",
+						method.Name, method.Type.NumIn()-1, method.Type.NumOut(),
+					)
+				},
+			})
+			continue
+		}
 		test := test{
 			name: method.Name,
 			run: func(t *testing.T) {
