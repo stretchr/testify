@@ -33,6 +33,8 @@ jobs:
           - "1.21"
           - "1.22"
           - "1.23"
+          - "1.24"
+          - "1.25"
     steps:
       - uses: actions/checkout@v5
       - name: Setup Go
