@@ -63,11 +63,15 @@ func (suite *Suite) Require() *require.Assertions {
 	return suite.require
 }
 
-// Assert returns an assert context for suite.  Normally, you can call
-// `suite.NoError(expected, actual)`, but for situations where the embedded
-// methods are overridden (for example, you might want to override
-// assert.Assertions with require.Assertions), this method is provided so you
-// can call `suite.Assert().NoError()`.
+// Assert returns an assert context for suite.  Normally, you can directly make
+// assertsion on suite, such as:
+//
+//	suite.Equal(expected, actual)
+//
+// But for situations where the embedded methods are overridden this method is
+// provided so you can make the equivelant call:
+//
+//	suite.Assert().Equal(expected, actual).
 func (suite *Suite) Assert() *assert.Assertions {
 	suite.mu.Lock()
 	defer suite.mu.Unlock()
