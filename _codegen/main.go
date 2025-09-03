@@ -299,12 +299,27 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 	return strings.Replace(f.Comment(), search, replace, -1)
 }
 
+// requireCommentParseIf rewrites invalid "if require..." examples
+// in generated documentation for the require package.
+//
+// The assert package documentation often shows conditional usage like:
+//   // if assert.NoError(t, err) {
+//   //     // continue with test
+//   // }
+//
+// However, require package methods do not return bool values;
+// they call t.FailNow() on failure. This function transforms
+// such conditional blocks by removing the "if require.Function() {"
+// wrapper and adjusting indentation to show proper usage:
+//
+//   // require.NoError(t, err)
+//   // continue with test
 func requireCommentParseIf(s string) string {
 	lines := strings.Split(s, "\n")
 	out := make([]string, 0, len(lines))
 	rePrefix := regexp.MustCompile(`//[[:blank:]]+`)
 	ifBlock := false
-	prePrefix := " "
+	prePrefix := "//\t"
 
 	for _, line := range lines {
 		commentPrefix := rePrefix.FindString(line)
@@ -329,7 +344,6 @@ func requireCommentParseIf(s string) string {
 		prePrefix = commentPrefix
 		out = append(out, commentPrefix+comment)
 	}
-
 	return strings.Join(out, "\n")
 }
 
