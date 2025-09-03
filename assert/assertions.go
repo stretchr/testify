@@ -33,19 +33,19 @@ type TestingT interface {
 
 // ComparisonAssertionFunc is a common function prototype when comparing two values.  Can be useful
 // for table driven tests.
-type ComparisonAssertionFunc func(TestingT, interface{}, interface{}, ...interface{}) bool
+type ComparisonAssertionFunc = func(TestingT, interface{}, interface{}, ...interface{}) bool
 
 // ValueAssertionFunc is a common function prototype when validating a single value.  Can be useful
 // for table driven tests.
-type ValueAssertionFunc func(TestingT, interface{}, ...interface{}) bool
+type ValueAssertionFunc = func(TestingT, interface{}, ...interface{}) bool
 
 // BoolAssertionFunc is a common function prototype when validating a bool value.  Can be useful
 // for table driven tests.
-type BoolAssertionFunc func(TestingT, bool, ...interface{}) bool
+type BoolAssertionFunc = func(TestingT, bool, ...interface{}) bool
 
 // ErrorAssertionFunc is a common function prototype when validating an error value.  Can be useful
 // for table driven tests.
-type ErrorAssertionFunc func(TestingT, error, ...interface{}) bool
+type ErrorAssertionFunc = func(TestingT, error, ...interface{}) bool
 
 // PanicAssertionFunc is a common function prototype when validating a panic value.  Can be useful
 // for table driven tests.
