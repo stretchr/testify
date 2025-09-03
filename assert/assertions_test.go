@@ -650,6 +650,31 @@ func TestSame(t *testing.T) {
 	if !Same(mockT, p, p) {
 		t.Error("Same should return true")
 	}
+	m1 := map[int]int{}
+	m2 := map[int]int{}
+	if Same(mockT, m1, m2) {
+		t.Error("Same should return false")
+	}
+	if !Same(mockT, m1, m1) {
+		t.Error("Same should return true")
+	}
+	c1 := make(chan int)
+	c2 := make(chan int)
+	if Same(mockT, c1, c2) {
+		t.Error("Same should return false")
+	}
+	if !Same(mockT, c1, c1) {
+		t.Error("Same should return true")
+	}
+	s1 := []int{}
+	s2 := []int{}
+	if Same(mockT, s1, s2) {
+		t.Error("Same should return false")
+	}
+	if Same(mockT, s1, s1) {
+		// Slices are not pointer-like
+		t.Error("Same should return false")
+	}
 }
 
 func TestNotSame(t *testing.T) {
@@ -670,12 +695,39 @@ func TestNotSame(t *testing.T) {
 	if NotSame(mockT, p, p) {
 		t.Error("NotSame should return false")
 	}
+	m1 := map[int]int{}
+	m2 := map[int]int{}
+	if !NotSame(mockT, m1, m2) {
+		t.Error("NotSame should return true; different maps")
+	}
+	if NotSame(mockT, m1, m1) {
+		t.Error("NotSame should return false; same maps")
+	}
+	c1 := make(chan int)
+	c2 := make(chan int)
+	if !NotSame(mockT, c1, c2) {
+		t.Error("NotSame should return true; different chans")
+	}
+	if NotSame(mockT, c1, c1) {
+		t.Error("NotSame should return false; same chans")
+	}
+	s1 := []int{}
+	s2 := []int{}
+	if !NotSame(mockT, s1, s1) {
+		t.Error("NotSame should return true; slices are not pointer-like")
+	}
+	if !NotSame(mockT, s1, s2) {
+		t.Error("NotSame should return true; slices are not pointer-like")
+	}
 }
 
-func Test_samePointers(t *testing.T) {
+func Test_sameReferences(t *testing.T) {
 	t.Parallel()
 
 	p := ptr(2)
+	m := map[int]int{}
+	c := make(chan int)
+	s := []int{}
 
 	type args struct {
 		first  interface{}
@@ -718,6 +770,12 @@ func Test_samePointers(t *testing.T) {
 			ok:   False,
 		},
 		{
+			name: "slice disallowed",
+			args: args{first: s, second: s},
+			same: False,
+			ok:   False,
+		},
+		{
 			name: "non-pointer vs pointer (1 != ptr(2))",
 			args: args{first: 1, second: p},
 			same: False,
@@ -729,10 +787,46 @@ func Test_samePointers(t *testing.T) {
 			same: False,
 			ok:   False,
 		},
+		{
+			name: "map1 == map1",
+			args: args{first: m, second: m},
+			same: True,
+			ok:   True,
+		},
+		{
+			name: "map1 != map2",
+			args: args{first: m, second: map[int]int{}},
+			same: False,
+			ok:   True,
+		},
+		{
+			name: "map1 != map2 (different types)",
+			args: args{first: m, second: map[int]string{}},
+			same: False,
+			ok:   True,
+		},
+		{
+			name: "chan1 == chan1",
+			args: args{first: c, second: c},
+			same: True,
+			ok:   True,
+		},
+		{
+			name: "chan1 != chan2",
+			args: args{first: c, second: make(chan int)},
+			same: False,
+			ok:   True,
+		},
+		{
+			name: "chan1 != chan2 (different types)",
+			args: args{first: c, second: make(chan string)},
+			same: False,
+			ok:   True,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			same, ok := samePointers(tt.args.first, tt.args.second)
+			same, ok := sameReferences(tt.args.first, tt.args.second)
 			tt.same(t, same)
 			tt.ok(t, ok)
 		})
