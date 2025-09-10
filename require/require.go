@@ -1279,6 +1279,28 @@ func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...inter
 	t.FailNow()
 }
 
+// Matches asserts that the actual value meets the condition specified by matcher.
+func Matches(t TestingT, matcher assert.Matcher, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Matches(t, matcher, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Matchesf asserts that the actual value meets the condition specified by matcher.
+func Matchesf(t TestingT, matcher assert.Matcher, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Matchesf(t, matcher, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Negative asserts that the specified element is negative
 //
 //	require.Negative(t, -1)

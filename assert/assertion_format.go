@@ -511,6 +511,14 @@ func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args .
 	return LessOrEqual(t, e1, e2, append([]interface{}{msg}, args...)...)
 }
 
+// Matchesf asserts that the actual value meets the condition specified by matcher.
+func Matchesf(t TestingT, matcher Matcher, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Matches(t, matcher, actual, append([]interface{}{msg}, args...)...)
+}
+
 // Negativef asserts that the specified element is negative
 //
 //	assert.Negativef(t, -1, "error message %s", "formatted")

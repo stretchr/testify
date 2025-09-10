@@ -3928,3 +3928,20 @@ func TestNotErrorAs(t *testing.T) {
 		})
 	}
 }
+
+func TestMatcher(t *testing.T) {
+	for _, tt := range []struct {
+		str      string
+		expected bool
+		msg      string
+	}{
+		{"foobar", true, ""},
+		{"wibble", false, "Not matching:\nexpected: a string starting with \"foo\"\nactual  : string(\"wibble\")\n"},
+	} {
+		t.Run(tt.str, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			res := Matches(mockT, StringStarting("foo"), tt.str)
+			mockT.checkResultAndErrMsg(t, res, tt.expected, tt.msg)
+		})
+	}
+}

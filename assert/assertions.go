@@ -2299,3 +2299,28 @@ func buildErrorChainString(err error, withType bool) string {
 	}
 	return chain
 }
+
+// A Matcher is an object that can assert and describe an arbitrary complex condition.
+// This allows the assert framework to be extended in specialised ways while maintaining
+// clear error reporting.
+type Matcher interface {
+	// Match returns true if the given actual value meets the condition embodied
+	// in this Matcher.
+	Match(actual interface{}) bool
+	// Describe is called when the test fails to get a descriptive error message.
+	// It should succinctly describe the condition that is being expected.
+	Describe() string
+}
+
+// Matches asserts that the actual value meets the condition specified by matcher.
+func Matches(t TestingT, matcher Matcher, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if matcher.Match(actual) {
+		return true
+	}
+	_, act := formatUnequalValues(nil, actual)
+	return Fail(t, fmt.Sprintf("Not matching:\nexpected: %s\nactual  : %s", matcher.Describe(), act), msgAndArgs...)
+}
