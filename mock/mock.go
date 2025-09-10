@@ -70,6 +70,9 @@ type Call struct {
 	// decoders.
 	RunFn func(Arguments)
 
+	// Holds a handler to a function that will be called before returning.
+	returnFn func(Arguments) Arguments
+
 	// PanicMsg holds msg to be used to mock panic on the function call
 	//  if the PanicMsg is set to a non nil string the function call will panic
 	// irrespective of other settings
@@ -109,6 +112,7 @@ func (c *Call) Return(returnArguments ...interface{}) *Call {
 	defer c.unlock()
 
 	c.ReturnArguments = returnArguments
+	c.returnFn = nil
 
 	return c
 }
@@ -183,6 +187,19 @@ func (c *Call) Run(fn func(args Arguments)) *Call {
 	c.lock()
 	defer c.unlock()
 	c.RunFn = fn
+	return c
+}
+
+// ReturnFn sets a handler to be called before returning.
+//
+//	Mock.On("MyMethod", arg1, arg2).ReturnFn(func(args Arguments) Arguments {
+//	    return Arguments{args.Get(0) + args.Get(1)}
+//	})
+func (c *Call) ReturnFn(fn func(args Arguments) Arguments) *Call {
+	c.lock()
+	defer c.unlock()
+	c.returnFn = fn
+	c.ReturnArguments = nil
 	return c
 }
 
@@ -582,6 +599,14 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	m.mutex.Lock()
 	returnArgs := call.ReturnArguments
 	m.mutex.Unlock()
+
+	m.mutex.Lock()
+	returnFn := call.returnFn
+	m.mutex.Unlock()
+
+	if returnFn != nil {
+		returnArgs = returnFn(arguments)
+	}
 
 	return returnArgs
 }
