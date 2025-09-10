@@ -2299,3 +2299,15 @@ func buildErrorChainString(err error, withType bool) string {
 	}
 	return chain
 }
+
+// Kind check if the given object is of the given type
+func Kind(t TestingT, expected reflect.Kind, object interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if reflect.TypeOf(object).Kind() == expected {
+		return true
+	}
+	return false
+}
