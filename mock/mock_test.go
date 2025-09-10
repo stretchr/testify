@@ -132,6 +132,7 @@ func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType)
 // MockTestingT mocks a test struct
 type MockTestingT struct {
 	logfCount, errorfCount, failNowCount int
+	errorfCalls                          []Arguments
 }
 
 // Helper is like [testing.T.Helper] but does nothing.
@@ -143,8 +144,9 @@ func (m *MockTestingT) Logf(string, ...interface{}) {
 	m.logfCount++
 }
 
-func (m *MockTestingT) Errorf(string, ...interface{}) {
+func (m *MockTestingT) Errorf(format string, args ...interface{}) {
 	m.errorfCount++
+	m.errorfCalls = append(m.errorfCalls, append(Arguments{format}, args...))
 }
 
 // FailNow mocks the FailNow call.
@@ -1802,6 +1804,24 @@ func Test_Mock_AssertCalled_WithArguments_With_Repeatability(t *testing.T) {
 	assert.True(t, mockedService.AssertCalled(tt, "Test_Mock_AssertCalled_WithArguments_With_Repeatability", 1, 2, 3))
 	assert.True(t, mockedService.AssertCalled(tt, "Test_Mock_AssertCalled_WithArguments_With_Repeatability", 2, 3, 4))
 	assert.False(t, mockedService.AssertCalled(tt, "Test_Mock_AssertCalled_WithArguments_With_Repeatability", 3, 4, 5))
+
+}
+
+func Test_Mock_AssertCalled_NoActualCallsHappened(t *testing.T) {
+
+	var (
+		mockedService TestExampleImplementation
+		mockedTestT   MockTestingT
+	)
+
+	mockedService.On("Test_Mock_AssertCalled_NoActualCallsHappened", 1, 2, 3).Return(5, 6, 7)
+	mockedService.Called(1, 2, 3)
+
+	mockedService.AssertCalled(&mockedTestT, "FunctionThatDidNotGetCalled", 1, 2, 3)
+	if assert.Equal(t, 1, mockedTestT.errorfCount) {
+		calledWith := mockedTestT.errorfCalls[0]
+		assert.Contains(t, calledWith[1], "no actual calls happened")
+	}
 
 }
 
