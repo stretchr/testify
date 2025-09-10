@@ -2500,6 +2500,167 @@ func TestInEpsilonSlice(t *testing.T) {
 	False(t, InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
+func TestInEpsilonMapValues(t *testing.T) {
+	mockT := new(testing.T)
+
+	for _, tc := range []struct {
+		title    string
+		expected interface{}
+		actual   interface{}
+		f        BoolAssertionFunc
+		epsilon  float64
+	}{
+		{
+			title: "Within epsilon with exactly the same keys",
+			expected: map[string]float64{
+				"foo": 2.2,
+				"bar": math.NaN(),
+				"baz": 2.0,
+			},
+			actual: map[string]float64{
+				"foo": 2.1,
+				"bar": math.NaN(),
+				"baz": 2.1,
+			},
+			epsilon: 0.06,
+			f:       True,
+		},
+		{
+			title: "Outside epsilon with exactly the same keys",
+			expected: map[string]float64{
+				"foo": 2.2,
+				"bar": math.NaN(),
+				"baz": 2.0,
+			},
+			actual: map[string]float64{
+				"foo": 2.1,
+				"bar": math.NaN(),
+				"baz": 2.1,
+			},
+			epsilon: 0.03,
+			f:       False,
+		},
+		{
+			title: "Within epsilon with different map keys",
+			expected: map[string]float64{
+				"foo": 2.2,
+				"baz": 2.0,
+			},
+			actual: map[string]float64{
+				"baz": 2.1,
+				"bar": 2.1,
+			},
+			epsilon: 0.06,
+			f:       False,
+		},
+		{
+			title: "Within epsilon with different number of map keys",
+			expected: map[string]float64{
+				"foo": 2.2,
+				"baz": 2.0,
+			},
+			actual: map[string]float64{
+				"baz": 2.1,
+			},
+			epsilon: 0.06,
+			f:       False,
+		},
+		{
+			title: "Within epsilon with zero value on expected",
+			expected: map[string]float64{
+				"foo": 0,
+			},
+			actual: map[string]float64{
+				"foo": 0.1,
+			},
+			epsilon: 0.06,
+			f:       False,
+		},
+		{
+			title: "Within epsilon with zero value on actual",
+			expected: map[string]float64{
+				"foo": 0.1,
+			},
+			actual: map[string]float64{
+				"foo": 0,
+			},
+			epsilon: 1,
+			f:       True,
+		},
+		{
+			title:    "When expected is not a map",
+			expected: []float64{2.1},
+			actual: map[string]float64{
+				"foo": 2.0,
+			},
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When actual is not a map",
+			expected: map[string]float64{
+				"foo": 2.1,
+			},
+			actual:  []float64{2.0},
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title:    "When expected is nil",
+			expected: nil,
+			actual: map[string]float64{
+				"foo": 2.0,
+			},
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When actual is nil",
+			expected: map[string]float64{
+				"foo": 2.1,
+			},
+			actual:  nil,
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When expected and actual are not the same type",
+			expected: map[string]float64{
+				"foo": 2.1,
+			},
+			actual: map[string]string{
+				"foo": "2.0",
+			},
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When expected and actual map value are string",
+			expected: map[string]string{
+				"foo": "2.1",
+			},
+			actual: map[string]string{
+				"foo": "2.0",
+			},
+			epsilon: 0.1,
+			f:       False,
+		},
+		{
+			title: "When expected and actual map value are struct",
+			expected: map[string]struct{}{
+				"foo": {},
+			},
+			actual: map[string]struct{}{
+				"foo": {},
+			},
+			epsilon: 0.1,
+			f:       False,
+		},
+	} {
+		tc.f(t, InEpsilonMapValues(mockT, tc.expected, tc.actual, tc.epsilon), tc.title)
+	}
+}
+
 func TestRegexp(t *testing.T) {
 	t.Parallel()
 
