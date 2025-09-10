@@ -2177,6 +2177,48 @@ func Test_MockReturnAndCalledConcurrent(t *testing.T) {
 	wg.Wait()
 }
 
+func Test_Mock_NumberOfCalls(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("Test_Mock_NumberOfCalls", 1, 2, 3).Return(5, 6, 7)
+
+	mockedService.Called(1, 2, 3)
+	assert.Equal(t, mockedService.NumberOfCalls("Test_Mock_NumberOfCalls"), 1)
+	mockedService.Called(1, 2, 3)
+
+	assert.Equal(t, mockedService.NumberOfCalls("Test_Mock_NumberOfCalls"), 2)
+}
+
+func Test_Mock_NumberOfCallsIsThreadSafe(t *testing.T) {
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.On("TheExampleMethod", 1, 2, 3).Return(5, 6, 7)
+
+	done := make(chan struct{})
+	shutdown := func() {
+		time.Sleep(10 * time.Millisecond)
+		close(done)
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				_, _ = mockedService.TheExampleMethod(1, 2, 3)
+			}
+		}
+	}()
+
+	shutdown()
+	finalCallCount := mockedService.NumberOfCalls("TheExampleMethod")
+
+	assert.Greater(t, finalCallCount, 0)
+
+}
+
 type timer struct{ Mock }
 
 func (s *timer) GetTime(i int) string {
