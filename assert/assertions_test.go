@@ -1587,30 +1587,43 @@ func TestPanicsWithValue(t *testing.T) {
 func TestPanicsWithError(t *testing.T) {
 	t.Parallel()
 
-	mockT := new(testing.T)
-
-	if !PanicsWithError(mockT, "panic", func() {
+	mockT := new(captureTestingT)
+	succeeded := PanicsWithError(mockT, "panic", func() {
 		panic(errors.New("panic"))
-	}) {
-		t.Error("PanicsWithError should return true")
-	}
+	})
+	mockT.checkResultAndErrMsg(t, true, succeeded, "")
 
-	if PanicsWithError(mockT, "Panic!", func() {
-	}) {
-		t.Error("PanicsWithError should return false")
-	}
+	succeeded = PanicsWithError(mockT, "Panic!", func() {})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, "Panic value:\t<nil>")
 
-	if PanicsWithError(mockT, "at the disco", func() {
-		panic(errors.New("panic"))
-	}) {
-		t.Error("PanicsWithError should return false")
-	}
+	succeeded = PanicsWithError(mockT, "expected panic err msg", func() {
+		panic(errors.New("actual panic err msg"))
+	})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, `Error message:	"actual panic err msg"`)
 
-	if PanicsWithError(mockT, "Panic!", func() {
-		panic("panic")
-	}) {
-		t.Error("PanicsWithError should return false")
-	}
+	succeeded = PanicsWithError(mockT, "expected panic err msg", func() {
+		panic(&PanicsWithErrorWrapper{"wrapped", errors.New("actual panic err msg")})
+	})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, `Error message:	"wrapped: actual panic err msg"`)
+
+	succeeded = PanicsWithError(mockT, "expected panic msg", func() {
+		panic("actual panic msg")
+	})
+	Equal(t, false, succeeded, "PanicsWithError should return false")
+	Contains(t, mockT.msg, `Panic value:	"actual panic msg"`)
+	NotContains(t, mockT.msg, "Error message:", "PanicsWithError should not report error message if not due an error")
+}
+
+type PanicsWithErrorWrapper struct {
+	Prefix string
+	Err    error
+}
+
+func (e PanicsWithErrorWrapper) Error() string {
+	return e.Prefix + ": " + e.Err.Error()
 }
 
 func TestNotPanics(t *testing.T) {
