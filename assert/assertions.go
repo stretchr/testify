@@ -529,14 +529,15 @@ func validateEqualArgs(expected, actual interface{}) error {
 //
 //	assert.Same(t, ptr1, ptr2)
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
-	same, ok := samePointers(expected, actual)
+	same, ok := sameReferences(expected, actual)
 	if !ok {
 		return Fail(t, "Both arguments must be pointers", msgAndArgs...)
 	}
@@ -556,14 +557,15 @@ func Same(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) b
 //
 //	assert.NotSame(t, ptr1, ptr2)
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
-	same, ok := samePointers(expected, actual)
+	same, ok := sameReferences(expected, actual)
 	if !ok {
 		// fails when the arguments are not pointers
 		return !(Fail(t, "Both arguments must be pointers", msgAndArgs...))
@@ -577,23 +579,35 @@ func NotSame(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 	return true
 }
 
-// samePointers checks if two generic interface objects are pointers of the same
-// type pointing to the same object. It returns two values: same indicating if
-// they are the same type and point to the same object, and ok indicating that
-// both inputs are pointers.
-func samePointers(first, second interface{}) (same bool, ok bool) {
-	firstPtr, secondPtr := reflect.ValueOf(first), reflect.ValueOf(second)
-	if firstPtr.Kind() != reflect.Ptr || secondPtr.Kind() != reflect.Ptr {
-		return false, false // not both are pointers
+// sameReferences checks if two generic interface objects are either pointers,
+// maps, or channels that have the same type and point to the same underlying
+// value. It returns two values: same indicating if they are the same type and
+// point to the same object, and ok indicating that both inputs are pointer-like.
+//
+// ok will be false for objects such as slices or functions, since these values
+// are not represented as a single direct reference:
+// https://go.dev/ref/spec#Representation_of_values
+func sameReferences(first, second interface{}) (same bool, ok bool) {
+	firstValue, secondValue := reflect.ValueOf(first), reflect.ValueOf(second)
+	firstKind, secondKind := firstValue.Kind(), secondValue.Kind()
+	if firstKind != secondKind {
+		return false, false
+	}
+	var firstPtr, secondPtr uintptr
+	switch firstKind {
+	case reflect.Chan, reflect.Map, reflect.Ptr:
+		firstPtr, secondPtr = firstValue.Pointer(), secondValue.Pointer()
+	default:
+		return false, false
 	}
 
 	firstType, secondType := reflect.TypeOf(first), reflect.TypeOf(second)
 	if firstType != secondType {
-		return false, true // both are pointers, but of different types
+		return false, true // both are pointer-like, but of different types
 	}
 
 	// compare pointer addresses
-	return first == second, true
+	return firstPtr == secondPtr, true
 }
 
 // formatUnequalValues takes two values of arbitrary types and returns string

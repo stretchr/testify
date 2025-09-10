@@ -702,7 +702,8 @@ func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ..
 //
 //	assert.NotSamef(t, ptr1, ptr2, "error message %s", "formatted")
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func NotSamef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
@@ -794,7 +795,8 @@ func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...in
 //
 //	assert.Samef(t, ptr1, ptr2, "error message %s", "formatted")
 //
-// Both arguments must be pointer variables. Pointer variable sameness is
+// Both arguments must be pointer variables or something directly coercible
+// to a pointer such as a map or channel. Pointer variable sameness is
 // determined based on the equality of both type and value.
 func Samef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
