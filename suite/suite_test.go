@@ -407,6 +407,56 @@ func TestSkippingSuiteSetup(t *testing.T) {
 	assert.False(t, suiteTester.toreDown)
 }
 
+// This suite has no Test... methods. It's setup and teardown must be skipped.
+type SuiteInvalidTestSignatureTester struct {
+	Suite
+
+	executedTestCount int
+
+	setUp    bool
+	toreDown bool
+}
+
+func (s *SuiteInvalidTestSignatureTester) SetupSuite() {
+	s.setUp = true
+}
+
+func (s *SuiteInvalidTestSignatureTester) TestInvalidSignatureReturnValue() interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+func (s *SuiteInvalidTestSignatureTester) TestInvalidSignatureArg(somearg string) {
+	s.executedTestCount++
+}
+
+func (s *SuiteInvalidTestSignatureTester) TestInvalidSignatureBoth(somearg string) interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+func (s *SuiteInvalidTestSignatureTester) TearDownSuite() {
+	s.toreDown = true
+}
+
+func TestSuiteInvalidTestSignature(t *testing.T) {
+	suiteTester := new(SuiteInvalidTestSignatureTester)
+
+	ok := testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: "invalid signature",
+			F: func(t *testing.T) {
+				Run(t, suiteTester)
+			},
+		},
+	})
+
+	require.False(t, ok)
+	assert.Zero(t, suiteTester.executedTestCount)
+	assert.True(t, suiteTester.setUp)
+	assert.True(t, suiteTester.toreDown)
+}
+
 func TestSuiteGetters(t *testing.T) {
 	suite := new(SuiteTester)
 	suite.SetT(t)
