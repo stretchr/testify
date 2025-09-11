@@ -2135,7 +2135,7 @@ func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, 
 	t.FailNow()
 }
 
-// YAMLEq asserts that two YAML strings are equivalent.
+// YAMLEq asserts that the first document in the two YAML strings is equivalent.
 func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2146,7 +2146,7 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	t.FailNow()
 }
 
-// YAMLEqf asserts that two YAML strings are equivalent.
+// YAMLEqf asserts that the first document in the two YAML strings is equivalent.
 func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

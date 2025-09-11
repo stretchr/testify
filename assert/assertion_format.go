@@ -849,7 +849,7 @@ func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, 
 	return WithinRange(t, actual, start, end, append([]interface{}{msg}, args...)...)
 }
 
-// YAMLEqf asserts that two YAML strings are equivalent.
+// YAMLEqf asserts that the first document in the two YAML strings is equivalent.
 func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
