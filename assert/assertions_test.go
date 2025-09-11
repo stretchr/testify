@@ -2852,6 +2852,31 @@ func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
 	False(t, YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
+func TestYAMLEq_OnlyFirstDocument(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(testing.T)
+	True(t, YAMLEq(mockT,
+		`---
+doc1: same
+---
+doc2: different
+`,
+		`---
+doc1: same
+---
+doc2: notsame
+`,
+	))
+}
+
+func TestYAMLEq_InvalidIdenticalYAML(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(testing.T)
+	False(t, YAMLEq(mockT, `}`, `}`))
+}
+
 type diffTestingStruct struct {
 	A string
 	B int
