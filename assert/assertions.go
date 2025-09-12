@@ -1880,7 +1880,7 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
-// YAMLEq asserts that the first document in the two YAML strings is equivalent.
+// YAMLEq asserts that the first documents in the two YAML strings are equivalent.
 //
 //	expected := `---
 //	key: value
