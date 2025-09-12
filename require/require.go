@@ -2136,6 +2136,18 @@ func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, 
 }
 
 // YAMLEq asserts that the first document in the two YAML strings is equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	require.YAMLEq(t, expected, actual)
 func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2147,6 +2159,18 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 }
 
 // YAMLEqf asserts that the first document in the two YAML strings is equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	require.YAMLEqf(t, expected, actual, "error message %s", "formatted")
 func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

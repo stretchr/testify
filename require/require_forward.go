@@ -1692,6 +1692,18 @@ func (a *Assertions) WithinRangef(actual time.Time, start time.Time, end time.Ti
 }
 
 // YAMLEq asserts that the first document in the two YAML strings is equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	a.YAMLEq(expected, actual)
 func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1700,6 +1712,18 @@ func (a *Assertions) YAMLEq(expected string, actual string, msgAndArgs ...interf
 }
 
 // YAMLEqf asserts that the first document in the two YAML strings is equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	a.YAMLEqf(expected, actual, "error message %s", "formatted")
 func (a *Assertions) YAMLEqf(expected string, actual string, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()

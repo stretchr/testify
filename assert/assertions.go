@@ -1881,6 +1881,18 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 }
 
 // YAMLEq asserts that the first document in the two YAML strings is equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	assert.YAMLEq(t, expected, actual)
 func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
