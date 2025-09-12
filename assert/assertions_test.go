@@ -2773,6 +2773,121 @@ func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
+func TestJSONPartialEq_EqualSubset(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"foo": {"foo": "bar"}}`, `{"hello": "world", "foo": {"foo": "bar", "hello": "world"}}`))
+}
+
+func TestJSONPartialEq_EquivalentButNotEqualSubset(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"foo": {"foo": "bar"}}`, `{"hello": "world", "foo": {"hello": "world", "foo": "bar"}}`))
+}
+
+func TestJSONPartialEq_NotEqualPropertyKeySubset(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": {"hello": "bar"}}`, `{"hello": "world", "foo": {"foo": "bar", "hello": "world"}}`))
+}
+
+func TestJSONPartialEq_NotEqualPropertyValueSubset(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": {"foo": "world"}}`, `{"hello": "world", "foo": {"foo": "bar", "hello": "world"}}`))
+}
+
+func TestJSONPartialEq_EqualArray(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"foo": ["bar", "hello", "world"]}`, `{"hello": "world", "foo": ["bar", "hello", "world"]}`))
+}
+
+func TestJSONPartialEq_NotEqualArray(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": ["hello", "world", "bar"]}`, `{"hello": "world", "foo": ["bar", "hello", "world"]}`))
+}
+
+func TestJSONPartialEq_EqualArraySubset(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"foo": ["bar"]}`, `{"hello": "world", "foo": ["bar", "hello", "world"]}`))
+}
+
+func TestJSONPartialEq_NotEqualArraySubset(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": ["world"]}`, `{"hello": "world", "foo": ["bar", "hello", "world"]}`))
+}
+
+func TestJSONPartialEq_EqualArrayOfMaps(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"foo": [{"foo": "bar"}, {"hello": "world"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`))
+}
+
+func TestJSONPartialEq_NotEqualArrayOfMaps(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": [{"hello": "world"}, {"foo": "bar"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`))
+}
+
+func TestJSONPartialEq_EqualArrayOfMapsSubset(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"foo": [{"foo": "bar"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`))
+}
+
+func TestJSONPartialEq_NotEqualArrayOfMapsSubset(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": [{"hello": "world"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`))
+}
+
+func TestJSONPartialEq_EqualArrayOfMapsWithSpacerSubset(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"foo": [{}, {"hello": "world"}]}`, `{"hello": "world", "foo": [{"foo": "bar"}, {"hello": "world"}]}`))
+}
+
+func TestJSONPartialEq_EqualSONString(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`))
+}
+
+func TestJSONPartialEq_EquivalentButNotEqual(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
+}
+
+func TestJSONPartialEq_HashOfArraysAndHashes(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `{"numeric": 1.5, "array": [{"foo": "bar"}, 1, "string", ["nested", "array", 5.5]], "hash": {"nested": "hash", "nested_slice": ["this", "is", "nested"]}, "string": "foo"}`, `{"numeric": 1.5, "hash": {"nested": "hash", "nested_slice": ["this", "is", "nested"]}, "string": "foo", "array": [{"foo": "bar"}, 1, "string", ["nested", "array", 5.5]]}`))
+}
+
+func TestJSONPartialEq_Array(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONPartialEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`))
+}
+
+func TestJSONPartialEq_HashAndArrayNotEquivalent(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`))
+}
+
+func TestJSONPartialEq_HashesNotEquivalent(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": "bar", "hello": "world"}`, `{"foo": "bar"}`))
+}
+
+func TestJSONPartialEq_ActualIsNotJSON(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `{"foo": "bar"}`, "Not JSON"))
+}
+
+func TestJSONPartialEq_ExpectedIsNotJSON(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`))
+}
+
+func TestJSONPartialEq_ExpectedAndActualNotJSON(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, "Not JSON", "Not JSON"))
+}
+
+func TestJSONPartialEq_ArraysOfDifferentOrder(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONPartialEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
+}
+
 func TestYAMLEq_EqualYAMLString(t *testing.T) {
 	t.Parallel()
 
