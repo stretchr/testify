@@ -180,7 +180,7 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...i
 	t.FailNow()
 }
 
-// EqualError asserts that a function returned an error (i.e. not `nil`)
+// EqualError asserts that a function returned a non-nil error (i.e. an error)
 // and that it is equal to the provided error.
 //
 //	actualObj, err := SomeFunction()
@@ -195,7 +195,7 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	t.FailNow()
 }
 
-// EqualErrorf asserts that a function returned an error (i.e. not `nil`)
+// EqualErrorf asserts that a function returned a non-nil error (i.e. an error)
 // and that it is equal to the provided error.
 //
 //	actualObj, err := SomeFunction()
@@ -295,7 +295,7 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 	t.FailNow()
 }
 
-// Error asserts that a function returned an error (i.e. not `nil`).
+// Error asserts that a function returned a non-nil error (ie. an error).
 //
 //	actualObj, err := SomeFunction()
 //	require.Error(t, err)
@@ -333,8 +333,8 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 	t.FailNow()
 }
 
-// ErrorContains asserts that a function returned an error (i.e. not `nil`)
-// and that the error contains the specified substring.
+// ErrorContains asserts that a function returned a non-nil error (i.e. an
+// error) and that the error contains the specified substring.
 //
 //	actualObj, err := SomeFunction()
 //	require.ErrorContains(t, err,  expectedErrorSubString)
@@ -348,8 +348,8 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 	t.FailNow()
 }
 
-// ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
-// and that the error contains the specified substring.
+// ErrorContainsf asserts that a function returned a non-nil error (i.e. an
+// error) and that the error contains the specified substring.
 //
 //	actualObj, err := SomeFunction()
 //	require.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
@@ -387,7 +387,7 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 	t.FailNow()
 }
 
-// Errorf asserts that a function returned an error (i.e. not `nil`).
+// Errorf asserts that a function returned a non-nil error (ie. an error).
 //
 //	actualObj, err := SomeFunction()
 //	require.Errorf(t, err, "error message %s", "formatted")
@@ -1385,7 +1385,7 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
-// NoError asserts that a function returned no error (i.e. `nil`).
+// NoError asserts that a function returned a nil error (ie. no error).
 //
 //	  actualObj, err := SomeFunction()
 //	  if require.NoError(t, err) {
@@ -1401,7 +1401,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// NoErrorf asserts that a function returned no error (i.e. `nil`).
+// NoErrorf asserts that a function returned a nil error (ie. no error).
 //
 //	  actualObj, err := SomeFunction()
 //	  if require.NoErrorf(t, err, "error message %s", "formatted") {
