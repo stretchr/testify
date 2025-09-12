@@ -226,10 +226,10 @@ func (suite *SuiteTester) TestOne() {
 }
 
 // TestTwo is another example of a test.
-func (suite *SuiteTester) TestTwo() {
+func (suite *SuiteTester) TestTwo(t *testing.T) {
 	beforeCount := suite.TestTwoRunCount
 	suite.TestTwoRunCount++
-	assert.NotEqual(suite.T(), suite.TestTwoRunCount, beforeCount)
+	assert.NotEqual(t, suite.TestTwoRunCount, beforeCount)
 	suite.NotEqual(suite.TestTwoRunCount, beforeCount)
 }
 
