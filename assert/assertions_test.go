@@ -635,7 +635,7 @@ func ptr(i int) *int {
 func TestSame(t *testing.T) {
 	t.Parallel()
 
-	mockT := new(testing.T)
+	mockT := new(mockTestingT)
 
 	if Same(mockT, ptr(1), ptr(1)) {
 		t.Error("Same should return false")
@@ -650,6 +650,22 @@ func TestSame(t *testing.T) {
 	if !Same(mockT, p, p) {
 		t.Error("Same should return true")
 	}
+
+	t.Run("same object, different type", func(t *testing.T) {
+		type s struct {
+			i int
+		}
+		type sPtr *s
+		ps := &s{1}
+		dps := sPtr(ps)
+		if Same(mockT, dps, ps) {
+			t.Error("Same should return false")
+		}
+		expPat :=
+			`expected: &assert.s\{i:1\} \(assert.sPtr\)\((0x[a-f0-9]+)\)\s*\n` +
+				`\s+actual  : &assert.s\{i:1\} \(\*assert.s\)\((0x[a-f0-9]+)\)`
+		Regexp(t, regexp.MustCompile(expPat), mockT.errorString())
+	})
 }
 
 func TestNotSame(t *testing.T) {
