@@ -673,6 +673,22 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) of method %s does not match the actual number of calls (%d).", expectedCalls, methodName, actualCalls))
 }
 
+// AssertMinNumberOfCalls asserts that the method was called at-least expectedMinCalls times.
+func (m *Mock) AssertMinNumberOfCalls(t TestingT, methodName string, expectedMinCalls int) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	var actualCalls int
+	for _, call := range m.calls() {
+		if call.Method == methodName {
+			actualCalls++
+		}
+	}
+	return assert.LessOrEqual(t, expectedMinCalls, actualCalls, fmt.Sprintf("Actual number of calls (%d) does not satisfy the minimum expected number of calls (%d).", actualCalls, expectedMinCalls))
+}
+
 // AssertCalled asserts that the method was called.
 // It can produce a false result when an argument is a pointer type and the underlying value changed after calling the mocked method.
 func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
