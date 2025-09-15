@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -523,6 +524,14 @@ func validateEqualArgs(expected, actual interface{}) error {
 		return errors.New("cannot take func type as argument")
 	}
 	return nil
+}
+
+// quote quotes s with backticks if possible otherwise escaped.
+func quote(s string) string {
+	if strconv.CanBackquote(s) {
+		return "`" + s + "`"
+	}
+	return strconv.Quote(s)
 }
 
 // Same asserts that two pointers reference the same object.
@@ -1679,8 +1688,8 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	// don't need to use deep equals here, we know they are both strings
 	if expected != actual {
 		return Fail(t, fmt.Sprintf("Error message not equal:\n"+
-			"expected: %q\n"+
-			"actual  : %q", expected, actual), msgAndArgs...)
+			"expected: %s\n"+
+			"actual  : %s", quote(expected), quote(actual)), msgAndArgs...)
 	}
 	return true
 }
@@ -2199,15 +2208,15 @@ func ErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	if target != nil {
 		expectedText = target.Error()
 		if err == nil {
-			return Fail(t, fmt.Sprintf("Expected error with %q in chain but got nil.", expectedText), msgAndArgs...)
+			return Fail(t, fmt.Sprintf("Expected error with %s in chain but got nil.", quote(expectedText)), msgAndArgs...)
 		}
 	}
 
 	chain := buildErrorChainString(err, false)
 
 	return Fail(t, fmt.Sprintf("Target error should be in err chain:\n"+
-		"expected: %q\n"+
-		"in chain: %s", expectedText, chain,
+		"expected: %s\n"+
+		"in chain: %s", quote(expectedText), chain,
 	), msgAndArgs...)
 }
 
@@ -2229,8 +2238,8 @@ func NotErrorIs(t TestingT, err, target error, msgAndArgs ...interface{}) bool {
 	chain := buildErrorChainString(err, false)
 
 	return Fail(t, fmt.Sprintf("Target error should not be in err chain:\n"+
-		"found: %q\n"+
-		"in chain: %s", expectedText, chain,
+		"found: %s\n"+
+		"in chain: %s", quote(expectedText), chain,
 	), msgAndArgs...)
 }
 
@@ -2304,7 +2313,7 @@ func buildErrorChainString(err error, withType bool) string {
 		if i != 0 {
 			chain += "\n\t"
 		}
-		chain += fmt.Sprintf("%q", errs[i].Error())
+		chain += quote(errs[i].Error())
 		if withType {
 			chain += fmt.Sprintf(" (%T)", errs[i])
 		}
