@@ -3654,15 +3654,38 @@ func Test_truncatingFormat(t *testing.T) {
 	t.Parallel()
 
 	original := strings.Repeat("a", bufio.MaxScanTokenSize-102)
-	result := truncatingFormat(original)
+	result := truncatingFormat(original, false)
 	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")
 
 	original = original + "x"
-	result = truncatingFormat(original)
+	result = truncatingFormat(original, false)
 	NotEqual(t, fmt.Sprintf("%#v", original), result, "string should have been truncated.")
 
 	if !strings.HasSuffix(result, "<... truncated>") {
 		t.Error("truncated string should have <... truncated> suffix")
+	}
+}
+
+func Test_truncatingFormat_PrintValueOfBasicTypes(t *testing.T) {
+	i := 5
+	iPtr := &i
+	result := truncatingFormat(iPtr, true)
+	if !strings.HasSuffix(result, "5") {
+		t.Error("format should have printed the underlying value of int pointer")
+	}
+
+	b := false
+	bPtr := &b
+	result = truncatingFormat(bPtr, true)
+	if !strings.HasSuffix(result, "false") {
+		t.Error("format should have printed the underlying value of bool pointer")
+	}
+
+	s := "testingString"
+	sPtr := &s
+	result = truncatingFormat(sPtr, true)
+	if !strings.HasSuffix(result, "testingString") {
+		t.Error("format should have printed the underlying value of string pointer")
 	}
 }
 
