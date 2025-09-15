@@ -1357,6 +1357,28 @@ func PanicsWithError(t TestingT, errString string, f PanicTestFunc, msgAndArgs .
 	return true
 }
 
+// PanicsWithErrorIs asserts that the code inside the specified PanicTestFunc
+// panics, and that the recovered panic value is an error that satisfies the
+// errors.Is() method
+//
+//   assert.PanicsWithErrorIs(t, expectedError, func(){ GoCrazy() })
+func PanicsWithErrorIs(t TestingT, expectedError error, f PanicTestFunc, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	funcDidPanic, panicValue, panickedStack := didPanic(f)
+	if !funcDidPanic {
+		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
+	}
+	panicErr, ok := panicValue.(error)
+	if !ok || !errors.Is(panicErr, expectedError) {
+		return Fail(t, fmt.Sprintf("func %#v should panic with error that has this error in its chain:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, expectedError, panicValue, panickedStack), msgAndArgs...)
+	}
+
+	return true
+}
+
 // NotPanics asserts that the code inside the specified PanicTestFunc does NOT panic.
 //
 //	assert.NotPanics(t, func(){ RemainCalm() })
