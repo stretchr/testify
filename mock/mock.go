@@ -56,6 +56,9 @@ type Call struct {
 	// Amount of times this call has been called
 	totalCalls int
 
+	// Minimum number of times this call should be called
+	minimumCalls int
+
 	// Call to this method can be optional
 	optional bool
 
@@ -87,6 +90,7 @@ func newCall(parent *Mock, methodName string, callerInfo []string, methodArgumen
 		ReturnArguments: returnArguments,
 		callerInfo:      callerInfo,
 		Repeatability:   0,
+		minimumCalls:    0,
 		WaitFor:         nil,
 		RunFn:           nil,
 		PanicMsg:        nil,
@@ -147,6 +151,19 @@ func (c *Call) Times(i int) *Call {
 	c.lock()
 	defer c.unlock()
 	c.Repeatability = i
+	return c
+}
+
+// AtLeast indicates that the mock should return at least the indicated number
+// of times. The mock will always return, but the count will be verified
+// when AssertExpectations() is called.
+//
+// Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).AtLeast(2)
+func (c *Call) AtLeast(i int) *Call {
+	c.lock()
+	defer c.unlock()
+	c.Repeatability = 0
+	c.minimumCalls = i
 	return c
 }
 
@@ -653,6 +670,9 @@ func (m *Mock) checkExpectation(call *Call) (bool, string) {
 		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
 	}
 	if call.Repeatability > 0 {
+		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+	}
+	if call.minimumCalls > 0 && call.minimumCalls >= call.totalCalls {
 		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
 	}
 	return true, fmt.Sprintf("PASS:\t%s(%s)", call.Method, call.Arguments.String())
