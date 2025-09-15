@@ -2461,3 +2461,9 @@ func TestIssue1785ArgumentWithMutatingStringer(t *testing.T) {
 	m.MethodCalled("Method", &mutatingStringer{N: 2})
 	m.AssertExpectations(t)
 }
+
+func TestIssue1227AssertExpectationsForObjectsWithMock(t *testing.T) {
+	mockT := &MockTestingT{}
+	AssertExpectationsForObjects(mockT, Mock{})
+	assert.Equal(t, 1, mockT.errorfCount)
+}
