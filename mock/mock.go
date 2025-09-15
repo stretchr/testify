@@ -603,11 +603,12 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 		h.Helper()
 	}
 	for _, obj := range testObjects {
-		if m, ok := obj.(*Mock); ok {
-			t.Logf("Deprecated mock.AssertExpectationsForObjects(myMock.Mock) use mock.AssertExpectationsForObjects(myMock)")
-			obj = m
+		m, ok := obj.(assertExpectationiser)
+		if !ok {
+			t.Errorf("Invalid test object type %T. Expected reference to a mock.Mock, eg: 'AssertExpectationsForObjects(t, myMock)' or 'AssertExpectationsForObjects(t, &myMock.Mock)'", obj)
+			continue
+
 		}
-		m := obj.(assertExpectationiser)
 		if !m.AssertExpectations(t) {
 			t.Logf("Expectations didn't match for Mock: %+v", reflect.TypeOf(m))
 			return false
