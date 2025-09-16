@@ -2311,3 +2311,39 @@ func buildErrorChainString(err error, withType bool) string {
 	}
 	return chain
 }
+
+// NoFieldIsZero asserts that object, which must be a struct or eventually
+// reference to one, has no field with a value that is zero.
+//
+// The assertion is not recursive, meaning it only checks that the fields
+// of the struct (embedded structs are considered fields) are not zero values.
+// It does not check the fields of nested or embedded structs.
+func NoFieldIsZero(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if reflect.TypeOf(object).Kind() == reflect.Ptr {
+		return NoFieldIsZero(t, reflect.ValueOf(object).Elem().Interface(), msgAndArgs)
+	}
+
+	objectType := reflect.TypeOf(object)
+	if objectType.Kind() != reflect.Struct {
+		return Fail(t, "Input must be a struct or eventually reference one", msgAndArgs...)
+	}
+
+	var emptyFields []string
+	objectValue := reflect.ValueOf(object)
+	for i := 0; i < objectType.NumField(); i++ {
+		field := objectType.Field(i)
+		if objectValue.Field(i).IsZero() {
+			emptyFields = append(emptyFields, field.Name)
+		}
+	}
+
+	if len(emptyFields) > 0 {
+		return Fail(t, fmt.Sprintf("Object contained fields with zero values: %s", strings.Join(emptyFields, ", ")), msgAndArgs...)
+	}
+
+	return true
+}

@@ -3969,3 +3969,143 @@ func TestNotErrorAs(t *testing.T) {
 		})
 	}
 }
+
+func TestNoFieldIsZero(t *testing.T) {
+	str := "a string"
+	type Embeddable struct {
+		StringA string
+		StringB string
+	}
+
+	tests := []struct {
+		name         string
+		input        interface{}
+		result       bool
+		resultErrMsg string
+	}{
+		{
+			name: "pass_exported_fields",
+			input: struct {
+				Float64   float64
+				Func      func()
+				Int       int
+				Interface interface{}
+				Pointer   *string
+				Slice     []string
+				String    string
+				Struct    struct{ StringA, StringB string }
+			}{
+				Float64:   1.5,
+				Func:      func() {},
+				Int:       1,
+				Interface: "interface",
+				Pointer:   &str,
+				Slice:     []string{"a", "b"},
+				String:    "a string",
+				Struct:    struct{ StringA, StringB string }{StringA: "a nested string"},
+			},
+			result: true,
+		},
+		{
+			name: "pass_unexported_fields",
+			input: struct {
+				aFloat64   float64
+				aFunc      func()
+				aInt       int
+				aInterface interface{}
+				aPointer   *string
+				aSlice     []string
+				aString    string
+				aStruct    struct{ stringA, stringB string }
+			}{
+				aFloat64:   1.5,
+				aFunc:      func() {},
+				aInt:       1,
+				aInterface: "interface",
+				aPointer:   &str,
+				aSlice:     []string{"a", "b"},
+				aString:    "a string",
+				aStruct:    struct{ stringA, stringB string }{stringA: "a nested string"},
+			},
+			result: true,
+		},
+		{
+			name: "pass_embedded",
+			input: struct {
+				Embeddable
+			}{
+				Embeddable: Embeddable{StringA: "string"}, // For Embeddable to be non-zero, only one field its fields needs to be non-zero
+			},
+			result: true,
+		},
+		{
+			name: "pass_pointer",
+			input: &struct {
+				String string
+			}{
+				String: "a string",
+			},
+			result: true,
+		},
+		{
+			name: "fail_exported_fields",
+			input: struct {
+				Float64   float64
+				Func      func()
+				Int       int
+				Interface interface{}
+				Pointer   *string
+				Slice     []string
+				String    string
+				Struct    struct{ String string }
+			}{},
+			result:       false,
+			resultErrMsg: "Object contained fields with zero values: Float64, Func, Int, Interface, Pointer, Slice, String, Struct\n",
+		},
+		{
+			name: "fail_unexported_fields",
+			input: struct {
+				aFloat64   float64
+				aFunc      func()
+				aInt       int
+				aInterface interface{}
+				aPointer   *string
+				aSlice     []string
+				aString    string
+				aStruct    struct{ stringA, stringB string }
+			}{},
+			result:       false,
+			resultErrMsg: "Object contained fields with zero values: aFloat64, aFunc, aInt, aInterface, aPointer, aSlice, aString, aStruct\n",
+		},
+		{
+			name: "failure_embedded",
+			input: struct {
+				Embeddable
+			}{},
+			result:       false,
+			resultErrMsg: "Object contained fields with zero values: Embeddable\n",
+		},
+		{
+			name: "fail_some_fields_non_zero",
+			input: struct {
+				StringA string
+				StringB string
+			}{StringA: "not_empty"},
+			result:       false,
+			resultErrMsg: "Object contained fields with zero values: StringB\n",
+		},
+		{
+			name:         "fail_wrong_type",
+			input:        "a string is not a struct",
+			result:       false,
+			resultErrMsg: "Input must be a struct or eventually reference one\n",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockT := new(captureTestingT)
+			result := NoFieldIsZero(mockT, tt.input)
+			mockT.checkResultAndErrMsg(t, tt.result, result, tt.resultErrMsg)
+		})
+	}
+}
