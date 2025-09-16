@@ -23,7 +23,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/ernesto-jimenez/gogen/imports"
+	"github.com/stretchr/testify/_codegen/internal/imports"
 )
 
 var (
