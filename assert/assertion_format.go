@@ -84,7 +84,7 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 	return Equal(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// EqualErrorf asserts that a function returned an error (i.e. not `nil`)
+// EqualErrorf asserts that a function returned a non-nil error (i.e. an error)
 // and that it is equal to the provided error.
 //
 //	actualObj, err := SomeFunction()
@@ -124,7 +124,7 @@ func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg stri
 	return EqualValues(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// Errorf asserts that a function returned an error (i.e. not `nil`).
+// Errorf asserts that a function returned a non-nil error (ie. an error).
 //
 //	actualObj, err := SomeFunction()
 //	assert.Errorf(t, err, "error message %s", "formatted")
@@ -144,8 +144,8 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 	return ErrorAs(t, err, target, append([]interface{}{msg}, args...)...)
 }
 
-// ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
-// and that the error contains the specified substring.
+// ErrorContainsf asserts that a function returned a non-nil error (i.e. an
+// error) and that the error contains the specified substring.
 //
 //	actualObj, err := SomeFunction()
 //	assert.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
@@ -552,7 +552,7 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) bool
 	return NoDirExists(t, path, append([]interface{}{msg}, args...)...)
 }
 
-// NoErrorf asserts that a function returned no error (i.e. `nil`).
+// NoErrorf asserts that a function returned a nil error (ie. no error).
 //
 //	  actualObj, err := SomeFunction()
 //	  if assert.NoErrorf(t, err, "error message %s", "formatted") {
