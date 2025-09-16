@@ -7,6 +7,8 @@ jobs:
     strategy:
       matrix:
         go_version:
+          # Our developer environment (especially the code generator)
+          # must work with all the supported Go releases.
           - stable
           - oldstable
     steps:
@@ -18,13 +20,19 @@ jobs:
       - run: ./.ci.gogenerate.sh
       - run: ./.ci.gofmt.sh
       - run: ./.ci.govet.sh
-      - run: go test -v -race ./...
 
-  test-old-go:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         go_version:
+          # Tested version are ordered for faster useful feedback:
+          # 'stable' and 'oldstable' are the most important
+          # then the oldest supported version from go.mod
+          # then the other intermediary Go versions (which, at this point
+          # have low chance to fail if the other succeeded)
+          - stable
+          - oldstable
           - "1.17"
           - "1.18"
           - "1.19"
@@ -39,7 +47,8 @@ jobs:
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           go-version: ${{ matrix.go_version }}
-      - run: go test -v -race ./...
+      - name: Test
+        run: go test -v -race ./...
 
   check-actions-hashes:
     runs-on: ubuntu-latest
