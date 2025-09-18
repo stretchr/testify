@@ -1108,7 +1108,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 			}
 		}
 
-		return Fail(t, fmt.Sprintf("%s is a subset of %s", truncatingFormat("%#v", subset), truncatingFormat("%#v", list)), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%s is a subset of %s", truncatingFormat("%q", subset), truncatingFormat("%q", list)), msgAndArgs...)
 	}
 
 	subsetList := reflect.ValueOf(subset)
@@ -1130,7 +1130,7 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		}
 	}
 
-	return Fail(t, fmt.Sprintf("%s is a subset of %s", truncatingFormat("%#v", subset), truncatingFormat("%#v", list)), msgAndArgs...)
+	return Fail(t, fmt.Sprintf("%s is a subset of %s", truncatingFormat("%q", subset), truncatingFormat("%q", list)), msgAndArgs...)
 }
 
 // ElementsMatch asserts that the specified listA(array, slice...) is equal to specified

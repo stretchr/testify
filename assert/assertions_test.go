@@ -1202,10 +1202,10 @@ func TestSubsetNotSubset(t *testing.T) {
 	}{
 		// cases that are expected to contain
 		{[]int{1, 2, 3}, nil, true, `nil is the empty set which is a subset of every set`},
-		{[]int{1, 2, 3}, []int{}, true, `[]int{} is a subset of []int{1, 2, 3}`},
-		{[]int{1, 2, 3}, []int{1, 2}, true, `[]int{1, 2} is a subset of []int{1, 2, 3}`},
-		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `[]int{1, 2, 3} is a subset of []int{1, 2, 3}`},
-		{[]string{"hello", "world"}, []string{"hello"}, true, `[]string{"hello"} is a subset of []string{"hello", "world"}`},
+		{[]int{1, 2, 3}, []int{}, true, `[] is a subset of ['\x01' '\x02' '\x03']`},
+		{[]int{1, 2, 3}, []int{1, 2}, true, `['\x01' '\x02'] is a subset of ['\x01' '\x02' '\x03']`},
+		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `['\x01' '\x02' '\x03'] is a subset of ['\x01' '\x02' '\x03']`},
+		{[]string{"hello", "world"}, []string{"hello"}, true, `["hello"] is a subset of ["hello" "world"]`},
 		{map[string]string{
 			"a": "x",
 			"c": "z",
@@ -1213,8 +1213,8 @@ func TestSubsetNotSubset(t *testing.T) {
 		}, map[string]string{
 			"a": "x",
 			"b": "y",
-		}, true, `map[string]string{"a":"x", "b":"y"} is a subset of map[string]string{"a":"x", "b":"y", "c":"z"}`},
-		{[]string{"a", "b", "c"}, map[string]int{"a": 1, "c": 3}, true, `map[string]int{"a":1, "c":3} is a subset of []string{"a", "b", "c"}`},
+		}, true, `map["a":"x" "b":"y"] is a subset of map["a":"x" "b":"y" "c":"z"]`},
+		{[]string{"a", "b", "c"}, map[string]int{"a": 1, "c": 3}, true, `map["a":'\x01' "c":'\x03'] is a subset of ["a" "b" "c"]`},
 
 		// cases that are expected not to contain
 		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, `[]string{"hello", "world"} does not contain "testify"`},
@@ -4032,19 +4032,19 @@ func TestNotSubsetWithSliceTooLongToPrint(t *testing.T) {
 	NotSubset(mockT, longSlice, longSlice)
 	Contains(t, mockT.errorString(), `
 	Error Trace:	
-	Error:      	[]int{0, 0, 0,`)
-	Contains(t, mockT.errorString(), `<... truncated> is a subset of []int{0, 0, 0,`)
+	Error:      	['\x00' '\x00' '\x00'`)
+	Contains(t, mockT.errorString(), `<... truncated> is a subset of ['\x00' '\x00' '\x00'`)
 }
 
 func TestNotSubsetWithMapTooLongToPrint(t *testing.T) {
 	t.Parallel()
 	mockT := new(mockTestingT)
 	longSlice := make([]int, 1_000_000)
-	NotSubset(mockT, map[bool][]int{true: longSlice}, map[bool][]int{true: longSlice})
+	NotSubset(mockT, map[int][]int{1: longSlice}, map[int][]int{1: longSlice})
 	Contains(t, mockT.errorString(), `
 	Error Trace:	
-	Error:      	map[bool][]int{true:[]int{0, 0, 0,`)
-	Contains(t, mockT.errorString(), `<... truncated> is a subset of map[bool][]int{true:[]int{0, 0, 0,`)
+	Error:      	map['\x01':['\x00' '\x00' '\x00'`)
+	Contains(t, mockT.errorString(), `<... truncated> is a subset of map['\x01':['\x00' '\x00' '\x00'`)
 }
 
 func TestSameWithSliceTooLongToPrint(t *testing.T) {
