@@ -22,7 +22,7 @@
 // # Assertions
 //
 // The require package have same global functions as in the assert package,
-// but instead of returning a boolean result they call "t.FailNow()".
+// but instead of returning a boolean result they call [testing.T.FailNow].
 // A consequence of this is that it must be called from the goroutine running
 // the test function, not from other goroutines created during the test.
 //
