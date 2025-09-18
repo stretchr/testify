@@ -622,9 +622,9 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 func truncatingFormat(format string, data interface{}) string {
 	value := fmt.Sprintf(format, data)
 	// Give us space for two truncated objects and the surrounding sentence.
-	max := bufio.MaxScanTokenSize/2 - 100
-	if len(value) > max {
-		value = value[0:max] + "<... truncated>"
+	maxMessageSize := bufio.MaxScanTokenSize/2 - 100
+	if len(value) > maxMessageSize {
+		value = value[0:maxMessageSize] + "<... truncated>"
 	}
 	return value
 }
