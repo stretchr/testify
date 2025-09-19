@@ -1632,7 +1632,7 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	Errors
 */
 
-// NoError asserts that a function returned no error (i.e. `nil`).
+// NoError asserts that a function returned a nil error (ie. no error).
 //
 //	  actualObj, err := SomeFunction()
 //	  if assert.NoError(t, err) {
@@ -1649,7 +1649,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// Error asserts that a function returned an error (i.e. not `nil`).
+// Error asserts that a function returned a non-nil error (ie. an error).
 //
 //	actualObj, err := SomeFunction()
 //	assert.Error(t, err)
@@ -1664,7 +1664,7 @@ func Error(t TestingT, err error, msgAndArgs ...interface{}) bool {
 	return true
 }
 
-// EqualError asserts that a function returned an error (i.e. not `nil`)
+// EqualError asserts that a function returned a non-nil error (i.e. an error)
 // and that it is equal to the provided error.
 //
 //	actualObj, err := SomeFunction()
@@ -1687,8 +1687,8 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	return true
 }
 
-// ErrorContains asserts that a function returned an error (i.e. not `nil`)
-// and that the error contains the specified substring.
+// ErrorContains asserts that a function returned a non-nil error (i.e. an
+// error) and that the error contains the specified substring.
 //
 //	actualObj, err := SomeFunction()
 //	assert.ErrorContains(t, err,  expectedErrorSubString)

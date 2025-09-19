@@ -712,8 +712,8 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	return true
 }
 
-// IsMethodCallable checking that the method can be called
-// If the method was called more than `Repeatability` return false
+// IsMethodCallable returns true if given methodName and arguments have an
+// unsatisfied expected call registered in the Mock.
 func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
