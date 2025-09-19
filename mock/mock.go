@@ -808,7 +808,8 @@ type AnythingOfTypeArgument = anythingOfTypeArgument
 type anythingOfTypeArgument string
 
 // AnythingOfType returns a special value containing the
-// name of the type to check for. The type name will be matched against the type name returned by [reflect.Type.String].
+// name of the type to check for. The type name will be matched against the type
+// name returned by [reflect.Type.String], or against "<nil>" for nil type .
 //
 // Used in Diff and Assert.
 //
@@ -1007,10 +1008,16 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			switch expected := expected.(type) {
 			case anythingOfTypeArgument:
 				// type checking
-				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
+				actualTypeName := "<nil>"
+				actualTypeString := "<nil>"
+				if actual != nil {
+					actualTypeName = reflect.TypeOf(actual).Name()
+					actualTypeString = reflect.TypeOf(actual).String()
+				}
+				if actualTypeName != string(expected) && actualTypeString != string(expected) {
 					// not match
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, actualTypeName, actualFmt)
 				}
 			case *IsTypeArgument:
 				actualT := reflect.TypeOf(actual)
