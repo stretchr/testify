@@ -953,7 +953,7 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 	return true, false
 }
 
-// Contains asserts that the specified string, list(array, slice...) or map contains the
+// Contains asserts that the specified string, list(array, slice, sequence...) or map contains the
 // specified substring or element.
 //
 //	assert.Contains(t, "Hello World", "World")
@@ -964,6 +964,7 @@ func Contains(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bo
 		h.Helper()
 	}
 
+	s = seqToSlice(s)
 	ok, found := containsElement(s, contains)
 	if !ok {
 		return Fail(t, fmt.Sprintf("%s could not be applied builtin len()", truncatingFormat("%#v", s)), msgAndArgs...)
@@ -986,6 +987,7 @@ func NotContains(t TestingT, s, contains interface{}, msgAndArgs ...interface{})
 		h.Helper()
 	}
 
+	s = seqToSlice(s)
 	ok, found := containsElement(s, contains)
 	if !ok {
 		return Fail(t, fmt.Sprintf("%s could not be applied builtin len()", truncatingFormat("%#v", s)), msgAndArgs...)
@@ -1142,6 +1144,10 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	// Convert sequences to lists, if applicable
+	listA = seqToSlice(listA)
+	listB = seqToSlice(listB)
+
 	if isEmpty(listA) && isEmpty(listB) {
 		return true
 	}
@@ -1229,8 +1235,8 @@ func formatListDiff(listA, listB interface{}, extraA, extraB []interface{}) stri
 	return msg.String()
 }
 
-// NotElementsMatch asserts that the specified listA(array, slice...) is NOT equal to specified
-// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// NotElementsMatch asserts that the specified listA(array, slice, sequence...) is NOT equal to specified
+// listB(array, slice, sequence...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should not match.
 // This is an inverse of ElementsMatch.
 //
@@ -1243,6 +1249,9 @@ func NotElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interf
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	// Convert sequences to lists, if applicable
+	listA = seqToSlice(listA)
+	listB = seqToSlice(listB)
 	if isEmpty(listA) && isEmpty(listB) {
 		return Fail(t, "listA and listB contain the same elements", msgAndArgs)
 	}
