@@ -2360,6 +2360,11 @@ func TestInDeltaSlice(t *testing.T) {
 		0.1), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
 
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
+
+	False(t, InDeltaSlice(mockT,
+		[]float64{1, 2},
+		[]float64{0, 3, 2},
+		1), "Too few elements in expected slice")
 }
 
 func TestInDeltaMapValues(t *testing.T) {
