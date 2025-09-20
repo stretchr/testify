@@ -1,3 +1,31 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015,2016 Ernesto Jiménez
+Copyright (c) 2019 Leigh McCulloch
+Copyright (c) 2020 Matt Gorzka
+Copyright (c) 2024 Simon Schulte
+Copyright (c) 2023,2025 Olivier Mengué
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 // This program reads all assertion functions from the assert package and
 // automatically generates the corresponding requires and forwarded assertions
 
@@ -22,8 +50,6 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
-
-	"github.com/stretchr/testify/_codegen/internal/imports"
 )
 
 var (
@@ -42,17 +68,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	importer, funcs, err := analyzeCode(scope, docs)
+	imports, funcs, err := analyzeCode(scope, docs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := generateCode(importer, funcs); err != nil {
+	if err := generateCode(imports, funcs); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func generateCode(importer imports.Importer, funcs []testFunc) error {
+func generateCode(imports *imports, funcs []testFunc) error {
 	buff := bytes.NewBuffer(nil)
 
 	tmplHead, tmplFunc, err := parseTemplates()
@@ -66,7 +92,7 @@ func generateCode(importer imports.Importer, funcs []testFunc) error {
 		Imports map[string]string
 	}{
 		*outputPkg,
-		importer.Imports(),
+		imports.imports,
 	}); err != nil {
 		return err
 	}
@@ -128,10 +154,13 @@ func outputFile() (*os.File, error) {
 
 // analyzeCode takes the types scope and the docs and returns the import
 // information and information about all the assertion functions.
-func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []testFunc, error) {
+func analyzeCode(scope *types.Scope, docs *doc.Package) (*imports, []testFunc, error) {
 	testingT := scope.Lookup("TestingT").Type().Underlying().(*types.Interface)
 
-	importer := imports.New(*outputPkg)
+	importer := &imports{
+		currentPkg: *outputPkg,
+		imports:    map[string]string{},
+	}
 	var funcs []testFunc
 	// Go through all the top level functions
 	for _, fdocs := range docs.Funcs {
@@ -166,9 +195,41 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []tes
 		}
 
 		funcs = append(funcs, testFunc{*outputPkg, fdocs, fn})
-		importer.AddImportsFrom(sig.Params())
+		importer.addImportsFrom(sig.Params())
 	}
 	return importer, funcs, nil
+}
+
+// imports collects a map of imported packages for a source file.
+//
+// This code has been copied from package github.com/ernesto-jimenez/gogen/imports
+type imports struct {
+	currentPkg string
+	imports    map[string]string
+}
+
+func (imp *imports) addImportsFrom(t types.Type) {
+	switch el := t.(type) {
+	case *types.Basic:
+	case *types.Slice:
+		imp.addImportsFrom(el.Elem())
+	case *types.Pointer:
+		imp.addImportsFrom(el.Elem())
+	case *types.Named:
+		pkg := el.Obj().Pkg()
+		if pkg == nil {
+			return
+		}
+		if pkg.Name() == imp.currentPkg {
+			return
+		}
+		imp.imports[pkg.Path()] = pkg.Name()
+	case *types.Tuple:
+		for i := 0; i < el.Len(); i++ {
+			imp.addImportsFrom(el.At(i).Type())
+		}
+	default:
+	}
 }
 
 // parsePackageSource returns the types scope and the package documentation from the package
