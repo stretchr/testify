@@ -738,6 +738,19 @@ func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...inte
 	return false
 }
 
+// NumberOfCalls returns the number of times a method was called
+func (m *Mock) NumberOfCalls(methodName string) int {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	var actualCalls int
+	for _, call := range m.calls() {
+		if call.Method == methodName {
+			actualCalls++
+		}
+	}
+	return actualCalls
+}
+
 // isArgsEqual compares arguments
 func isArgsEqual(expected Arguments, args []interface{}) bool {
 	if len(expected) != len(args) {
