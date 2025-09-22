@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"flag"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -15,6 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// allTestsFilter is a yes filter for testing.RunTests
+func allTestsFilter(pat, str string) (bool, error) {
+	return true, nil
+}
 
 // SuiteRequireTwice is intended to test the usage of suite.Require in two
 // different tests
@@ -440,7 +445,7 @@ func (sc *StdoutCapture) StopCapture() (string, error) {
 	}
 	os.Stdout.Close()
 	os.Stdout = sc.oldStdout
-	bytes, err := ioutil.ReadAll(sc.readPipe)
+	bytes, err := io.ReadAll(sc.readPipe)
 	if err != nil {
 		return "", err
 	}
@@ -604,14 +609,44 @@ func TestFailfastSuite(t *testing.T) {
 		}},
 	)
 	assert.False(t, ok)
+	var expect []string
 	if failFast {
 		// Test A Fails and because we are running with failfast Test B never runs and we proceed straight to TearDownSuite
-		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+		expect = []string{"SetupSuite", "SetupTest", "Test A Fails", "TearDownTest", "TearDownSuite"}
 	} else {
 		// Test A Fails and because we are running without failfast we continue and run Test B and then proceed to TearDownSuite
-		assert.Equal(t, "SetupSuite;SetupTest;Test A Fails;TearDownTest;SetupTest;Test B Passes;TearDownTest;TearDownSuite", strings.Join(s.callOrder, ";"))
+		expect = []string{"SetupSuite", "SetupTest", "Test A Fails", "TearDownTest", "SetupTest", "Test B Passes", "TearDownTest", "TearDownSuite"}
 	}
+	callOrderAssert(t, expect, s.callOrder)
 }
+
+type tHelper interface {
+	Helper()
+}
+
+// callOrderAssert is a help with confirms that asserts that expect
+// matches one or more times in callOrder. This makes it compatible
+// with go test flag -count=X where X > 1.
+func callOrderAssert(t *testing.T, expect, callOrder []string) {
+	var ti interface{} = t
+	if h, ok := ti.(tHelper); ok {
+		h.Helper()
+	}
+
+	callCount := len(callOrder)
+	expectCount := len(expect)
+	if callCount > expectCount && callCount%expectCount == 0 {
+		// Command line flag -count=X where X > 1.
+		for len(callOrder) >= expectCount {
+			assert.Equal(t, expect, callOrder[:expectCount])
+			callOrder = callOrder[expectCount:]
+		}
+		return
+	}
+
+	assert.Equal(t, expect, callOrder)
+}
+
 func TestFailfastSuiteFailFastOn(t *testing.T) {
 	// To test this with failfast on (and isolated from other intended test failures in our test suite) we launch it in its own process
 	cmd := exec.Command("go", "test", "-v", "-race", "-run", "TestFailfastSuite", "-failfast")
@@ -715,4 +750,66 @@ func TestUnInitializedSuites(t *testing.T) {
 			suite.Assert().True(true)
 		})
 	})
+}
+
+// SuiteSignatureValidationTester tests valid and invalid method signatures.
+type SuiteSignatureValidationTester struct {
+	Suite
+
+	executedTestCount int
+	setUp             bool
+	toreDown          bool
+}
+
+// SetupSuite runs once before any tests.
+func (s *SuiteSignatureValidationTester) SetupSuite() {
+	s.setUp = true
+}
+
+// TearDownSuite runs once after all tests.
+func (s *SuiteSignatureValidationTester) TearDownSuite() {
+	s.toreDown = true
+}
+
+// Valid test method — should run.
+func (s *SuiteSignatureValidationTester) TestValidSignature() {
+	s.executedTestCount++
+}
+
+// Invalid: has return value.
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureReturnValue() interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+// Invalid: has input arg.
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureArg(somearg string) {
+	s.executedTestCount++
+}
+
+// Invalid: both input arg and return value.
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureBoth(somearg string) interface{} {
+	s.executedTestCount++
+	return nil
+}
+
+// TestSuiteSignatureValidation ensures that invalid signature methods fail and valid method runs.
+func TestSuiteSignatureValidation(t *testing.T) {
+	suiteTester := new(SuiteSignatureValidationTester)
+
+	ok := testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: "signature validation",
+			F: func(t *testing.T) {
+				Run(t, suiteTester)
+			},
+		},
+	})
+
+	require.False(t, ok, "Suite should fail due to invalid method signatures")
+
+	assert.Equal(t, 1, suiteTester.executedTestCount, "Only the valid test method should have been executed")
+
+	assert.True(t, suiteTester.setUp, "SetupSuite should have been executed")
+	assert.True(t, suiteTester.toreDown, "TearDownSuite should have been executed")
 }
