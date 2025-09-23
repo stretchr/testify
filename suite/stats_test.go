@@ -27,3 +27,14 @@ func TestPassedReturnsFalseWhenSomeTestFails(t *testing.T) {
 
 	assert.False(t, sinfo.Passed())
 }
+
+func TestPassedReturnsFalseWhenAllTestsFail(t *testing.T) {
+	sinfo := newSuiteInformation()
+	sinfo.TestStats = map[string]*TestInformation{
+		"Test1": {TestName: "Test1", Passed: false},
+		"Test2": {TestName: "Test2", Passed: false},
+		"Test3": {TestName: "Test3", Passed: false},
+	}
+
+	assert.False(t, sinfo.Passed())
+}

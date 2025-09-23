@@ -29,6 +29,9 @@ type MockT struct {
 	Failed bool
 }
 
+// Helper is like [testing.T.Helper] but does nothing.
+func (MockT) Helper() {}
+
 func (t *MockT) FailNow() {
 	t.Failed = true
 }
@@ -38,6 +41,7 @@ func (t *MockT) Errorf(format string, args ...interface{}) {
 }
 
 func TestImplements(t *testing.T) {
+	t.Parallel()
 
 	Implements(t, (*AssertionTesterInterface)(nil), new(AssertionTesterConformingObject))
 
@@ -49,6 +53,7 @@ func TestImplements(t *testing.T) {
 }
 
 func TestIsType(t *testing.T) {
+	t.Parallel()
 
 	IsType(t, new(AssertionTesterConformingObject), new(AssertionTesterConformingObject))
 
@@ -60,6 +65,7 @@ func TestIsType(t *testing.T) {
 }
 
 func TestEqual(t *testing.T) {
+	t.Parallel()
 
 	Equal(t, 1, 1)
 
@@ -72,6 +78,7 @@ func TestEqual(t *testing.T) {
 }
 
 func TestNotEqual(t *testing.T) {
+	t.Parallel()
 
 	NotEqual(t, 1, 2)
 	mockT := new(MockT)
@@ -82,6 +89,7 @@ func TestNotEqual(t *testing.T) {
 }
 
 func TestExactly(t *testing.T) {
+	t.Parallel()
 
 	a := float32(1)
 	b := float32(1)
@@ -97,6 +105,7 @@ func TestExactly(t *testing.T) {
 }
 
 func TestNotNil(t *testing.T) {
+	t.Parallel()
 
 	NotNil(t, new(AssertionTesterConformingObject))
 
@@ -108,6 +117,7 @@ func TestNotNil(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
+	t.Parallel()
 
 	Nil(t, nil)
 
@@ -119,6 +129,7 @@ func TestNil(t *testing.T) {
 }
 
 func TestTrue(t *testing.T) {
+	t.Parallel()
 
 	True(t, true)
 
@@ -130,6 +141,7 @@ func TestTrue(t *testing.T) {
 }
 
 func TestFalse(t *testing.T) {
+	t.Parallel()
 
 	False(t, false)
 
@@ -141,6 +153,7 @@ func TestFalse(t *testing.T) {
 }
 
 func TestContains(t *testing.T) {
+	t.Parallel()
 
 	Contains(t, "Hello World", "Hello")
 
@@ -152,6 +165,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestNotContains(t *testing.T) {
+	t.Parallel()
 
 	NotContains(t, "Hello World", "Hello!")
 
@@ -163,6 +177,7 @@ func TestNotContains(t *testing.T) {
 }
 
 func TestPanics(t *testing.T) {
+	t.Parallel()
 
 	Panics(t, func() {
 		panic("Panic!")
@@ -176,6 +191,7 @@ func TestPanics(t *testing.T) {
 }
 
 func TestNotPanics(t *testing.T) {
+	t.Parallel()
 
 	NotPanics(t, func() {})
 
@@ -189,6 +205,7 @@ func TestNotPanics(t *testing.T) {
 }
 
 func TestNoError(t *testing.T) {
+	t.Parallel()
 
 	NoError(t, nil)
 
@@ -200,6 +217,7 @@ func TestNoError(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
+	t.Parallel()
 
 	Error(t, errors.New("some error"))
 
@@ -211,6 +229,7 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorContains(t *testing.T) {
+	t.Parallel()
 
 	ErrorContains(t, errors.New("some error: another error"), "some error")
 
@@ -222,6 +241,7 @@ func TestErrorContains(t *testing.T) {
 }
 
 func TestEqualError(t *testing.T) {
+	t.Parallel()
 
 	EqualError(t, errors.New("some error"), "some error")
 
@@ -233,6 +253,7 @@ func TestEqualError(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
+	t.Parallel()
 
 	Empty(t, "")
 
@@ -244,6 +265,7 @@ func TestEmpty(t *testing.T) {
 }
 
 func TestNotEmpty(t *testing.T) {
+	t.Parallel()
 
 	NotEmpty(t, "x")
 
@@ -255,6 +277,7 @@ func TestNotEmpty(t *testing.T) {
 }
 
 func TestWithinDuration(t *testing.T) {
+	t.Parallel()
 
 	a := time.Now()
 	b := a.Add(10 * time.Second)
@@ -269,6 +292,7 @@ func TestWithinDuration(t *testing.T) {
 }
 
 func TestInDelta(t *testing.T) {
+	t.Parallel()
 
 	InDelta(t, 1.001, 1, 0.01)
 
@@ -280,6 +304,7 @@ func TestInDelta(t *testing.T) {
 }
 
 func TestZero(t *testing.T) {
+	t.Parallel()
 
 	Zero(t, "")
 
@@ -291,6 +316,7 @@ func TestZero(t *testing.T) {
 }
 
 func TestNotZero(t *testing.T) {
+	t.Parallel()
 
 	NotZero(t, "x")
 
@@ -302,6 +328,8 @@ func TestNotZero(t *testing.T) {
 }
 
 func TestJSONEq_EqualSONString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
 	if mockT.Failed {
@@ -310,6 +338,8 @@ func TestJSONEq_EqualSONString(t *testing.T) {
 }
 
 func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
 	if mockT.Failed {
@@ -318,6 +348,8 @@ func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
 }
 
 func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}")
@@ -327,6 +359,8 @@ func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
 }
 
 func TestJSONEq_Array(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
 	if mockT.Failed {
@@ -335,6 +369,8 @@ func TestJSONEq_Array(t *testing.T) {
 }
 
 func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
 	if !mockT.Failed {
@@ -343,6 +379,8 @@ func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
 }
 
 func TestJSONEq_HashesNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
 	if !mockT.Failed {
@@ -351,6 +389,8 @@ func TestJSONEq_HashesNotEquivalent(t *testing.T) {
 }
 
 func TestJSONEq_ActualIsNotJSON(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, `{"foo": "bar"}`, "Not JSON")
 	if !mockT.Failed {
@@ -359,6 +399,8 @@ func TestJSONEq_ActualIsNotJSON(t *testing.T) {
 }
 
 func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`)
 	if !mockT.Failed {
@@ -367,6 +409,8 @@ func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
 }
 
 func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, "Not JSON", "Not JSON")
 	if !mockT.Failed {
@@ -375,6 +419,8 @@ func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
 }
 
 func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
 	if !mockT.Failed {
@@ -383,6 +429,8 @@ func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 }
 
 func TestYAMLEq_EqualYAMLString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
 	if mockT.Failed {
@@ -391,6 +439,8 @@ func TestYAMLEq_EqualYAMLString(t *testing.T) {
 }
 
 func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
 	if mockT.Failed {
@@ -399,6 +449,8 @@ func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
 }
 
 func TestYAMLEq_HashOfArraysAndHashes(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	expected := `
 numeric: 1.5
@@ -432,6 +484,8 @@ array:
 }
 
 func TestYAMLEq_Array(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
 	if mockT.Failed {
@@ -440,6 +494,8 @@ func TestYAMLEq_Array(t *testing.T) {
 }
 
 func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
 	if !mockT.Failed {
@@ -448,6 +504,8 @@ func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
 }
 
 func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
 	if !mockT.Failed {
@@ -456,6 +514,8 @@ func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
 }
 
 func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"foo": "bar"}`, "Simple String")
 	if !mockT.Failed {
@@ -464,6 +524,8 @@ func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
 }
 
 func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`)
 	if !mockT.Failed {
@@ -472,6 +534,8 @@ func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
 }
 
 func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, "Simple String", "Simple String")
 	if mockT.Failed {
@@ -480,6 +544,8 @@ func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
 }
 
 func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
 	if !mockT.Failed {
@@ -518,6 +584,8 @@ func ExampleComparisonAssertionFunc() {
 }
 
 func TestComparisonAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	type iface interface {
 		Name() string
 	}
@@ -579,6 +647,8 @@ func ExampleValueAssertionFunc() {
 }
 
 func TestValueAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		value     interface{}
@@ -625,6 +695,8 @@ func ExampleBoolAssertionFunc() {
 }
 
 func TestBoolAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		value     bool
@@ -668,6 +740,8 @@ func ExampleErrorAssertionFunc() {
 }
 
 func TestErrorAssertionFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		err       error
@@ -685,6 +759,8 @@ func TestErrorAssertionFunc(t *testing.T) {
 }
 
 func TestEventuallyWithTFalse(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 
 	condition := func(collect *assert.CollectT) {
@@ -696,6 +772,8 @@ func TestEventuallyWithTFalse(t *testing.T) {
 }
 
 func TestEventuallyWithTTrue(t *testing.T) {
+	t.Parallel()
+
 	mockT := new(MockT)
 
 	counter := 0
