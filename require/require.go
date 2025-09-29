@@ -6,6 +6,7 @@ import (
 	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
+	reflect "reflect"
 	time "time"
 )
 
@@ -1189,6 +1190,32 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	t.FailNow()
 }
 
+// Kind asserts that the given object's kind matches the expected kind.
+//
+//	require.Kind(t, reflect.String, "Hello World")
+func Kind(t TestingT, expectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Kind(t, expectedKind, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Kindf asserts that the given object's kind matches the expected kind.
+//
+//	require.Kindf(t, reflect.String, "Hello World", "error message %s", "formatted")
+func Kindf(t TestingT, expectedKind reflect.Kind, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Kindf(t, expectedKind, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -1670,6 +1697,32 @@ func NotImplementsf(t TestingT, interfaceObject interface{}, object interface{},
 		h.Helper()
 	}
 	if assert.NotImplementsf(t, interfaceObject, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotKind asserts that the given object's kind does not match the unexpected kind.
+//
+//	require.NotKind(t, reflect.Int, "Hello World")
+func NotKind(t TestingT, unexpectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotKind(t, unexpectedKind, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// NotKindf asserts that the given object's kind does not match the unexpected kind.
+//
+//	require.NotKindf(t, reflect.Int, "Hello World", "error message %s", "formatted")
+func NotKindf(t TestingT, unexpectedKind reflect.Kind, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.NotKindf(t, unexpectedKind, object, msg, args...) {
 		return
 	}
 	t.FailNow()

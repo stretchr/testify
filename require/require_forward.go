@@ -6,6 +6,7 @@ import (
 	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	url "net/url"
+	reflect "reflect"
 	time "time"
 )
 
@@ -943,6 +944,26 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 	JSONEqf(a.t, expected, actual, msg, args...)
 }
 
+// Kind asserts that the given object's kind matches the expected kind.
+//
+//	a.Kind(reflect.String, "Hello World")
+func (a *Assertions) Kind(expectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Kind(a.t, expectedKind, object, msgAndArgs...)
+}
+
+// Kindf asserts that the given object's kind matches the expected kind.
+//
+//	a.Kindf(reflect.String, "Hello World", "error message %s", "formatted")
+func (a *Assertions) Kindf(expectedKind reflect.Kind, object interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	Kindf(a.t, expectedKind, object, msg, args...)
+}
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -1325,6 +1346,26 @@ func (a *Assertions) NotImplementsf(interfaceObject interface{}, object interfac
 		h.Helper()
 	}
 	NotImplementsf(a.t, interfaceObject, object, msg, args...)
+}
+
+// NotKind asserts that the given object's kind does not match the unexpected kind.
+//
+//	a.NotKind(reflect.Int, "Hello World")
+func (a *Assertions) NotKind(unexpectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotKind(a.t, unexpectedKind, object, msgAndArgs...)
+}
+
+// NotKindf asserts that the given object's kind does not match the unexpected kind.
+//
+//	a.NotKindf(reflect.Int, "Hello World", "error message %s", "formatted")
+func (a *Assertions) NotKindf(unexpectedKind reflect.Kind, object interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	NotKindf(a.t, unexpectedKind, object, msg, args...)
 }
 
 // NotNil asserts that the specified object is not nil.
