@@ -502,6 +502,21 @@ func Kind(t TestingT, expectedKind reflect.Kind, object interface{}, msgAndArgs 
 	return Fail(t, fmt.Sprintf("Object expected to be of kind %v, but was %v", expectedKind, objectKind), msgAndArgs...)
 }
 
+// NotKind asserts that the given object's kind does not match the unexpected kind.
+//
+//	assert.NotKind(t, reflect.Int, "Hello World")
+func NotKind(t TestingT, unexpectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	objectKind := reflect.TypeOf(object).Kind()
+	if objectKind != unexpectedKind {
+		return true
+	}
+	return Fail(t, fmt.Sprintf("Object expected NOT to be of kind %v, but was %v", unexpectedKind, objectKind), msgAndArgs...)
+}
+
 // Equal asserts that two objects are equal.
 //
 //	assert.Equal(t, 123, 123)

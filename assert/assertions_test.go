@@ -594,20 +594,20 @@ func TestKind(t *testing.T) {
 		result   bool
 		remark   string
 	}{
-		{reflect.String, "Hello World", true, "1"},
-		{reflect.Int, 123, true, "2"},
-		{reflect.Array, [6]int{2, 3, 5, 7, 11, 13}, true, "3"},
-		{reflect.Func, Kind, true, "4"},
-		{reflect.Float64, 0.0345, true, "5"},
-		{reflect.Map, make(map[string]int), true, "6"},
-		{reflect.Bool, true, true, "7"},
-		{reflect.Ptr, new(int), true, "8"},
+		{reflect.String, "Hello World", true, "is string"},
+		{reflect.Int, 123, true, "is int"},
+		{reflect.Array, [6]int{2, 3, 5, 7, 11, 13}, true, "is array"},
+		{reflect.Func, Kind, true, "is func"},
+		{reflect.Float64, 0.0345, true, "is float64"},
+		{reflect.Map, make(map[string]int), true, "is map"},
+		{reflect.Bool, true, true, "is bool"},
+		{reflect.Ptr, new(int), true, "is pointer"},
 
 		// Not expected to be equal
-		{reflect.String, 13, false, "9"},
-		{reflect.Int, [6]int{2, 3, 5, 7, 11, 13}, false, "10"},
-		{reflect.Float64, 12, false, "11"},
-		{reflect.Bool, make(map[string]int), false, "12"},
+		{reflect.String, 13, false, "not string"},
+		{reflect.Int, [6]int{2, 3, 5, 7, 11, 13}, false, "not int"},
+		{reflect.Float64, 12, false, "not float64"},
+		{reflect.Bool, make(map[string]int), false, "not bool"},
 	}
 
 	for _, c := range cases {
@@ -616,6 +616,35 @@ func TestKind(t *testing.T) {
 
 			if res != c.result {
 				t.Errorf("Kind(%#v, %#v) should return %#v: %s", c.expected, c.object, c.result, c.remark)
+			}
+		})
+	}
+}
+
+func TestNotKind(t *testing.T) {
+	mockT := new(testing.T)
+
+	cases := []struct {
+		unexpected reflect.Kind
+		object     interface{}
+		result     bool
+		remark     string
+	}{
+		{reflect.String, 123, true, "not string"},
+		{reflect.Int, "hi", true, "not int"},
+		{reflect.Map, []int{1, 2}, true, "not map"},
+		{reflect.Ptr, 99, true, "not pointer"},
+
+		// Should fail when kinds match
+		{reflect.Func, func() {}, false, "is func"},
+		{reflect.Bool, false, false, "is bool"},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("NotKind(%#v, %#v)", c.unexpected, c.object), func(t *testing.T) {
+			res := NotKind(mockT, c.unexpected, c.object)
+			if res != c.result {
+				t.Errorf("NotKind(%#v, %#v) should return %#v: %s", c.unexpected, c.object, c.result, c.remark)
 			}
 		})
 	}
