@@ -15,17 +15,19 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go_version }}
+      # Used for ci.readme.fmt.sh
       - run: npm install -g mdsf-cli
       - run: ./.ci.gogenerate.sh
       - run: ./.ci.gofmt.sh
       - run: ./.ci.readme.fmt.sh
       - run: ./.ci.govet.sh
-      - run: go test -v -race ./...
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         go_version:
+          - stable
+          - oldstable
           - "1.17"
           - "1.18"
           - "1.19"
@@ -39,4 +41,5 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go_version }}
-      - run: go test -v -race ./...
+      - name: Test
+        run: go test -v -race ./...
