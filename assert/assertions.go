@@ -487,6 +487,21 @@ func IsNotType(t TestingT, theType, object interface{}, msgAndArgs ...interface{
 	return Fail(t, fmt.Sprintf("Object type expected to be different than %T", theType), msgAndArgs...)
 }
 
+// Kind asserts that the given object's kind matches the expected kind.
+//
+//	assert.Kind(t, reflect.String, "Hello World")
+func Kind(t TestingT, expectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	objectKind := reflect.TypeOf(object).Kind()
+	if objectKind == expectedKind {
+		return true
+	}
+	return Fail(t, fmt.Sprintf("Object expected to be of kind %v, but was %v", expectedKind, objectKind), msgAndArgs...)
+}
+
 // Equal asserts that two objects are equal.
 //
 //	assert.Equal(t, 123, 123)
@@ -2312,16 +2327,4 @@ func buildErrorChainString(err error, withType bool) string {
 		}
 	}
 	return chain
-}
-
-// Kind check if the given object is of the given type
-func Kind(t TestingT, expected reflect.Kind, object interface{}) bool {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-
-	if reflect.TypeOf(object).Kind() == expected {
-		return true
-	}
-	return false
 }
