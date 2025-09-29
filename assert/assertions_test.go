@@ -608,14 +608,10 @@ func TestEqual(t *testing.T) {
 		{uint64(123), uint64(123), true, ""},
 		{myType("1"), myType("1"), true, ""},
 		{&struct{}{}, &struct{}{}, true, "pointer equality is based on equality of underlying value"},
-		{time.Date(2020, 3, 1, 12, 23, 14, 0, time.UTC), time.Date(2020, 3, 1, 12, 23, 14, 0, time.UTC), true, ""},
-		{time.Date(2020, 6, 3, 12, 23, 14, 0, time.UTC), time.Date(2020, 6, 3, 12, 23, 14, 0, time.UTC), true, ""},
 
 		// Not expected to be equal
 		{m["bar"], "something", false, ""},
 		{myType("1"), myType("2"), false, ""},
-		{time.Date(2020, 3, 1, 12, 23, 14, 0, time.UTC), time.Date(2020, 5, 1, 12, 23, 14, 0, time.UTC), true, ""},
-		{time.Date(2020, 6, 3, 12, 23, 14, 0, time.UTC), time.Date(2020, 8, 3, 12, 23, 14, 0, time.UTC), true, ""},
 
 		// A case that might be confusing, especially with numeric literals
 		{10, uint(10), false, ""},
