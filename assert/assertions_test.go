@@ -2702,7 +2702,7 @@ func TestNoDirExists(t *testing.T) {
 	True(t, NoDirExists(mockT, link))
 }
 
-func TestJSONEq_EqualSONString(t *testing.T) {
+func TestJSONEq_EqualJSONString(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(testing.T)
@@ -2773,7 +2773,7 @@ func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
 }
 
-func TestJSONEqBytes_EqualSONString(t *testing.T) {
+func TestJSONEqBytes_EqualJSONString(t *testing.T) {
 	mockT := new(testing.T)
 	True(t, JSONEqBytes(mockT, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"hello": "world", "foo": "bar"}`)))
 }
