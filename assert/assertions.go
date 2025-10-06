@@ -1866,6 +1866,14 @@ func JSONEqBytes(t TestingT, expected, actual []byte, msgAndArgs ...interface{})
 	}
 	var expectedJSONAsInterface, actualJSONAsInterface interface{}
 
+	if len(expected) == 0 {
+		return Fail(t, "Expected value is empty", msgAndArgs...)
+	}
+
+	if len(actual) == 0 {
+		return Fail(t, "Actual value is empty", msgAndArgs...)
+	}
+
 	if err := json.Unmarshal(expected, &expectedJSONAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
