@@ -1176,6 +1176,32 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	t.FailNow()
 }
 
+// JSONEqBytes asserts that two JSON byte slices are equivalent.
+//
+//	require.JSONEqBytes(t, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`))
+func JSONEqBytes(t TestingT, expected []byte, actual []byte, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JSONEqBytes(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// JSONEqBytesf asserts that two JSON byte slices are equivalent.
+//
+//	require.JSONEqBytesf(t, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`), "error message %s", "formatted")
+func JSONEqBytesf(t TestingT, expected []byte, actual []byte, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JSONEqBytesf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // JSONEqf asserts that two JSON strings are equivalent.
 //
 //	require.JSONEqf(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, "error message %s", "formatted")

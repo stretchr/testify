@@ -1857,29 +1857,44 @@ func NoDirExists(t TestingT, path string, msgAndArgs ...interface{}) bool {
 	return Fail(t, fmt.Sprintf("directory %q exists", path), msgAndArgs...)
 }
 
-// JSONEq asserts that two JSON strings are equivalent.
+// JSONEqBytes asserts that two JSON byte slices are equivalent.
 //
-//	assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) bool {
+//	assert.JSONEqBytes(t, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`))
+func JSONEqBytes(t TestingT, expected, actual []byte, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 	var expectedJSONAsInterface, actualJSONAsInterface interface{}
 
-	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
+	if len(expected) == 0 {
+		return Fail(t, "Expected value is empty", msgAndArgs...)
+	}
+
+	if len(actual) == 0 {
+		return Fail(t, "Actual value is empty", msgAndArgs...)
+	}
+
+	if err := json.Unmarshal(expected, &expectedJSONAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
 	}
 
 	// Shortcut if same bytes
-	if actual == expected {
+	if bytes.Equal(actual, expected) {
 		return true
 	}
 
-	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
+	if err := json.Unmarshal(actual, &actualJSONAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
 
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
+}
+
+// JSONEq asserts that two JSON strings are equivalent.
+//
+//	assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
+func JSONEq(t TestingT, expected, actual string, msgAndArgs ...interface{}) bool {
+	return JSONEqBytes(t, []byte(expected), []byte(actual), msgAndArgs)
 }
 
 // YAMLEq asserts that the first documents in the two YAML strings are equivalent.
