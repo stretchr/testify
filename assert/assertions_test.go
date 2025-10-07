@@ -2359,6 +2359,18 @@ func TestInDeltaSlice(t *testing.T) {
 		[]float64{0, math.NaN(), 3},
 		0.1), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
 
+	False(t, InDeltaSlice(mockT,
+		[]float64{1, math.NaN(), 2},
+		[]float64{0, math.NaN(), 3},
+		0.1,
+		"additional message"), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
+
+	False(t, InDeltaSlice(mockT,
+		[]float64{1, math.NaN(), 2},
+		[]float64{0, math.NaN(), 3},
+		0.1,
+		"additional message <%s> #%d", "test", 1), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
+
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
@@ -2373,6 +2385,7 @@ func TestInDeltaMapValues(t *testing.T) {
 		actual interface{}
 		f      func(TestingT, bool, ...interface{}) bool
 		delta  float64
+		msg    []interface{}
 	}{
 		{
 			title: "Within delta",
@@ -2401,6 +2414,19 @@ func TestInDeltaMapValues(t *testing.T) {
 			},
 			delta: 0.1,
 			f:     True,
+		},
+		{
+			title: "Outside delta",
+			expect: map[int]float64{
+				1: 1.0,
+				2: 2.0,
+			},
+			actual: map[int]float64{
+				1: 2.0,
+				2: 1.99,
+			},
+			delta: 0.1,
+			f:     False,
 		},
 		{
 			title: "Different number of keys",
@@ -2437,8 +2463,36 @@ func TestInDeltaMapValues(t *testing.T) {
 			},
 			f: False,
 		},
+		{
+			title: "False with custom message",
+			expect: map[string]float64{
+				"foo": 1.0,
+				"bar": 2.0,
+			},
+			actual: map[string]float64{
+				"foo": 2.0,
+				"bar": 2.0,
+			},
+			delta: 0.1,
+			f:     False,
+			msg:   []interface{}{"custom message"},
+		},
+		{
+			title: "False with custom message format",
+			expect: map[string]float64{
+				"foo": 1.0,
+				"bar": 2.0,
+			},
+			actual: map[string]float64{
+				"foo": 2.0,
+				"bar": 2.0,
+			},
+			delta: 0.1,
+			f:     False,
+			msg:   []interface{}{"custom message format <%s> #%d", "test", 1},
+		},
 	} {
-		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta), tc.title+"\n"+diff(tc.expect, tc.actual))
+		tc.f(t, InDeltaMapValues(mockT, tc.expect, tc.actual, tc.delta, tc.msg...), tc.title+"\n"+diff(tc.expect, tc.actual))
 	}
 }
 
@@ -2512,6 +2566,18 @@ func TestInEpsilonSlice(t *testing.T) {
 		[]float64{2.2, 2.0},
 		[]float64{2.1, 2.1},
 		0.04), "{2.2, 2.0} is not element-wise close to {2.1, 2.1} in epsilon=0.04")
+
+	False(t, InEpsilonSlice(mockT,
+		[]float64{2.2, 2.0},
+		[]float64{2.1, 2.1},
+		0.04,
+		"additional message"), "{2.2, 2.0} is not element-wise close to {2.1, 2.1} in epsilon=0.04")
+
+	False(t, InEpsilonSlice(mockT,
+		[]float64{2.2, 2.0},
+		[]float64{2.1, 2.1},
+		0.04,
+		"additional message <%s> #%d", "test", 1), "{2.2, 2.0} is not element-wise close to {2.1, 2.1} in epsilon=0.04")
 
 	False(t, InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
