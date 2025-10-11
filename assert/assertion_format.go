@@ -50,10 +50,19 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 	return ElementsMatch(t, listA, listB, append([]interface{}{msg}, args...)...)
 }
 
-// Emptyf asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// Emptyf asserts that the given value is "empty".
+//
+// [Zero values] are "empty".
+//
+// Arrays are "empty" if every element is the zero value of the type (stricter than "empty").
+//
+// Slices, maps and channels with zero length are "empty".
+//
+// Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
 //	assert.Emptyf(t, obj, "error message %s", "formatted")
+//
+// [Zero values]: https://go.dev/ref/spec#The_zero_value
 func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -75,7 +84,7 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 	return Equal(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// EqualErrorf asserts that a function returned an error (i.e. not `nil`)
+// EqualErrorf asserts that a function returned a non-nil error (i.e. an error)
 // and that it is equal to the provided error.
 //
 //	actualObj, err := SomeFunction()
@@ -115,7 +124,7 @@ func EqualValuesf(t TestingT, expected interface{}, actual interface{}, msg stri
 	return EqualValues(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
-// Errorf asserts that a function returned an error (i.e. not `nil`).
+// Errorf asserts that a function returned a non-nil error (ie. an error).
 //
 //	actualObj, err := SomeFunction()
 //	assert.Errorf(t, err, "error message %s", "formatted")
@@ -135,8 +144,8 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 	return ErrorAs(t, err, target, append([]interface{}{msg}, args...)...)
 }
 
-// ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
-// and that the error contains the specified substring.
+// ErrorContainsf asserts that a function returned a non-nil error (i.e. an
+// error) and that the error contains the specified substring.
 //
 //	actualObj, err := SomeFunction()
 //	assert.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
@@ -436,7 +445,19 @@ func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interf
 	return IsNonIncreasing(t, object, append([]interface{}{msg}, args...)...)
 }
 
+// IsNotTypef asserts that the specified objects are not of the same type.
+//
+//	assert.IsNotTypef(t, &NotMyStruct{}, &MyStruct{}, "error message %s", "formatted")
+func IsNotTypef(t TestingT, theType interface{}, object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return IsNotType(t, theType, object, append([]interface{}{msg}, args...)...)
+}
+
 // IsTypef asserts that the specified objects are of the same type.
+//
+//	assert.IsTypef(t, &MyStruct{}, &MyStruct{}, "error message %s", "formatted")
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -531,7 +552,7 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) bool
 	return NoDirExists(t, path, append([]interface{}{msg}, args...)...)
 }
 
-// NoErrorf asserts that a function returned no error (i.e. `nil`).
+// NoErrorf asserts that a function returned a nil error (ie. no error).
 //
 //	  actualObj, err := SomeFunction()
 //	  if assert.NoErrorf(t, err, "error message %s", "formatted") {
@@ -583,8 +604,7 @@ func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg str
 	return NotElementsMatch(t, listA, listB, append([]interface{}{msg}, args...)...)
 }
 
-// NotEmptyf asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// NotEmptyf asserts that the specified object is NOT [Empty].
 //
 //	if assert.NotEmptyf(t, obj, "error message %s", "formatted") {
 //	  assert.Equal(t, "two", obj[1])
@@ -829,7 +849,19 @@ func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, 
 	return WithinRange(t, actual, start, end, append([]interface{}{msg}, args...)...)
 }
 
-// YAMLEqf asserts that two YAML strings are equivalent.
+// YAMLEqf asserts that the first documents in the two YAML strings are equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	assert.YAMLEqf(t, expected, actual, "error message %s", "formatted")
 func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

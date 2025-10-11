@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # If GOMOD is defined we are running with Go Modules enabled, either
 # automatically or via the GO111MODULE=on environment variable. Codegen only

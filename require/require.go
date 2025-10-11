@@ -117,10 +117,19 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 	t.FailNow()
 }
 
-// Empty asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// Empty asserts that the given value is "empty".
+//
+// [Zero values] are "empty".
+//
+// Arrays are "empty" if every element is the zero value of the type (stricter than "empty").
+//
+// Slices, maps and channels with zero length are "empty".
+//
+// Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
 //	require.Empty(t, obj)
+//
+// [Zero values]: https://go.dev/ref/spec#The_zero_value
 func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -131,10 +140,19 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// Emptyf asserts that the specified object is empty.  I.e. nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// Emptyf asserts that the given value is "empty".
+//
+// [Zero values] are "empty".
+//
+// Arrays are "empty" if every element is the zero value of the type (stricter than "empty").
+//
+// Slices, maps and channels with zero length are "empty".
+//
+// Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
 //	require.Emptyf(t, obj, "error message %s", "formatted")
+//
+// [Zero values]: https://go.dev/ref/spec#The_zero_value
 func Emptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -162,7 +180,7 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...i
 	t.FailNow()
 }
 
-// EqualError asserts that a function returned an error (i.e. not `nil`)
+// EqualError asserts that a function returned a non-nil error (i.e. an error)
 // and that it is equal to the provided error.
 //
 //	actualObj, err := SomeFunction()
@@ -177,7 +195,7 @@ func EqualError(t TestingT, theError error, errString string, msgAndArgs ...inte
 	t.FailNow()
 }
 
-// EqualErrorf asserts that a function returned an error (i.e. not `nil`)
+// EqualErrorf asserts that a function returned a non-nil error (i.e. an error)
 // and that it is equal to the provided error.
 //
 //	actualObj, err := SomeFunction()
@@ -277,7 +295,7 @@ func Equalf(t TestingT, expected interface{}, actual interface{}, msg string, ar
 	t.FailNow()
 }
 
-// Error asserts that a function returned an error (i.e. not `nil`).
+// Error asserts that a function returned a non-nil error (ie. an error).
 //
 //	actualObj, err := SomeFunction()
 //	require.Error(t, err)
@@ -315,8 +333,8 @@ func ErrorAsf(t TestingT, err error, target interface{}, msg string, args ...int
 	t.FailNow()
 }
 
-// ErrorContains asserts that a function returned an error (i.e. not `nil`)
-// and that the error contains the specified substring.
+// ErrorContains asserts that a function returned a non-nil error (i.e. an
+// error) and that the error contains the specified substring.
 //
 //	actualObj, err := SomeFunction()
 //	require.ErrorContains(t, err,  expectedErrorSubString)
@@ -330,8 +348,8 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 	t.FailNow()
 }
 
-// ErrorContainsf asserts that a function returned an error (i.e. not `nil`)
-// and that the error contains the specified substring.
+// ErrorContainsf asserts that a function returned a non-nil error (i.e. an
+// error) and that the error contains the specified substring.
 //
 //	actualObj, err := SomeFunction()
 //	require.ErrorContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
@@ -369,7 +387,7 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 	t.FailNow()
 }
 
-// Errorf asserts that a function returned an error (i.e. not `nil`).
+// Errorf asserts that a function returned a non-nil error (ie. an error).
 //
 //	actualObj, err := SomeFunction()
 //	require.Errorf(t, err, "error message %s", "formatted")
@@ -1093,7 +1111,35 @@ func IsNonIncreasingf(t TestingT, object interface{}, msg string, args ...interf
 	t.FailNow()
 }
 
+// IsNotType asserts that the specified objects are not of the same type.
+//
+//	require.IsNotType(t, &NotMyStruct{}, &MyStruct{})
+func IsNotType(t TestingT, theType interface{}, object interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNotType(t, theType, object, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// IsNotTypef asserts that the specified objects are not of the same type.
+//
+//	require.IsNotTypef(t, &NotMyStruct{}, &MyStruct{}, "error message %s", "formatted")
+func IsNotTypef(t TestingT, theType interface{}, object interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.IsNotTypef(t, theType, object, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // IsType asserts that the specified objects are of the same type.
+//
+//	require.IsType(t, &MyStruct{}, &MyStruct{})
 func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1105,6 +1151,8 @@ func IsType(t TestingT, expectedType interface{}, object interface{}, msgAndArgs
 }
 
 // IsTypef asserts that the specified objects are of the same type.
+//
+//	require.IsTypef(t, &MyStruct{}, &MyStruct{}, "error message %s", "formatted")
 func IsTypef(t TestingT, expectedType interface{}, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1337,7 +1385,7 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
-// NoError asserts that a function returned no error (i.e. `nil`).
+// NoError asserts that a function returned a nil error (ie. no error).
 //
 //	  actualObj, err := SomeFunction()
 //	  if require.NoError(t, err) {
@@ -1353,7 +1401,7 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// NoErrorf asserts that a function returned no error (i.e. `nil`).
+// NoErrorf asserts that a function returned a nil error (ie. no error).
 //
 //	  actualObj, err := SomeFunction()
 //	  if require.NoErrorf(t, err, "error message %s", "formatted") {
@@ -1465,8 +1513,7 @@ func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg str
 	t.FailNow()
 }
 
-// NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// NotEmpty asserts that the specified object is NOT [Empty].
 //
 //	if require.NotEmpty(t, obj) {
 //	  require.Equal(t, "two", obj[1])
@@ -1481,8 +1528,7 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	t.FailNow()
 }
 
-// NotEmptyf asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or either
-// a slice or a channel with len == 0.
+// NotEmptyf asserts that the specified object is NOT [Empty].
 //
 //	if require.NotEmptyf(t, obj, "error message %s", "formatted") {
 //	  require.Equal(t, "two", obj[1])
@@ -2089,7 +2135,19 @@ func WithinRangef(t TestingT, actual time.Time, start time.Time, end time.Time, 
 	t.FailNow()
 }
 
-// YAMLEq asserts that two YAML strings are equivalent.
+// YAMLEq asserts that the first documents in the two YAML strings are equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	require.YAMLEq(t, expected, actual)
 func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2100,7 +2158,19 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	t.FailNow()
 }
 
-// YAMLEqf asserts that two YAML strings are equivalent.
+// YAMLEqf asserts that the first documents in the two YAML strings are equivalent.
+//
+//	expected := `---
+//	key: value
+//	---
+//	key: this is a second document, it is not evaluated
+//	`
+//	actual := `---
+//	key: value
+//	---
+//	key: this is a subsequent document, it is not evaluated
+//	`
+//	require.YAMLEqf(t, expected, actual, "error message %s", "formatted")
 func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

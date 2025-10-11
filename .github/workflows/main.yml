@@ -10,9 +10,9 @@ jobs:
           - stable
           - oldstable
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go_version }}
       - run: npm install -g mdsf-cli
@@ -32,10 +32,11 @@ jobs:
           - "1.20"
           - "1.21"
           - "1.22"
+          - "1.23"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go_version }}
       - run: go test -v -race ./...

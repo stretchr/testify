@@ -12,10 +12,9 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/objx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/internal/difflib"
 )
 
 // regex for GCCGO functions
@@ -629,11 +628,12 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 		h.Helper()
 	}
 	for _, obj := range testObjects {
-		if m, ok := obj.(*Mock); ok {
-			t.Logf("Deprecated mock.AssertExpectationsForObjects(myMock.Mock) use mock.AssertExpectationsForObjects(myMock)")
-			obj = m
+		m, ok := obj.(assertExpectationiser)
+		if !ok {
+			t.Errorf("Invalid test object type %T. Expected reference to a mock.Mock, eg: 'AssertExpectationsForObjects(t, myMock)' or 'AssertExpectationsForObjects(t, &myMock.Mock)'", obj)
+			continue
+
 		}
-		m := obj.(assertExpectationiser)
 		if !m.AssertExpectations(t) {
 			t.Logf("Expectations didn't match for Mock: %+v", reflect.TypeOf(m))
 			return false
@@ -696,7 +696,7 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 			actualCalls++
 		}
 	}
-	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) does not match the actual number of calls (%d).", expectedCalls, actualCalls))
+	return assert.Equal(t, expectedCalls, actualCalls, fmt.Sprintf("Expected number of calls (%d) of method %s does not match the actual number of calls (%d).", expectedCalls, methodName, actualCalls))
 }
 
 // AssertCalled asserts that the method was called.
@@ -737,8 +737,8 @@ func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...inter
 	return true
 }
 
-// IsMethodCallable checking that the method can be called
-// If the method was called more than `Repeatability` return false
+// IsMethodCallable returns true if given methodName and arguments have an
+// unsatisfied expected call registered in the Mock.
 func (m *Mock) IsMethodCallable(t TestingT, methodName string, arguments ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -858,6 +858,10 @@ type IsTypeArgument struct {
 // For example:
 //
 //	args.Assert(t, IsType(""), IsType(0))
+//
+// Mock cannot match interface types because the contained type will be  passed
+// to both IsType and Mock.Called, for the zero value of all interfaces this
+// will be <nil> type.
 func IsType(t interface{}) *IsTypeArgument {
 	return &IsTypeArgument{t: reflect.TypeOf(t)}
 }
@@ -973,8 +977,6 @@ func (args Arguments) Is(objects ...interface{}) bool {
 	return true
 }
 
-type outputRenderer func() string
-
 // Diff gets a string describing the differences between the arguments
 // and the specified objects.
 //
@@ -982,7 +984,7 @@ type outputRenderer func() string
 func (args Arguments) Diff(objects []interface{}) (string, int) {
 	// TODO: could return string as error and nil for No difference
 
-	var outputBuilder strings.Builder
+	output := "\n"
 	var differences int
 
 	maxArgCount := len(args)
@@ -990,35 +992,24 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		maxArgCount = len(objects)
 	}
 
-	outputRenderers := []outputRenderer{}
-
 	for i := 0; i < maxArgCount; i++ {
-		i := i
 		var actual, expected interface{}
-		var actualFmt, expectedFmt func() string
+		var actualFmt, expectedFmt string
 
 		if len(objects) <= i {
 			actual = "(Missing)"
-			actualFmt = func() string {
-				return "(Missing)"
-			}
+			actualFmt = "(Missing)"
 		} else {
 			actual = objects[i]
-			actualFmt = func() string {
-				return fmt.Sprintf("(%[1]T=%[1]v)", actual)
-			}
+			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
 		}
 
 		if len(args) <= i {
 			expected = "(Missing)"
-			expectedFmt = func() string {
-				return "(Missing)"
-			}
+			expectedFmt = "(Missing)"
 		} else {
 			expected = args[i]
-			expectedFmt = func() string {
-				return fmt.Sprintf("(%[1]T=%[1]v)", expected)
-			}
+			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
@@ -1026,22 +1017,16 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						actualFmt = func() string {
-							return fmt.Sprintf("panic in argument matcher: %v", r)
-						}
+						actualFmt = fmt.Sprintf("panic in argument matcher: %v", r)
 					}
 				}()
 				matches = matcher.Matches(actual)
 			}()
 			if matches {
-				outputRenderers = append(outputRenderers, func() string {
-					return fmt.Sprintf("\t%d: PASS:  %s matched by %s\n", i, actualFmt(), matcher)
-				})
+				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
 				differences++
-				outputRenderers = append(outputRenderers, func() string {
-					return fmt.Sprintf("\t%d: FAIL:  %s not matched by %s\n", i, actualFmt(), matcher)
-				})
+				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
 		} else {
 			switch expected := expected.(type) {
@@ -1050,17 +1035,13 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
 					// not match
 					differences++
-					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected, reflect.TypeOf(actual).Name(), actualFmt())
-					})
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 				}
 			case *IsTypeArgument:
 				actualT := reflect.TypeOf(actual)
 				if actualT != expected.t {
 					differences++
-					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, expected.t.Name(), actualT.Name(), actualFmt())
-					})
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, safeTypeName(expected.t), safeTypeName(actualT), actualFmt)
 				}
 			case *FunctionalOptionsArgument:
 				var name string
@@ -1071,36 +1052,26 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				const tName = "[]interface{}"
 				if name != reflect.TypeOf(actual).String() && len(expected.values) != 0 {
 					differences++
-					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: FAIL:  type %s != type %s - %s\n", i, tName, reflect.TypeOf(actual).Name(), actualFmt())
-					})
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
 				} else {
 					if ef, af := assertOpts(expected.values, actual); ef == "" && af == "" {
 						// match
-						outputRenderers = append(outputRenderers, func() string {
-							return fmt.Sprintf("\t%d: PASS:  %s == %s\n", i, tName, tName)
-						})
+						output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
 					} else {
 						// not match
 						differences++
-						outputRenderers = append(outputRenderers, func() string {
-							return fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, af, ef)
-						})
+						output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
 					}
 				}
 
 			default:
 				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 					// match
-					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: PASS:  %s == %s\n", i, actualFmt(), expectedFmt())
-					})
+					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 				} else {
 					// not match
 					differences++
-					outputRenderers = append(outputRenderers, func() string {
-						return fmt.Sprintf("\t%d: FAIL:  %s != %s\n", i, actualFmt(), expectedFmt())
-					})
+					output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
 				}
 			}
 		}
@@ -1111,12 +1082,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 		return "No differences.", differences
 	}
 
-	outputBuilder.WriteString("\n")
-	for _, r := range outputRenderers {
-		outputBuilder.WriteString(r())
-	}
-
-	return outputBuilder.String(), differences
+	return output, differences
 }
 
 // Assert compares the arguments with the specified objects and fails if
@@ -1202,6 +1168,15 @@ func (args Arguments) Bool(index int) bool {
 		panic(fmt.Sprintf("assert: arguments: Bool(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
 	}
 	return s
+}
+
+// safeTypeName returns the reflect.Type's name without causing a panic.
+// If the provided reflect.Type is nil, it returns the placeholder string "<nil>"
+func safeTypeName(t reflect.Type) string {
+	if t == nil {
+		return "<nil>"
+	}
+	return t.Name()
 }
 
 func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
