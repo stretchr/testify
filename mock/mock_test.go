@@ -848,17 +848,19 @@ func Test_Mock_ReturnFn(t *testing.T) {
 				assert.IsType(t, 1, a)
 				assert.IsType(t, 1, b)
 				assert.IsType(t, 1, c)
-				return Arguments{counter, nil}
+				return Arguments{a + b + c, nil}
 			}).
 			Twice()
 
 		answer, err := mockedService.TheExampleMethod(2, 4, 5)
 		assert.NoError(t, err)
-		assert.Equal(t, 1, answer)
+		assert.Equal(t, 11, answer)
+		assert.Equal(t, 1, counter)
 
 		answer, err = mockedService.TheExampleMethod(44, 4, 5)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, answer)
+		assert.Equal(t, 53, answer)
+		assert.Equal(t, 2, counter)
 	})
 
 	t.Run("handles func(Args) Args style", func(t *testing.T) {
