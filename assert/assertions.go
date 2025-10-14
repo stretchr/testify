@@ -2049,11 +2049,12 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		case v := <-resultCh:
 			switch v {
 			case failed:
-				// Conditon pannicked or test failed and finished.
+				// Condition panicked or test failed and finished.
 				// Cannot determine correct result.
-				// Cannot decide if we should continue or not.
-				// Stop here and now, and mark test as failed.
-				return Fail(t, "Condition aborted")
+				// Cannot decide if we should continue gracefully or not.
+				// We can stop here and now, and mark test as failed with
+				// the same error message as the timeout case.
+				return Fail(t, "Condition never satisfied", msgAndArgs...)
 			case stop:
 				return true
 			case noStop:
