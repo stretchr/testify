@@ -2010,8 +2010,22 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
-	ch := make(chan bool, 1)
-	checkCond := func() { ch <- condition() }
+	const failed = 0
+	const stop = 1
+	const noStop = 2
+
+	resultCh := make(chan int, 1)
+	checkCond := func() {
+		result := failed
+		defer func() {
+			resultCh <- result
+		}()
+		if condition() {
+			result = stop
+		} else {
+			result = noStop
+		}
+	}
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2019,6 +2033,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
+	// Use a nillable channel to control ticks.
 	var tickC <-chan time.Time
 
 	// Check the condition once first on the initial call.
@@ -2029,13 +2044,23 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		case <-timer.C:
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
 		case <-tickC:
-			tickC = nil
-			go checkCond()
-		case v := <-ch:
-			if v {
+			tickC = nil    // Do not check again until we get a result.
+			go checkCond() // Schedule the next check.
+		case v := <-resultCh:
+			switch v {
+			case failed:
+				// Conditon pannicked or test failed and finished.
+				// Cannot determine correct result.
+				// Cannot decide if we should continue or not.
+				// Stop here and now, and mark test as failed.
+				return Fail(t, "Condition aborted")
+			case stop:
 				return true
+			case noStop:
+				fallthrough
+			default:
+				tickC = ticker.C // Enable ticks to check again.
 			}
-			tickC = ticker.C
 		}
 	}
 }
