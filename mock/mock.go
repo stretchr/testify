@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path"
@@ -455,6 +456,11 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 	if includeArgumentValues {
 		var argVals []string
 		for argIndex, arg := range arguments {
+			if ctx, ok := arg.(context.Context); ok {
+				// avoid data race from formating context directly
+				argVals = append(argVals, fmt.Sprintf("%d: %p", argIndex, ctx))
+				continue
+			}
 			if _, ok := arg.(*FunctionalOptionsArgument); ok {
 				argVals = append(argVals, fmt.Sprintf("%d: %s", argIndex, arg))
 				continue
