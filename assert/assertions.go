@@ -2010,9 +2010,11 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
-	const failed = 0
-	const stop = 1
-	const noStop = 2
+	const (
+		failed = iota
+		stop
+		noStop
+	)
 
 	resultCh := make(chan int, 1)
 	checkCond := func() {
