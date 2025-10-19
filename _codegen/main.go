@@ -285,11 +285,29 @@ func (f *testFunc) Comment() string {
 }
 
 func (f *testFunc) CommentFormat() string {
-	search := fmt.Sprintf("%s", f.DocInfo.Name)
-	replace := fmt.Sprintf("%sf", f.DocInfo.Name)
-	comment := strings.Replace(f.Comment(), search, replace, -1)
-	exp := regexp.MustCompile(replace + `\(((\(\)|[^\n])+)\)`)
-	return exp.ReplaceAllString(comment, replace+`($1, "error message %s", "formatted")`)
+	name := f.DocInfo.Name
+	nameF := name + "f"
+	comment := f.Comment()
+
+	// 1. Best effort replacer for mentions, calls, etc.
+	//    that can preserve references to the original function.
+	bestEffortReplacer := strings.NewReplacer(
+		"["+name+"]", "["+name+"]", // ref to origin func, keep as is
+		"["+nameF+"]", "["+nameF+"]", // ref to format func code, keep as is
+		name+" ", nameF+" ", // mention in text -> replace
+		name+"(", nameF+"(", // function call -> replace
+		name+",", nameF+",", // mention enumeration -> replace
+		name+".", nameF+".", // closure of sentence -> replace
+		name+"\n", nameF+"\n", // end of line -> replace
+	)
+
+	// 2. Regex for (replaced) function calls
+	callExp := regexp.MustCompile(nameF + `\(((\(\)|[^\n])+)\)`)
+
+	comment = bestEffortReplacer.Replace(comment)
+	comment = callExp.ReplaceAllString(comment, nameF+`($1, "error message %s", "formatted")`)
+
+	return comment
 }
 
 func (f *testFunc) CommentWithoutT(receiver string) string {
