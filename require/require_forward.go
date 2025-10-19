@@ -383,10 +383,10 @@ func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, ti
 }
 
 // EventuallyWithT asserts that the given condition will be met in waitFor
-// time, periodically checking the success of target function each tick.
+// time, periodically checking the success of the condition function each tick.
 // In contrast to [Eventually], it supplies a [CollectT] to the condition
 // function that the condition function can use to call assertions on.
-// These assertions are specific to the condition run in one tick.
+// These assertions are specific to each run of the condition function in each tick.
 //
 // The supplied [CollectT] collects all errors from one tick. If no errors are
 // collected, the condition is considered successful ("met") and EventuallyWithT
@@ -398,8 +398,17 @@ func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, ti
 // collected errors of the last tick are copied to t before EventuallyWithT
 // fails the test with "Condition never satisfied" and returns false.
 //
-// If the condition exits unexpectedly, a corresponding error:
-// "Condition exited unexpectedly" is collected for that tick.
+// If the condition exits unexpectedly and NO errors are collected, a call to
+// [runtime.Goexit] or a t.FailNow() on the PARENT 't' has happened inside the
+// condition function. In this case, EventuallyWithT fails the test immediately
+// with "Condition exited unexpectedly" and returns false.
+//
+// 💡 Tick Assertions vs. Parent Test Assertions
+//   - Use tick assertions and requirements on the supplied 'collect' and not
+//     on the parent 't'. Only the last tick's collected errors are copied to 't'.
+//   - Use parent test requirements on the parent 't' to fail the entire test
+//   - Do not use assertions on the parent 't', since this would affect all ticks
+//     and create test noise.
 //
 // ⚠️ See [Eventually] for more details about unexpected exits, which are a
 // common pitfall when using 'require' functions inside condition functions.
@@ -435,10 +444,10 @@ func (a *Assertions) EventuallyWithT(condition func(collect *assert.CollectT), w
 }
 
 // EventuallyWithTf asserts that the given condition will be met in waitFor
-// time, periodically checking the success of target function each tick.
+// time, periodically checking the success of the condition function each tick.
 // In contrast to [Eventually], it supplies a [CollectT] to the condition
 // function that the condition function can use to call assertions on.
-// These assertions are specific to the condition run in one tick.
+// These assertions are specific to each run of the condition function in each tick.
 //
 // The supplied [CollectT] collects all errors from one tick. If no errors are
 // collected, the condition is considered successful ("met") and EventuallyWithTf
@@ -450,8 +459,17 @@ func (a *Assertions) EventuallyWithT(condition func(collect *assert.CollectT), w
 // collected errors of the last tick are copied to t before EventuallyWithTf
 // fails the test with "Condition never satisfied" and returns false.
 //
-// If the condition exits unexpectedly, a corresponding error:
-// "Condition exited unexpectedly" is collected for that tick.
+// If the condition exits unexpectedly and NO errors are collected, a call to
+// [runtime.Goexit] or a t.FailNow() on the PARENT 't' has happened inside the
+// condition function. In this case, EventuallyWithTf fails the test immediately
+// with "Condition exited unexpectedly" and returns false.
+//
+// 💡 Tick Assertions vs. Parent Test Assertions
+//   - Use tick assertions and requirements on the supplied 'collect' and not
+//     on the parent 't'. Only the last tick's collected errors are copied to 't'.
+//   - Use parent test requirements on the parent 't' to fail the entire test
+//   - Do not use assertions on the parent 't', since this would affect all ticks
+//     and create test noise.
 //
 // ⚠️ See [Eventually] for more details about unexpected exits, which are a
 // common pitfall when using 'require' functions inside condition functions.
