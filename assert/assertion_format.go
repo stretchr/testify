@@ -165,10 +165,58 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 	return ErrorIs(t, err, target, append([]interface{}{msg}, args...)...)
 }
 
-// Eventuallyf asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// Eventuallyf asserts that the given condition will be met in waitFor time,
+// periodically checking result and completion of the target function each tick.
+// If the condition is not met, the test fails with "Condition never satisfied".
 //
-//	assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+// ⚠️ A condition function may exit unexpectedly, which is a common pitfall,
+// since [Eventually] runs the condition function in a separate goroutine.
+// An unexpected exit happens in the following cases:
+//
+//  1. The condition function panics. In this case the entire test will panic
+//     immediately and exit. This is normal Go runtime behavior and not
+//     specific to the testing framework. Condition panics are currently not
+//     recovered by [Eventually].
+//
+//  2. The condition function calls [runtime.Goexit], which exits the goroutine
+//     without panicking. In this case the test fails immediately with
+//     "Condition exited unexpectedly". This is new behavior since v1.X.X.
+//
+// Note that [runtime.Goexit] is called by t.FailNow() and thus by all failing
+// 'require' functions. You can call [require.Fail] and similar requirements
+// inside the condition, to fail the test immediately. In the past this was not
+// failing the test immediately but only after waitFor duration elapsed.
+// This was a bug that has been fixed. Please adapt your tests accordingly.
+//
+// Also see [EventuallyWithT] for a version that allows using assertions in the
+// condition function instead of returning a simple boolean value.
+//
+// Eventuallyf is often used to check conditions against values that are set by
+// other goroutines. In such cases, always use thread-safe variables.
+// It is also recommended to run 'go test' with the '-race' flag to detect
+// race conditions in your tests and code. The following example demonstrates
+// the correct usage of Eventuallyf with a thread-safe variable, including a
+// call to a 'require' function inside the condition function to fail the test
+// immediately on error:
+//
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
+//	go func() {
+//		time.Sleep(time.Second)
+//		externalValue.Store(true)
+//	}()
+//
+//	assert.Eventuallyf(t, func(, "error message %s", "formatted") bool {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		gotValue := externalValue.Load()
+//
+//		// It is safe to use require functions on the parent 't' to fail the entire test immediately.
+//		_, err := someFunction()
+//		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
+//
+//		return gotValue
+//
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -176,24 +224,51 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 	return Eventually(t, condition, waitFor, tick, append([]interface{}{msg}, args...)...)
 }
 
-// EventuallyWithTf asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick. In contrast to Eventually,
-// it supplies a CollectT to the condition function, so that the condition
-// function can use the CollectT to call other assertions.
-// The condition is considered "met" if no errors are raised in a tick.
-// The supplied CollectT collects all errors from one tick (if there are any).
-// If the condition is not met before waitFor, the collected errors of
-// the last tick are copied to t.
+// EventuallyWithTf asserts that the given condition will be met in waitFor
+// time, periodically checking the success of target function each tick.
+// In contrast to [Eventually], it supplies a [CollectT] to the condition
+// function that the condition function can use to call assertions on.
+// These assertions are specific to the condition run in one tick.
 //
-//	externalValue := false
+// The supplied [CollectT] collects all errors from one tick. If no errors are
+// collected, the condition is considered successful ("met") and EventuallyWithTf
+// returns true. If there are collected errors, the condition is considered
+// failed for that tick ("not met") and the next tick is scheduled until
+// waitFor duration is reached.
+//
+// If the condition does not complete successfully before waitFor expires, the
+// collected errors of the last tick are copied to t before EventuallyWithTf
+// fails the test with "Condition never satisfied" and returns false.
+//
+// If the condition exits unexpectedly, a corresponding error:
+// "Condition exited unexpectedly" is collected for that tick.
+//
+// ⚠️ See [Eventually] for more details about unexpected exits, which are a
+// common pitfall when using 'require' functions inside condition functions.
+//
+// Since version 1.X.X, You can call [require.Fail] and similar requirements
+// inside the condition to fail the test immediately. In the past this was not
+// failing the test immediately but only after waitFor duration elapsed.
+// This was a bug that has been fixed. Please adapt your tests accordingly.
+//
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
 //	go func() {
-//		time.Sleep(8*time.Second)
-//		externalValue = true
+//		time.Sleep(time.Second)
+//		externalValue.Store(true)
 //	}()
-//	assert.EventuallyWithTf(t, func(c *assert.CollectT, "error message %s", "formatted") {
-//		// add assertions as needed; any assertion failure will fail the current tick
-//		assert.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//	assert.EventuallyWithTf(t, func(collect *assert.CollectT, "error message %s", "formatted") {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		gotValue := externalValue.Load()
+//
+//		// Use assertions with 'collect' and not with 't', so they are scoped to the current tick.
+//		assert.True(collect, gotValue, "expected 'externalValue' to become true")
+//
+//		// It is safe to use require functions on the parent 't' to fail the entire test immediately.
+//		_, err := someFunction()
+//		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
+//
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
 func EventuallyWithTf(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -524,6 +599,15 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 
 // Neverf asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
+//
+// Since version 1.X.X, if the condition exits unexpectedly, this is treated as
+// a failure and the test fails immediately with: "Condition exited unexpectedly".
+// Before version 1.X.X, unexpected exits lead to a blocked channel and a falsely
+// passing [Never]. See [Eventually] for more details about unexpected exits.
+//
+// You can call [require.Fail] and similar requirements inside the condition
+// to fail the test immediately. The blocking behavior from before version 1.X.X
+// prevented this. Now it works as expected. Please adapt your tests accordingly.
 //
 //	assert.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {

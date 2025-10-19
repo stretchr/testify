@@ -2001,31 +2001,82 @@ type tHelper = interface {
 	Helper()
 }
 
-// Eventually asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick.
+// Eventually asserts that the given condition will be met in waitFor time,
+// periodically checking result and completion of the target function each tick.
+// If the condition is not met, the test fails with "Condition never satisfied".
 //
-//	assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
+// ⚠️ A condition function may exit unexpectedly, which is a common pitfall,
+// since [Eventually] runs the condition function in a separate goroutine.
+// An unexpected exit happens in the following cases:
+//
+//  1. The condition function panics. In this case the entire test will panic
+//     immediately and exit. This is normal Go runtime behavior and not
+//     specific to the testing framework. Condition panics are currently not
+//     recovered by [Eventually].
+//
+//  2. The condition function calls [runtime.Goexit], which exits the goroutine
+//     without panicking. In this case the test fails immediately with
+//     "Condition exited unexpectedly". This is new behavior since v1.X.X.
+//
+// Note that [runtime.Goexit] is called by t.FailNow() and thus by all failing
+// 'require' functions. You can call [require.Fail] and similar requirements
+// inside the condition, to fail the test immediately. In the past this was not
+// failing the test immediately but only after waitFor duration elapsed.
+// This was a bug that has been fixed. Please adapt your tests accordingly.
+//
+// Also see [EventuallyWithT] for a version that allows using assertions in the
+// condition function instead of returning a simple boolean value.
+//
+// Eventually is often used to check conditions against values that are set by
+// other goroutines. In such cases, always use thread-safe variables.
+// It is also recommended to run 'go test' with the '-race' flag to detect
+// race conditions in your tests and code. The following example demonstrates
+// the correct usage of Eventually with a thread-safe variable, including a
+// call to a 'require' function inside the condition function to fail the test
+// immediately on error:
+//
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
+//	go func() {
+//		time.Sleep(time.Second)
+//		externalValue.Store(true)
+//	}()
+//
+//	assert.Eventually(t, func() bool {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		gotValue := externalValue.Load()
+//
+//		// It is safe to use require functions on the parent 't' to fail the entire test immediately.
+//		_, err := someFunction()
+//		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
+//
+//		return gotValue
+//
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
 	const (
-		failed = iota
-		stop
-		noStop
+		conditionExited = iota
+		conditionSatisfied
+		conditionNotSatisfied
 	)
 
 	resultCh := make(chan int, 1)
+
 	checkCond := func() {
-		result := failed
+		result := conditionExited
+
 		defer func() {
 			resultCh <- result
 		}()
+
 		if condition() {
-			result = stop
+			result = conditionSatisfied
 		} else {
-			result = noStop
+			result = conditionNotSatisfied
 		}
 	}
 
@@ -2050,16 +2101,17 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 			go checkCond() // Schedule the next check.
 		case v := <-resultCh:
 			switch v {
-			case failed:
-				// Condition panicked or test failed and finished.
-				// Cannot determine correct result.
-				// Cannot decide if we should continue gracefully or not.
-				// We can stop here and now, and mark test as failed with
-				// the same error message as the timeout case.
-				return Fail(t, "Condition never satisfied", msgAndArgs...)
-			case stop:
+			case conditionExited:
+				// The condition function is called in a goroutine.
+				// If this panics the whole test should fail and exit immediately.
+				// If we reach here, it means the goroutine has exited unexpectedly but did not panic.
+				// This can happen if [runtime.Goexit] is called inside the condition function.
+				// This way of exiting a goroutine is reserved for special cases and should not be used
+				// in normal conditions. It is used by the testing package to stop tests.
+				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
+			case conditionSatisfied:
 				return true
-			case noStop:
+			case conditionNotSatisfied:
 				fallthrough
 			default:
 				tickC = ticker.C // Enable ticks to check again.
@@ -2110,38 +2162,83 @@ func (c *CollectT) failed() bool {
 	return c.errors != nil
 }
 
-// EventuallyWithT asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick. In contrast to Eventually,
-// it supplies a CollectT to the condition function, so that the condition
-// function can use the CollectT to call other assertions.
-// The condition is considered "met" if no errors are raised in a tick.
-// The supplied CollectT collects all errors from one tick (if there are any).
-// If the condition is not met before waitFor, the collected errors of
-// the last tick are copied to t.
+// EventuallyWithT asserts that the given condition will be met in waitFor
+// time, periodically checking the success of the condition function each tick.
+// In contrast to [Eventually], it supplies a [CollectT] to the condition
+// function that the condition function can use to call assertions on.
+// These assertions are specific to each run of the condition function in each tick.
 //
-//	externalValue := false
+// The supplied [CollectT] collects all errors from one tick. If no errors are
+// collected, the condition is considered successful ("met") and EventuallyWithT
+// returns true. If there are collected errors, the condition is considered
+// failed for that tick ("not met") and the next tick is scheduled until
+// waitFor duration is reached.
+//
+// If the condition does not complete successfully before waitFor expires, the
+// collected errors of the last tick are copied to t before EventuallyWithT
+// fails the test with "Condition never satisfied" and returns false.
+//
+// If the condition exits unexpectedly and NO errors are collected, a call to
+// [runtime.Goexit] or a t.FailNow() on the PARENT 't' has happened inside the
+// condition function. In this case, EventuallyWithT fails the test immediately
+// with "Condition exited unexpectedly" and returns false.
+//
+// 💡 Tick Assertions vs. Parent Test Assertions
+//   - Use tick assertions and requirements on the supplied 'collect' and not
+//     on the parent 't'. Only the last tick's collected errors are copied to 't'.
+//   - Use parent test requirements on the parent 't' to fail the entire test
+//   - Do not use assertions on the parent 't', since this would affect all ticks
+//     and create test noise.
+//
+// ⚠️ See [Eventually] for more details about unexpected exits, which are a
+// common pitfall when using 'require' functions inside condition functions.
+//
+// Since version 1.X.X, You can call [require.Fail] and similar requirements
+// inside the condition to fail the test immediately. In the past this was not
+// failing the test immediately but only after waitFor duration elapsed.
+// This was a bug that has been fixed. Please adapt your tests accordingly.
+//
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
 //	go func() {
-//		time.Sleep(8*time.Second)
-//		externalValue = true
+//		time.Sleep(time.Second)
+//		externalValue.Store(true)
 //	}()
-//	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-//		// add assertions as needed; any assertion failure will fail the current tick
-//		assert.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
+//	assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		gotValue := externalValue.Load()
+//
+//		// Use assertions with 'collect' and not with 't', so they are scoped to the current tick.
+//		assert.True(collect, gotValue, "expected 'externalValue' to become true")
+//
+//		// It is safe to use require functions on the parent 't' to fail the entire test immediately.
+//		_, err := someFunction()
+//		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
+//
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
 func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
+	// Track whether the condition exited without collecting errors.
+	// This is used to detect unexpected exits, such as [runtime.Goexit]
+	// or a t.FailNow() called on a parent 't' inside the condition
+	// and not on the supplied 'collect'. This is the path where also
+	// EventuallyWithT must exit immediately with a failure, just like [Eventually].
+	var conditionExitedWithoutCollectingErrors bool
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
 	checkCond := func() {
+		returned := false
 		collect := new(CollectT)
 		defer func() {
+			conditionExitedWithoutCollectingErrors = !returned && !collect.failed()
 			ch <- collect
 		}()
 		condition(collect)
+		returned = true
 	}
 
 	timer := time.NewTimer(waitFor)
@@ -2166,12 +2263,22 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			tickC = nil
 			go checkCond()
 		case collect := <-ch:
-			if !collect.failed() {
+			switch {
+			case conditionExitedWithoutCollectingErrors:
+				// See [Eventually] for explanation about unexpected exits.
+				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
+			case !collect.failed():
+				// Condition met.
 				return true
+			case collect.failed():
+				fallthrough
+			default:
+				// Keep the errors from the last completed condition,
+				// so that they can be copied to 't' if timeout is reached.
+				lastFinishedTickErrs = collect.errors
+				// Keep checking until timeout.
+				tickC = ticker.C
 			}
-			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
-			lastFinishedTickErrs = collect.errors
-			tickC = ticker.C
 		}
 	}
 }
@@ -2179,14 +2286,42 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
+// Since version 1.X.X, if the condition exits unexpectedly, this is treated as
+// a failure and the test fails immediately with: "Condition exited unexpectedly".
+// Before version 1.X.X, unexpected exits lead to a blocked channel and a falsely
+// passing [Never]. See [Eventually] for more details about unexpected exits.
+//
+// You can call [require.Fail] and similar requirements inside the condition
+// to fail the test immediately. The blocking behavior from before version 1.X.X
+// prevented this. Now it works as expected. Please adapt your tests accordingly.
+//
 //	assert.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
-	ch := make(chan bool, 1)
-	checkCond := func() { ch <- condition() }
+	const (
+		conditionExited = iota
+		conditionSatisfied
+		conditionNotSatisfied
+	)
+
+	resultCh := make(chan int, 1)
+
+	checkCond := func() {
+		result := conditionExited
+
+		defer func() {
+			resultCh <- result
+		}()
+
+		if condition() {
+			result = conditionSatisfied
+		} else {
+			result = conditionNotSatisfied
+		}
+	}
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2206,11 +2341,18 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 		case <-tickC:
 			tickC = nil
 			go checkCond()
-		case v := <-ch:
-			if v {
+		case v := <-resultCh:
+			switch v {
+			case conditionExited:
+				// See [Eventually] for explanation about unexpected exits.
+				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
+			case conditionSatisfied:
 				return Fail(t, "Condition satisfied", msgAndArgs...)
+			case conditionNotSatisfied:
+				fallthrough
+			default:
+				tickC = ticker.C
 			}
-			tickC = ticker.C
 		}
 	}
 }
