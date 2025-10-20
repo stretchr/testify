@@ -33,14 +33,14 @@ The `assert` package provides some helpful methods that allow you to write bette
   * Optionally annotate each assertion with a message
   * Supports polling assertions via `assert.Eventually`, `assert.EventuallyWithT`, and similar functions
 
-    > [!Note]
-	> See [EVENTUALLY.md](EVENTUALLY.md) for details about timing, exit behavior,
-	> and panic handling or read the source code and source code comments carefully.
-	>
-	> The `Eventually` functions got some recent bug fixes and behavior changes\
-	> for longstanding issues. \
-	> 👉️ Please **(re-)read** the [document](EVENTUALLY.md) and **code comments**! \
-	> 👉️ Please **adapt** your code if you were relying on the buggy behavior!
+> [!Note]
+> See [EVENTUALLY.md](EVENTUALLY.md) for details about timing, exit behavior, and panic handling,
+> and read the source code and source code comments carefully.
+>
+> The `Eventually` functions behavior got some recent bug fixes and behavior changes for longstanding issues.
+>
+> 👉️ Please **read** the [document](EVENTUALLY.md) and the **source code comments**! \
+> 👉️ Please **adapt** your code if you were relying on the buggy behavior!
 
 
 See it in action:
