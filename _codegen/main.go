@@ -296,16 +296,51 @@ func (f *testFunc) CommentFormat() string {
 		"["+nameF+"]", "["+nameF+"]", // ref to format func code, keep as is
 		name+" ", nameF+" ", // mention in text -> replace
 		name+"(", nameF+"(", // function call -> replace
-		name+",", nameF+",", // mention enumeration -> replace
+		name+",", nameF+",", // mention in enumeration -> replace
 		name+".", nameF+".", // closure of sentence -> replace
 		name+"\n", nameF+"\n", // end of line -> replace
 	)
-
-	// 2. Regex for (replaced) function calls
-	callExp := regexp.MustCompile(nameF + `\(((\(\)|[^\n])+)\)`)
-
 	comment = bestEffortReplacer.Replace(comment)
-	comment = callExp.ReplaceAllString(comment, nameF+`($1, "error message %s", "formatted")`)
+
+	// 2 Find single line assertion calls of any kind, exluding multi-line ones.
+	//   example: // assert.Equal(t, expected, actual) <-- the call must be closed on the same line
+	assertFormatFuncExp := regexp.MustCompile(`assert\.` + nameF + `\(.*\)`)
+	// 2.1 Extract params and existing message if any.
+	//     Note: Unless we start parsing the parameters properly, this is a best-effort solution.
+	//     If an assertion call ends with a string parameter, we consider that the message.
+	//     Please adjust the assertion examples accordingly if needed.
+	const minErrorMessageLength = 10
+	paramsExp := regexp.MustCompile(`([^()]*)\((.*)\)`)
+	strParamExp := regexp.MustCompile(`"[^"]*"$`)
+	comment = assertFormatFuncExp.ReplaceAllStringFunc(comment, func(s string) string {
+		oBraces := strings.Count(s, "(")
+		cBraces := strings.Count(s, ")")
+		if oBraces != cBraces {
+			// Skip multi-line examples, where assert call is not closed on the same line.
+			return s
+		}
+
+		m := paramsExp.FindStringSubmatch(s)
+		prefix, params, msg := m[1], strings.Split(m[2], ", "), "error message"
+
+		last := strings.TrimSpace(params[len(params)-1])
+		// If last param is a string, consider it the message.
+		// It is is too short, it is an assertion value, not a message.
+		if strParamExp.MatchString(last) && len(last) > minErrorMessageLength+2 {
+			msg = strings.Trim(msg, `"`) + ":"
+			params = params[:len(params)-1]
+		}
+
+		// Rebuild the call with formatted message, reuse existing message if any.
+		params = append(params, `"`+msg+` %s", "formatted"`)
+		return prefix + "(" + strings.Join(params, ", ") + ")"
+	})
+
+	// 3. Replace calls to multi-line assertions end. Examles like:
+	//    search:  //	}, time.Second, 10*time.Millisecond, "condition must never be true")
+	//    replace: //	}, time.Second, 10*time.Millisecond, "condition must never be true, more: %s", "formatted")
+	endFuncWithStringExp := regexp.MustCompile(`(//[\s]*\},.* )"([^"]+)"\)(\n|$)`)
+	comment = endFuncWithStringExp.ReplaceAllString(comment, `$1 "$2, more: %s", "formatted")$3`)
 
 	return comment
 }
