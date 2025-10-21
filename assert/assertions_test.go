@@ -594,6 +594,7 @@ func TestKind(t *testing.T) {
 		result   bool
 		remark   string
 	}{
+		// True cases
 		{reflect.String, "Hello World", true, "is string"},
 		{reflect.Int, 123, true, "is int"},
 		{reflect.Array, [6]int{2, 3, 5, 7, 11, 13}, true, "is array"},
@@ -603,11 +604,15 @@ func TestKind(t *testing.T) {
 		{reflect.Bool, true, true, "is bool"},
 		{reflect.Ptr, new(int), true, "is pointer"},
 
-		// Not expected to be equal
+		// False cases
 		{reflect.String, 13, false, "not string"},
 		{reflect.Int, [6]int{2, 3, 5, 7, 11, 13}, false, "not int"},
 		{reflect.Float64, 12, false, "not float64"},
 		{reflect.Bool, make(map[string]int), false, "not bool"},
+
+		// Invalid inputs
+		{reflect.Invalid, "string", false, "reflect.Invalid must not be used as expected kind"},
+		{reflect.Ptr, nil, false, "Object must not be nil"},
 	}
 
 	for _, c := range cases {
@@ -630,14 +635,19 @@ func TestNotKind(t *testing.T) {
 		result     bool
 		remark     string
 	}{
+		// True cases
 		{reflect.String, 123, true, "not string"},
 		{reflect.Int, "hi", true, "not int"},
 		{reflect.Map, []int{1, 2}, true, "not map"},
 		{reflect.Ptr, 99, true, "not pointer"},
 
-		// Should fail when kinds match
+		// False cases
 		{reflect.Func, func() {}, false, "is func"},
 		{reflect.Bool, false, false, "is bool"},
+
+		// Invalid inputs
+		{reflect.Invalid, "string", false, "reflect.Invalid must not be used as unexpected kind"},
+		{reflect.Ptr, nil, false, "Object must not be nil"},
 	}
 
 	for _, c := range cases {

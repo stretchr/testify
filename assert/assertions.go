@@ -495,10 +495,19 @@ func Kind(t TestingT, expectedKind reflect.Kind, object interface{}, msgAndArgs 
 		h.Helper()
 	}
 
+	if expectedKind == reflect.Invalid {
+		return Fail(t, "reflect.Invalid must not be used as expected kind", msgAndArgs...)
+	}
+
+	if object == nil {
+		return Fail(t, "Object must not be nil", msgAndArgs...)
+	}
+
 	objectKind := reflect.TypeOf(object).Kind()
 	if objectKind == expectedKind {
 		return true
 	}
+
 	return Fail(t, fmt.Sprintf("Object expected to be of kind %v, but was %v", expectedKind, objectKind), msgAndArgs...)
 }
 
@@ -510,10 +519,19 @@ func NotKind(t TestingT, unexpectedKind reflect.Kind, object interface{}, msgAnd
 		h.Helper()
 	}
 
+	if unexpectedKind == reflect.Invalid {
+		return Fail(t, "reflect.Invalid must not be used as unexpected kind", msgAndArgs...)
+	}
+
+	if object == nil {
+		return Fail(t, "Object must not be nil", msgAndArgs...)
+	}
+
 	objectKind := reflect.TypeOf(object).Kind()
 	if objectKind != unexpectedKind {
 		return true
 	}
+
 	return Fail(t, fmt.Sprintf("Object expected NOT to be of kind %v, but was %v", unexpectedKind, objectKind), msgAndArgs...)
 }
 
