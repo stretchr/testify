@@ -2202,25 +2202,34 @@ func (c *CollectT) calledFailNow() bool {
 // function that the condition function can use to call assertions on.
 // These assertions are specific to each run of the condition function in each tick.
 //
-// The supplied [CollectT] collects all errors from one tick. If no errors are
-// collected, the condition is considered successful ("met") and EventuallyWithT
-// returns true. If there are collected errors, the condition is considered
-// failed for that tick ("not met") and the next tick is scheduled until
-// waitFor duration is reached.
+// The condition is considered successful ("met") if:
+//
+//  1. No errors are collected.
+//
+//  2. And 'collect' was not marked as failed via Fail or FailNow.
+//
+//  3. And the parent 't' did not fail fast via FailNow.
+//
+// EventuallyWithT returns true as soon as the condition is met within the
+// waitFor duration.
+//
+// If the condition is "not met" and the parent 't' did not fail fast,
+// EventuallyWithT schedules the next tick. This continues until either the
+// condition is met or the waitFor duration elapses.
 //
 // If the condition does not complete successfully before waitFor expires, the
-// collected errors of the last tick are copied to t before EventuallyWithT
+// collected errors of the last tick are copied to 't' before EventuallyWithT
 // fails the test with "Condition never satisfied" and returns false.
 //
-// If the condition exits unexpectedly and NO errors are collected, a call to
-// [runtime.Goexit] or a t.FailNow() on the PARENT 't' has happened inside the
-// condition function. In this case, EventuallyWithT fails the test immediately
-// with "Condition exited unexpectedly" and returns false.
+// If the condition exits unexpectedly, i.e., not returning normally or by
+// calling FailNow on the supplied 'collect', the test fails immediately with
+// "Condition exited unexpectedly" and EventuallyWithT returns false.
 //
 // 💡 Tick Assertions vs. Parent Test Assertions
 //   - Use tick assertions and requirements on the supplied 'collect' and not
-//     on the parent 't'. Only the last tick's collected errors are copied to 't'.
-//   - Use parent test requirements on the parent 't' to fail the entire test
+//     on the parent 't'.
+//   - The last tick errors are always copied to 't' in case of failure.
+//   - On the parent 't' only use requirements for failing the entire test immediately.
 //   - Do not use assertions on the parent 't', since this would affect all ticks
 //     and create test noise.
 //
