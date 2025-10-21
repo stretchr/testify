@@ -206,7 +206,7 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 //		externalValue.Store(true)
 //	}()
 //
-//	assert.Eventuallyf(t, func(, "error message %s", "formatted") bool {
+//	assert.Eventuallyf(t, func() bool {
 //		// 🤝 Use thread-safe access when communicating with other goroutines!
 //		gotValue := externalValue.Load()
 //
@@ -216,7 +216,7 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 //
 //		return gotValue
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond,  "externalValue must become true within 2s, more: %s", "formatted")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -266,7 +266,7 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 //		time.Sleep(time.Second)
 //		externalValue.Store(true)
 //	}()
-//	assert.EventuallyWithTf(t, func(collect *assert.CollectT, "error message %s", "formatted") {
+//	assert.EventuallyWithTf(t, func(collect *assert.CollectT) {
 //		// 🤝 Use thread-safe access when communicating with other goroutines!
 //		gotValue := externalValue.Load()
 //
@@ -277,7 +277,7 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 //		_, err := someFunction()
 //		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond,  "externalValue must become true within 2s, more: %s", "formatted")
 func EventuallyWithTf(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -358,7 +358,8 @@ func GreaterOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, arg
 // HTTPBodyContainsf asserts that a specified handler returns a
 // body that contains a string.
 //
-//	assert.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
+//	expectVal := "I'm Feeling Lucky"
+//	assert.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, expectVal, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) bool {
@@ -371,7 +372,8 @@ func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url 
 // HTTPBodyNotContainsf asserts that a specified handler returns a
 // body that does not contain a string.
 //
-//	assert.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
+//	expectVal := "I'm Feeling Lucky"
+//	assert.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, expectVal, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) bool {
@@ -618,7 +620,17 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 // to fail the test immediately. The blocking behavior from before version 1.X.X
 // prevented this. Now it works as expected. Please adapt your tests accordingly.
 //
-//	assert.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
+//	go func() {
+//		time.Sleep(2*time.Second)
+//		externalValue.Store(true)
+//	}()
+//
+//	assert.Neverf(t, func() bool {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		return externalValue.Load()
+//	}, time.Second, 10*time.Millisecond,  "condition must never become true within 1s, more: %s", "formatted")
 func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -782,8 +794,9 @@ func NotPanicsf(t TestingT, f PanicTestFunc, msg string, args ...interface{}) bo
 
 // NotRegexpf asserts that a specified regexp does not match a string.
 //
-//	assert.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
-//	assert.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
+//	expectVal := "not started"
+//	assert.NotRegexpf(t, regexp.MustCompile("^start"), expectVal, "error message %s", "formatted")
+//	assert.NotRegexpf(t, "^start", expectVal, "error message %s", "formatted")
 func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -830,7 +843,7 @@ func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) bool {
 
 // Panicsf asserts that the code inside the specified PanicTestFunc panics.
 //
-//	assert.Panicsf(t, func(){ GoCrazy() }, "error message %s", "formatted")
+//	assert.Panicsf(t, func(){ GoCrazy() }, "error message: %s", "formatted")
 func Panicsf(t TestingT, f PanicTestFunc, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -874,8 +887,9 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 
 // Regexpf asserts that a specified regexp matches a string.
 //
-//	assert.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
-//	assert.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
+//	expectVal := "started"
+//	assert.Regexpf(t, regexp.MustCompile("^start"), expectVal, "error message %s", "formatted")
+//	assert.Regexpf(t, "^start", expectVal, "error message %s", "formatted")
 func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

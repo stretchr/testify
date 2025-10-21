@@ -452,7 +452,7 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 //
 //		return gotValue
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue must become true within 2s")
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -516,7 +516,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 //		_, err := someFunction()
 //		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue must become true within 2s")
 func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -569,7 +569,7 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitF
 //		time.Sleep(time.Second)
 //		externalValue.Store(true)
 //	}()
-//	require.EventuallyWithTf(t, func(collect *require.CollectT, "error message %s", "formatted") {
+//	require.EventuallyWithTf(t, func(collect *require.CollectT) {
 //		// 🤝 Use thread-safe access when communicating with other goroutines!
 //		gotValue := externalValue.Load()
 //
@@ -580,7 +580,7 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitF
 //		_, err := someFunction()
 //		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond,  "externalValue must become true within 2s, more: %s", "formatted")
 func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -632,7 +632,7 @@ func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), wait
 //		externalValue.Store(true)
 //	}()
 //
-//	require.Eventuallyf(t, func(, "error message %s", "formatted") bool {
+//	require.Eventuallyf(t, func() bool {
 //		// 🤝 Use thread-safe access when communicating with other goroutines!
 //		gotValue := externalValue.Load()
 //
@@ -642,7 +642,7 @@ func EventuallyWithTf(t TestingT, condition func(collect *assert.CollectT), wait
 //
 //		return gotValue
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond,  "externalValue must become true within 2s, more: %s", "formatted")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -838,7 +838,8 @@ func Greaterf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...in
 // HTTPBodyContains asserts that a specified handler returns a
 // body that contains a string.
 //
-//	require.HTTPBodyContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
+//	expectVal := "I'm Feeling Lucky"
+//	require.HTTPBodyContains(t, myHandler, "GET", "www.google.com", nil, expectVal)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
@@ -854,7 +855,8 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url s
 // HTTPBodyContainsf asserts that a specified handler returns a
 // body that contains a string.
 //
-//	require.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
+//	expectVal := "I'm Feeling Lucky"
+//	require.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, expectVal, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
@@ -870,7 +872,8 @@ func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url 
 // HTTPBodyNotContains asserts that a specified handler returns a
 // body that does not contain a string.
 //
-//	require.HTTPBodyNotContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
+//	expectVal := "I'm Feeling Lucky"
+//	require.HTTPBodyNotContains(t, myHandler, "GET", "www.google.com", nil, expectVal)
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
@@ -886,7 +889,8 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, ur
 // HTTPBodyNotContainsf asserts that a specified handler returns a
 // body that does not contain a string.
 //
-//	require.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
+//	expectVal := "I'm Feeling Lucky"
+//	require.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, expectVal, "error message %s", "formatted")
 //
 // Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
@@ -1487,7 +1491,17 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) {
 // to fail the test immediately. The blocking behavior from before version 1.X.X
 // prevented this. Now it works as expected. Please adapt your tests accordingly.
 //
-//	require.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
+//	go func() {
+//		time.Sleep(2*time.Second)
+//		externalValue.Store(true)
+//	}()
+//
+//	require.Never(t, func() bool {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		return externalValue.Load()
+//	}, time.Second, 10*time.Millisecond, "condition must never become true within 1s")
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1510,7 +1524,17 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 // to fail the test immediately. The blocking behavior from before version 1.X.X
 // prevented this. Now it works as expected. Please adapt your tests accordingly.
 //
-//	require.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
+//	go func() {
+//		time.Sleep(2*time.Second)
+//		externalValue.Store(true)
+//	}()
+//
+//	require.Neverf(t, func() bool {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		return externalValue.Load()
+//	}, time.Second, 10*time.Millisecond,  "condition must never become true within 1s, more: %s", "formatted")
 func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1915,8 +1939,9 @@ func NotPanicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interfac
 
 // NotRegexp asserts that a specified regexp does not match a string.
 //
-//	require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
-//	require.NotRegexp(t, "^start", "it's not starting")
+//	expectVal := "not started"
+//	require.NotRegexp(t, regexp.MustCompile("^start"), expectVal)
+//	require.NotRegexp(t, "^start", expectVal)
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1929,8 +1954,9 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 
 // NotRegexpf asserts that a specified regexp does not match a string.
 //
-//	require.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
-//	require.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
+//	expectVal := "not started"
+//	require.NotRegexpf(t, regexp.MustCompile("^start"), expectVal, "error message %s", "formatted")
+//	require.NotRegexpf(t, "^start", expectVal, "error message %s", "formatted")
 func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2035,7 +2061,7 @@ func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
 //
-//	require.Panics(t, func(){ GoCrazy() })
+//	require.Panics(t, func(){ GoCrazy() }, "GoCrazy must panic")
 func Panics(t TestingT, f assert.PanicTestFunc, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2106,7 +2132,7 @@ func PanicsWithValuef(t TestingT, expected interface{}, f assert.PanicTestFunc, 
 
 // Panicsf asserts that the code inside the specified PanicTestFunc panics.
 //
-//	require.Panicsf(t, func(){ GoCrazy() }, "error message %s", "formatted")
+//	require.Panicsf(t, func(){ GoCrazy() }, "error message: %s", "formatted")
 func Panicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2147,8 +2173,9 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
 
 // Regexp asserts that a specified regexp matches a string.
 //
-//	require.Regexp(t, regexp.MustCompile("start"), "it's starting")
-//	require.Regexp(t, "start...$", "it's not starting")
+//	expectVal := "started"
+//	require.Regexp(t, regexp.MustCompile("^start"), expectVal)
+//	require.Regexp(t, "^start", expectVal)
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2161,8 +2188,9 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 
 // Regexpf asserts that a specified regexp matches a string.
 //
-//	require.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
-//	require.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
+//	expectVal := "started"
+//	require.Regexpf(t, regexp.MustCompile("^start"), expectVal, "error message %s", "formatted")
+//	require.Regexpf(t, "^start", expectVal, "error message %s", "formatted")
 func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

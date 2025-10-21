@@ -1298,7 +1298,7 @@ func didPanic(f PanicTestFunc) (didPanic bool, message interface{}, stack string
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
 //
-//	assert.Panics(t, func(){ GoCrazy() })
+//	assert.Panics(t, func(){ GoCrazy() }, "GoCrazy must panic")
 func Panics(t TestingT, f PanicTestFunc, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1729,8 +1729,9 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 
 // Regexp asserts that a specified regexp matches a string.
 //
-//	assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
-//	assert.Regexp(t, "start...$", "it's not starting")
+//	expectVal := "started"
+//	assert.Regexp(t, regexp.MustCompile("^start"), expectVal)
+//	assert.Regexp(t, "^start", expectVal)
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1747,8 +1748,9 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 
 // NotRegexp asserts that a specified regexp does not match a string.
 //
-//	assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
-//	assert.NotRegexp(t, "^start", "it's not starting")
+//	expectVal := "not started"
+//	assert.NotRegexp(t, regexp.MustCompile("^start"), expectVal)
+//	assert.NotRegexp(t, "^start", expectVal)
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2052,7 +2054,7 @@ type tHelper = interface {
 //
 //		return gotValue
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue must become true within 2s")
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2126,6 +2128,9 @@ type CollectT struct {
 	// If it's non-nil but len(c.errors) == 0, this is also a failure
 	// obtained by direct c.FailNow() call.
 	errors []error
+
+	// finished is true if FailNow was called.
+	finished bool
 }
 
 // Helper is like [testing.T.Helper] but does nothing.
@@ -2139,7 +2144,30 @@ func (c *CollectT) Errorf(format string, args ...interface{}) {
 // FailNow stops execution by calling runtime.Goexit.
 func (c *CollectT) FailNow() {
 	c.fail()
+	c.finished = true
 	runtime.Goexit()
+}
+
+// Fail marks the function as failed without recording an error.
+// It does not stop execution.
+func (c *CollectT) Fail() {
+	c.fail()
+}
+
+// Failed returns true if any errors were collected or FailNow was called.
+// This also implements [TestingT.Failed].
+func (t *CollectT) Failed() bool {
+	return t.failed()
+}
+
+// Errors returns the collected errors.
+// It returns nil only if no errors were collected and FailNow was not called.
+// If FailNow was called without any prior Errorf calls, it returns an empty slice (non-nil).
+//
+// Errors can be used to inspect all collected errors after running assertions with CollectT.
+// Also see [CollectT.Failed] to quickly check whether any errors were collected or FailNow was called.
+func (t *CollectT) Errors() []error {
+	return t.errors
 }
 
 // Deprecated: That was a method for internal usage that should not have been published. Now just panics.
@@ -2153,13 +2181,19 @@ func (*CollectT) Copy(TestingT) {
 }
 
 func (c *CollectT) fail() {
-	if !c.failed() {
+	if c.errors == nil {
 		c.errors = []error{} // Make it non-nil to mark a failure.
 	}
 }
 
+// failed returns true if any errors were collected or FailNow was called.
 func (c *CollectT) failed() bool {
 	return c.errors != nil
+}
+
+// calledFailNow returns true if the goroutine has exited via FailNow.
+func (c *CollectT) calledFailNow() bool {
+	return c.finished
 }
 
 // EventuallyWithT asserts that the given condition will be met in waitFor
@@ -2215,7 +2249,7 @@ func (c *CollectT) failed() bool {
 //		_, err := someFunction()
 //		require.NoError(t, err, "external function must not fail") // 🛑 exit early on error
 //
-//	}, 2*time.Second, 10*time.Millisecond, "externalValue never became true")
+//	}, 2*time.Second, 10*time.Millisecond, "externalValue must become true within 2s")
 func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -2226,19 +2260,19 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	// or a t.FailNow() called on a parent 't' inside the condition
 	// and not on the supplied 'collect'. This is the path where also
 	// EventuallyWithT must exit immediately with a failure, just like [Eventually].
-	var conditionExitedWithoutCollectingErrors bool
+	var goroutineExitedWithoutCallingFailNow bool
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
 	checkCond := func() {
-		returned := false
+		goroutineExited := true // Assume the goroutine will exit.
 		collect := new(CollectT)
 		defer func() {
-			conditionExitedWithoutCollectingErrors = !returned && !collect.failed()
+			goroutineExitedWithoutCallingFailNow = goroutineExited && !collect.calledFailNow()
 			ch <- collect
 		}()
 		condition(collect)
-		returned = true
+		goroutineExited = false // The goroutine did not exit via [runtime.Goexit]
 	}
 
 	timer := time.NewTimer(waitFor)
@@ -2264,8 +2298,12 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			go checkCond()
 		case collect := <-ch:
 			switch {
-			case conditionExitedWithoutCollectingErrors:
+			case goroutineExitedWithoutCallingFailNow:
 				// See [Eventually] for explanation about unexpected exits.
+				// Copy last tick errors to 't' before failing.
+				for _, err := range collect.errors {
+					t.Errorf("%v", err)
+				}
 				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
 			case !collect.failed():
 				// Condition met.
@@ -2295,7 +2333,17 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 // to fail the test immediately. The blocking behavior from before version 1.X.X
 // prevented this. Now it works as expected. Please adapt your tests accordingly.
 //
-//	assert.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
+//	// 🤝 Always use thread-safe variables for concurrent access!
+//	externalValue := atomic.Bool{}
+//	go func() {
+//		time.Sleep(2*time.Second)
+//		externalValue.Store(true)
+//	}()
+//
+//	assert.Never(t, func() bool {
+//		// 🤝 Use thread-safe access when communicating with other goroutines!
+//		return externalValue.Load()
+//	}, time.Second, 10*time.Millisecond, "condition must never become true within 1s")
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

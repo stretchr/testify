@@ -16,7 +16,7 @@ func TestImplementsWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Implements((*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -30,7 +30,7 @@ func TestIsNotTypeWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.IsNotType(new(AssertionTesterConformingObject), new(AssertionTesterConformingObject))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -44,7 +44,7 @@ func TestIsTypeWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.IsType(new(AssertionTesterConformingObject), new(AssertionTesterNonConformingObject))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -58,7 +58,7 @@ func TestEqualWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Equal(1, 2)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -72,7 +72,7 @@ func TestNotEqualWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.NotEqual(2, 2)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -91,7 +91,7 @@ func TestExactlyWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Exactly(a, c)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -105,7 +105,7 @@ func TestNotNilWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.NotNil(nil)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -119,7 +119,7 @@ func TestNilWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Nil(new(AssertionTesterConformingObject))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -133,7 +133,7 @@ func TestTrueWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.True(false)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -147,7 +147,7 @@ func TestFalseWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.False(true)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -161,7 +161,7 @@ func TestContainsWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Contains("Hello World", "Salut")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -175,7 +175,7 @@ func TestNotContainsWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.NotContains("Hello World", "Hello")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -191,7 +191,7 @@ func TestPanicsWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Panics(func() {})
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -207,7 +207,7 @@ func TestNotPanicsWrapper(t *testing.T) {
 	mockRequire.NotPanics(func() {
 		panic("Panic!")
 	})
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -221,7 +221,7 @@ func TestNoErrorWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.NoError(errors.New("some error"))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -235,7 +235,7 @@ func TestErrorWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Error(nil)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -249,7 +249,7 @@ func TestErrorContainsWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.ErrorContains(errors.New("some error: another error"), "different error")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -263,7 +263,7 @@ func TestEqualErrorWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.EqualError(errors.New("some error"), "Not some error")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -277,7 +277,7 @@ func TestEmptyWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Empty("x")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -291,7 +291,7 @@ func TestNotEmptyWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.NotEmpty("")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -308,7 +308,7 @@ func TestWithinDurationWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.WithinDuration(a, b, 5*time.Second)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -322,7 +322,7 @@ func TestInDeltaWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.InDelta(1, 2, 0.5)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -336,7 +336,7 @@ func TestZeroWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.Zero(1)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -350,7 +350,7 @@ func TestNotZeroWrapper(t *testing.T) {
 	mockT := new(MockT)
 	mockRequire := New(mockT)
 	mockRequire.NotZero(0)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -362,7 +362,7 @@ func TestJSONEqWrapper_EqualSONString(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -374,7 +374,7 @@ func TestJSONEqWrapper_EquivalentButNotEqual(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -387,7 +387,7 @@ func TestJSONEqWrapper_HashOfArraysAndHashes(t *testing.T) {
 
 	mockRequire.JSONEq("{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}")
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -399,7 +399,7 @@ func TestJSONEqWrapper_Array(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -411,7 +411,7 @@ func TestJSONEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -423,7 +423,7 @@ func TestJSONEqWrapper_HashesNotEquivalent(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -435,7 +435,7 @@ func TestJSONEqWrapper_ActualIsNotJSON(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`{"foo": "bar"}`, "Not JSON")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -447,7 +447,7 @@ func TestJSONEqWrapper_ExpectedIsNotJSON(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq("Not JSON", `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -459,7 +459,7 @@ func TestJSONEqWrapper_ExpectedAndActualNotJSON(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq("Not JSON", "Not JSON")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -471,7 +471,7 @@ func TestJSONEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -483,7 +483,7 @@ func TestYAMLEqWrapper_EqualYAMLString(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -495,7 +495,7 @@ func TestYAMLEqWrapper_EquivalentButNotEqual(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -533,7 +533,7 @@ array:
 `
 
 	mockRequire.YAMLEq(expected, actual)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -545,7 +545,7 @@ func TestYAMLEqWrapper_Array(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -557,7 +557,7 @@ func TestYAMLEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -569,7 +569,7 @@ func TestYAMLEqWrapper_HashesNotEquivalent(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -581,7 +581,7 @@ func TestYAMLEqWrapper_ActualIsSimpleString(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq(`{"foo": "bar"}`, "Simple String")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -593,7 +593,7 @@ func TestYAMLEqWrapper_ExpectedIsSimpleString(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq("Simple String", `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -605,7 +605,7 @@ func TestYAMLEqWrapper_ExpectedAndActualSimpleString(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq("Simple String", "Simple String")
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -617,7 +617,7 @@ func TestYAMLEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
 	mockRequire := New(mockT)
 
 	mockRequire.YAMLEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
