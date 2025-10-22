@@ -7,7 +7,7 @@ go 1.17
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/stretchr/objx v0.5.2 // To avoid a cycle the version of testify used by objx should be excluded below
-	gopkg.in/yaml.v3 v3.0.1
+	go.yaml.in/yaml/v3 v3.0.4
 )
 
 // Break dependency cycle with objx.
