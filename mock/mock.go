@@ -207,6 +207,22 @@ func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
 
+// OnF chains a new expectation description onto the mcked interface using
+// a function reference instead of a string method name.
+// for example:
+//
+//	mock.
+//	   OnF(mocked.MyMethod, 1).Return(nil).
+//	   OnF(mocked.MyOtherMethod, 'a', 'b', 'c').Return(errors.New("Some Error"))
+//
+// The `method` argument must be a function; otherwise, this call will panic.
+// The function name is resolved using reflection and runtime information.
+//
+//go:noinline
+func (c *Call) OnF(method interface{}, args ...interface{}) *Call {
+	return c.Parent.On(runtimeMethodName(method), args...)
+}
+
 // Unset removes all mock handlers that satisfy the call instance arguments from being
 // called. Only supported on call instances with static input arguments.
 //
@@ -378,6 +394,18 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	c := newCall(m, methodName, assert.CallerInfo(), arguments, make([]interface{}, 0))
 	m.ExpectedCalls = append(m.ExpectedCalls, c)
 	return c
+}
+
+// OnF starts a description of an expectation of the specified method
+// being called using a function reference instead of a string method name.
+//
+//	Mock.OnF(mocked.MyMethod, arg1, arg2)
+//
+// The `method` argument must be a function; otherwise, OnF will panic.
+// The function name is determined using reflection and runtime information,
+// and then passed to On(methodName, args...).
+func (m *Mock) OnF(method interface{}, args ...interface{}) *Call {
+	return m.On(runtimeMethodName(method), args...)
 }
 
 // /*
@@ -1301,6 +1329,20 @@ func funcName(f *runtime.Func) string {
 	}
 
 	return splitted[len(splitted)-1]
+}
+
+func runtimeMethodName(f interface{}) string {
+	t := reflect.TypeOf(f)
+
+	if t.Kind() != reflect.Func {
+		panic("not a function")
+	}
+
+	fname := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+
+	parts := strings.Split(fname, ".")
+
+	return strings.Split(parts[len(parts)-1], "-")[0]
 }
 
 func isFuncSame(f1, f2 *runtime.Func) bool {
