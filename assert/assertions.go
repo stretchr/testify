@@ -487,6 +487,54 @@ func IsNotType(t TestingT, theType, object interface{}, msgAndArgs ...interface{
 	return Fail(t, fmt.Sprintf("Object type expected to be different than %T", theType), msgAndArgs...)
 }
 
+// Kind asserts that the given object's kind matches the expected kind.
+//
+//	assert.Kind(t, reflect.String, "Hello World")
+func Kind(t TestingT, expectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if expectedKind == reflect.Invalid {
+		return Fail(t, "reflect.Invalid must not be used as expected kind", msgAndArgs...)
+	}
+
+	if object == nil {
+		return Fail(t, "Object must not be nil", msgAndArgs...)
+	}
+
+	objectKind := reflect.TypeOf(object).Kind()
+	if objectKind == expectedKind {
+		return true
+	}
+
+	return Fail(t, fmt.Sprintf("Object expected to be of kind %v, but was %v", expectedKind, objectKind), msgAndArgs...)
+}
+
+// NotKind asserts that the given object's kind does not match the unexpected kind.
+//
+//	assert.NotKind(t, reflect.Int, "Hello World")
+func NotKind(t TestingT, unexpectedKind reflect.Kind, object interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if unexpectedKind == reflect.Invalid {
+		return Fail(t, "reflect.Invalid must not be used as unexpected kind", msgAndArgs...)
+	}
+
+	if object == nil {
+		return Fail(t, "Object must not be nil", msgAndArgs...)
+	}
+
+	objectKind := reflect.TypeOf(object).Kind()
+	if objectKind != unexpectedKind {
+		return true
+	}
+
+	return Fail(t, fmt.Sprintf("Object expected NOT to be of kind %v, but was %v", unexpectedKind, objectKind), msgAndArgs...)
+}
+
 // Equal asserts that two objects are equal.
 //
 //	assert.Equal(t, 123, 123)
