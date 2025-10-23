@@ -25,19 +25,30 @@ func (a *AssertionTesterConformingObject) TestMethod() {
 type AssertionTesterNonConformingObject struct {
 }
 
+// MockT is a mock implementation of testing.T that embeds assert.CollectT.
+// It differs from assert.CollectT by not stopping execution when FailNow is called.
 type MockT struct {
-	Failed bool
+	// CollectT is embedded to provide assertion methods and error collection.
+	assert.CollectT
+
+	// Indicates whether the test has finished and would have stopped execution in a real testing.T.
+	// This overrides the CollectT's finished state to allow checking it after FailNow is called.
+	// The name 'finished' was adopted from testing.T's internal state field.
+	finished bool
 }
 
-// Helper is like [testing.T.Helper] but does nothing.
-func (MockT) Helper() {}
+// calledFailNow returns whether FailNow was called
+// Note that MockT does not actually stop execution when FailNow is called,
+// because that would prevent test analysis after the call.
+func (t *MockT) calledFailNow() bool {
+	return t.finished
+}
 
+// FailNow marks the function as failed without stopping execution.
+// This overrides the CollectT's FailNow to allow checking the finished state after the call.
 func (t *MockT) FailNow() {
-	t.Failed = true
-}
-
-func (t *MockT) Errorf(format string, args ...interface{}) {
-	_, _ = format, args
+	t.CollectT.Fail()
+	t.finished = true
 }
 
 func TestImplements(t *testing.T) {
@@ -47,7 +58,7 @@ func TestImplements(t *testing.T) {
 
 	mockT := new(MockT)
 	Implements(mockT, (*AssertionTesterInterface)(nil), new(AssertionTesterNonConformingObject))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -59,8 +70,39 @@ func TestIsType(t *testing.T) {
 
 	mockT := new(MockT)
 	IsType(mockT, new(AssertionTesterConformingObject), new(AssertionTesterNonConformingObject))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
+	}
+}
+
+func TestMockTFailNow(t *testing.T) {
+	t.Parallel()
+
+	m := new(MockT)
+	m.Errorf("test error")
+
+	m.FailNow()
+	Len(t, m.Errors(), 1, "MockT should have one recorded error")
+	True(t, m.Failed(), "MockT should be marked as failed after Errorf is called")
+	True(t, m.calledFailNow(), "MockT should indicate that FailNow was called")
+
+	// In real testing.T, execution would stop after FailNow is called.
+	// However, in MockT, execution continues to allow test analysis.
+	// So we can still call Errorf again. In the future, we might reject Errorf after FailNow.
+	m.Errorf("error after fail")
+	Len(t, m.Errors(), 2, "MockT should have two recorded errors")
+}
+
+func TestMockTFailNowWithoutError(t *testing.T) {
+	t.Parallel()
+	m := new(MockT)
+
+	// Also check if we can call FailNow multiple times without prior Errorf calls.
+	for i := 0; i < 3; i++ {
+		m.FailNow()
+		True(t, m.Failed(), "MockT should be marked as failed after FailNow is called")
+		Len(t, m.Errors(), 0, "MockT should have no recorded errors")
+		True(t, m.calledFailNow(), "MockT should indicate that FailNow was called")
 	}
 }
 
@@ -71,7 +113,7 @@ func TestEqual(t *testing.T) {
 
 	mockT := new(MockT)
 	Equal(mockT, 1, 2)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 
@@ -83,7 +125,7 @@ func TestNotEqual(t *testing.T) {
 	NotEqual(t, 1, 2)
 	mockT := new(MockT)
 	NotEqual(mockT, 2, 2)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -99,7 +141,7 @@ func TestExactly(t *testing.T) {
 
 	mockT := new(MockT)
 	Exactly(mockT, a, c)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -111,7 +153,7 @@ func TestNotNil(t *testing.T) {
 
 	mockT := new(MockT)
 	NotNil(mockT, nil)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -123,7 +165,7 @@ func TestNil(t *testing.T) {
 
 	mockT := new(MockT)
 	Nil(mockT, new(AssertionTesterConformingObject))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -135,7 +177,7 @@ func TestTrue(t *testing.T) {
 
 	mockT := new(MockT)
 	True(mockT, false)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -147,7 +189,7 @@ func TestFalse(t *testing.T) {
 
 	mockT := new(MockT)
 	False(mockT, true)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -159,7 +201,7 @@ func TestContains(t *testing.T) {
 
 	mockT := new(MockT)
 	Contains(mockT, "Hello World", "Salut")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -171,7 +213,7 @@ func TestNotContains(t *testing.T) {
 
 	mockT := new(MockT)
 	NotContains(mockT, "Hello World", "Hello")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -185,7 +227,7 @@ func TestPanics(t *testing.T) {
 
 	mockT := new(MockT)
 	Panics(mockT, func() {})
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -199,7 +241,7 @@ func TestNotPanics(t *testing.T) {
 	NotPanics(mockT, func() {
 		panic("Panic!")
 	})
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -211,7 +253,7 @@ func TestNoError(t *testing.T) {
 
 	mockT := new(MockT)
 	NoError(mockT, errors.New("some error"))
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -223,7 +265,7 @@ func TestError(t *testing.T) {
 
 	mockT := new(MockT)
 	Error(mockT, nil)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -235,7 +277,7 @@ func TestErrorContains(t *testing.T) {
 
 	mockT := new(MockT)
 	ErrorContains(mockT, errors.New("some error"), "different error")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -247,7 +289,7 @@ func TestEqualError(t *testing.T) {
 
 	mockT := new(MockT)
 	EqualError(mockT, errors.New("some error"), "Not some error")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -259,7 +301,7 @@ func TestEmpty(t *testing.T) {
 
 	mockT := new(MockT)
 	Empty(mockT, "x")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -271,7 +313,7 @@ func TestNotEmpty(t *testing.T) {
 
 	mockT := new(MockT)
 	NotEmpty(mockT, "")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -286,7 +328,7 @@ func TestWithinDuration(t *testing.T) {
 
 	mockT := new(MockT)
 	WithinDuration(mockT, a, b, 5*time.Second)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -298,7 +340,7 @@ func TestInDelta(t *testing.T) {
 
 	mockT := new(MockT)
 	InDelta(mockT, 1, 2, 0.5)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -310,7 +352,7 @@ func TestZero(t *testing.T) {
 
 	mockT := new(MockT)
 	Zero(mockT, "x")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -322,7 +364,7 @@ func TestNotZero(t *testing.T) {
 
 	mockT := new(MockT)
 	NotZero(mockT, "")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -332,7 +374,7 @@ func TestJSONEq_EqualSONString(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -342,7 +384,7 @@ func TestJSONEq_EquivalentButNotEqual(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -353,7 +395,7 @@ func TestJSONEq_HashOfArraysAndHashes(t *testing.T) {
 	mockT := new(MockT)
 	JSONEq(mockT, "{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
 		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}")
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -363,7 +405,7 @@ func TestJSONEq_Array(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -373,7 +415,7 @@ func TestJSONEq_HashAndArrayNotEquivalent(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -383,7 +425,7 @@ func TestJSONEq_HashesNotEquivalent(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -393,7 +435,7 @@ func TestJSONEq_ActualIsNotJSON(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, `{"foo": "bar"}`, "Not JSON")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -403,7 +445,7 @@ func TestJSONEq_ExpectedIsNotJSON(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, "Not JSON", `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -413,7 +455,7 @@ func TestJSONEq_ExpectedAndActualNotJSON(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, "Not JSON", "Not JSON")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -423,7 +465,7 @@ func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 
 	mockT := new(MockT)
 	JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -433,7 +475,7 @@ func TestYAMLEq_EqualYAMLString(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -443,7 +485,7 @@ func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -478,7 +520,7 @@ array:
   - ["nested", "array", 5.5]
 `
 	YAMLEq(mockT, expected, actual)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -488,7 +530,7 @@ func TestYAMLEq_Array(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`)
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -498,7 +540,7 @@ func TestYAMLEq_HashAndArrayNotEquivalent(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -508,7 +550,7 @@ func TestYAMLEq_HashesNotEquivalent(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -518,7 +560,7 @@ func TestYAMLEq_ActualIsSimpleString(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, `{"foo": "bar"}`, "Simple String")
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -528,7 +570,7 @@ func TestYAMLEq_ExpectedIsSimpleString(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, "Simple String", `{"foo": "bar", "hello": "world"}`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -538,7 +580,7 @@ func TestYAMLEq_ExpectedAndActualSimpleString(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, "Simple String", "Simple String")
-	if mockT.Failed {
+	if mockT.Failed() {
 		t.Error("Check should pass")
 	}
 }
@@ -548,7 +590,7 @@ func TestYAMLEq_ArraysOfDifferentOrder(t *testing.T) {
 
 	mockT := new(MockT)
 	YAMLEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`)
-	if !mockT.Failed {
+	if !mockT.Failed() {
 		t.Error("Check should fail")
 	}
 }
@@ -768,7 +810,7 @@ func TestEventuallyWithTFalse(t *testing.T) {
 	}
 
 	EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
-	True(t, mockT.Failed, "Check should fail")
+	True(t, mockT.Failed(), "Check should fail")
 }
 
 func TestEventuallyWithTTrue(t *testing.T) {
@@ -785,6 +827,6 @@ func TestEventuallyWithTTrue(t *testing.T) {
 	}
 
 	EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
-	False(t, mockT.Failed, "Check should pass")
+	False(t, mockT.Failed(), "Check should pass")
 	Equal(t, 2, counter, "Condition is expected to be called 2 times")
 }

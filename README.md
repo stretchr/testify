@@ -2,7 +2,7 @@ Testify - Thou Shalt Write Tests
 ================================
 
 > [!NOTE]
-> Testify is being maintained at v1, no breaking changes will be accepted in this repo.  
+> Testify is being maintained at v1, no breaking changes will be accepted in this repo.
 > [See discussion about v2](https://github.com/stretchr/testify/discussions/1560).
 
 [![Build Status](https://github.com/stretchr/testify/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/stretchr/testify/actions/workflows/main.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![PkgGoDev](https://pkg.go.dev/badge/github.com/stretchr/testify)](https://pkg.go.dev/github.com/stretchr/testify)
@@ -31,6 +31,17 @@ The `assert` package provides some helpful methods that allow you to write bette
   * Prints friendly, easy to read failure descriptions
   * Allows for very readable code
   * Optionally annotate each assertion with a message
+  * Supports polling assertions via `assert.Eventually`, `assert.EventuallyWithT`, and similar functions
+
+> [!Note]
+> See [EVENTUALLY.md](EVENTUALLY.md) for details about timing, exit behavior, and panic handling,
+> and read the source code and source code comments carefully.
+>
+> The `Eventually` functions behavior got some recent bug fixes and behavior changes for longstanding issues.
+>
+> 👉️ Please **read** the [document](EVENTUALLY.md) and the **source code comments**! \
+> 👉️ Please **adapt** your code if you were relying on the buggy behavior!
+
 
 See it in action:
 
