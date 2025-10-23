@@ -17,6 +17,7 @@ import (
 )
 
 var matchMethod = flag.String("testify.m", "", "regular expression to select tests of the testify suite to run")
+var repeatItem = flag.Uint("testify.c", 1, "used to repeat each test multiple times without rerunning Setup/TearDownSuite")
 
 // Suite is a basic testing suite with methods for storing and
 // retrieving the current *testing.T context.
@@ -212,7 +213,10 @@ func Run(t *testing.T, suite TestingSuite) {
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
 		}
-		tests = append(tests, test)
+
+		for i := uint(0); i < *repeatItem; i++ {
+			tests = append(tests, test)
+		}
 	}
 
 	if len(tests) == 0 {
