@@ -235,7 +235,7 @@ func (c *Call) Unset() *Call {
 	var index int // write index
 	for _, call := range c.Parent.ExpectedCalls {
 		if call.Method == c.Method {
-			_, diffCount := call.Arguments.Diff(c.Arguments)
+			diffCount := call.Arguments.countDiff(c.Arguments)
 			if diffCount == 0 {
 				foundMatchingCall = true
 				// Remove from ExpectedCalls - just skip it
@@ -389,7 +389,7 @@ func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *
 
 	for i, call := range m.ExpectedCalls {
 		if call.Method == method {
-			_, diffCount := call.Arguments.Diff(arguments)
+			diffCount := call.Arguments.countDiff(arguments)
 			if diffCount == 0 {
 				expectedCall = call
 				if call.Repeatability > -1 {
@@ -755,7 +755,7 @@ func (m *Mock) methodWasCalled(methodName string, expected []interface{}) bool {
 	for _, call := range m.calls() {
 		if call.Method == methodName {
 
-			_, differences := Arguments(expected).Diff(call.Arguments)
+			differences := Arguments(expected).countDiff(call.Arguments)
 
 			if differences == 0 {
 				// found the expected call
@@ -957,10 +957,33 @@ func (args Arguments) Is(objects ...interface{}) bool {
 //
 // Returns the diff string and number of differences found.
 func (args Arguments) Diff(objects []interface{}) (string, int) {
+	return args.diff(objects, true)
+}
+
+// countDiff gets the number of differences between the arguments
+// and the specified objects.
+//
+// Returns the diff number of differences found.
+func (args Arguments) countDiff(objects []interface{}) int {
+	_, count := args.diff(objects, false)
+	return count
+}
+
+func noOpSprintf(format string, args ...interface{}) string {
+	return ""
+}
+
+// diff allows for the diffing of arguments and objects.
+func (args Arguments) diff(objects []interface{}, includeOutput bool) (string, int) {
 	// TODO: could return string as error and nil for No difference
 
 	output := "\n"
 	var differences int
+
+	optSprintf := fmt.Sprintf
+	if !includeOutput {
+		optSprintf = noOpSprintf
+	}
 
 	maxArgCount := len(args)
 	if len(objects) > maxArgCount {
@@ -976,7 +999,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			actualFmt = "(Missing)"
 		} else {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			actualFmt = optSprintf("(%[1]T=%[1]v)", actual)
 		}
 
 		if len(args) <= i {
@@ -984,7 +1007,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expectedFmt = "(Missing)"
 		} else {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			expectedFmt = optSprintf("(%[1]T=%[1]v)", expected)
 		}
 
 		if matcher, ok := expected.(argumentMatcher); ok {
@@ -992,16 +1015,16 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						actualFmt = fmt.Sprintf("panic in argument matcher: %v", r)
+						actualFmt = optSprintf("panic in argument matcher: %v", r)
 					}
 				}()
 				matches = matcher.Matches(actual)
 			}()
 			if matches {
-				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
+				output = optSprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
 				differences++
-				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
+				output = optSprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
 		} else {
 			switch expected := expected.(type) {
@@ -1010,13 +1033,13 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
 					// not match
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+					output = optSprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 				}
 			case *IsTypeArgument:
 				actualT := reflect.TypeOf(actual)
 				if actualT != expected.t {
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, safeTypeName(expected.t), safeTypeName(actualT), actualFmt)
+					output = optSprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, safeTypeName(expected.t), safeTypeName(actualT), actualFmt)
 				}
 			case *FunctionalOptionsArgument:
 				var name string
@@ -1027,26 +1050,26 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				const tName = "[]interface{}"
 				if name != reflect.TypeOf(actual).String() && len(expected.values) != 0 {
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
+					output = optSprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
 				} else {
 					if ef, af := assertOpts(expected.values, actual); ef == "" && af == "" {
 						// match
-						output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
+						output = optSprintf("%s\t%d: PASS:  %s == %s\n", output, i, tName, tName)
 					} else {
 						// not match
 						differences++
-						output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
+						output = optSprintf("%s\t%d: FAIL:  %s != %s\n", output, i, af, ef)
 					}
 				}
 
 			default:
 				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 					// match
-					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
+					output = optSprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 				} else {
 					// not match
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
+					output = optSprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actualFmt, expectedFmt)
 				}
 			}
 		}
