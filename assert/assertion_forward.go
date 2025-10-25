@@ -1368,8 +1368,12 @@ func (a *Assertions) NotPanicsf(f PanicTestFunc, msg string, args ...interface{}
 
 // NotRegexp asserts that a specified regexp does not match a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.MustCompile.
+//
 //	a.NotRegexp(regexp.MustCompile("starts"), "it's starting")
-//	a.NotRegexp("^start", "it's not starting")
+//	a.NotRegexp("^start", "it's not starting") // string is compiled
 func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1379,8 +1383,12 @@ func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...in
 
 // NotRegexpf asserts that a specified regexp does not match a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.MustCompile.
+//
 //	a.NotRegexpf(regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
-//	a.NotRegexpf("^start", "it's not starting", "error message %s", "formatted")
+//	a.NotRegexpf("^start", "it's not starting", "error message %s", "formatted") // string is compiled
 func (a *Assertions) NotRegexpf(rx interface{}, str interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1552,8 +1560,12 @@ func (a *Assertions) Positivef(e interface{}, msg string, args ...interface{}) b
 
 // Regexp asserts that a specified regexp matches a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.MustCompile.
+//
 //	a.Regexp(regexp.MustCompile("start"), "it's starting")
-//	a.Regexp("start...$", "it's not starting")
+//	a.Regexp("start...$", "it's not starting") // string is compiled
 func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1563,8 +1575,12 @@ func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...inter
 
 // Regexpf asserts that a specified regexp matches a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.MustCompile.
+//
 //	a.Regexpf(regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
-//	a.Regexpf("start...$", "it's not starting", "error message %s", "formatted")
+//	a.Regexpf("start...$", "it's not starting", "error message %s", "formatted") // string is compiled
 func (a *Assertions) Regexpf(rx interface{}, str interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
