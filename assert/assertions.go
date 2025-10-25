@@ -1729,8 +1729,13 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 
 // Regexp asserts that a specified regexp matches a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.MustCompile.
+//
+// Examples:
 //	assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
-//	assert.Regexp(t, "start...$", "it's not starting")
+//	assert.Regexp(t, "start...$", "it's not starting") // string is compiled
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1747,8 +1752,13 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 
 // NotRegexp asserts that a specified regexp does not match a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.MustCompile.
+//
+// Examples:
 //	assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
-//	assert.NotRegexp(t, "^start", "it's not starting")
+//	assert.NotRegexp(t, "^start", "it's not starting") // string is compiled
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
