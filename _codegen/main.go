@@ -107,7 +107,8 @@ func parseTemplates() (*template.Template, *template.Template, error) {
 		funcTemplate = string(f)
 	}
 	tmpl, err := template.New("function").Funcs(template.FuncMap{
-		"replace": strings.ReplaceAll,
+		"replace":               strings.ReplaceAll,
+		"requireCommentParseIf": requireCommentParseIf,
 	}).Parse(funcTemplate)
 	if err != nil {
 		return nil, nil, err
@@ -296,6 +297,55 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 	search := fmt.Sprintf("assert.%s(t, ", f.DocInfo.Name)
 	replace := fmt.Sprintf("%s.%s(", receiver, f.DocInfo.Name)
 	return strings.Replace(f.Comment(), search, replace, -1)
+}
+
+// requireCommentParseIf rewrites invalid "if require..." examples
+// in generated documentation for the require package.
+//
+// The assert package documentation often shows conditional usage like:
+//
+//	// if assert.NoError(t, err) {
+//	//     // continue with test
+//	// }
+//
+// However, require package methods do not return bool values;
+// they call t.FailNow() on failure. This function transforms
+// such conditional blocks by removing the "if require.Function() {"
+// wrapper and adjusting indentation to show proper usage:
+//
+//	// require.NoError(t, err)
+//	// continue with test
+func requireCommentParseIf(s string) string {
+	lines := strings.Split(s, "\n")
+	out := make([]string, 0, len(lines))
+	rePrefix := regexp.MustCompile(`//[[:blank:]]+`)
+	ifBlock := false
+	prePrefix := "//\t"
+
+	for _, line := range lines {
+		commentPrefix := rePrefix.FindString(line)
+		comment := strings.TrimSpace(line[2:])
+
+		if ifBlock && strings.HasPrefix(comment, "}") {
+			ifBlock = false
+			continue
+		}
+
+		if strings.HasPrefix(comment, "if require.") && strings.HasSuffix(comment, "{") {
+			ifBlock = true
+			comment = strings.TrimPrefix(comment, "if ")
+			comment = strings.TrimSpace(comment)
+			comment = strings.TrimSuffix(comment, "{")
+		}
+
+		if ifBlock {
+			commentPrefix = prePrefix
+		}
+
+		prePrefix = commentPrefix
+		out = append(out, commentPrefix+comment)
+	}
+	return strings.Join(out, "\n")
 }
 
 // Standard header https://go.dev/s/generatedcode.
