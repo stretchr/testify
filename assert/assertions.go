@@ -1928,6 +1928,23 @@ func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
 	return t, k
 }
 
+func isStructWithUnexportedMapField(t reflect.Type) bool {
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if !field.IsExported() &&
+			field.Type.Kind() == reflect.Map &&
+			field.Type.Key().Kind() == reflect.Array {
+			return true
+		}
+	}
+
+	return false
+}
+
 // diff returns a diff of both values as long as both are of the same type and
 // are a struct, map, slice, array or string. Otherwise it returns an empty string.
 func diff(expected interface{}, actual interface{}) string {
@@ -1948,13 +1965,16 @@ func diff(expected interface{}, actual interface{}) string {
 
 	var e, a string
 
-	switch et {
-	case reflect.TypeOf(""):
+	switch {
+	case et == reflect.TypeOf(""):
 		e = reflect.ValueOf(expected).String()
 		a = reflect.ValueOf(actual).String()
-	case reflect.TypeOf(time.Time{}):
+	case et == reflect.TypeOf(time.Time{}):
 		e = spewConfigStringerEnabled.Sdump(expected)
 		a = spewConfigStringerEnabled.Sdump(actual)
+	case isStructWithUnexportedMapField(et):
+		e = reflect.ValueOf(expected).String()
+		a = reflect.ValueOf(actual).String()
 	default:
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
