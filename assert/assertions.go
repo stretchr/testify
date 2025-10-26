@@ -2004,14 +2004,34 @@ type tHelper = interface {
 // Eventually asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
+//
 //	assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
 func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
-	ch := make(chan bool, 1)
-	checkCond := func() { ch <- condition() }
+	const (
+		conditionExitedUnexpectedly = iota
+		conditionReturnedTrue
+		conditionReturnedFalse
+	)
+
+	resultCh := make(chan int, 1)
+	checkCond := func() {
+		result := conditionExitedUnexpectedly
+		defer func() {
+			resultCh <- result
+		}()
+		if condition() {
+			result = conditionReturnedTrue
+		} else {
+			result = conditionReturnedFalse
+		}
+	}
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2031,11 +2051,20 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		case <-tickC:
 			tickC = nil
 			go checkCond()
-		case v := <-ch:
-			if v {
+		case result := <-resultCh:
+			switch result {
+			case conditionExitedUnexpectedly:
+				// Condition exited via [runtime.Goexit]. This usually means
+				// that the condition called t.FailNow() on the outer 't'.
+				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
+			case conditionReturnedTrue:
 				return true
+			case conditionReturnedFalse:
+				// All good, continue checking.
+				fallthrough
+			default:
+				tickC = ticker.C
 			}
-			tickC = ticker.C
 		}
 	}
 }
@@ -2046,6 +2075,10 @@ type CollectT struct {
 	// If it's non-nil but len(c.errors) == 0, this is also a failure
 	// obtained by direct c.FailNow() call.
 	errors []error
+
+	// exited is set to true if FailNow was called to indicate that the test
+	// exited correctly via runtime.Goexit.
+	exited bool
 }
 
 // Helper is like [testing.T.Helper] but does nothing.
@@ -2059,6 +2092,7 @@ func (c *CollectT) Errorf(format string, args ...interface{}) {
 // FailNow stops execution by calling runtime.Goexit.
 func (c *CollectT) FailNow() {
 	c.fail()
+	c.exited = true
 	runtime.Goexit()
 }
 
@@ -2091,6 +2125,12 @@ func (c *CollectT) failed() bool {
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// and the exit was not via 'collect.FailNow()', the assertion fails immediately.
+// This usually means that the condition called t.FailNow() on the outer 't'.
+// Use [CollectT.FailNow] or 'require' functions on the provided 'collect' to
+// only fail the current tick.
+//
 //	externalValue := false
 //	go func() {
 //		time.Sleep(8*time.Second)
@@ -2105,15 +2145,35 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		h.Helper()
 	}
 
+	const (
+		conditionExitedUnexpectedly = iota
+		conditionFailed
+		conditionSucceeded
+	)
+
 	var lastFinishedTickErrs []error
-	ch := make(chan *CollectT, 1)
+	ch := make(chan int, 1)
 
 	checkCond := func() {
+		result := conditionExitedUnexpectedly
 		collect := new(CollectT)
 		defer func() {
-			ch <- collect
+			if collect.exited {
+				// Condition exited via [CollectT.FailNow], which is a regular
+				// way to fail the condition early and exit the goroutine.
+				result = conditionFailed
+			}
+			// Keep the collected tick errors, so that they can be copied to 't'
+			// when timeout is reached or there is an unexpected exit.
+			lastFinishedTickErrs = collect.errors
+			ch <- result
 		}()
 		condition(collect)
+		if collect.failed() {
+			result = conditionFailed
+		} else {
+			result = conditionSucceeded
+		}
 	}
 
 	timer := time.NewTimer(waitFor)
@@ -2137,13 +2197,21 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		case <-tickC:
 			tickC = nil
 			go checkCond()
-		case collect := <-ch:
-			if !collect.failed() {
+		case result := <-ch:
+			switch result {
+			case conditionExitedUnexpectedly:
+				for _, err := range lastFinishedTickErrs {
+					t.Errorf("%v", err)
+				}
+				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
+			case conditionSucceeded:
 				return true
+			case conditionFailed:
+				// All good, continue checking.
+				fallthrough
+			default:
+				tickC = ticker.C
 			}
-			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
-			lastFinishedTickErrs = collect.errors
-			tickC = ticker.C
 		}
 	}
 }
@@ -2151,14 +2219,34 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
+//
 //	assert.Never(t, func() bool { return false; }, time.Second, 10*time.Millisecond)
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
-	ch := make(chan bool, 1)
-	checkCond := func() { ch <- condition() }
+	const (
+		conditionExitedUnexpectedly = iota
+		conditionReturnedTrue
+		conditionReturnedFalse
+	)
+
+	ch := make(chan int, 1)
+	checkCond := func() {
+		result := conditionExitedUnexpectedly
+		defer func() {
+			ch <- result
+		}()
+		if condition() {
+			result = conditionReturnedTrue
+		} else {
+			result = conditionReturnedFalse
+		}
+	}
 
 	timer := time.NewTimer(waitFor)
 	defer timer.Stop()
@@ -2178,11 +2266,20 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 		case <-tickC:
 			tickC = nil
 			go checkCond()
-		case v := <-ch:
-			if v {
+		case result := <-ch:
+			switch result {
+			case conditionExitedUnexpectedly:
+				// Condition exited via [runtime.Goexit]. This usually means
+				// that the condition called t.FailNow() on the outer 't'.
+				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
+			case conditionReturnedTrue:
 				return Fail(t, "Condition satisfied", msgAndArgs...)
+			case conditionReturnedFalse:
+				// All good, continue checking.
+				fallthrough
+			default:
+				tickC = ticker.C
 			}
-			tickC = ticker.C
 		}
 	}
 }
