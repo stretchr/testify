@@ -1708,22 +1708,28 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 	return true
 }
 
-// matchRegexp return true if a specified regexp matches a string.
-func matchRegexp(rx interface{}, str interface{}) bool {
+// matchRegexp returns whether the provided regular expression matches the input string.
+// If the rx cannot be compiled into a valid regexp, an error is returned.
+func matchRegexp(rx interface{}, str interface{}) (bool, error) {
 	var r *regexp.Regexp
 	if rr, ok := rx.(*regexp.Regexp); ok {
 		r = rr
 	} else {
-		r = regexp.MustCompile(fmt.Sprint(rx))
+		// Safely attempt to compile the pattern; on error, report it so callers can fail the assertion.
+		compiled, err := regexp.Compile(fmt.Sprint(rx))
+		if err != nil {
+			return false, err
+		}
+		r = compiled
 	}
 
 	switch v := str.(type) {
 	case []byte:
-		return r.Match(v)
+		return r.Match(v), nil
 	case string:
-		return r.MatchString(v)
+		return r.MatchString(v), nil
 	default:
-		return r.MatchString(fmt.Sprint(v))
+		return r.MatchString(fmt.Sprint(v)), nil
 	}
 }
 
@@ -1731,7 +1737,7 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 //
 // The rx (expression) argument should be a *regexp.Regexp. For backward
 // compatibility, if rx is any other type, its value will be formatted with
-// %v and compiled using regexp.MustCompile.
+// %v and compiled using regexp.Compile.
 //
 // Examples:
 //	assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
@@ -1741,7 +1747,11 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 		h.Helper()
 	}
 
-	match := matchRegexp(rx, str)
+	match, err := matchRegexp(rx, str)
+	if err != nil {
+		Fail(t, fmt.Sprintf("Invalid regular expression: %v", err), msgAndArgs...)
+		return false
+	}
 
 	if !match {
 		Fail(t, fmt.Sprintf("Expect \"%v\" to match \"%v\"", str, rx), msgAndArgs...)
@@ -1754,7 +1764,7 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 //
 // The rx (expression) argument should be a *regexp.Regexp. For backward
 // compatibility, if rx is any other type, its value will be formatted with
-// %v and compiled using regexp.MustCompile.
+// %v and compiled using regexp.Compile.
 //
 // Examples:
 //	assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
@@ -1763,7 +1773,11 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	match := matchRegexp(rx, str)
+	match, err := matchRegexp(rx, str)
+	if err != nil {
+		Fail(t, fmt.Sprintf("Invalid regular expression: %v", err), msgAndArgs...)
+		return false
+	}
 
 	if match {
 		Fail(t, fmt.Sprintf("Expect \"%v\" to NOT match \"%v\"", str, rx), msgAndArgs...)

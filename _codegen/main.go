@@ -285,11 +285,22 @@ func (f *testFunc) Comment() string {
 }
 
 func (f *testFunc) CommentFormat() string {
-	search := fmt.Sprintf("%s", f.DocInfo.Name)
-	replace := fmt.Sprintf("%sf", f.DocInfo.Name)
-	comment := strings.Replace(f.Comment(), search, replace, -1)
-	exp := regexp.MustCompile(replace + `\(((\(\)|[^\n])+)\)`)
-	return exp.ReplaceAllString(comment, replace+`($1, "error message %s", "formatted")`)
+	// Start from the original comment text
+	comment := f.Comment()
+
+	// Replace only function call occurrences of the current function name with the formatted variant (suffix 'f').
+	// This avoids accidentally changing type names such as "*regexp.Regexp" into "*regexp.Regexpf".
+	// Match patterns like: "Name(" or "Name (" and replace with "Namef(".
+	fnCallPattern := regexp.MustCompile(`\b` + regexp.QuoteMeta(f.DocInfo.Name) + `\s*\(`)
+	comment = fnCallPattern.ReplaceAllString(comment, f.DocInfo.Name+"f(")
+
+	// For all instances of the formatted function calls, append the formatted message arguments.
+	// Transform: Namef(args) -> Namef(args, "error message %s", "formatted")
+	// Keep the original arguments (captured as $1) and append the formatted message args.
+	addArgsStrict := regexp.MustCompile(regexp.QuoteMeta(f.DocInfo.Name+"f") + `\(((\(\)|[^\n])+?)\)`)
+	comment = addArgsStrict.ReplaceAllString(comment, f.DocInfo.Name+`f($1, "error message %s", "formatted")`)
+
+	return comment
 }
 
 func (f *testFunc) CommentWithoutT(receiver string) string {
