@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -2151,13 +2152,17 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		conditionSucceeded
 	)
 
-	var lastFinishedTickErrs []error
+	var lastFinishedTickErrs atomic.Value // of []error
 	ch := make(chan int, 1)
 
 	checkCond := func() {
 		result := conditionExitedUnexpectedly
 		collect := new(CollectT)
 		defer func() {
+			// At this point, the condition has returned or exited. It is safe
+			// to check collect.errors and collect.exited, unless the user has
+			// created additional goroutines that access 'collect', which would
+			// be a misuse and is not supported.
 			if collect.exited {
 				// Condition exited via [CollectT.FailNow], which is a regular
 				// way to fail the condition early and exit the goroutine.
@@ -2165,7 +2170,9 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			}
 			// Keep the collected tick errors, so that they can be copied to 't'
 			// when timeout is reached or there is an unexpected exit.
-			lastFinishedTickErrs = collect.errors
+			// Always store the actual value of collect.errors, even if nil
+			lastFinishedTickErrs.Store(collect.errors)
+
 			ch <- result
 		}()
 		condition(collect)
@@ -2173,6 +2180,16 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 			result = conditionFailed
 		} else {
 			result = conditionSucceeded
+		}
+	}
+
+	copyLastFinishedTickErrs := func() {
+		errs, ok := lastFinishedTickErrs.Load().([]error)
+		if !ok {
+			return
+		}
+		for _, err := range errs {
+			t.Errorf("%v", err)
 		}
 	}
 
@@ -2190,9 +2207,7 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	for {
 		select {
 		case <-timer.C:
-			for _, err := range lastFinishedTickErrs {
-				t.Errorf("%v", err)
-			}
+			copyLastFinishedTickErrs()
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
 		case <-tickC:
 			tickC = nil
@@ -2200,9 +2215,9 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		case result := <-ch:
 			switch result {
 			case conditionExitedUnexpectedly:
-				for _, err := range lastFinishedTickErrs {
-					t.Errorf("%v", err)
-				}
+				// Condition exited via [runtime.Goexit]. This usually means
+				// that the condition called t.FailNow() on the outer 't'.
+				copyLastFinishedTickErrs()
 				return Fail(t, "Condition exited unexpectedly", msgAndArgs...)
 			case conditionSucceeded:
 				return true

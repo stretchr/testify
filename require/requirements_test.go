@@ -797,12 +797,14 @@ func TestEventuallyWithTOuterFailNow(t *testing.T) {
 
 	counter := 0
 	condition := func(collect *assert.CollectT) {
-		// Simulate a FailNow on the outer 't'.
 		counter += 1
+
+		// Simulate [testing.T.FailNow] on the outer 't' by calling
+		// runtime.Goexit() manually.
 		runtime.Goexit()
 	}
 
 	EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
-	True(t, mockT.Failed, "Check should pass")
-	Equal(t, 1, counter, "Condition is expected to be called 1 times")
+	True(t, mockT.Failed, "Check should fail")
+	Equal(t, 1, counter, "Condition is expected to be called once")
 }
