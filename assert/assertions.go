@@ -1740,6 +1740,7 @@ func matchRegexp(rx interface{}, str interface{}) (bool, error) {
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 //	assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
 //	assert.Regexp(t, "start...$", "it's not starting") // string is compiled
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
@@ -1767,6 +1768,7 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 //	assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //	assert.NotRegexp(t, "^start", "it's not starting") // string is compiled
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
