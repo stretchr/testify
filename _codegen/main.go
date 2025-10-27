@@ -281,7 +281,19 @@ func (f *testFunc) ForwardedParamsFormat() string {
 }
 
 func (f *testFunc) Comment() string {
-	return "// " + strings.Replace(strings.TrimSpace(f.DocInfo.Doc), "\n", "\n// ", -1)
+	// Preserve original indentation, but ensure lines that start with a tab are
+	// prefixed with "//\t" (no extra space) to match canonical formatting of code examples.
+	raw := strings.TrimSpace(f.DocInfo.Doc)
+	lines := strings.Split(raw, "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "\t") {
+			// Example/code line: keep the leading tab directly after //
+			lines[i] = "//\t" + strings.TrimPrefix(line, "\t")
+		} else {
+			lines[i] = "// " + line
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (f *testFunc) CommentFormat() string {
