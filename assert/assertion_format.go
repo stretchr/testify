@@ -476,7 +476,7 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 }
 
 // Lenf asserts that the specified object has specific length.
-// Lenf also fails if the object has a type that len() not accept.
+// Len also fails if the object has a type that len() not accept.
 //
 // 	assert.Lenf(t, mySlice, 3, "error message %s", "formatted")
 func Lenf(t TestingT, object interface{}, length int, msg string, args ...interface{}) bool {
@@ -694,6 +694,7 @@ func NotPanicsf(t TestingT, f PanicTestFunc, msg string, args ...interface{}) bo
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 // 	assert.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
 // 	assert.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted") // string is compiled
 func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) bool {
@@ -791,6 +792,7 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 // 	assert.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
 // 	assert.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted") // string is compiled
 func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) bool {

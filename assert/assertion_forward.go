@@ -954,7 +954,7 @@ func (a *Assertions) Len(object interface{}, length int, msgAndArgs ...interface
 }
 
 // Lenf asserts that the specified object has specific length.
-// Lenf also fails if the object has a type that len() not accept.
+// Len also fails if the object has a type that len() not accept.
 //
 // 	a.Lenf(mySlice, 3, "error message %s", "formatted")
 func (a *Assertions) Lenf(object interface{}, length int, msg string, args ...interface{}) bool {
@@ -1373,6 +1373,7 @@ func (a *Assertions) NotPanicsf(f PanicTestFunc, msg string, args ...interface{}
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 // 	a.NotRegexp(regexp.MustCompile("starts"), "it's starting")
 // 	a.NotRegexp("^start", "it's not starting") // string is compiled
 func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
@@ -1389,6 +1390,7 @@ func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...in
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 // 	a.NotRegexpf(regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
 // 	a.NotRegexpf("^start", "it's not starting", "error message %s", "formatted") // string is compiled
 func (a *Assertions) NotRegexpf(rx interface{}, str interface{}, msg string, args ...interface{}) bool {
@@ -1567,6 +1569,7 @@ func (a *Assertions) Positivef(e interface{}, msg string, args ...interface{}) b
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 // 	a.Regexp(regexp.MustCompile("start"), "it's starting")
 // 	a.Regexp("start...$", "it's not starting") // string is compiled
 func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
@@ -1583,6 +1586,7 @@ func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...inter
 // %v and compiled using regexp.Compile.
 //
 // Examples:
+//
 // 	a.Regexpf(regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
 // 	a.Regexpf("start...$", "it's not starting", "error message %s", "formatted") // string is compiled
 func (a *Assertions) Regexpf(rx interface{}, str interface{}, msg string, args ...interface{}) bool {

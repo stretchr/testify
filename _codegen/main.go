@@ -288,17 +288,21 @@ func (f *testFunc) CommentFormat() string {
 	// Start from the original comment text
 	comment := f.Comment()
 
-	// Replace only function call occurrences of the current function name with the formatted variant (suffix 'f').
-	// This avoids accidentally changing type names such as "*regexp.Regexp" into "*regexp.Regexpf".
-	// Match patterns like: "Name(" or "Name (" and replace with "Namef(".
+	// 1) Ensure the leading doc header uses the formatted name (e.g., "Equalf asserts ...").
+	// Only change the very first line that starts with "// <Name>".
+	headerPattern := regexp.MustCompile(`^//\s*` + regexp.QuoteMeta(f.DocInfo.Name) + `\b`)
+	comment = headerPattern.ReplaceAllString(comment, "// "+f.DocInfo.Name+"f")
+
+	// 2) Replace only function call occurrences of the current function name with the formatted variant (suffix 'f').
+	//    This avoids accidentally changing type names such as "*regexp.Regexp" into "*regexp.Regexpf" by requiring a following '('.
 	fnCallPattern := regexp.MustCompile(`\b` + regexp.QuoteMeta(f.DocInfo.Name) + `\s*\(`)
 	comment = fnCallPattern.ReplaceAllString(comment, f.DocInfo.Name+"f(")
 
-	// For all instances of the formatted function calls, append the formatted message arguments.
-	// Transform: Namef(args) -> Namef(args, "error message %s", "formatted")
-	// Keep the original arguments (captured as $1) and append the formatted message args.
-	addArgsStrict := regexp.MustCompile(regexp.QuoteMeta(f.DocInfo.Name+"f") + `\(((\(\)|[^\n])+?)\)`)
-	comment = addArgsStrict.ReplaceAllString(comment, f.DocInfo.Name+`f($1, "error message %s", "formatted")`)
+	// 3) Append formatted message args at the end of each Namef(...) call within a single line.
+	//    Use a greedy match until the last closing paren on the same line to avoid inserting inside nested parentheses.
+	//    Example: Namef(t, uint32(123), int32(123)) -> Namef(t, uint32(123), int32(123), "error message %s", "formatted")
+	addArgsLine := regexp.MustCompile(`(?m)` + regexp.QuoteMeta(f.DocInfo.Name+"f(") + `(.*)\)`)
+	comment = addArgsLine.ReplaceAllString(comment, f.DocInfo.Name+`f($1, "error message %s", "formatted")`)
 
 	return comment
 }
