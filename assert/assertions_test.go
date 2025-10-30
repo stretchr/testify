@@ -3485,12 +3485,16 @@ func TestEventuallyWithTFalse(t *testing.T) {
 
 	mockT := new(errorsCapturingT)
 
+	count := 0
+
 	condition := func(collect *CollectT) {
+		count += 1
 		Fail(collect, "condition fixed failure")
 	}
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 2)
+	Greater(t, count, 3, "Condition is expected to be called multiple times")
 }
 
 func TestEventuallyWithTTrue(t *testing.T) {
@@ -3552,22 +3556,26 @@ func TestEventuallyWithTFailNow(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(CollectT)
+	count := 0
 
 	condition := func(collect *CollectT) {
+		count += 1
 		collect.FailNow()
+		panic("unreachable")
 	}
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 1)
+	Greater(t, count, 3, "Expected condition to be called multiple times")
 }
 
 func TestEventuallyWithTOuterFailNow(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(CollectT)
-	state := 0
+	count := 0
 	condition := func(collect *CollectT) {
-		state += 1
+		count += 1
 		mockT.FailNow()
 		panic("unreachable")
 	}
@@ -3576,7 +3584,7 @@ func TestEventuallyWithTOuterFailNow(t *testing.T) {
 	True(t, mockT.failed())
 	Len(t, mockT.errors, 1)
 	ErrorContains(t, mockT.errors[0], "Condition exited unexpectedly")
-	Equal(t, 1, state, "Expected condition to be called exactly once")
+	Equal(t, 1, count, "Expected condition to be called exactly once")
 }
 
 // Check that a long running condition doesn't block Eventually.
