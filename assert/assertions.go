@@ -1972,8 +1972,8 @@ func diff(expected interface{}, actual interface{}) string {
 		e = spewConfigStringerEnabled.Sdump(expected)
 		a = spewConfigStringerEnabled.Sdump(actual)
 	case isStructWithUnexportedMapField(et):
-		e = reflect.ValueOf(expected).String()
-		a = reflect.ValueOf(actual).String()
+		e = fmt.Sprintf("%+v", expected)
+		a = fmt.Sprintf("%+v", actual)
 	default:
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
