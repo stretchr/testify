@@ -1985,6 +1985,7 @@ var spewConfig = spew.ConfigState{
 	DisablePointerAddresses: true,
 	DisableCapacities:       true,
 	SortKeys:                true,
+	SpewKeys:                true,
 	DisableMethods:          true,
 	MaxDepth:                10,
 }
@@ -1994,6 +1995,7 @@ var spewConfigStringerEnabled = spew.ConfigState{
 	DisablePointerAddresses: true,
 	DisableCapacities:       true,
 	SortKeys:                true,
+	SpewKeys:                true,
 	MaxDepth:                10,
 }
 
