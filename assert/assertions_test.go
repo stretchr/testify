@@ -837,6 +837,39 @@ func TestEqualFormatting(t *testing.T) {
 	}
 }
 
+func TestEqualFormattingWithPanic(t *testing.T) {
+	t.Parallel()
+
+	type structWithUnexportedMapWithArrayKey struct {
+		m interface{}
+	}
+
+	for _, c := range []struct {
+		a interface{}
+		b interface{}
+	}{
+		{
+			// from the issue https://github.com/stretchr/testify/pull/1816
+			a: structWithUnexportedMapWithArrayKey{
+				map[[1]byte]*struct{}{
+					{1}: nil,
+					{2}: nil,
+				},
+			},
+			b: structWithUnexportedMapWithArrayKey{},
+		},
+	} {
+
+		mockT := new(mockTestingT)
+		NotPanics(t, func() {
+			Equal(mockT, c.a, c.b)
+		}, "should not panic")
+
+		True(t, mockT.Failed(), "should have failed")
+		Contains(t, mockT.errorString(), "Not equal:", "error message should mention inequality")
+	}
+}
+
 func TestFormatUnequalValues(t *testing.T) {
 	t.Parallel()
 

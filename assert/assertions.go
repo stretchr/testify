@@ -1948,19 +1948,28 @@ func diff(expected interface{}, actual interface{}) string {
 
 	var e, a string
 
-	switch et {
-	case reflect.TypeOf(""):
-		e = reflect.ValueOf(expected).String()
-		a = reflect.ValueOf(actual).String()
-	case reflect.TypeOf(time.Time{}):
-		e = spewConfigStringerEnabled.Sdump(expected)
-		a = spewConfigStringerEnabled.Sdump(actual)
-	default:
-		e = spewConfig.Sdump(expected)
-		a = spewConfig.Sdump(actual)
+	// Use spew to create string representations of the objects
+	// We have to guard against panics in spew.
+	// See https://github.com/stretchr/testify/issues/480
+	panicked, _, _ := didPanic(func() {
+		switch et {
+		case reflect.TypeOf(""):
+			e = reflect.ValueOf(expected).String()
+			a = reflect.ValueOf(actual).String()
+		case reflect.TypeOf(time.Time{}):
+			e = spewConfigStringerEnabled.Sdump(expected)
+			a = spewConfigStringerEnabled.Sdump(actual)
+		default:
+			e = spewConfig.Sdump(expected)
+			a = spewConfig.Sdump(actual)
+		}
+	})
+	if panicked {
+		// silently ignore diff if we panic during spew, the library is no longer maintained
+		return ""
 	}
 
-	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+	diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
 		A:        difflib.SplitLines(e),
 		B:        difflib.SplitLines(a),
 		FromFile: "Expected",
@@ -1969,6 +1978,11 @@ func diff(expected interface{}, actual interface{}) string {
 		ToDate:   "",
 		Context:  1,
 	})
+
+	if err != nil {
+		// silently ignore diff if the external library fails to compute it
+		return ""
+	}
 
 	return "\n\nDiff:\n" + diff
 }
