@@ -2020,11 +2020,11 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		conditionReturnedFalse
 	)
 
-	resultCh := make(chan int, 1)
+	ch := make(chan int, 1)
 	checkCond := func() {
 		result := conditionExitedUnexpectedly
 		defer func() {
-			resultCh <- result
+			ch <- result
 		}()
 		if condition() {
 			result = conditionReturnedTrue
@@ -2051,7 +2051,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		case <-tickC:
 			tickC = nil
 			go checkCond()
-		case result := <-resultCh:
+		case result := <-ch:
 			switch result {
 			case conditionExitedUnexpectedly:
 				// Condition exited via [runtime.Goexit]. This usually means
