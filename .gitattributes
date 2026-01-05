@@ -1,0 +1,11 @@
+# This file is used to configure Git attributes for the repository.
+# It is particularly useful for managing how generated code is treated in pull requests.
+# For more information, see:
+# https://docs.github.com/en/repositories/working-with-files/managing-files/customizing-how-changed-files-appear-on-github
+
+# Code for assertions and requirements is generated automatically by _codegen.
+# This also updates code comments and code examples in the documentation.
+# These comments and examples must be reviewed when they change,
+# since updates to the generated code comments may not always be correct.
+assert/*.go  linguist-generated=false
+require/*.go linguist-generated=false
