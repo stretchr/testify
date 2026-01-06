@@ -17,11 +17,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/davecgh/go-spew/spew"
-	"github.com/stretchr/testify/internal/difflib"
-
 	// Wrapper around gopkg.in/yaml.v3
 	"github.com/stretchr/testify/assert/yaml"
+	"github.com/stretchr/testify/internal/difflib"
+	"github.com/stretchr/testify/internal/spew"
 )
 
 //go:generate sh -c "cd ../_codegen && go build && cd - && ../_codegen/_codegen -output-package=assert -template=assertion_format.go.tmpl"
