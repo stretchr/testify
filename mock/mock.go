@@ -11,10 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/objx"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/internal/difflib"
+	"github.com/stretchr/testify/internal/spew"
 )
 
 // regex for GCCGO functions
