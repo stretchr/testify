@@ -35,6 +35,11 @@ func (s *SuiteInformation) end(testName string, passed bool) {
 	if s == nil {
 		return
 	}
+
+	if _, started := s.TestStats[testName]; !started {
+		return
+	}
+
 	s.TestStats[testName].End = time.Now()
 	s.TestStats[testName].Passed = passed
 }
