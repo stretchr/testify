@@ -536,13 +536,13 @@ type syncSuiteSetTime struct {
 
 func (s *syncSuiteSetTime) TestSetTime() {
 	// time is not set because timestamp is before 1. Jan 2000
-	s.SetTime(time.Date(1970, time.January, 1, 1, 0, 1, 0, time.Local))
-	s.Equal(time.Date(2000, time.January, 1, 1, 0, 0, 0, time.Local), time.Now())
+	s.SetTime(time.Date(1970, time.January, 1, 1, 0, 1, 0, time.UTC))
+	s.Equal(time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC), time.Now().UTC())
 
 	// time is advanced to given timestamp
-	ts := time.Date(2001, time.January, 1, 1, 0, 1, 0, time.Local)
+	ts := time.Date(2001, time.January, 1, 1, 0, 0, 0, time.UTC)
 	s.SetTime(ts)
-	s.Equal(ts, time.Now())
+	s.Equal(ts, time.Now().UTC())
 }
 
 func TestSyncSuiteSetTime(t *testing.T) {

@@ -23,6 +23,11 @@ func (s *SyncSuite) SetTime(ts time.Time) {
 	time.Sleep(time.Until(ts))
 }
 
+// Wait is just a wrapper for synctest.Wait()
+func (s *SyncSuite) Wait() {
+	synctest.Wait()
+}
+
 // RunSync takes a testing/synctest suite and runs all of the tests attached
 // to it. Each test is run inside its own synctest bubble.
 func RunSync(t *testing.T, suite TestingSuite) {
