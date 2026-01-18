@@ -16,6 +16,13 @@ type SyncSuite struct {
 	sharedSuite
 }
 
+// SetTime is a helper function to set the fake clock of the synctest
+// bubble to the given time. Only timestamps after 1.Jan 2000 is allowed,
+// because synctest time starts at 1. Jan 2000
+func (s *SyncSuite) SetTime(ts time.Time) {
+	time.Sleep(time.Until(ts))
+}
+
 // RunSync takes a testing/synctest suite and runs all of the tests attached
 // to it. Each test is run inside its own synctest bubble.
 func RunSync(t *testing.T, suite TestingSuite) {
