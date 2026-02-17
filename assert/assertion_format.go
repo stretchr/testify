@@ -113,6 +113,33 @@ func EqualExportedValuesf(t TestingT, expected interface{}, actual interface{}, 
 	return EqualExportedValues(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
+// EqualUnorderedf asserts that the specified expected and actual objects are
+// equal, treating all slices and arrays within the objects as unordered
+// collections. This is useful when comparing structs that contain slices
+// where element order doesn't matter.
+//
+// Unlike ElementsMatch which only works on top-level slices, EqualUnorderedf
+// performs a deep comparison that handles slices nested within structs, maps,
+// pointers, and other slices.
+//
+// Duplicate elements are handled correctly: [1, 1, 2] is not equal to [1, 2, 2].
+//
+//	type Response struct {
+//	    Names []string
+//	    Count int
+//	}
+//	expected := Response{Names: []string{"Joe", "Rick"}, Count: 2}
+//	actual := Response{Names: []string{"Rick", "Joe"}, Count: 2}
+//	assert.EqualUnorderedf(t, expected, actual, "error message %s", "formatted")
+//
+// Function equality cannot be determined and will always fail.
+func EqualUnorderedf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return EqualUnordered(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
 // EqualValuesf asserts that two objects are equal or convertible to the larger
 // type and equal.
 //
@@ -627,6 +654,19 @@ func NotEqualf(t TestingT, expected interface{}, actual interface{}, msg string,
 		h.Helper()
 	}
 	return NotEqual(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
+// NotEqualUnorderedf asserts that the specified expected and actual objects are
+// NOT equal, even when treating all slices and arrays as unordered collections.
+//
+//	assert.NotEqualUnorderedf(t, obj1, obj2, "error message %s", "formatted")
+//
+// Function equality cannot be determined and will always fail.
+func NotEqualUnorderedf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotEqualUnordered(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
 // NotEqualValuesf asserts that two objects are not equal even when converted to the same type

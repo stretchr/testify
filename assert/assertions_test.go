@@ -1517,6 +1517,332 @@ func TestNotElementsMatch(t *testing.T) {
 	}
 }
 
+
+func TestObjectsAreEqualUnordered(t *testing.T) {
+	t.Parallel()
+
+	type inner struct {
+		Tags []string
+		ID   int
+	}
+
+	type outer struct {
+		Name    string
+		Items   []inner
+		Numbers []int
+	}
+
+	cases := []struct {
+		name     string
+		expected interface{}
+		actual   interface{}
+		result   bool
+	}{
+		// nil cases
+		{
+			name:     "both nil",
+			expected: nil,
+			actual:   nil,
+			result:   true,
+		},
+		{
+			name:     "expected nil actual not nil",
+			expected: nil,
+			actual:   []int{1},
+			result:   false,
+		},
+
+		// simple slices - same as ElementsMatch
+		{
+			name:     "equal int slices same order",
+			expected: []int{1, 2, 3},
+			actual:   []int{1, 2, 3},
+			result:   true,
+		},
+		{
+			name:     "equal int slices different order",
+			expected: []int{1, 2, 3},
+			actual:   []int{3, 1, 2},
+			result:   true,
+		},
+		{
+			name:     "int slices different lengths",
+			expected: []int{1, 2, 3},
+			actual:   []int{1, 2},
+			result:   false,
+		},
+		{
+			name:     "int slices with duplicates matching",
+			expected: []int{1, 1, 2},
+			actual:   []int{1, 2, 1},
+			result:   true,
+		},
+		{
+			name:     "int slices with duplicates not matching",
+			expected: []int{1, 1, 2},
+			actual:   []int{1, 2, 2},
+			result:   false,
+		},
+
+		// structs with slices
+		{
+			name: "structs with slices same order",
+			expected: outer{
+				Name:    "test",
+				Numbers: []int{1, 2, 3},
+			},
+			actual: outer{
+				Name:    "test",
+				Numbers: []int{1, 2, 3},
+			},
+			result: true,
+		},
+		{
+			name: "structs with slices different order",
+			expected: outer{
+				Name:    "test",
+				Numbers: []int{1, 2, 3},
+			},
+			actual: outer{
+				Name:    "test",
+				Numbers: []int{3, 1, 2},
+			},
+			result: true,
+		},
+		{
+			name: "structs with different non-slice field",
+			expected: outer{
+				Name:    "test1",
+				Numbers: []int{1, 2, 3},
+			},
+			actual: outer{
+				Name:    "test2",
+				Numbers: []int{1, 2, 3},
+			},
+			result: false,
+		},
+
+		// nested structs with slices
+		{
+			name: "nested structs with reordered slices",
+			expected: outer{
+				Name: "test",
+				Items: []inner{
+					{Tags: []string{"a", "b"}, ID: 1},
+					{Tags: []string{"c", "d"}, ID: 2},
+				},
+			},
+			actual: outer{
+				Name: "test",
+				Items: []inner{
+					{Tags: []string{"d", "c"}, ID: 2},
+					{Tags: []string{"b", "a"}, ID: 1},
+				},
+			},
+			result: true,
+		},
+		{
+			name: "nested structs with mismatched inner",
+			expected: outer{
+				Name: "test",
+				Items: []inner{
+					{Tags: []string{"a", "b"}, ID: 1},
+				},
+			},
+			actual: outer{
+				Name: "test",
+				Items: []inner{
+					{Tags: []string{"a", "c"}, ID: 1},
+				},
+			},
+			result: false,
+		},
+
+		// nil slice vs empty slice
+		{
+			name: "struct with nil slice vs empty slice",
+			expected: outer{
+				Name:    "test",
+				Numbers: nil,
+			},
+			actual: outer{
+				Name:    "test",
+				Numbers: []int{},
+			},
+			result: false,
+		},
+
+		// maps
+		{
+			name:     "maps with slices as values",
+			expected: map[string][]int{"a": {1, 2, 3}},
+			actual:   map[string][]int{"a": {3, 2, 1}},
+			result:   true,
+		},
+		{
+			name:     "maps with different keys",
+			expected: map[string][]int{"a": {1, 2}},
+			actual:   map[string][]int{"b": {1, 2}},
+			result:   false,
+		},
+
+		// pointers
+		{
+			name:     "pointers to structs with slices",
+			expected: &outer{Name: "test", Numbers: []int{3, 2, 1}},
+			actual:   &outer{Name: "test", Numbers: []int{1, 2, 3}},
+			result:   true,
+		},
+		{
+			name:     "nil pointer vs non-nil pointer",
+			expected: (*outer)(nil),
+			actual:   &outer{},
+			result:   false,
+		},
+
+		// scalar types (no slices)
+		{
+			name:     "equal strings",
+			expected: "hello",
+			actual:   "hello",
+			result:   true,
+		},
+		{
+			name:     "unequal strings",
+			expected: "hello",
+			actual:   "world",
+			result:   false,
+		},
+		{
+			name:     "equal ints",
+			expected: 42,
+			actual:   42,
+			result:   true,
+		},
+
+		// arrays (fixed size)
+		{
+			name:     "arrays different order",
+			expected: [3]int{1, 2, 3},
+			actual:   [3]int{3, 1, 2},
+			result:   true,
+		},
+
+		// empty slices
+		{
+			name:     "both empty slices",
+			expected: []int{},
+			actual:   []int{},
+			result:   true,
+		},
+
+		// slice of slices
+		{
+			name:     "slice of slices reordered",
+			expected: [][]int{{1, 2}, {3, 4}},
+			actual:   [][]int{{4, 3}, {2, 1}},
+			result:   true,
+		},
+		{
+			name:     "slice of slices outer reordered",
+			expected: [][]int{{1, 2}, {3, 4}},
+			actual:   [][]int{{3, 4}, {1, 2}},
+			result:   true,
+		},
+
+		// byte slices (special case)
+		{
+			name:     "equal byte slices",
+			expected: []byte{1, 2, 3},
+			actual:   []byte{1, 2, 3},
+			result:   true,
+		},
+		{
+			name:     "byte slices different order",
+			expected: []byte{1, 2, 3},
+			actual:   []byte{3, 2, 1},
+			result:   true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			res := objectsAreEqualUnordered(c.expected, c.actual)
+			if res != c.result {
+				t.Errorf("objectsAreEqualUnordered(%#v, %#v) should return %v", c.expected, c.actual, c.result)
+			}
+		})
+	}
+}
+
+func TestEqualUnordered(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(testing.T)
+
+	type Config struct {
+		Name   string
+		Values []int
+		Tags   []string
+	}
+
+	// Should pass
+	if !EqualUnordered(mockT,
+		Config{Name: "app", Values: []int{3, 1, 2}, Tags: []string{"b", "a"}},
+		Config{Name: "app", Values: []int{1, 2, 3}, Tags: []string{"a", "b"}},
+	) {
+		t.Error("EqualUnordered should pass for structs with reordered slices")
+	}
+
+	// Should fail - different name
+	if EqualUnordered(mockT,
+		Config{Name: "app1", Values: []int{1, 2, 3}, Tags: []string{"a"}},
+		Config{Name: "app2", Values: []int{1, 2, 3}, Tags: []string{"a"}},
+	) {
+		t.Error("EqualUnordered should fail for structs with different non-slice fields")
+	}
+
+	// Should fail - different slice lengths
+	if EqualUnordered(mockT,
+		Config{Name: "app", Values: []int{1, 2, 3}},
+		Config{Name: "app", Values: []int{1, 2}},
+	) {
+		t.Error("EqualUnordered should fail for structs with different length slices")
+	}
+
+	// Should fail for functions
+	if EqualUnordered(mockT, func() {}, func() {}) {
+		t.Error("EqualUnordered should fail for function arguments")
+	}
+}
+
+func TestNotEqualUnordered(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(testing.T)
+
+	type Config struct {
+		Name   string
+		Values []int
+	}
+
+	// Should fail (they ARE equal unordered)
+	if NotEqualUnordered(mockT,
+		Config{Name: "app", Values: []int{3, 1, 2}},
+		Config{Name: "app", Values: []int{1, 2, 3}},
+	) {
+		t.Error("NotEqualUnordered should fail when objects are equal ignoring order")
+	}
+
+	// Should pass (they are NOT equal)
+	if !NotEqualUnordered(mockT,
+		Config{Name: "app1", Values: []int{1, 2, 3}},
+		Config{Name: "app2", Values: []int{1, 2, 3}},
+	) {
+		t.Error("NotEqualUnordered should pass when objects differ")
+	}
+}
+
 func TestCondition(t *testing.T) {
 	t.Parallel()
 

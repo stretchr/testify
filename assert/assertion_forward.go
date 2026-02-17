@@ -204,6 +204,60 @@ func (a *Assertions) EqualExportedValuesf(expected interface{}, actual interface
 	return EqualExportedValuesf(a.t, expected, actual, msg, args...)
 }
 
+// EqualUnordered asserts that the specified expected and actual objects are
+// equal, treating all slices and arrays within the objects as unordered
+// collections. This is useful when comparing structs that contain slices
+// where element order doesn't matter.
+//
+// Unlike ElementsMatch which only works on top-level slices, EqualUnordered
+// performs a deep comparison that handles slices nested within structs, maps,
+// pointers, and other slices.
+//
+// Duplicate elements are handled correctly: [1, 1, 2] is not equal to [1, 2, 2].
+//
+//	type Response struct {
+//	    Names []string
+//	    Count int
+//	}
+//	expected := Response{Names: []string{"Joe", "Rick"}, Count: 2}
+//	actual := Response{Names: []string{"Rick", "Joe"}, Count: 2}
+//	a.EqualUnordered(expected, actual)
+//
+// Function equality cannot be determined and will always fail.
+func (a *Assertions) EqualUnordered(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return EqualUnordered(a.t, expected, actual, msgAndArgs...)
+}
+
+// EqualUnorderedf asserts that the specified expected and actual objects are
+// equal, treating all slices and arrays within the objects as unordered
+// collections. This is useful when comparing structs that contain slices
+// where element order doesn't matter.
+//
+// Unlike ElementsMatch which only works on top-level slices, EqualUnorderedf
+// performs a deep comparison that handles slices nested within structs, maps,
+// pointers, and other slices.
+//
+// Duplicate elements are handled correctly: [1, 1, 2] is not equal to [1, 2, 2].
+//
+//	type Response struct {
+//	    Names []string
+//	    Count int
+//	}
+//	expected := Response{Names: []string{"Joe", "Rick"}, Count: 2}
+//	actual := Response{Names: []string{"Rick", "Joe"}, Count: 2}
+//	a.EqualUnorderedf(expected, actual, "error message %s", "formatted")
+//
+// Function equality cannot be determined and will always fail.
+func (a *Assertions) EqualUnorderedf(expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return EqualUnorderedf(a.t, expected, actual, msg, args...)
+}
+
 // EqualValues asserts that two objects are equal or convertible to the larger
 // type and equal.
 //
@@ -1235,6 +1289,32 @@ func (a *Assertions) NotEqual(expected interface{}, actual interface{}, msgAndAr
 		h.Helper()
 	}
 	return NotEqual(a.t, expected, actual, msgAndArgs...)
+}
+
+// NotEqualUnordered asserts that the specified expected and actual objects are
+// NOT equal, even when treating all slices and arrays as unordered collections.
+//
+//	a.NotEqualUnordered(obj1, obj2)
+//
+// Function equality cannot be determined and will always fail.
+func (a *Assertions) NotEqualUnordered(expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotEqualUnordered(a.t, expected, actual, msgAndArgs...)
+}
+
+// NotEqualUnorderedf asserts that the specified expected and actual objects are
+// NOT equal, even when treating all slices and arrays as unordered collections.
+//
+//	a.NotEqualUnorderedf(obj1, obj2, "error message %s", "formatted")
+//
+// Function equality cannot be determined and will always fail.
+func (a *Assertions) NotEqualUnorderedf(expected interface{}, actual interface{}, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotEqualUnorderedf(a.t, expected, actual, msg, args...)
 }
 
 // NotEqualValues asserts that two objects are not equal even when converted to the same type

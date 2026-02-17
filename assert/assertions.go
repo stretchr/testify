@@ -1261,6 +1261,182 @@ func NotElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interf
 	return true
 }
 
+// objectsAreEqualUnordered performs a deep comparison of two objects, treating
+// all slices and arrays as unordered collections (like sets with multiplicity).
+// For non-slice/array types, it falls back to standard deep equality.
+//
+// This function does no assertion of any kind.
+func objectsAreEqualUnordered(expected, actual interface{}) bool {
+	if expected == nil || actual == nil {
+		return expected == actual
+	}
+
+	return deepEqualUnordered(reflect.ValueOf(expected), reflect.ValueOf(actual))
+}
+
+// deepEqualUnordered recursively compares two reflect.Values, treating slices
+// and arrays as unordered collections.
+func deepEqualUnordered(v1, v2 reflect.Value) bool {
+	if !v1.IsValid() || !v2.IsValid() {
+		return v1.IsValid() == v2.IsValid()
+	}
+
+	if v1.Type() != v2.Type() {
+		return false
+	}
+
+	switch v1.Kind() {
+	case reflect.Slice, reflect.Array:
+		return unorderedSliceEqual(v1, v2)
+
+	case reflect.Struct:
+		for i := 0; i < v1.NumField(); i++ {
+			if !deepEqualUnordered(v1.Field(i), v2.Field(i)) {
+				return false
+			}
+		}
+		return true
+
+	case reflect.Map:
+		if v1.IsNil() != v2.IsNil() {
+			return false
+		}
+		if v1.Len() != v2.Len() {
+			return false
+		}
+		for _, key := range v1.MapKeys() {
+			val1 := v1.MapIndex(key)
+			val2 := v2.MapIndex(key)
+			if !val2.IsValid() {
+				return false
+			}
+			if !deepEqualUnordered(val1, val2) {
+				return false
+			}
+		}
+		return true
+
+	case reflect.Ptr:
+		if v1.IsNil() != v2.IsNil() {
+			return false
+		}
+		if v1.IsNil() {
+			return true
+		}
+		return deepEqualUnordered(v1.Elem(), v2.Elem())
+
+	case reflect.Interface:
+		if v1.IsNil() != v2.IsNil() {
+			return false
+		}
+		if v1.IsNil() {
+			return true
+		}
+		return deepEqualUnordered(v1.Elem(), v2.Elem())
+
+	default:
+		return reflect.DeepEqual(v1.Interface(), v2.Interface())
+	}
+}
+
+// unorderedSliceEqual compares two slices/arrays as unordered collections,
+// matching elements using deepEqualUnordered. Each element is counted
+// separately to handle duplicates correctly.
+func unorderedSliceEqual(v1, v2 reflect.Value) bool {
+	if v1.Kind() == reflect.Slice && v2.Kind() == reflect.Slice {
+		if v1.IsNil() != v2.IsNil() {
+			return false
+		}
+	}
+
+	if v1.Len() != v2.Len() {
+		return false
+	}
+
+	visited := make([]bool, v2.Len())
+	for i := 0; i < v1.Len(); i++ {
+		found := false
+		for j := 0; j < v2.Len(); j++ {
+			if visited[j] {
+				continue
+			}
+			if deepEqualUnordered(v1.Index(i), v2.Index(j)) {
+				visited[j] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualUnordered asserts that the specified expected and actual objects are
+// equal, treating all slices and arrays within the objects as unordered
+// collections. This is useful when comparing structs that contain slices
+// where element order doesn't matter.
+//
+// Unlike ElementsMatch which only works on top-level slices, EqualUnordered
+// performs a deep comparison that handles slices nested within structs, maps,
+// pointers, and other slices.
+//
+// Duplicate elements are handled correctly: [1, 1, 2] is not equal to [1, 2, 2].
+//
+//	type Response struct {
+//	    Names []string
+//	    Count int
+//	}
+//	expected := Response{Names: []string{"Joe", "Rick"}, Count: 2}
+//	actual := Response{Names: []string{"Rick", "Joe"}, Count: 2}
+//	assert.EqualUnordered(t, expected, actual)
+//
+// Function equality cannot be determined and will always fail.
+func EqualUnordered(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if err := validateEqualArgs(expected, actual); err != nil {
+		return Fail(t, fmt.Sprintf("Invalid operation: %#v == %#v (%s)",
+			expected, actual, err), msgAndArgs...)
+	}
+
+	if !objectsAreEqualUnordered(expected, actual) {
+		diff := diff(expected, actual)
+		expected, actual = formatUnequalValues(expected, actual)
+		return Fail(t, fmt.Sprintf("Not equal (ignoring slice order): \n"+
+			"expected: %s\n"+
+			"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+	}
+
+	return true
+}
+
+// NotEqualUnordered asserts that the specified expected and actual objects are
+// NOT equal, even when treating all slices and arrays as unordered collections.
+//
+//	assert.NotEqualUnordered(t, obj1, obj2)
+//
+// Function equality cannot be determined and will always fail.
+func NotEqualUnordered(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if err := validateEqualArgs(expected, actual); err != nil {
+		return Fail(t, fmt.Sprintf("Invalid operation: %#v == %#v (%s)",
+			expected, actual, err), msgAndArgs...)
+	}
+
+	if objectsAreEqualUnordered(expected, actual) {
+		return Fail(t, fmt.Sprintf("Should not be equal (ignoring slice order): \n"+
+			"both: %#v", expected), msgAndArgs...)
+	}
+
+	return true
+}
+
+
 // Condition uses a Comparison to assert a complex condition.
 func Condition(t TestingT, comp Comparison, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
