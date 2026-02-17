@@ -279,15 +279,42 @@ func (f *testFunc) ForwardedParamsFormat() string {
 }
 
 func (f *testFunc) Comment() string {
-	return "// " + strings.Replace(strings.TrimSpace(f.DocInfo.Doc), "\n", "\n// ", -1)
+	// Preserve original indentation, but ensure lines that start with a tab are
+	// prefixed with "//\t" (no extra space) to match canonical formatting of code examples.
+	raw := strings.TrimSpace(f.DocInfo.Doc)
+	lines := strings.Split(raw, "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "\t") {
+			// Example/code line: keep the leading tab directly after //
+			lines[i] = "//\t" + strings.TrimPrefix(line, "\t")
+		} else {
+			lines[i] = "// " + line
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (f *testFunc) CommentFormat() string {
-	search := fmt.Sprintf("%s", f.DocInfo.Name)
-	replace := fmt.Sprintf("%sf", f.DocInfo.Name)
-	comment := strings.Replace(f.Comment(), search, replace, -1)
-	exp := regexp.MustCompile(replace + `\(((\(\)|[^\n])+)\)`)
-	return exp.ReplaceAllString(comment, replace+`($1, "error message %s", "formatted")`)
+	// Start from the original comment text
+	comment := f.Comment()
+
+	// 1) Ensure the leading doc header uses the formatted name (e.g., "Equalf asserts ...").
+	// Only change the very first line that starts with "// <Name>".
+	headerPattern := regexp.MustCompile(`^//\s*` + regexp.QuoteMeta(f.DocInfo.Name) + `\b`)
+	comment = headerPattern.ReplaceAllString(comment, "// "+f.DocInfo.Name+"f")
+
+	// 2) Replace only function call occurrences of the current function name with the formatted variant (suffix 'f').
+	//    This avoids accidentally changing type names such as "*regexp.Regexp" into "*regexp.Regexpf" by requiring a following '('.
+	fnCallPattern := regexp.MustCompile(`\b` + regexp.QuoteMeta(f.DocInfo.Name) + `\s*\(`)
+	comment = fnCallPattern.ReplaceAllString(comment, f.DocInfo.Name+"f(")
+
+	// 3) Append formatted message args at the end of each Namef(...) call within a single line.
+	//    Use a greedy match until the last closing paren on the same line to avoid inserting inside nested parentheses.
+	//    Example: Namef(t, uint32(123), int32(123)) -> Namef(t, uint32(123), int32(123), "error message %s", "formatted")
+	addArgsLine := regexp.MustCompile(`(?m)` + regexp.QuoteMeta(f.DocInfo.Name+"f(") + `(.*)\)`)
+	comment = addArgsLine.ReplaceAllString(comment, f.DocInfo.Name+`f($1, "error message %s", "formatted")`)
+
+	return comment
 }
 
 func (f *testFunc) CommentWithoutT(receiver string) string {

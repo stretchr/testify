@@ -1180,7 +1180,7 @@ func Len(t TestingT, object interface{}, length int, msgAndArgs ...interface{}) 
 }
 
 // Lenf asserts that the specified object has specific length.
-// Lenf also fails if the object has a type that len() not accept.
+// Len also fails if the object has a type that len() not accept.
 //
 //	require.Lenf(t, mySlice, 3, "error message %s", "formatted")
 func Lenf(t TestingT, object interface{}, length int, msg string, args ...interface{}) {
@@ -1701,8 +1701,14 @@ func NotPanicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interfac
 
 // NotRegexp asserts that a specified regexp does not match a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.Compile.
+//
+// Examples:
+//
 //	require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
-//	require.NotRegexp(t, "^start", "it's not starting")
+//	require.NotRegexp(t, "^start", "it's not starting") // string is compiled
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1715,8 +1721,14 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 
 // NotRegexpf asserts that a specified regexp does not match a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.Compile.
+//
+// Examples:
+//
 //	require.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
-//	require.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
+//	require.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted") // string is compiled
 func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1933,8 +1945,14 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
 
 // Regexp asserts that a specified regexp matches a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.Compile.
+//
+// Examples:
+//
 //	require.Regexp(t, regexp.MustCompile("start"), "it's starting")
-//	require.Regexp(t, "start...$", "it's not starting")
+//	require.Regexp(t, "start...$", "it's not starting") // string is compiled
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1947,8 +1965,14 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 
 // Regexpf asserts that a specified regexp matches a string.
 //
+// The rx (expression) argument should be a *regexp.Regexp. For backward
+// compatibility, if rx is any other type, its value will be formatted with
+// %v and compiled using regexp.Compile.
+//
+// Examples:
+//
 //	require.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
-//	require.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
+//	require.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted") // string is compiled
 func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
