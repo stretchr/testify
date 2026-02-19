@@ -489,7 +489,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 //		time.Sleep(8*time.Second)
 //		externalValue = true
 //	}()
-//	require.EventuallyWithT(t, func(c *require.CollectT) {
+//	require.EventuallyWithT(t, func(c *assert.CollectT) {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		require.True(c, externalValue, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
@@ -517,7 +517,7 @@ func EventuallyWithT(t TestingT, condition func(collect *assert.CollectT), waitF
 //		time.Sleep(8*time.Second)
 //		externalValue = true
 //	}()
-//	require.EventuallyWithTf(t, func(c *require.CollectT, "error message %s", "formatted") {
+//	require.EventuallyWithTf(t, func(c *assert.CollectT, "error message %s", "formatted") {
 //		// add assertions as needed; any assertion failure will fail the current tick
 //		require.True(c, externalValue, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
@@ -731,8 +731,6 @@ func Greaterf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...in
 // body that contains a string.
 //
 //	require.HTTPBodyContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -747,8 +745,6 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method string, url s
 // body that contains a string.
 //
 //	require.HTTPBodyContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -763,8 +759,6 @@ func HTTPBodyContainsf(t TestingT, handler http.HandlerFunc, method string, url 
 // body that does not contain a string.
 //
 //	require.HTTPBodyNotContains(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -779,8 +773,6 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method string, ur
 // body that does not contain a string.
 //
 //	require.HTTPBodyNotContainsf(t, myHandler, "GET", "www.google.com", nil, "I'm Feeling Lucky", "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -794,8 +786,6 @@ func HTTPBodyNotContainsf(t TestingT, handler http.HandlerFunc, method string, u
 // HTTPError asserts that a specified handler returns an error status code.
 //
 //	require.HTTPError(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPError(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -809,8 +799,6 @@ func HTTPError(t TestingT, handler http.HandlerFunc, method string, url string, 
 // HTTPErrorf asserts that a specified handler returns an error status code.
 //
 //	require.HTTPErrorf(t, myHandler, "POST", "/a/b/c", url.Values{"a": []string{"b", "c"}}
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -824,8 +812,6 @@ func HTTPErrorf(t TestingT, handler http.HandlerFunc, method string, url string,
 // HTTPRedirect asserts that a specified handler returns a redirect status code.
 //
 //	require.HTTPRedirect(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPRedirect(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -839,8 +825,6 @@ func HTTPRedirect(t TestingT, handler http.HandlerFunc, method string, url strin
 // HTTPRedirectf asserts that a specified handler returns a redirect status code.
 //
 //	require.HTTPRedirectf(t, myHandler, "GET", "/a/b/c", url.Values{"a": []string{"b", "c"}}
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -854,8 +838,6 @@ func HTTPRedirectf(t TestingT, handler http.HandlerFunc, method string, url stri
 // HTTPStatusCode asserts that a specified handler returns a specified status code.
 //
 //	require.HTTPStatusCode(t, myHandler, "GET", "/notImplemented", nil, 501)
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -869,8 +851,6 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method string, url str
 // HTTPStatusCodef asserts that a specified handler returns a specified status code.
 //
 //	require.HTTPStatusCodef(t, myHandler, "GET", "/notImplemented", nil, 501, "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPStatusCodef(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, statuscode int, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -884,8 +864,6 @@ func HTTPStatusCodef(t TestingT, handler http.HandlerFunc, method string, url st
 // HTTPSuccess asserts that a specified handler returns a success status code.
 //
 //	require.HTTPSuccess(t, myHandler, "POST", "http://www.google.com", nil)
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPSuccess(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -899,8 +877,6 @@ func HTTPSuccess(t TestingT, handler http.HandlerFunc, method string, url string
 // HTTPSuccessf asserts that a specified handler returns a success status code.
 //
 //	require.HTTPSuccessf(t, myHandler, "POST", "http://www.google.com", nil, "error message %s", "formatted")
-//
-// Returns whether the assertion was successful (true) or not (false).
 func HTTPSuccessf(t TestingT, handler http.HandlerFunc, method string, url string, values url.Values, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1447,10 +1423,9 @@ func NoDirExistsf(t TestingT, path string, msg string, args ...interface{}) {
 
 // NoError asserts that a function returned a nil error (ie. no error).
 //
-//	  actualObj, err := SomeFunction()
-//	  if require.NoError(t, err) {
-//		   require.Equal(t, expectedObj, actualObj)
-//	  }
+//	actualObj, err := SomeFunction()
+//	require.NoError(t, err)
+//	require.Equal(t, expectedObj, actualObj)
 func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1463,10 +1438,9 @@ func NoError(t TestingT, err error, msgAndArgs ...interface{}) {
 
 // NoErrorf asserts that a function returned a nil error (ie. no error).
 //
-//	  actualObj, err := SomeFunction()
-//	  if require.NoErrorf(t, err, "error message %s", "formatted") {
-//		   require.Equal(t, expectedObj, actualObj)
-//	  }
+//	actualObj, err := SomeFunction()
+//	require.NoErrorf(t, err, "error message %s", "formatted")
+//	require.Equal(t, expectedObj, actualObj)
 func NoErrorf(t TestingT, err error, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1575,9 +1549,8 @@ func NotElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg str
 
 // NotEmpty asserts that the specified object is NOT [Empty].
 //
-//	if require.NotEmpty(t, obj) {
-//	  require.Equal(t, "two", obj[1])
-//	}
+//	require.NotEmpty(t, obj)
+//	require.Equal(t, "two", obj[1])
 func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1590,9 +1563,8 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) {
 
 // NotEmptyf asserts that the specified object is NOT [Empty].
 //
-//	if require.NotEmptyf(t, obj, "error message %s", "formatted") {
-//	  require.Equal(t, "two", obj[1])
-//	}
+//	require.NotEmptyf(t, obj, "error message %s", "formatted")
+//	require.Equal(t, "two", obj[1])
 func NotEmptyf(t TestingT, object interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

@@ -106,9 +106,7 @@ func parseTemplates() (*template.Template, *template.Template, error) {
 		}
 		funcTemplate = string(f)
 	}
-	tmpl, err := template.New("function").Funcs(template.FuncMap{
-		"replace": strings.ReplaceAll,
-	}).Parse(funcTemplate)
+	tmpl, err := template.New("function").Parse(funcTemplate)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -296,6 +294,50 @@ func (f *testFunc) CommentWithoutT(receiver string) string {
 	search := fmt.Sprintf("assert.%s(t, ", f.DocInfo.Name)
 	replace := fmt.Sprintf("%s.%s(", receiver, f.DocInfo.Name)
 	return strings.Replace(f.Comment(), search, replace, -1)
+}
+
+func requireComment(comment string) string {
+	const returnClause = "Returns whether the assertion was successful (true) or not (false)"
+	const emptyString = ""
+
+	comment = strings.ReplaceAll(comment, returnClause+".", emptyString)
+	comment = strings.ReplaceAll(comment, returnClause, emptyString)
+
+	// convert from: "if cond {\n  body\n}" to "cond\nbody"
+	ifBlockReg := regexp.MustCompile(`(?m)^([\t ]*)if (.+) \{\n((?:.*\n)*?)\s*\}`)
+
+	comment = ifBlockReg.ReplaceAllStringFunc(comment, func(match string) string {
+		nestedMatch := ifBlockReg.FindStringSubmatch(match)
+		indent, cond, body := nestedMatch[1], nestedMatch[2], nestedMatch[3]
+		out := []string{indent + cond}
+
+		for _, line := range strings.Split(
+			strings.TrimRight(body, "\n"),
+			"\n",
+		) {
+			if t := strings.TrimSpace(line); t != emptyString {
+				out = append(out, indent+t)
+			}
+		}
+
+		return strings.Join(out, "\n")
+	})
+
+	final := strings.TrimSpace(comment)
+	return "// " + strings.ReplaceAll(final, "\n", "\n// ")
+}
+
+func (f *testFunc) CommentRequire() string {
+	comment := strings.ReplaceAll(f.DocInfo.Doc, "assert.", "require.")
+	// Preserve assert.CollectT, even in package 'require'
+	comment = strings.ReplaceAll(comment, "require.CollectT", "assert.CollectT")
+	return requireComment(comment)
+}
+
+func (f *testFunc) CommentRequireWithoutT(receiver string) string {
+	assertCallRe := regexp.MustCompile(`assert\.(\w+)\(t, `)
+	comment := assertCallRe.ReplaceAllString(f.DocInfo.Doc, receiver+".$1(")
+	return requireComment(comment)
 }
 
 // Standard header https://go.dev/s/generatedcode.
