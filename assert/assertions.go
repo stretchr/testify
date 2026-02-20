@@ -1015,12 +1015,12 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 
 	listKind := reflect.TypeOf(list).Kind()
 	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", list, listKind), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
 	subsetKind := reflect.TypeOf(subset).Kind()
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
 	if subsetKind == reflect.Map && listKind == reflect.Map {
@@ -1083,12 +1083,12 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 
 	listKind := reflect.TypeOf(list).Kind()
 	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", list, listKind), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
 	}
 
 	subsetKind := reflect.TypeOf(subset).Kind()
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
 	}
 
 	if subsetKind == reflect.Map && listKind == reflect.Map {
