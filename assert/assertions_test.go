@@ -1382,7 +1382,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 	})
 }
 
-
 func Test_containsElement(t *testing.T) {
 	t.Parallel()
 
