@@ -1380,6 +1380,51 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "[]bool{} is a subset of []bool{true, false}")
 	})
+
+	t.Run("NotSubset with string slices still readable", func(t *testing.T) {
+		// Strings were the one type %q handled well; verify %#v still produces
+		// clear output (quoted strings with type info).
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []string{"hello", "world"}, []string{"hello"})
+		msg := mockT.errorString()
+		Contains(t, msg, `[]string{"hello"} is a subset of []string{"hello", "world"}`)
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset map-to-map with int keys", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, map[int]string{1: "a", 2: "b"}, map[int]string{1: "a"})
+		msg := mockT.errorString()
+		Contains(t, msg, "is a subset of")
+		Contains(t, msg, "map[int]string{")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset failure with map of int keys", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, map[int]string{1: "a"}, map[int]string{1: "a", 2: "b"})
+		msg := mockT.errorString()
+		Contains(t, msg, "does not contain")
+		Contains(t, msg, "map[int]string{")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset failure with uint slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, []uint{10, 20}, []uint{10, 30})
+		msg := mockT.errorString()
+		Contains(t, msg, "does not contain")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with int32 slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []int32{1, 2, 3}, []int32{1, 2})
+		msg := mockT.errorString()
+		Contains(t, msg, "is a subset of")
+		Contains(t, msg, "[]int32{")
+		NotContains(t, msg, "%!q")
+	})
 }
 
 func Test_containsElement(t *testing.T) {
