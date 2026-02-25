@@ -813,3 +813,24 @@ func TestSuiteSignatureValidation(t *testing.T) {
 	assert.True(t, suiteTester.setUp, "SetupSuite should have been executed")
 	assert.True(t, suiteTester.toreDown, "TearDownSuite should have been executed")
 }
+
+type suiteSkipTestWithStats struct{ Suite }
+
+func (s *suiteSkipTestWithStats) SetupTest() {
+	s.T().Skip("Just because!")
+}
+
+func (s *suiteSkipTestWithStats) HandleStats(_ string, _ *SuiteInformation) {}
+
+func (s *suiteSkipTestWithStats) TestSomething() {
+	panic("Should not get here.")
+}
+
+func TestSuiteSkipTestWithStats(t *testing.T) {
+	assert.NotPanics(
+		t,
+		func() {
+			Run(t, &suiteSkipTestWithStats{})
+		},
+	)
+}
