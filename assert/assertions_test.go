@@ -1427,6 +1427,59 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 	})
 }
 
+// TestSubsetNotSubsetUnsupportedTypes verifies that Subset and NotSubset
+// produce readable error messages when called with unsupported types
+// (not array, slice, or map). This covers the "unsupported type" error
+// paths that previously used %q formatting.
+func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Subset with unsupported list type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, 42, []int{1})
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "int")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset with unsupported subset type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, []int{1, 2}, "not a slice")
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "string")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with unsupported list type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, true, []bool{true})
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "bool")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with unsupported subset type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []int{1, 2}, 42)
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "int")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("ElementsMatch with unsupported type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		ElementsMatch(mockT, "not a slice", []int{1})
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "expecting array or slice")
+		NotContains(t, msg, "%!q")
+	})
+}
+
 func Test_containsElement(t *testing.T) {
 	t.Parallel()
 
