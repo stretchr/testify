@@ -786,6 +786,22 @@ func (a *Assertions) InEpsilonf(expected interface{}, actual interface{}, epsilo
 	return InEpsilonf(a.t, expected, actual, epsilon, msg, args...)
 }
 
+// InMapDeltasMapValues is the same as InDelta, but it compares all values between two maps with the matching delta on the delta's map. All maps must have exactly the same keys.
+func (a *Assertions) InMapDeltasMapValues(expected interface{}, actual interface{}, deltasMap map[interface{}]float64, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return InMapDeltasMapValues(a.t, expected, actual, deltasMap, msgAndArgs...)
+}
+
+// InMapDeltasMapValuesf is the same as InDelta, but it compares all values between two maps with the matching delta on the delta's map. All maps must have exactly the same keys.
+func (a *Assertions) InMapDeltasMapValuesf(expected interface{}, actual interface{}, deltasMap map[interface{}]float64, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return InMapDeltasMapValuesf(a.t, expected, actual, deltasMap, msg, args...)
+}
+
 // IsDecreasing asserts that the collection is decreasing
 //
 //	a.IsDecreasing([]int{2, 1, 0})
