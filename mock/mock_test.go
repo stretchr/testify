@@ -1881,6 +1881,24 @@ func Test_Mock_AssertOptional(t *testing.T) {
 	assert.Equal(t, true, ms3.AssertExpectations(tt3))
 }
 
+func Test_Mock_Optional_Last(t *testing.T) {
+	var ms1 = new(TestExampleImplementation)
+	ms1.On("TheExampleMethod", Anything, Anything, Anything).Maybe().Return(0, nil)
+	ms1.On("TheExampleMethod", 1, 2, 3).Return(4, nil)
+
+	r1, _ := ms1.TheExampleMethod(1, 2, 3)
+	assert.Equal(t, 4, r1)
+
+	tt1 := new(testing.T)
+	assert.Equal(t, true, ms1.AssertExpectations(tt1))
+
+	r2, _ := ms1.TheExampleMethod(0, 0, 0)
+	assert.Equal(t, 0, r2)
+
+	tt2 := new(testing.T)
+	assert.Equal(t, true, ms1.AssertExpectations(tt2))
+}
+
 /*
 Arguments helper methods
 */
