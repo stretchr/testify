@@ -1772,6 +1772,18 @@ func Test_Mock_AssertCalled_WithAnythingOfTypeArgument(t *testing.T) {
 
 }
 
+func Test_Mock_AssertCalled_WithAnythingImplementingArgument(t *testing.T) {
+	t.Parallel()
+
+	var mockedService = new(TestExampleImplementation)
+
+	mockedService.
+		On("TheExampleMethod4", AnythingImplementing((*ExampleInterface)(nil))).
+		Return(nil)
+
+	mockedService.TheExampleMethod4(mockedService)
+}
+
 func Test_Mock_AssertCalled_WithArguments(t *testing.T) {
 	t.Parallel()
 
@@ -1975,6 +1987,35 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `string != type int - (int=123)`)
+
+}
+
+func Test_Arguments_Diff_WithAnythingImplementingArgument(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{AnythingImplementing((*ExampleInterface)(nil))})
+
+	var mockedService = new(TestExampleImplementation)
+	var count int
+	_, count = args.Diff([]interface{}{mockedService})
+
+	assert.True(t, args.Assert(t, mockedService))
+	assert.Equal(t, 0, count)
+}
+
+func Test_Arguments_Diff_WithAnythingImplementingArgument_Failing(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{
+		AnythingImplementing((*ExampleInterface)(nil)),
+	})
+	var count int
+	var diff string
+	intVal := 123
+	diff, count = args.Diff([]interface{}{intVal})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `value of type int does not implement interface mock.ExampleInterface`)
 
 }
 
