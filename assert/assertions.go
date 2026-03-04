@@ -1708,21 +1708,25 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 }
 
 // matchRegexp return true if a specified regexp matches a string.
-func matchRegexp(rx interface{}, str interface{}) bool {
+func matchRegexp(rx interface{}, str interface{}) (bool, error) {
 	var r *regexp.Regexp
 	if rr, ok := rx.(*regexp.Regexp); ok {
 		r = rr
 	} else {
-		r = regexp.MustCompile(fmt.Sprint(rx))
+		var err error
+		r, err = regexp.Compile(fmt.Sprint(rx))
+		if err != nil {
+			return false, err
+		}
 	}
 
 	switch v := str.(type) {
 	case []byte:
-		return r.Match(v)
+		return r.Match(v), nil
 	case string:
-		return r.MatchString(v)
+		return r.MatchString(v), nil
 	default:
-		return r.MatchString(fmt.Sprint(v))
+		return r.MatchString(fmt.Sprint(v)), nil
 	}
 }
 
@@ -1735,7 +1739,10 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 		h.Helper()
 	}
 
-	match := matchRegexp(rx, str)
+	match, err := matchRegexp(rx, str)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("Invalid regexp: %v", err), msgAndArgs...)
+	}
 
 	if !match {
 		Fail(t, fmt.Sprintf("Expect \"%v\" to match \"%v\"", str, rx), msgAndArgs...)
@@ -1752,7 +1759,10 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	match := matchRegexp(rx, str)
+	match, err := matchRegexp(rx, str)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("Invalid regexp: %v", err), msgAndArgs...)
+	}
 
 	if match {
 		Fail(t, fmt.Sprintf("Expect \"%v\" to NOT match \"%v\"", str, rx), msgAndArgs...)
