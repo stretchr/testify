@@ -1202,10 +1202,10 @@ func TestSubsetNotSubset(t *testing.T) {
 	}{
 		// cases that are expected to contain
 		{[]int{1, 2, 3}, nil, true, `nil is the empty set which is a subset of every set`},
-		{[]int{1, 2, 3}, []int{}, true, `[] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]int{1, 2, 3}, []int{1, 2}, true, `['\x01' '\x02'] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `['\x01' '\x02' '\x03'] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]string{"hello", "world"}, []string{"hello"}, true, `["hello"] is a subset of ["hello" "world"]`},
+		{[]int{1, 2, 3}, []int{}, true, `[]int{} is a subset of []int{1, 2, 3}`},
+		{[]int{1, 2, 3}, []int{1, 2}, true, `[]int{1, 2} is a subset of []int{1, 2, 3}`},
+		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `[]int{1, 2, 3} is a subset of []int{1, 2, 3}`},
+		{[]string{"hello", "world"}, []string{"hello"}, true, `[]string{"hello"} is a subset of []string{"hello", "world"}`},
 		{map[string]string{
 			"a": "x",
 			"c": "z",
@@ -1213,8 +1213,8 @@ func TestSubsetNotSubset(t *testing.T) {
 		}, map[string]string{
 			"a": "x",
 			"b": "y",
-		}, true, `map["a":"x" "b":"y"] is a subset of map["a":"x" "b":"y" "c":"z"]`},
-		{[]string{"a", "b", "c"}, map[string]int{"a": 1, "c": 3}, true, `map["a":'\x01' "c":'\x03'] is a subset of ["a" "b" "c"]`},
+		}, true, `map[string]string{"a":"x", "b":"y"} is a subset of map[string]string{"a":"x", "b":"y", "c":"z"}`},
+		{[]string{"a", "b", "c"}, map[string]int{"a": 1, "c": 3}, true, `map[string]int{"a":1, "c":3} is a subset of []string{"a", "b", "c"}`},
 
 		// cases that are expected not to contain
 		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, `[]string{"hello", "world"} does not contain "testify"`},
@@ -1286,6 +1286,198 @@ func TestNotSubsetNil(t *testing.T) {
 	if !mockT.Failed() {
 		t.Error("NotSubset on nil set should have failed the test")
 	}
+}
+
+// TestSubsetNotSubsetErrorMessages verifies that Subset and NotSubset produce
+// readable error messages using Go-syntax formatting (%#v) for various data types.
+// This catches regressions where %q was used, which produces broken output like
+// %!q(bool=true) for non-string types.
+func TestSubsetNotSubsetErrorMessages(t *testing.T) {
+	t.Parallel()
+
+	t.Run("NotSubset with bool slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []bool{true, false}, []bool{true})
+		msg := mockT.errorString()
+		Contains(t, msg, "[]bool{true} is a subset of []bool{true, false}")
+		// Ensure no broken %q formatting like %!q(bool=true)
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with float64 slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []float64{1.1, 2.2, 3.3}, []float64{1.1, 2.2})
+		msg := mockT.errorString()
+		Contains(t, msg, "[]float64{1.1, 2.2} is a subset of []float64{1.1, 2.2, 3.3}")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with uint slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []uint{10, 20, 30}, []uint{10, 20})
+		msg := mockT.errorString()
+		Contains(t, msg, "[]uint{0xa, 0x14} is a subset of []uint{0xa, 0x14, 0x1e}")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with map of int to bool", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT,
+			map[int]bool{1: true, 2: false, 3: true},
+			map[int]bool{1: true, 2: false},
+		)
+		msg := mockT.errorString()
+		Contains(t, msg, "is a subset of")
+		// Verify %#v formatting is used (type info present, no %!q artifacts)
+		Contains(t, msg, "map[int]bool{")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset failure with bool slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, []bool{true}, []bool{true, false})
+		msg := mockT.errorString()
+		Contains(t, msg, "[]bool{true} does not contain false")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset failure with float64 slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, []float64{1.1, 2.2}, []float64{1.1, 3.3})
+		msg := mockT.errorString()
+		Contains(t, msg, "does not contain 3.3")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with byte slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []byte{0x01, 0x02, 0x03}, []byte{0x01, 0x02})
+		msg := mockT.errorString()
+		Contains(t, msg, "is a subset of")
+		// %#v for byte slices uses hex notation like []byte{0x1, 0x2}
+		Contains(t, msg, "[]byte{")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with struct slices", func(t *testing.T) {
+		type item struct {
+			Name string
+			Val  int
+		}
+		mockT := new(mockTestingT)
+		list := []item{{"a", 1}, {"b", 2}, {"c", 3}}
+		subset := []item{{"a", 1}, {"b", 2}}
+		NotSubset(mockT, list, subset)
+		msg := mockT.errorString()
+		Contains(t, msg, "is a subset of")
+		Contains(t, msg, "assert.item{")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with empty bool slice", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []bool{true, false}, []bool{})
+		msg := mockT.errorString()
+		Contains(t, msg, "[]bool{} is a subset of []bool{true, false}")
+	})
+
+	t.Run("NotSubset with string slices still readable", func(t *testing.T) {
+		// Strings were the one type %q handled well; verify %#v still produces
+		// clear output (quoted strings with type info).
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []string{"hello", "world"}, []string{"hello"})
+		msg := mockT.errorString()
+		Contains(t, msg, `[]string{"hello"} is a subset of []string{"hello", "world"}`)
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset map-to-map with int keys", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, map[int]string{1: "a", 2: "b"}, map[int]string{1: "a"})
+		msg := mockT.errorString()
+		Contains(t, msg, "is a subset of")
+		Contains(t, msg, "map[int]string{")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset failure with map of int keys", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, map[int]string{1: "a"}, map[int]string{1: "a", 2: "b"})
+		msg := mockT.errorString()
+		Contains(t, msg, "does not contain")
+		Contains(t, msg, "map[int]string{")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset failure with uint slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, []uint{10, 20}, []uint{10, 30})
+		msg := mockT.errorString()
+		Contains(t, msg, "does not contain")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with int32 slices", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []int32{1, 2, 3}, []int32{1, 2})
+		msg := mockT.errorString()
+		Contains(t, msg, "is a subset of")
+		Contains(t, msg, "[]int32{")
+		NotContains(t, msg, "%!q")
+	})
+}
+
+// TestSubsetNotSubsetUnsupportedTypes verifies that Subset and NotSubset
+// produce readable error messages when called with unsupported types
+// (not array, slice, or map). This covers the "unsupported type" error
+// paths that previously used %q formatting.
+func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Subset with unsupported list type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, 42, []int{1})
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "int")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("Subset with unsupported subset type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		Subset(mockT, []int{1, 2}, "not a slice")
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "string")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with unsupported list type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, true, []bool{true})
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "bool")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("NotSubset with unsupported subset type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		NotSubset(mockT, []int{1, 2}, 42)
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "int")
+		NotContains(t, msg, "%!q")
+	})
+
+	t.Run("ElementsMatch with unsupported type", func(t *testing.T) {
+		mockT := new(mockTestingT)
+		ElementsMatch(mockT, "not a slice", []int{1})
+		msg := mockT.errorString()
+		Contains(t, msg, "has an unsupported type")
+		Contains(t, msg, "expecting array or slice")
+		NotContains(t, msg, "%!q")
+	})
 }
 
 func Test_containsElement(t *testing.T) {
@@ -4032,8 +4224,8 @@ func TestNotSubsetWithSliceTooLongToPrint(t *testing.T) {
 	NotSubset(mockT, longSlice, longSlice)
 	Contains(t, mockT.errorString(), `
 	Error Trace:	
-	Error:      	['\x00' '\x00' '\x00'`)
-	Contains(t, mockT.errorString(), `<... truncated> is a subset of ['\x00' '\x00' '\x00'`)
+	Error:      	[]int{0, 0, 0`)
+	Contains(t, mockT.errorString(), `<... truncated> is a subset of []int{0, 0, 0`)
 }
 
 func TestNotSubsetWithMapTooLongToPrint(t *testing.T) {
@@ -4043,8 +4235,8 @@ func TestNotSubsetWithMapTooLongToPrint(t *testing.T) {
 	NotSubset(mockT, map[int][]int{1: longSlice}, map[int][]int{1: longSlice})
 	Contains(t, mockT.errorString(), `
 	Error Trace:	
-	Error:      	map['\x01':['\x00' '\x00' '\x00'`)
-	Contains(t, mockT.errorString(), `<... truncated> is a subset of map['\x01':['\x00' '\x00' '\x00'`)
+	Error:      	map[int][]int{1:[]int{0, 0, 0`)
+	Contains(t, mockT.errorString(), `<... truncated> is a subset of map[int][]int{1:[]int{0, 0, 0`)
 }
 
 func TestSameWithSliceTooLongToPrint(t *testing.T) {
