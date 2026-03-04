@@ -3020,6 +3020,9 @@ Diff:
 	)
 	Equal(t, expected, actual)
 
+	timeA := time.Date(2020, 9, 24, 0, 0, 0, 0, time.UTC)
+	timeB := time.Date(2020, 9, 25, 0, 0, 0, 0, time.UTC)
+
 	expected = `
 
 Diff:
@@ -3028,14 +3031,117 @@ Diff:
 @@ -1,2 +1,2 @@
 -(time.Time) 2020-09-24 00:00:00 +0000 UTC
 +(time.Time) 2020-09-25 00:00:00 +0000 UTC
- 
+` + " \n"
+
+	actual = diff(timeA, timeB)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,2 +1,2 @@
+-(*time.Time)(2020-09-24 00:00:00 +0000 UTC)
++(*time.Time)(2020-09-25 00:00:00 +0000 UTC)
+` + " \n"
+
+	actual = diff(&timeA, &timeB)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,3 +1,3 @@
+ (assert.someStruct) {
+- t: (time.Time) 2020-09-24 00:00:00 +0000 UTC
++ t: (time.Time) 2020-09-25 00:00:00 +0000 UTC
+ }
 `
 
+	type someStruct struct {
+		t time.Time
+	}
+
 	actual = diff(
-		time.Date(2020, 9, 24, 0, 0, 0, 0, time.UTC),
-		time.Date(2020, 9, 25, 0, 0, 0, 0, time.UTC),
+		someStruct{t: timeA},
+		someStruct{t: timeB},
 	)
+
 	Equal(t, expected, actual)
+
+	// here we test the diff is stable even if the order of map keys is not
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,4 +1,4 @@
+ (map[time.Time]int) (len=3) {
+- (time.Time) 2020-09-24 00:00:00 +0000 UTC: (int) 1,
+- (time.Time) 2020-09-25 00:00:00 +0000 UTC: (int) 42,
++ (time.Time) 2020-09-24 00:00:00 +0000 UTC: (int) 2,
++ (time.Time) 2020-09-26 00:00:00 +0000 UTC: (int) 42,
+  (time.Time) 2020-09-27 00:00:00 +0000 UTC: (int) 100
+`
+
+	timeC := time.Date(2020, 9, 26, 0, 0, 0, 0, time.UTC)
+	timeD := time.Date(2020, 9, 27, 0, 0, 0, 0, time.UTC)
+
+	mapTimeA := map[time.Time]int{
+		timeA: 1,
+		timeB: 42,
+		timeD: 100,
+	}
+
+	mapTimeB := map[time.Time]int{
+		timeA: 2,
+		timeC: 42,
+		timeD: 100,
+	}
+
+	actual = diff(mapTimeA, mapTimeB)
+	Equal(t, expected, actual)
+
+	// here we test the time are ordered against the time.Time.Before() and not the time.Time.String()
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
+@@ -1,5 +1,5 @@
+ (map[time.Time]int) (len=3) {
+- (time.Time) 2020-09-24 00:00:00 +0000 UTC: (int) 1,
+- (time.Time) 2020-09-25 00:00:00 +0900 JST: (int) 100,
+- (time.Time) 2020-09-25 00:00:00 +0000 UTC: (int) 42
++ (time.Time) 2020-09-24 00:00:00 +0900 JST: (int) 42,
++ (time.Time) 2020-09-24 00:00:00 +0000 UTC: (int) 2,
++ (time.Time) 2020-09-25 00:00:00 +0900 JST: (int) 100
+ }
+`
+
+	loc := time.FixedZone("JST", 9*60*60)
+
+	timeE := time.Date(2020, 9, 24, 0, 0, 0, 0, loc)
+	timeF := time.Date(2020, 9, 25, 0, 0, 0, 0, loc)
+
+	mapTimeLocA := map[time.Time]int{
+		timeA: 1,
+		timeB: 42,
+		timeF: 100,
+	}
+
+	mapTimeLocB := map[time.Time]int{
+		timeA: 2,
+		timeE: 42,
+		timeF: 100,
+	}
+
+	actual = diff(mapTimeLocA, mapTimeLocB)
+	Equal(t, expected, actual)
+
 }
 
 func TestTimeEqualityErrorFormatting(t *testing.T) {

@@ -1951,9 +1951,6 @@ func diff(expected interface{}, actual interface{}) string {
 	case reflect.TypeOf(""):
 		e = reflect.ValueOf(expected).String()
 		a = reflect.ValueOf(actual).String()
-	case reflect.TypeOf(time.Time{}):
-		e = spewConfigStringerEnabled.Sdump(expected)
-		a = spewConfigStringerEnabled.Sdump(actual)
 	default:
 		e = spewConfig.Sdump(expected)
 		a = spewConfig.Sdump(actual)
@@ -1985,14 +1982,7 @@ var spewConfig = spew.ConfigState{
 	DisableCapacities:       true,
 	SortKeys:                true,
 	DisableMethods:          true,
-	MaxDepth:                10,
-}
-
-var spewConfigStringerEnabled = spew.ConfigState{
-	Indent:                  " ",
-	DisablePointerAddresses: true,
-	DisableCapacities:       true,
-	SortKeys:                true,
+	EnableTimeStringer:      true,
 	MaxDepth:                10,
 }
 
