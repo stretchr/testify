@@ -593,6 +593,10 @@ func TestEqual(t *testing.T) {
 	mockT := new(testing.T)
 	var m map[string]interface{}
 
+	type unexportedKeyType struct {
+		m map[[1]byte]*struct{}
+	}
+
 	cases := []struct {
 		expected interface{}
 		actual   interface{}
@@ -612,6 +616,40 @@ func TestEqual(t *testing.T) {
 		// Not expected to be equal
 		{m["bar"], "something", false, ""},
 		{myType("1"), myType("2"), false, ""},
+
+		// Test cases for struct with unexported map field containing array keys
+		{
+			unexportedKeyType{
+				map[[1]byte]*struct{}{
+					{1}: nil,
+					{2}: nil,
+				},
+			},
+			unexportedKeyType{
+				map[[1]byte]*struct{}{
+					{1}: nil,
+					{2}: nil,
+				},
+			},
+			true,
+			"",
+		},
+		{
+			unexportedKeyType{
+				map[[1]byte]*struct{}{
+					{1}: {},
+					{2}: {},
+				},
+			},
+			unexportedKeyType{
+				map[[1]byte]*struct{}{
+					{3}: {},
+					{4}: {},
+				},
+			},
+			false,
+			"structs with unexported map fields using array keys are not equal when keys differ",
+		},
 
 		// A case that might be confusing, especially with numeric literals
 		{10, uint(10), false, ""},
