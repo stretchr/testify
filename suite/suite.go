@@ -209,7 +209,18 @@ func Run(t *testing.T, suite TestingSuite) {
 
 				stats.start(method.Name)
 
-				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+				switch method.Type.NumIn() {
+				case 1:
+					method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
+				case 2:
+					if method.Type.In(1) == reflect.TypeOf((*testing.T)(nil)) {
+						method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
+						break
+					}
+					fallthrough
+				default:
+					t.Error("invalid test method signature: expecting no parameters, or single *testing.T")
+				}
 			},
 		}
 		tests = append(tests, test)
