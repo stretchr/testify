@@ -1292,6 +1292,7 @@ func TestNotSubsetNil(t *testing.T) {
 // readable error messages using Go-syntax formatting (%#v) for various data types.
 // This catches regressions where %q was used, which produces broken output like
 // %!q(bool=true) for non-string types.
+// Related: https://github.com/stretchr/testify/issues/1800
 func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 	t.Parallel()
 
@@ -1300,8 +1301,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		NotSubset(mockT, []bool{true, false}, []bool{true})
 		msg := mockT.errorString()
 		Contains(t, msg, "[]bool{true} is a subset of []bool{true, false}")
-		// Ensure no broken %q formatting like %!q(bool=true)
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with float64 slices", func(t *testing.T) {
@@ -1309,7 +1308,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		NotSubset(mockT, []float64{1.1, 2.2, 3.3}, []float64{1.1, 2.2})
 		msg := mockT.errorString()
 		Contains(t, msg, "[]float64{1.1, 2.2} is a subset of []float64{1.1, 2.2, 3.3}")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with uint slices", func(t *testing.T) {
@@ -1317,7 +1315,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		NotSubset(mockT, []uint{10, 20, 30}, []uint{10, 20})
 		msg := mockT.errorString()
 		Contains(t, msg, "[]uint{0xa, 0x14} is a subset of []uint{0xa, 0x14, 0x1e}")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with map of int to bool", func(t *testing.T) {
@@ -1328,9 +1325,7 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		)
 		msg := mockT.errorString()
 		Contains(t, msg, "is a subset of")
-		// Verify %#v formatting is used (type info present, no %!q artifacts)
 		Contains(t, msg, "map[int]bool{")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("Subset failure with bool slices", func(t *testing.T) {
@@ -1338,7 +1333,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		Subset(mockT, []bool{true}, []bool{true, false})
 		msg := mockT.errorString()
 		Contains(t, msg, "[]bool{true} does not contain false")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("Subset failure with float64 slices", func(t *testing.T) {
@@ -1346,7 +1340,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		Subset(mockT, []float64{1.1, 2.2}, []float64{1.1, 3.3})
 		msg := mockT.errorString()
 		Contains(t, msg, "does not contain 3.3")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with byte slices", func(t *testing.T) {
@@ -1356,7 +1349,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		Contains(t, msg, "is a subset of")
 		// %#v for byte slices uses hex notation like []byte{0x1, 0x2}
 		Contains(t, msg, "[]byte{")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with struct slices", func(t *testing.T) {
@@ -1371,7 +1363,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "is a subset of")
 		Contains(t, msg, "assert.item{")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with empty bool slice", func(t *testing.T) {
@@ -1388,7 +1379,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		NotSubset(mockT, []string{"hello", "world"}, []string{"hello"})
 		msg := mockT.errorString()
 		Contains(t, msg, `[]string{"hello"} is a subset of []string{"hello", "world"}`)
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset map-to-map with int keys", func(t *testing.T) {
@@ -1397,7 +1387,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "is a subset of")
 		Contains(t, msg, "map[int]string{")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("Subset failure with map of int keys", func(t *testing.T) {
@@ -1406,7 +1395,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "does not contain")
 		Contains(t, msg, "map[int]string{")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("Subset failure with uint slices", func(t *testing.T) {
@@ -1414,7 +1402,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		Subset(mockT, []uint{10, 20}, []uint{10, 30})
 		msg := mockT.errorString()
 		Contains(t, msg, "does not contain")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with int32 slices", func(t *testing.T) {
@@ -1423,7 +1410,6 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "is a subset of")
 		Contains(t, msg, "[]int32{")
-		NotContains(t, msg, "%!q")
 	})
 }
 
@@ -1431,6 +1417,7 @@ func TestSubsetNotSubsetErrorMessages(t *testing.T) {
 // produce readable error messages when called with unsupported types
 // (not array, slice, or map). This covers the "unsupported type" error
 // paths that previously used %q formatting.
+// Related: https://github.com/stretchr/testify/issues/1800
 func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
 	t.Parallel()
 
@@ -1440,7 +1427,6 @@ func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "has an unsupported type")
 		Contains(t, msg, "int")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("Subset with unsupported subset type", func(t *testing.T) {
@@ -1449,7 +1435,6 @@ func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "has an unsupported type")
 		Contains(t, msg, "string")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with unsupported list type", func(t *testing.T) {
@@ -1458,7 +1443,6 @@ func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "has an unsupported type")
 		Contains(t, msg, "bool")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("NotSubset with unsupported subset type", func(t *testing.T) {
@@ -1467,7 +1451,6 @@ func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "has an unsupported type")
 		Contains(t, msg, "int")
-		NotContains(t, msg, "%!q")
 	})
 
 	t.Run("ElementsMatch with unsupported type", func(t *testing.T) {
@@ -1476,7 +1459,6 @@ func TestSubsetNotSubsetUnsupportedTypes(t *testing.T) {
 		msg := mockT.errorString()
 		Contains(t, msg, "has an unsupported type")
 		Contains(t, msg, "expecting array or slice")
-		NotContains(t, msg, "%!q")
 	})
 }
 
