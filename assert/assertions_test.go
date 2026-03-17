@@ -161,6 +161,10 @@ func TestObjectsAreEqualValues(t *testing.T) {
 		{3.14, complex128(1e+100 + 1e+100i), false},
 		{complex128(1e+10 + 1e+10i), complex64(1e+10 + 1e+10i), true},
 		{complex64(1e+10 + 1e+10i), complex128(1e+10 + 1e+10i), true},
+		{float32(10.1), float64(10.1), true},
+		{float64(10.1), float32(10.1), true},
+		{float32(10.123456), float64(10.12345600), true},
+		{float32(10.123456), float64(10.12345678), false},
 	}
 
 	for _, c := range cases {

@@ -187,11 +187,24 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	// If BOTH values are numeric, there are chances of false positives due
 	// to overflow or underflow. So, we need to make sure to always convert
 	// the smaller type to a larger type before comparing.
-	if expectedType.Size() >= actualType.Size() {
-		return actualValue.Convert(expectedType).Interface() == expected
+	fromType := actualType
+	toType := expectedType
+	fromValue := actualValue
+	toValue := expectedValue
+	if expectedType.Size() < actualType.Size() {
+		fromType = expectedType
+		toType = actualType
+		fromValue = expectedValue
+		toValue = actualValue
 	}
 
-	return expectedValue.Convert(actualType).Interface() == actual
+	newValue := fromValue.Convert(toType).Interface()
+	if fromType.Kind() == reflect.Float32 && toType.Kind() == reflect.Float64 {
+		scale := math.Pow(10, 6)
+		newValue = math.Round(newValue.(float64)*scale) / scale
+	}
+
+	return newValue == toValue.Interface()
 }
 
 // isNumericType returns true if the type is one of:
