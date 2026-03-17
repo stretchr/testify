@@ -165,6 +165,7 @@ func TestObjectsAreEqualValues(t *testing.T) {
 		{float64(10.1), float32(10.1), true},
 		{float32(10.123456), float64(10.12345600), true},
 		{float32(10.123456), float64(10.12345678), false},
+		{float32(1.0 / 3.0), float64(1.0 / 3.0), false},
 	}
 
 	for _, c := range cases {
