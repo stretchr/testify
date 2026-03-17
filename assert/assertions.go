@@ -198,6 +198,11 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		toValue = actualValue
 	}
 
+	// If we are converting from float32 to float64, the converted value will
+	// have trailing non zero decimals due to binary representation differences
+	// For example: float64(float32(10.1)) = 10.100000381469727
+	// To remove the trailing decimals we can round the 64-bit value to
+	// expected precision of 32-bit which is 6 decimal places
 	newValue := fromValue.Convert(toType).Interface()
 	if fromType.Kind() == reflect.Float32 && toType.Kind() == reflect.Float64 {
 		scale := math.Pow(10, 6)
