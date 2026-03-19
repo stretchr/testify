@@ -123,6 +123,11 @@ func TestObjectsAreEqual(t *testing.T) {
 		{time.Now, time.Now, false},
 		{func() {}, func() {}, false},
 		{uint32(10), int32(10), false},
+		{math.NaN(), math.NaN(), false},
+		{math.Inf(1), math.Inf(1), true},
+		{math.Inf(-1), math.Inf(-1), true},
+		{math.Inf(1), math.Inf(-1), false},
+		{math.Copysign(0, -1), 0.0, true}, // -0 should compare equal to 0
 	}
 
 	for _, c := range cases {
@@ -131,6 +136,10 @@ func TestObjectsAreEqual(t *testing.T) {
 
 			if res != c.result {
 				t.Errorf("ObjectsAreEqual(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+
+			if ObjectsAreEqual(c.actual, c.expected) != res {
+				t.Errorf("ObjectsAreEqual should be symmetric: ObjectsAreEqual(%#v, %#v) should return the same as ObjectsAreEqual(%#v, %#v)", c.expected, c.actual, c.actual, c.expected)
 			}
 		})
 	}
@@ -148,24 +157,36 @@ func TestObjectsAreEqualValues(t *testing.T) {
 	}{
 		{uint32(10), int32(10), true},
 		{0, nil, false},
-		{nil, 0, false},
 		{now, now.In(time.Local), false}, // should not be time zone independent
 		{int(270), int8(14), false},      // should handle overflow/underflow
-		{int8(14), int(270), false},
 		{[]int{270, 270}, []int8{14, 14}, false},
 		{complex128(1e+100 + 1e+100i), complex64(complex(math.Inf(0), math.Inf(0))), false},
 		{complex64(complex(math.Inf(0), math.Inf(0))), complex128(1e+100 + 1e+100i), false},
 		{complex128(1e+100 + 1e+100i), 270, false},
 		{270, complex128(1e+100 + 1e+100i), false},
 		{complex128(1e+100 + 1e+100i), 3.14, false},
-		{3.14, complex128(1e+100 + 1e+100i), false},
 		{complex128(1e+10 + 1e+10i), complex64(1e+10 + 1e+10i), true},
-		{complex64(1e+10 + 1e+10i), complex128(1e+10 + 1e+10i), true},
-		{float32(10.1), float64(10.1), true},
 		{float64(10.1), float32(10.1), true},
 		{float32(10.123456), float64(10.12345600), true},
 		{float32(10.123456), float64(10.12345678), false},
 		{float32(1.0 / 3.0), float64(1.0 / 3.0), false},
+
+		// Something near overflow should work
+		{float32(math.MaxFloat32), float64(math.MaxFloat32), true},
+
+		// NaN should remain unequal, even across float32/float64.
+		{float32(math.NaN()), float64(math.NaN()), false},
+
+		// Infinity should compare like ordinary equality.
+		{float32(math.Inf(1)), float64(math.Inf(1)), true},
+		{float32(math.Inf(-1)), float64(math.Inf(-1)), true},
+		{float64(math.Inf(1)), float32(math.Inf(-1)), false},
+
+		// zero should not lead to division by zero error
+		{float32(0), float64(0), true},
+
+		// Signed zero should still compare equal.
+		{float32(math.Copysign(0, -1)), float64(0), true},
 	}
 
 	for _, c := range cases {
@@ -174,6 +195,10 @@ func TestObjectsAreEqualValues(t *testing.T) {
 
 			if res != c.result {
 				t.Errorf("ObjectsAreEqualValues(%#v, %#v) should return %#v", c.expected, c.actual, c.result)
+			}
+
+			if ObjectsAreEqualValues(c.actual, c.expected) != res {
+				t.Errorf("ObjectsAreEqualValues should be symmetric: ObjectsAreEqualValues(%#v, %#v) should return the same as ObjectsAreEqualValues(%#v, %#v)", c.expected, c.actual, c.actual, c.expected)
 			}
 		})
 	}
