@@ -1563,14 +1563,22 @@ func calcRelativeError(expected, actual interface{}) (float64, error) {
 	if math.IsNaN(af) {
 		return 0, errors.New("expected value must not be NaN")
 	}
-	if af == 0 {
-		return 0, fmt.Errorf("expected value must have a value other than zero to calculate the relative error")
-	}
 	if math.IsNaN(bf) {
 		return 0, errors.New("actual value must not be NaN")
 	}
+	if af == 0 && bf != 0 {
+		return 0, fmt.Errorf("expected value must have a value other than zero to calculate the relative error")
+	}
 
-	return math.Abs(af-bf) / math.Abs(af), nil
+	// Use the larger of |expected| and |actual| as denominator for symmetric
+	// relative error. Using only |expected| misbehaves for small expected values
+	// in (0,1), producing inflated errors (e.g. expected=0.1, actual=0.14 gives
+	// 0.4 instead of ~0.286). See https://github.com/stretchr/testify/issues/1839
+	denom := math.Max(math.Abs(af), math.Abs(bf))
+	if denom == 0 {
+		return 0, nil // both zero: no relative error
+	}
+	return math.Abs(af-bf) / denom, nil
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon

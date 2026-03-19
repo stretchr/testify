@@ -2454,6 +2454,7 @@ func TestInEpsilon(t *testing.T) {
 		{uint8(2), uint16(2), .001},
 		{2.1, 2.2, 0.1},
 		{2.2, 2.1, 0.1},
+		{0.1, 0.14, 0.3}, // small values (0,1): symmetric rel error ~0.286 (issue #1839)
 		{-2.1, -2.2, 0.1},
 		{-2.2, -2.1, 0.1},
 		{uint64(100), uint8(101), 0.01},
