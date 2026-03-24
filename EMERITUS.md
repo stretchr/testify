@@ -2,6 +2,7 @@
 
 We would like to acknowledge previous testify maintainers and their huge contributions to our collective success:
 
+  * @tylerb
   * @matryer
   * @glesica
   * @ernesto-jimenez

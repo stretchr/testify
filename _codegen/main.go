@@ -283,10 +283,15 @@ func (f *testFunc) Comment() string {
 }
 
 func (f *testFunc) CommentFormat() string {
-	search := fmt.Sprintf("%s", f.DocInfo.Name)
+	search := f.DocInfo.Name
 	replace := fmt.Sprintf("%sf", f.DocInfo.Name)
-	comment := strings.Replace(f.Comment(), search, replace, -1)
-	exp := regexp.MustCompile(replace + `\(((\(\)|[^\n])+)\)`)
+	comment := strings.ReplaceAll(f.Comment(), search, replace)
+
+	// NOTE: Some functions have msgAndArgs at the end. It needs to be omitted. (currently only EventuallyWithT)
+	// Change here if the original comment changed.
+	comment = strings.Replace(comment, `, "external state has not changed to 'true'; still false"`, "", 1)
+
+	exp := regexp.MustCompile(replace + `\((([^()]*|\([^()]*\))*)\)`)
 	return exp.ReplaceAllString(comment, replace+`($1, "error message %s", "formatted")`)
 }
 
