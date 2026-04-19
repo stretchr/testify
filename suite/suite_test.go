@@ -813,3 +813,138 @@ func TestSuiteSignatureValidation(t *testing.T) {
 	assert.True(t, suiteTester.setUp, "SetupSuite should have been executed")
 	assert.True(t, suiteTester.toreDown, "TearDownSuite should have been executed")
 }
+
+// skipInBeforeTestSuite is used to verify that AfterTest is not called when
+// BeforeTest skips the test (#1781).
+type skipInBeforeTestSuite struct {
+	Suite
+	beforeTestCount int
+	afterTestCount  int
+	testRunCount    int
+}
+
+func (s *skipInBeforeTestSuite) BeforeTest(_, _ string) {
+	s.beforeTestCount++
+	s.T().Skip()
+}
+
+func (s *skipInBeforeTestSuite) AfterTest(_, _ string) {
+	s.afterTestCount++
+}
+
+func (s *skipInBeforeTestSuite) TestA() {
+	s.testRunCount++
+}
+
+// TestSkipInBeforeTest asserts that calling Skip from BeforeTest skips the
+// test and prevents AfterTest from running. See #1781.
+func TestSkipInBeforeTest(t *testing.T) {
+	s := new(skipInBeforeTestSuite)
+	ok := testing.RunTests(
+		allTestsFilter,
+		[]testing.InternalTest{{
+			Name: t.Name() + "/skipInBeforeTestSuite",
+			F: func(t *testing.T) {
+				Run(t, s)
+			},
+		}},
+	)
+	assert.True(t, ok, "suite should not fail when BeforeTest skips")
+	assert.Equal(t, 1, s.beforeTestCount, "BeforeTest should run once")
+	assert.Equal(t, 0, s.testRunCount, "test body should not run when BeforeTest skips")
+	assert.Equal(t, 0, s.afterTestCount, "AfterTest should not run when BeforeTest skips")
+}
+
+// skipInSetupTestSuite is used to verify that AfterTest is not called when
+// SetupTest skips the test (#1781).
+type skipInSetupTestSuite struct {
+	Suite
+	setupTestCount    int
+	beforeTestCount   int
+	afterTestCount    int
+	tearDownTestCount int
+	testRunCount      int
+}
+
+func (s *skipInSetupTestSuite) SetupTest() {
+	s.setupTestCount++
+	s.T().Skip()
+}
+
+func (s *skipInSetupTestSuite) BeforeTest(_, _ string) {
+	s.beforeTestCount++
+}
+
+func (s *skipInSetupTestSuite) AfterTest(_, _ string) {
+	s.afterTestCount++
+}
+
+func (s *skipInSetupTestSuite) TearDownTest() {
+	s.tearDownTestCount++
+}
+
+func (s *skipInSetupTestSuite) TestA() {
+	s.testRunCount++
+}
+
+// TestSkipInSetupTest asserts that calling Skip from SetupTest skips the
+// test, skips BeforeTest, and prevents AfterTest from running. TearDownTest
+// still runs so dependencies set up before the skip can be cleaned up.
+// See #1781.
+func TestSkipInSetupTest(t *testing.T) {
+	s := new(skipInSetupTestSuite)
+	ok := testing.RunTests(
+		allTestsFilter,
+		[]testing.InternalTest{{
+			Name: t.Name() + "/skipInSetupTestSuite",
+			F: func(t *testing.T) {
+				Run(t, s)
+			},
+		}},
+	)
+	assert.True(t, ok, "suite should not fail when SetupTest skips")
+	assert.Equal(t, 1, s.setupTestCount, "SetupTest should run once")
+	assert.Equal(t, 0, s.beforeTestCount, "BeforeTest should not run when SetupTest skips")
+	assert.Equal(t, 0, s.testRunCount, "test body should not run when SetupTest skips")
+	assert.Equal(t, 0, s.afterTestCount, "AfterTest should not run when SetupTest skips")
+	assert.Equal(t, 1, s.tearDownTestCount, "TearDownTest should still run when SetupTest skips")
+}
+
+// skipInTestBodySuite is used to verify that AfterTest is still called when
+// the test body itself calls Skip (regression guard for existing behavior).
+type skipInTestBodySuite struct {
+	Suite
+	beforeTestCount int
+	afterTestCount  int
+}
+
+func (s *skipInTestBodySuite) BeforeTest(_, _ string) {
+	s.beforeTestCount++
+}
+
+func (s *skipInTestBodySuite) AfterTest(_, _ string) {
+	s.afterTestCount++
+}
+
+func (s *skipInTestBodySuite) TestA() {
+	s.T().Skip()
+}
+
+// TestSkipInTestBodyStillRunsAfterTest asserts that calling Skip from inside
+// a test method still triggers AfterTest — only skips originating before the
+// test method is entered should suppress AfterTest (#1781).
+func TestSkipInTestBodyStillRunsAfterTest(t *testing.T) {
+	s := new(skipInTestBodySuite)
+	ok := testing.RunTests(
+		allTestsFilter,
+		[]testing.InternalTest{{
+			Name: t.Name() + "/skipInTestBodySuite",
+			F: func(t *testing.T) {
+				Run(t, s)
+			},
+		}},
+	)
+	assert.True(t, ok, "suite should not fail when test body skips")
+	assert.Equal(t, 1, s.beforeTestCount, "BeforeTest should run once")
+	assert.Equal(t, 1, s.afterTestCount, "AfterTest should still run when the test body skips")
+}

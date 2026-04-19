@@ -181,6 +181,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				parentT := suite.T()
 				suite.SetT(t)
 				defer recoverAndFailOnPanic(t)
+				var beforeTestFinished bool
 				defer func() {
 					t.Helper()
 
@@ -189,7 +190,12 @@ func Run(t *testing.T, suite TestingSuite) {
 					stats.end(method.Name, !t.Failed() && r == nil)
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(suiteName, method.Name)
+						// Only run AfterTest if BeforeTest finished without
+						// calling Skip. This mirrors the guarantee that
+						// AfterTest has a matching BeforeTest.
+						if beforeTestFinished {
+							afterTestSuite.AfterTest(suiteName, method.Name)
+						}
 					}
 
 					if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
@@ -206,6 +212,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 				}
+				beforeTestFinished = true
 
 				stats.start(method.Name)
 
