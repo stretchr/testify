@@ -757,6 +757,15 @@ func isEmpty(object interface{}) bool {
 	return isEmptyValue(reflect.ValueOf(object))
 }
 
+func formatEmptyMessageValue(object interface{}) string {
+	value := reflect.ValueOf(object)
+	if value.IsValid() && value.Kind() == reflect.String {
+		return truncatingFormat("%q", object)
+	}
+
+	return truncatingFormat("%v", object)
+}
+
 // isEmptyValue gets whether the specified reflect.Value is considered empty or not.
 func isEmptyValue(objValue reflect.Value) bool {
 	if objValue.IsZero() {
@@ -794,7 +803,7 @@ func Empty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should be empty, but was %s", truncatingFormat("%v", object)), msgAndArgs...)
+		Fail(t, fmt.Sprintf("Should be empty, but was %s", formatEmptyMessageValue(object)), msgAndArgs...)
 	}
 
 	return pass
@@ -811,7 +820,7 @@ func NotEmpty(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
 		if h, ok := t.(tHelper); ok {
 			h.Helper()
 		}
-		Fail(t, fmt.Sprintf("Should NOT be empty, but was %v", object), msgAndArgs...)
+		Fail(t, fmt.Sprintf("Should NOT be empty, but was %s", formatEmptyMessageValue(object)), msgAndArgs...)
 	}
 
 	return pass
