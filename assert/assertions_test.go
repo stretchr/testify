@@ -1952,7 +1952,7 @@ func TestEmpty(t *testing.T) {
 			name:           "Non Empty string is not empty",
 			value:          "something",
 			expectedResult: false,
-			expectedErrMsg: "Should be empty, but was something\n",
+			expectedErrMsg: "Should be empty, but was \"something\"\n",
 		},
 		{
 			name:           "Non nil object is not empty",
@@ -1994,7 +1994,7 @@ func TestEmpty(t *testing.T) {
 			name:           "non-empty aliased string is empty",
 			value:          TString("abc"),
 			expectedResult: false,
-			expectedErrMsg: "Should be empty, but was abc\n",
+			expectedErrMsg: "Should be empty, but was \"abc\"\n",
 		},
 		{
 			name:           "ptr to non-nil value is not empty",
@@ -2014,49 +2014,38 @@ func TestEmpty(t *testing.T) {
 			name:           "string with only spaces is not empty",
 			value:          "   ",
 			expectedResult: false,
-			expectedErrMsg: "Should be empty, but was    \n", // TODO FIX THIS strange error message
+			expectedErrMsg: "Should be empty, but was \"   \"\n",
 		},
 		{
 			name:           "string with a line feed is not empty",
 			value:          "\n",
 			expectedResult: false,
-			// TODO This is the exact same error message as for an empty string
-			expectedErrMsg: "Should be empty, but was \n", // TODO FIX THIS strange error message
+			expectedErrMsg: "Should be empty, but was \"\\n\"\n",
 		},
 		{
 			name:           "string with only tabulation and lines feed is not empty",
 			value:          "\n\t\n",
 			expectedResult: false,
-			// TODO The line feeds and tab are not helping to spot what is expected
-			expectedErrMsg: "" + // this syntax is used to show how errors are reported.
-				"Should be empty, but was \n" +
-				"\t\n",
+			expectedErrMsg: "Should be empty, but was \"\\n\\t\\n\"\n",
 		},
 		{
 			name:           "string with trailing lines feed is not empty",
 			value:          "foo\n\n",
 			expectedResult: false,
-			// TODO it's not clear if one or two lines feed are expected
-			expectedErrMsg: "Should be empty, but was foo\n\n",
+			expectedErrMsg: "Should be empty, but was \"foo\\n\\n\"\n",
 		},
 		{
 			name:           "string with leading and trailing tabulation and lines feed is not empty",
 			value:          "\n\nfoo\t\n\t\n",
 			expectedResult: false,
-			// TODO The line feeds and tab are not helping to figure what is expected
-			expectedErrMsg: "" +
-				"Should be empty, but was \n" +
-				"\n" +
-				"foo\t\n" +
-				"\t\n",
+			expectedErrMsg: "Should be empty, but was \"\\n\\nfoo\\t\\n\\t\\n\"\n",
 		},
 
 		{
 			name:           "non-printable character is not empty",
 			value:          "\u00a0", // NO-BREAK SPACE UNICODE CHARACTER
 			expectedResult: false,
-			// TODO here you cannot figure out what is expected
-			expectedErrMsg: "Should be empty, but was \u00a0\n",
+			expectedErrMsg: "Should be empty, but was \"\\u00a0\"\n",
 		},
 
 		// Here we are testing there is no error message on success
@@ -2112,7 +2101,7 @@ func TestNotEmpty(t *testing.T) {
 			name:           "Empty string is empty",
 			value:          "",
 			expectedResult: false,
-			expectedErrMsg: `Should NOT be empty, but was ` + "\n", // TODO FIX THIS strange error message
+			expectedErrMsg: "Should NOT be empty, but was \"\"\n",
 		},
 		{
 			name:           "Nil is empty",
