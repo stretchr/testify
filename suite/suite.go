@@ -200,14 +200,14 @@ func Run(t *testing.T, suite TestingSuite) {
 					failOnPanic(t, r)
 				}()
 
+				stats.start(method.Name)
+
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
 				}
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(methodFinder.Elem().Name(), method.Name)
 				}
-
-				stats.start(method.Name)
 
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite)})
 			},
