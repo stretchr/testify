@@ -2018,12 +2018,7 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	var tickC <-chan time.Time
-
-	// Check the condition once first on the initial call.
-	go checkCond()
-
-	for {
+	for tickC := ticker.C; ; {
 		select {
 		case <-timer.C:
 			return Fail(t, "Condition never satisfied", msgAndArgs...)
@@ -2121,12 +2116,7 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	var tickC <-chan time.Time
-
-	// Check the condition once first on the initial call.
-	go checkCond()
-
-	for {
+	for tickC := ticker.C; ; {
 		select {
 		case <-timer.C:
 			for _, err := range lastFinishedTickErrs {
@@ -2165,12 +2155,7 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 	ticker := time.NewTicker(tick)
 	defer ticker.Stop()
 
-	var tickC <-chan time.Time
-
-	// Check the condition once first on the initial call.
-	go checkCond()
-
-	for {
+	for tickC := ticker.C; ; {
 		select {
 		case <-timer.C:
 			return true
