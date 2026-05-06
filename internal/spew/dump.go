@@ -301,7 +301,7 @@ func (d *dumpState) dump(v reflect.Value) {
 
 	// Call Stringer/error interfaces if they exist and the handle methods flag
 	// is enabled
-	if !d.cs.DisableMethods {
+	if !d.cs.DisableMethods || (d.cs.EnableTimeStringer && isTime(v)) {
 		if (kind != reflect.Invalid) && (kind != reflect.Interface) {
 			if handled := handleMethods(d.cs, d.w, v); handled {
 				return

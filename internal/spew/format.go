@@ -222,7 +222,7 @@ func (f *formatState) format(v reflect.Value) {
 
 	// Call Stringer/error interfaces if they exist and the handle methods
 	// flag is enabled.
-	if !f.cs.DisableMethods {
+	if !f.cs.DisableMethods || (f.cs.EnableTimeStringer && isTime(v)) {
 		if (kind != reflect.Invalid) && (kind != reflect.Interface) {
 			if handled := handleMethods(f.cs, f.fs, v); handled {
 				return
