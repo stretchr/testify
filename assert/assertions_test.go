@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	i     interface{}
-	zeros = []interface{}{
+	i     any
+	zeros = []any{
 		false,
 		byte(0),
 		complex64(0),
@@ -40,19 +40,19 @@ var (
 		uint64(0),
 		uintptr(0),
 		"",
-		[0]interface{}{},
-		[]interface{}(nil),
+		[0]any{},
+		[]any(nil),
 		struct{ x int }{},
-		(*interface{})(nil),
+		(*any)(nil),
 		(func())(nil),
 		nil,
-		interface{}(nil),
-		map[interface{}]interface{}(nil),
-		(chan interface{})(nil),
-		(<-chan interface{})(nil),
-		(chan<- interface{})(nil),
+		any(nil),
+		map[any]any(nil),
+		(chan any)(nil),
+		(<-chan any)(nil),
+		(chan<- any)(nil),
 	}
-	nonZeros = []interface{}{
+	nonZeros = []any{
 		true,
 		byte(1),
 		complex64(1),
@@ -72,16 +72,16 @@ var (
 		uint64(1),
 		uintptr(1),
 		"s",
-		[1]interface{}{1},
-		[]interface{}{},
+		[1]any{1},
+		[]any{},
 		struct{ x int }{1},
 		(&i),
 		(func() {}),
-		interface{}(1),
-		map[interface{}]interface{}{},
-		(make(chan interface{})),
-		(<-chan interface{})(make(chan interface{})),
-		(chan<- interface{})(make(chan interface{})),
+		any(1),
+		map[any]any{},
+		(make(chan any)),
+		(<-chan any)(make(chan any)),
+		(chan<- any)(make(chan any)),
 	}
 )
 
@@ -103,8 +103,8 @@ func TestObjectsAreEqual(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		// cases that are expected to be equal
@@ -142,8 +142,8 @@ func TestObjectsAreEqualValues(t *testing.T) {
 	now := time.Now()
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		{uint32(10), int32(10), true},
@@ -175,19 +175,19 @@ func TestObjectsAreEqualValues(t *testing.T) {
 }
 
 type Nested struct {
-	Exported    interface{}
-	notExported interface{}
+	Exported    any
+	notExported any
 }
 
 type S struct {
-	Exported1    interface{}
+	Exported1    any
 	Exported2    Nested
-	notExported1 interface{}
+	notExported1 any
 	notExported2 Nested
 }
 
 type S2 struct {
-	foo interface{}
+	foo any
 }
 
 type S3 struct {
@@ -214,8 +214,8 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 	intValue := 1
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		{S{1, Nested{2, 3}, 4, Nested{5, 6}}, S{1, Nested{2, 3}, 4, Nested{5, 6}}, true},
@@ -246,28 +246,28 @@ func TestObjectsExportedFieldsAreEqual(t *testing.T) {
 		{Nested{&Nested{1, 2}, 3}, Nested{nil, 3}, false},
 
 		{
-			Nested{map[interface{}]*Nested{nil: nil}, 2},
-			Nested{map[interface{}]*Nested{nil: nil}, 2},
+			Nested{map[any]*Nested{nil: nil}, 2},
+			Nested{map[any]*Nested{nil: nil}, 2},
 			true,
 		},
 		{
-			Nested{map[interface{}]*Nested{"a": nil}, 2},
-			Nested{map[interface{}]*Nested{"a": nil}, 2},
+			Nested{map[any]*Nested{"a": nil}, 2},
+			Nested{map[any]*Nested{"a": nil}, 2},
 			true,
 		},
 		{
-			Nested{map[interface{}]*Nested{"a": nil}, 2},
-			Nested{map[interface{}]*Nested{"a": {1, 2}}, 2},
+			Nested{map[any]*Nested{"a": nil}, 2},
+			Nested{map[any]*Nested{"a": {1, 2}}, 2},
 			false,
 		},
 		{
-			Nested{map[interface{}]Nested{"a": {1, 2}, "b": {3, 4}}, 2},
-			Nested{map[interface{}]Nested{"a": {1, 5}, "b": {3, 7}}, 2},
+			Nested{map[any]Nested{"a": {1, 2}, "b": {3, 4}}, 2},
+			Nested{map[any]Nested{"a": {1, 5}, "b": {3, 7}}, 2},
 			true,
 		},
 		{
-			Nested{map[interface{}]Nested{"a": {1, 2}, "b": {3, 4}}, 2},
-			Nested{map[interface{}]Nested{"a": {2, 2}, "b": {3, 4}}, 2},
+			Nested{map[any]Nested{"a": {1, 2}, "b": {3, 4}}, 2},
+			Nested{map[any]Nested{"a": {2, 2}, "b": {3, 4}}, 2},
 			false,
 		},
 	}
@@ -289,8 +289,8 @@ func TestCopyExportedFields(t *testing.T) {
 	intValue := 1
 
 	cases := []struct {
-		input    interface{}
-		expected interface{}
+		input    any
+		expected any
 	}{
 		{
 			input:    Nested{"a", "b"},
@@ -376,8 +376,8 @@ func TestEqualExportedValues(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		value1        interface{}
-		value2        interface{}
+		value1        any
+		value2        any
 		expectedEqual bool
 		expectedFail  string
 	}{
@@ -591,11 +591,11 @@ func TestEqual(t *testing.T) {
 	type myType string
 
 	mockT := new(testing.T)
-	var m map[string]interface{}
+	var m map[string]any
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 		remark   string
 	}{
@@ -694,8 +694,8 @@ func Test_samePointers(t *testing.T) {
 	p := ptr(2)
 
 	type args struct {
-		first  interface{}
-		second interface{}
+		first  any
+		second any
 	}
 	tests := []struct {
 		name string
@@ -764,7 +764,7 @@ type bufferT struct {
 // Helper is like [testing.T.Helper] but does nothing.
 func (bufferT) Helper() {}
 
-func (t *bufferT) Errorf(format string, args ...interface{}) {
+func (t *bufferT) Errorf(format string, args ...any) {
 	// implementation of decorate is copied from testing.T
 	decorate := func(s string) string {
 		_, file, line, ok := runtime.Caller(3) // decorate + log + public function.
@@ -806,7 +806,7 @@ func TestStringEqual(t *testing.T) {
 	for i, currCase := range []struct {
 		equalWant  string
 		equalGot   string
-		msgAndArgs []interface{}
+		msgAndArgs []any
 		want       string
 	}{
 		{equalWant: "hi, \nmy name is", equalGot: "what,\nmy name is", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"hi, \\\\nmy name is\"\n\\s+actual\\s+: \"what,\\\\nmy name is\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1,2 \\+1,2 @@\n\\s+-hi, \n\\s+\\+what,\n\\s+my name is"},
@@ -823,13 +823,13 @@ func TestEqualFormatting(t *testing.T) {
 	for i, currCase := range []struct {
 		equalWant  string
 		equalGot   string
-		msgAndArgs []interface{}
+		msgAndArgs []any
 		want       string
 	}{
 		{equalWant: "want", equalGot: "got", want: "\tassertions.go:\\d+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+hello, world!\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{123}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+123\n"},
-		{equalWant: "want", equalGot: "got", msgAndArgs: []interface{}{struct{ a string }{"hello"}}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+{a:hello}\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []any{"hello, %v!", "world"}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+hello, world!\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []any{123}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+123\n"},
+		{equalWant: "want", equalGot: "got", msgAndArgs: []any{struct{ a string }{"hello"}}, want: "\tassertions.go:[0-9]+: \n\t+Error Trace:\t\n\t+Error:\\s+Not equal:\\s+\n\\s+expected: \"want\"\n\\s+actual\\s+: \"got\"\n\\s+Diff:\n\\s+-+ Expected\n\\s+\\++ Actual\n\\s+@@ -1 \\+1 @@\n\\s+-want\n\\s+\\+got\n\\s+Messages:\\s+{a:hello}\n"},
 	} {
 		mockT := &bufferT{}
 		Equal(mockT, currCase.equalWant, currCase.equalGot, currCase.msgAndArgs...)
@@ -932,8 +932,8 @@ func TestExactly(t *testing.T) {
 	c := float32(1)
 	d := float32(2)
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		{a, b, false},
@@ -959,8 +959,8 @@ func TestNotEqual(t *testing.T) {
 	mockT := new(testing.T)
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		// cases that are expected not to match
@@ -1000,8 +1000,8 @@ func TestEqualValuesAndNotEqualValues(t *testing.T) {
 	mockT := new(testing.T)
 
 	cases := []struct {
-		expected       interface{}
-		actual         interface{}
+		expected       any
+		actual         any
 		notEqualResult bool // result for NotEqualValues
 	}{
 		// cases that are expected not to match
@@ -1064,12 +1064,12 @@ func TestContainsNotContains(t *testing.T) {
 		{"g", "h"},
 		{"j", "k"},
 	}
-	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
-	var zeroMap map[interface{}]interface{}
+	simpleMap := map[any]any{"Foo": "Bar"}
+	var zeroMap map[any]any
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		{"Hello World", "Hello", true},
@@ -1125,9 +1125,9 @@ func TestContainsNotContainsFailMessage(t *testing.T) {
 	}
 
 	cases := []struct {
-		assertion func(t TestingT, s, contains interface{}, msgAndArgs ...interface{}) bool
-		container interface{}
-		instance  interface{}
+		assertion func(t TestingT, s, contains any, msgAndArgs ...any) bool
+		container any
+		instance  any
 		expected  string
 	}{
 		{
@@ -1195,8 +1195,8 @@ func TestSubsetNotSubset(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		list    interface{}
-		subset  interface{}
+		list    any
+		subset  any
 		result  bool
 		message string
 	}{
@@ -1293,7 +1293,7 @@ func Test_containsElement(t *testing.T) {
 
 	list1 := []string{"Foo", "Bar"}
 	list2 := []int{1, 2}
-	simpleMap := map[interface{}]interface{}{"Foo": "Bar"}
+	simpleMap := map[any]any{"Foo": "Bar"}
 
 	ok, found := containsElement("Hello World", "World")
 	True(t, ok)
@@ -1346,8 +1346,8 @@ func TestElementsMatch(t *testing.T) {
 	mockT := new(testing.T)
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		// matching
@@ -1388,10 +1388,10 @@ func TestDiffLists(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		listA  interface{}
-		listB  interface{}
-		extraA []interface{}
-		extraB []interface{}
+		listA  any
+		listB  any
+		extraA []any
+		extraB []any
 	}{
 		{
 			name:   "equal empty",
@@ -1418,14 +1418,14 @@ func TestDiffLists(t *testing.T) {
 			name:   "extra A",
 			listA:  []string{"hello", "hello", "world"},
 			listB:  []string{"hello", "world"},
-			extraA: []interface{}{"hello"},
+			extraA: []any{"hello"},
 			extraB: nil,
 		},
 		{
 			name:   "extra A twice",
 			listA:  []string{"hello", "hello", "hello", "world"},
 			listB:  []string{"hello", "world"},
-			extraA: []interface{}{"hello", "hello"},
+			extraA: []any{"hello", "hello"},
 			extraB: nil,
 		},
 		{
@@ -1433,14 +1433,14 @@ func TestDiffLists(t *testing.T) {
 			listA:  []string{"hello", "world"},
 			listB:  []string{"hello", "hello", "world"},
 			extraA: nil,
-			extraB: []interface{}{"hello"},
+			extraB: []any{"hello"},
 		},
 		{
 			name:   "extra B twice",
 			listA:  []string{"hello", "world"},
 			listB:  []string{"hello", "hello", "world", "hello"},
 			extraA: nil,
-			extraB: []interface{}{"hello", "hello"},
+			extraB: []any{"hello", "hello"},
 		},
 		{
 			name:   "integers 1",
@@ -1453,8 +1453,8 @@ func TestDiffLists(t *testing.T) {
 			name:   "integers 2",
 			listA:  []int{1, 2, 1, 2, 1},
 			listB:  []int{2, 1, 2, 1, 2},
-			extraA: []interface{}{1},
-			extraB: []interface{}{2},
+			extraA: []any{1},
+			extraB: []any{2},
 		},
 	}
 	for _, test := range tests {
@@ -1475,8 +1475,8 @@ func TestNotElementsMatch(t *testing.T) {
 	mockT := new(testing.T)
 
 	cases := []struct {
-		expected interface{}
-		actual   interface{}
+		expected any
+		actual   any
 		result   bool
 	}{
 		// not matching
@@ -1779,8 +1779,8 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty([]byte("")))
 	True(t, isEmpty([]bool(nil)))
 	True(t, isEmpty([]bool{}))
-	True(t, isEmpty([]interface{}(nil)))
-	True(t, isEmpty([]interface{}{}))
+	True(t, isEmpty([]any(nil)))
+	True(t, isEmpty([]any{}))
 	True(t, isEmpty(struct{}{}))
 	True(t, isEmpty(&struct{}{}))
 	True(t, isEmpty(struct{ A int }{A: 0}))
@@ -1944,7 +1944,7 @@ func TestEmpty(t *testing.T) {
 	// error messages validation
 	tests := []struct {
 		name           string
-		value          interface{}
+		value          any
 		expectedResult bool
 		expectedErrMsg string
 	}{
@@ -2104,7 +2104,7 @@ func TestNotEmpty(t *testing.T) {
 	// error messages validation
 	tests := []struct {
 		name           string
-		value          interface{}
+		value          any
 		expectedResult bool
 		expectedErrMsg string
 	}{
@@ -2167,7 +2167,7 @@ func TestNotEmpty(t *testing.T) {
 func Test_getLen(t *testing.T) {
 	t.Parallel()
 
-	falseCases := []interface{}{
+	falseCases := []any{
 		nil,
 		0,
 		true,
@@ -2186,7 +2186,7 @@ func Test_getLen(t *testing.T) {
 	ch <- 2
 	ch <- 3
 	trueCases := []struct {
-		v interface{}
+		v any
 		l int
 	}{
 		{[]int{1, 2, 3}, 3},
@@ -2229,7 +2229,7 @@ func TestLen(t *testing.T) {
 	ch <- 3
 
 	cases := []struct {
-		v               interface{}
+		v               any
 		l               int
 		expected1234567 string // message when expecting 1234567 items
 	}{
@@ -2315,7 +2315,7 @@ func TestInDelta(t *testing.T) {
 	True(t, InDelta(mockT, math.NaN(), math.NaN(), 0.01), "Expected NaN for both to pass")
 
 	cases := []struct {
-		a, b  interface{}
+		a, b  any
 		delta float64
 	}{
 		{uint(2), uint(1), 1},
@@ -2369,9 +2369,9 @@ func TestInDeltaMapValues(t *testing.T) {
 
 	for _, tc := range []struct {
 		title  string
-		expect interface{}
-		actual interface{}
-		f      func(TestingT, bool, ...interface{}) bool
+		expect any
+		actual any
+		f      func(TestingT, bool, ...any) bool
 		delta  float64
 	}{
 		{
@@ -2448,7 +2448,7 @@ func TestInEpsilon(t *testing.T) {
 	mockT := new(testing.T)
 
 	cases := []struct {
-		a, b    interface{}
+		a, b    any
 		epsilon float64
 	}{
 		{uint8(2), uint16(2), .001},
@@ -2468,7 +2468,7 @@ func TestInEpsilon(t *testing.T) {
 	}
 
 	cases = []struct {
-		a, b    interface{}
+		a, b    any
 		epsilon float64
 	}{
 		{uint8(2), int16(-2), .001},
@@ -3096,7 +3096,7 @@ func TestDiffRace(t *testing.T) {
 
 type mockTestingT struct {
 	errorFmt string
-	args     []interface{}
+	args     []any
 }
 
 // Helper is like [testing.T.Helper] but does nothing.
@@ -3106,7 +3106,7 @@ func (m *mockTestingT) errorString() string {
 	return fmt.Sprintf(m.errorFmt, m.args...)
 }
 
-func (m *mockTestingT) Errorf(format string, args ...interface{}) {
+func (m *mockTestingT) Errorf(format string, args ...any) {
 	m.errorFmt = format
 	m.args = args
 }
@@ -3130,7 +3130,7 @@ type mockFailNowTestingT struct{}
 // Helper is like [testing.T.Helper] but does nothing.
 func (mockFailNowTestingT) Helper() {}
 
-func (m *mockFailNowTestingT) Errorf(format string, args ...interface{}) {}
+func (m *mockFailNowTestingT) Errorf(format string, args ...any) {}
 
 func (m *mockFailNowTestingT) FailNow() {}
 
@@ -3220,8 +3220,8 @@ func TestComparisonAssertionFunc(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		expect    interface{}
-		got       interface{}
+		expect    any
+		got       any
 		assertion ComparisonAssertionFunc
 	}{
 		{"implements", (*iface)(nil), t, Implements},
@@ -3249,8 +3249,8 @@ func TestComparisonAssertionFunc(t *testing.T) {
 func ExampleValueAssertionFunc() {
 	t := &testing.T{} // provided by test
 
-	dumbParse := func(input string) interface{} {
-		var x interface{}
+	dumbParse := func(input string) any {
+		var x any
 		_ = json.Unmarshal([]byte(input), &x)
 		return x
 	}
@@ -3279,7 +3279,7 @@ func TestValueAssertionFunc(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		value     interface{}
+		value     any
 		assertion ValueAssertionFunc
 	}{
 		{"notNil", true, NotNil},
@@ -3344,7 +3344,7 @@ func TestBoolAssertionFunc(t *testing.T) {
 func ExampleErrorAssertionFunc() {
 	t := &testing.T{} // provided by test
 
-	dumbParseNum := func(input string, v interface{}) error {
+	dumbParseNum := func(input string, v any) error {
 		return json.Unmarshal([]byte(input), v)
 	}
 
@@ -3458,7 +3458,7 @@ type errorsCapturingT struct {
 // Helper is like [testing.T.Helper] but does nothing.
 func (errorsCapturingT) Helper() {}
 
-func (t *errorsCapturingT) Errorf(format string, args ...interface{}) {
+func (t *errorsCapturingT) Errorf(format string, args ...any) {
 	t.errors = append(t.errors, fmt.Errorf(format, args...))
 }
 
@@ -3711,7 +3711,7 @@ type captureTestingT struct {
 // Helper is like [testing.T.Helper] but does nothing.
 func (captureTestingT) Helper() {}
 
-func (ctt *captureTestingT) Errorf(format string, args ...interface{}) {
+func (ctt *captureTestingT) Errorf(format string, args ...any) {
 	ctt.msg = fmt.Sprintf(format, args...)
 	ctt.failed = true
 }

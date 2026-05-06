@@ -628,7 +628,7 @@ type tHelper interface {
 // matches one or more times in callOrder. This makes it compatible
 // with go test flag -count=X where X > 1.
 func callOrderAssert(t *testing.T, expect, callOrder []string) {
-	var ti interface{} = t
+	var ti any = t
 	if h, ok := ti.(tHelper); ok {
 		h.Helper()
 	}
@@ -777,7 +777,7 @@ func (s *SuiteSignatureValidationTester) TestValidSignature() {
 }
 
 // Invalid: has return value.
-func (s *SuiteSignatureValidationTester) TestInvalidSignatureReturnValue() interface{} {
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureReturnValue() any {
 	s.executedTestCount++
 	return nil
 }
@@ -788,7 +788,7 @@ func (s *SuiteSignatureValidationTester) TestInvalidSignatureArg(somearg string)
 }
 
 // Invalid: both input arg and return value.
-func (s *SuiteSignatureValidationTester) TestInvalidSignatureBoth(somearg string) interface{} {
+func (s *SuiteSignatureValidationTester) TestInvalidSignatureBoth(somearg string) any {
 	s.executedTestCount++
 	return nil
 }

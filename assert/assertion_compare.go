@@ -42,7 +42,7 @@ var (
 	bytesType = reflect.TypeOf([]byte{})
 )
 
-func compare(obj1, obj2 interface{}, kind reflect.Kind) (compareResult, bool) {
+func compare(obj1, obj2 any, kind reflect.Kind) (compareResult, bool) {
 	obj1Value := reflect.ValueOf(obj1)
 	obj2Value := reflect.ValueOf(obj2)
 
@@ -386,7 +386,7 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (compareResult, bool) {
 //	assert.Greater(t, 2, 1)
 //	assert.Greater(t, float64(2), float64(1))
 //	assert.Greater(t, "b", "a")
-func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) bool {
+func Greater(t TestingT, e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -400,7 +400,7 @@ func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface
 //	assert.GreaterOrEqual(t, 2, 2)
 //	assert.GreaterOrEqual(t, "b", "a")
 //	assert.GreaterOrEqual(t, "b", "b")
-func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) bool {
+func GreaterOrEqual(t TestingT, e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -413,7 +413,7 @@ func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...in
 //	assert.Less(t, 1, 2)
 //	assert.Less(t, float64(1), float64(2))
 //	assert.Less(t, "a", "b")
-func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) bool {
+func Less(t TestingT, e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -427,7 +427,7 @@ func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{})
 //	assert.LessOrEqual(t, 2, 2)
 //	assert.LessOrEqual(t, "a", "b")
 //	assert.LessOrEqual(t, "b", "b")
-func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) bool {
+func LessOrEqual(t TestingT, e1 any, e2 any, msgAndArgs ...any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -439,7 +439,7 @@ func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...inter
 //
 //	assert.Positive(t, 1)
 //	assert.Positive(t, 1.23)
-func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
+func Positive(t TestingT, e any, msgAndArgs ...any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -452,7 +452,7 @@ func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 //
 //	assert.Negative(t, -1)
 //	assert.Negative(t, -1.23)
-func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
+func Negative(t TestingT, e any, msgAndArgs ...any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -461,7 +461,7 @@ func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	return compareTwoValues(t, e, zero.Interface(), []compareResult{compareLess}, failMessage, msgAndArgs...)
 }
 
-func compareTwoValues(t TestingT, e1 interface{}, e2 interface{}, allowedComparesResults []compareResult, failMessage string, msgAndArgs ...interface{}) bool {
+func compareTwoValues(t TestingT, e1 any, e2 any, allowedComparesResults []compareResult, failMessage string, msgAndArgs ...any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}

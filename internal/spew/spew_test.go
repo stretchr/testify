@@ -92,7 +92,7 @@ type spewTest struct {
 	cs     *spew.ConfigState
 	f      spewFunc
 	format string
-	in     interface{}
+	in     any
 	want   string
 }
 

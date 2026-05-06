@@ -32,7 +32,7 @@ const supportedFlags = "0-+# "
 // be used to get a new Formatter which can be used directly as arguments
 // in standard fmt package printing calls.
 type formatState struct {
-	value          interface{}
+	value          any
 	fs             fmt.State
 	depth          int
 	pointers       map[uintptr]int
@@ -391,7 +391,7 @@ func (f *formatState) Format(fs fmt.State, verb rune) {
 
 // newFormatter is a helper function to consolidate the logic from the various
 // public methods which take varying config states.
-func newFormatter(cs *ConfigState, v interface{}) fmt.Formatter {
+func newFormatter(cs *ConfigState, v any) fmt.Formatter {
 	fs := &formatState{value: v, cs: cs}
 	fs.pointers = make(map[uintptr]int)
 	return fs
@@ -414,6 +414,6 @@ Typically this function shouldn't be called directly.  It is much easier to make
 use of the custom formatter by calling one of the convenience functions such as
 Printf, Println, or Fprintf.
 */
-func NewFormatter(v interface{}) fmt.Formatter {
+func NewFormatter(v any) fmt.Formatter {
 	return newFormatter(&Config, v)
 }

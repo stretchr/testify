@@ -31,6 +31,6 @@ package yaml
 import goyaml "gopkg.in/yaml.v3"
 
 // Unmarshal is just a wrapper of [gopkg.in/yaml.v3.Unmarshal].
-func Unmarshal(in []byte, out interface{}) error {
+func Unmarshal(in []byte, out any) error {
 	return goyaml.Unmarshal(in, out)
 }

@@ -36,7 +36,7 @@ func (t *MockT) FailNow() {
 	t.Failed = true
 }
 
-func (t *MockT) Errorf(format string, args ...interface{}) {
+func (t *MockT) Errorf(format string, args ...any) {
 	_, _ = format, args
 }
 
@@ -592,8 +592,8 @@ func TestComparisonAssertionFunc(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		expect    interface{}
-		got       interface{}
+		expect    any
+		got       any
 		assertion ComparisonAssertionFunc
 	}{
 		{"implements", (*iface)(nil), t, Implements},
@@ -621,8 +621,8 @@ func TestComparisonAssertionFunc(t *testing.T) {
 func ExampleValueAssertionFunc() {
 	t := &testing.T{} // provided by test
 
-	dumbParse := func(input string) interface{} {
-		var x interface{}
+	dumbParse := func(input string) any {
+		var x any
 		json.Unmarshal([]byte(input), &x)
 		return x
 	}
@@ -651,7 +651,7 @@ func TestValueAssertionFunc(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		value     interface{}
+		value     any
 		assertion ValueAssertionFunc
 	}{
 		{"notNil", true, NotNil},
@@ -716,7 +716,7 @@ func TestBoolAssertionFunc(t *testing.T) {
 func ExampleErrorAssertionFunc() {
 	t := &testing.T{} // provided by test
 
-	dumbParseNum := func(input string, v interface{}) error {
+	dumbParseNum := func(input string, v any) error {
 		return json.Unmarshal([]byte(input), v)
 	}
 
