@@ -444,7 +444,7 @@ func TestLenWrapper(t *testing.T) {
 	ch <- 3
 
 	cases := []struct {
-		v interface{}
+		v any
 		l int
 	}{
 		{[]int{1, 2, 3}, 3},
@@ -501,7 +501,7 @@ func TestInDeltaWrapper(t *testing.T) {
 	False(t, assert.InDelta("", nil, 1), "Expected non numerals to fail")
 
 	cases := []struct {
-		a, b  interface{}
+		a, b  any
 		delta float64
 	}{
 		{uint8(2), uint8(1), 1},
@@ -530,7 +530,7 @@ func TestInEpsilonWrapper(t *testing.T) {
 	assert := New(new(testing.T))
 
 	cases := []struct {
-		a, b    interface{}
+		a, b    any
 		epsilon float64
 	}{
 		{uint8(2), uint16(2), .001},
@@ -547,7 +547,7 @@ func TestInEpsilonWrapper(t *testing.T) {
 	}
 
 	cases = []struct {
-		a, b    interface{}
+		a, b    any
 		epsilon float64
 	}{
 		{uint8(2), int16(-2), .001},

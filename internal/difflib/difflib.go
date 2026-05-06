@@ -490,7 +490,7 @@ type UnifiedDiff struct {
 func WriteUnifiedDiff(writer io.Writer, diff UnifiedDiff) error {
 	buf := bufio.NewWriter(writer)
 	defer buf.Flush()
-	wf := func(format string, args ...interface{}) error {
+	wf := func(format string, args ...any) error {
 		_, err := buf.WriteString(fmt.Sprintf(format, args...))
 		return err
 	}

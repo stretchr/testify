@@ -450,7 +450,7 @@ func (d *dumpState) dump(v reflect.Value) {
 
 // fdump is a helper function to consolidate the logic from the various public
 // methods which take varying writers and config states.
-func fdump(cs *ConfigState, w io.Writer, a ...interface{}) {
+func fdump(cs *ConfigState, w io.Writer, a ...any) {
 	for _, arg := range a {
 		if arg == nil {
 			w.Write(interfaceBytes)
@@ -469,13 +469,13 @@ func fdump(cs *ConfigState, w io.Writer, a ...interface{}) {
 
 // Fdump formats and displays the passed arguments to io.Writer w.  It formats
 // exactly the same as Dump.
-func Fdump(w io.Writer, a ...interface{}) {
+func Fdump(w io.Writer, a ...any) {
 	fdump(&Config, w, a...)
 }
 
 // Sdump returns a string with the passed arguments formatted exactly the same
 // as Dump.
-func Sdump(a ...interface{}) string {
+func Sdump(a ...any) string {
 	var buf bytes.Buffer
 	fdump(&Config, &buf, a...)
 	return buf.String()
@@ -504,6 +504,6 @@ spew.Config.  See ConfigState for options documentation.
 See Fdump if you would prefer dumping to an arbitrary io.Writer or Sdump to
 get the formatted result as a string.
 */
-func Dump(a ...interface{}) {
+func Dump(a ...any) {
 	fdump(&Config, os.Stdout, a...)
 }

@@ -87,7 +87,7 @@ func recoverAndFailOnPanic(t *testing.T) {
 	failOnPanic(t, r)
 }
 
-func failOnPanic(t *testing.T, r interface{}) {
+func failOnPanic(t *testing.T, r any) {
 	t.Helper()
 	if r != nil {
 		t.Errorf("test panicked: %v\n%s", r, debug.Stack())

@@ -112,7 +112,7 @@ func (i *TestExampleImplementation) TheExampleMethodVariadic(a ...int) error {
 	return args.Error(0)
 }
 
-func (i *TestExampleImplementation) TheExampleMethodVariadicInterface(a ...interface{}) error {
+func (i *TestExampleImplementation) TheExampleMethodVariadicInterface(a ...any) error {
 	args := i.Called(a)
 	return args.Error(0)
 }
@@ -139,11 +139,11 @@ func (MockTestingT) Helper() {}
 
 const mockTestingTFailNowCalled = "FailNow was called"
 
-func (m *MockTestingT) Logf(string, ...interface{}) {
+func (m *MockTestingT) Logf(string, ...any) {
 	m.logfCount++
 }
 
-func (m *MockTestingT) Errorf(string, ...interface{}) {
+func (m *MockTestingT) Errorf(string, ...any) {
 	m.errorfCount++
 }
 
@@ -205,15 +205,15 @@ func Test_Mock_Chained_On(t *testing.T) {
 		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod",
-			Arguments:       []interface{}{1, 2, 3},
-			ReturnArguments: []interface{}{0},
+			Arguments:       []any{1, 2, 3},
+			ReturnArguments: []any{0},
 			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
 		},
 		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod3",
-			Arguments:       []interface{}{AnythingOfType("*mock.ExampleType")},
-			ReturnArguments: []interface{}{nil},
+			Arguments:       []any{AnythingOfType("*mock.ExampleType")},
+			ReturnArguments: []any{nil},
 			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
 		},
 	}
@@ -285,7 +285,7 @@ func Test_Mock_On_WithArgMatcherThatPanics(t *testing.T) {
 
 	var mockedService TestExampleImplementation
 
-	mockedService.On("TheExampleMethod2", MatchedBy(func(_ interface{}) bool {
+	mockedService.On("TheExampleMethod2", MatchedBy(func(_ any) bool {
 		panic("try to lock mockedService")
 	})).Return()
 
@@ -487,12 +487,12 @@ func Test_Mock_On_WithVariadicFuncWithInterface(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
-	c := mockedService.On("TheExampleMethodVariadicInterface", []interface{}{1, 2, 3}).
+	c := mockedService.On("TheExampleMethodVariadicInterface", []any{1, 2, 3}).
 		Return(nil)
 
 	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
 	assert.Equal(t, 1, len(c.Arguments))
-	assert.Equal(t, []interface{}{1, 2, 3}, c.Arguments[0])
+	assert.Equal(t, []any{1, 2, 3}, c.Arguments[0])
 
 	assert.NotPanics(t, func() {
 		mockedService.TheExampleMethodVariadicInterface(1, 2, 3)
@@ -509,7 +509,7 @@ func Test_Mock_On_WithVariadicFuncWithEmptyInterfaceArray(t *testing.T) {
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
-	var expected []interface{}
+	var expected []any
 	c := mockedService.
 		On("TheExampleMethodVariadicInterface", expected).
 		Return(nil)
@@ -608,15 +608,15 @@ func Test_Mock_Chained_UnsetOnlyUnsetsLastCall(t *testing.T) {
 		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod1",
-			Arguments:       []interface{}{1, 1},
-			ReturnArguments: []interface{}{0},
+			Arguments:       []any{1, 1},
+			ReturnArguments: []any{0},
 			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+2)},
 		},
 		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethod2",
-			Arguments:       []interface{}{2, 2},
-			ReturnArguments: []interface{}{},
+			Arguments:       []any{2, 2},
+			ReturnArguments: []any{},
 			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
 		},
 	}
@@ -695,15 +695,15 @@ func Test_Mock_UnsetByOnMethodSpecAmongOthers(t *testing.T) {
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethodVariadic",
 			Repeatability:   1,
-			Arguments:       []interface{}{1, 2, 3, 4, 5},
-			ReturnArguments: []interface{}{nil},
+			Arguments:       []any{1, 2, 3, 4, 5},
+			ReturnArguments: []any{nil},
 			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+4)},
 		},
 		{
 			Parent:          &mockedService.Mock,
 			Method:          "TheExampleMethodFuncType",
-			Arguments:       []interface{}{Anything},
-			ReturnArguments: []interface{}{nil},
+			Arguments:       []any{Anything},
+			ReturnArguments: []any{nil},
 			callerInfo:      []string{fmt.Sprintf("%s:%d", filename, line+7)},
 		},
 	}
@@ -1312,8 +1312,8 @@ func Test_Mock_findExpectedCall_Respects_Repeatability(t *testing.T) {
 func Test_callString(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, `Method(int,bool,string)`, callString("Method", []interface{}{1, true, "something"}, false))
-	assert.Equal(t, `Method(<nil>)`, callString("Method", []interface{}{nil}, false))
+	assert.Equal(t, `Method(int,bool,string)`, callString("Method", []any{1, true, "something"}, false))
+	assert.Equal(t, `Method(<nil>)`, callString("Method", []any{nil}, false))
 
 }
 
@@ -1845,12 +1845,12 @@ func TestIsArgsEqual(t *testing.T) {
 	var expected = Arguments{5, 3, 4, 6, 7, 2}
 
 	// Copy elements 1 to 5
-	args := append(([]interface{})(nil), expected[1:]...)
+	args := append(([]any)(nil), expected[1:]...)
 	args[2] = expected[1]
 	assert.False(t, isArgsEqual(expected, args))
 
 	// Clone
-	arr := append(([]interface{})(nil), expected...)
+	arr := append(([]any)(nil), expected...)
 	assert.True(t, isArgsEqual(expected, arr))
 }
 
@@ -1887,7 +1887,7 @@ Arguments helper methods
 func Test_Arguments_Get(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 
 	assert.Equal(t, "string", args.Get(0).(string))
 	assert.Equal(t, 123, args.Get(1).(int))
@@ -1898,7 +1898,7 @@ func Test_Arguments_Get(t *testing.T) {
 func Test_Arguments_Is(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 
 	assert.True(t, args.Is("string", 123, true))
 	assert.False(t, args.Is("wrong", 456, false))
@@ -1908,10 +1908,10 @@ func Test_Arguments_Is(t *testing.T) {
 func Test_Arguments_Diff(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"Hello World", 123, true})
+	var args = Arguments([]any{"Hello World", 123, true})
 	var diff string
 	var count int
-	diff, count = args.Diff([]interface{}{"Hello World", 456, "false"})
+	diff, count = args.Diff([]any{"Hello World", 456, "false"})
 
 	assert.Equal(t, 2, count)
 	assert.Contains(t, diff, `(int=456) != (int=123)`)
@@ -1922,10 +1922,10 @@ func Test_Arguments_Diff(t *testing.T) {
 func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 	var diff string
 	var count int
-	diff, count = args.Diff([]interface{}{"string", 456, "false", "extra"})
+	diff, count = args.Diff([]any{"string", 456, "false", "extra"})
 
 	assert.Equal(t, 3, count)
 	assert.Contains(t, diff, `(string=extra) != (Missing)`)
@@ -1935,9 +1935,9 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 func Test_Arguments_Diff_WithAnythingArgument(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 	var count int
-	_, count = args.Diff([]interface{}{"string", Anything, true})
+	_, count = args.Diff([]any{"string", Anything, true})
 
 	assert.Equal(t, 0, count)
 
@@ -1946,9 +1946,9 @@ func Test_Arguments_Diff_WithAnythingArgument(t *testing.T) {
 func Test_Arguments_Diff_WithAnythingArgument_InActualToo(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", Anything, true})
+	var args = Arguments([]any{"string", Anything, true})
 	var count int
-	_, count = args.Diff([]interface{}{"string", 123, true})
+	_, count = args.Diff([]any{"string", 123, true})
 
 	assert.Equal(t, 0, count)
 
@@ -1957,9 +1957,9 @@ func Test_Arguments_Diff_WithAnythingArgument_InActualToo(t *testing.T) {
 func Test_Arguments_Diff_WithAnythingOfTypeArgument(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", AnythingOfType("int"), true})
+	var args = Arguments([]any{"string", AnythingOfType("int"), true})
 	var count int
-	_, count = args.Diff([]interface{}{"string", 123, true})
+	_, count = args.Diff([]any{"string", 123, true})
 
 	assert.Equal(t, 0, count)
 
@@ -1968,10 +1968,10 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument(t *testing.T) {
 func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", AnythingOfType("string"), true})
+	var args = Arguments([]any{"string", AnythingOfType("string"), true})
 	var count int
 	var diff string
-	diff, count = args.Diff([]interface{}{"string", 123, true})
+	diff, count = args.Diff([]any{"string", 123, true})
 
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `string != type int - (int=123)`)
@@ -1981,9 +1981,9 @@ func Test_Arguments_Diff_WithAnythingOfTypeArgument_Failing(t *testing.T) {
 func Test_Arguments_Diff_WithIsTypeArgument(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", IsType(0), true})
+	var args = Arguments([]any{"string", IsType(0), true})
 	var count int
-	_, count = args.Diff([]interface{}{"string", 123, true})
+	_, count = args.Diff([]any{"string", 123, true})
 
 	assert.Equal(t, 0, count)
 }
@@ -1991,10 +1991,10 @@ func Test_Arguments_Diff_WithIsTypeArgument(t *testing.T) {
 func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", IsType(""), true})
+	var args = Arguments([]any{"string", IsType(""), true})
 	var count int
 	var diff string
-	diff, count = args.Diff([]interface{}{"string", 123, true})
+	diff, count = args.Diff([]any{"string", 123, true})
 
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `string != type int - (int=123)`)
@@ -2003,8 +2003,8 @@ func Test_Arguments_Diff_WithIsTypeArgument_Failing(t *testing.T) {
 func Test_Arguments_Diff_WithIsTypeArgument_InterfaceType(t *testing.T) {
 	t.Parallel()
 	var ctx = context.Background()
-	args := Arguments([]interface{}{IsType(ctx)})
-	_, count := args.Diff([]interface{}{context.Background()})
+	args := Arguments([]any{IsType(ctx)})
+	_, count := args.Diff([]any{context.Background()})
 	assert.Equal(t, 0, count)
 }
 
@@ -2012,8 +2012,8 @@ func Test_Arguments_Diff_WithIsTypeArgument_InterfaceType_Failing(t *testing.T) 
 	t.Parallel()
 
 	var ctx context.Context
-	var args = Arguments([]interface{}{IsType(ctx)})
-	diff, count := args.Diff([]interface{}{context.Background()})
+	var args = Arguments([]any{IsType(ctx)})
+	diff, count := args.Diff([]any{context.Background()})
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `type <nil> != type `)
 
@@ -2025,21 +2025,21 @@ func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 	matchFn := func(a int) bool {
 		return a == 123
 	}
-	var args = Arguments([]interface{}{"string", MatchedBy(matchFn), true})
+	var args = Arguments([]any{"string", MatchedBy(matchFn), true})
 
-	diff, count := args.Diff([]interface{}{"string", 124, true})
+	diff, count := args.Diff([]any{"string", 124, true})
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `(int=124) not matched by func(int) bool`)
 
-	diff, count = args.Diff([]interface{}{"string", false, true})
+	diff, count = args.Diff([]any{"string", false, true})
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `(bool=false) not matched by func(int) bool`)
 
-	diff, count = args.Diff([]interface{}{"string", 123, false})
+	diff, count = args.Diff([]any{"string", 123, false})
 	assert.Equal(t, 1, count)
 	assert.Contains(t, diff, `(int=123) matched by func(int) bool`)
 
-	diff, count = args.Diff([]interface{}{"string", 123, true})
+	diff, count = args.Diff([]any{"string", 123, true})
 	assert.Equal(t, 0, count)
 	assert.Contains(t, diff, `No differences.`)
 }
@@ -2047,7 +2047,7 @@ func Test_Arguments_Diff_WithArgMatcher(t *testing.T) {
 func Test_Arguments_Assert(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 
 	assert.True(t, args.Assert(t, "string", 123, true))
 
@@ -2056,7 +2056,7 @@ func Test_Arguments_Assert(t *testing.T) {
 func Test_Arguments_String_Representation(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 	assert.Equal(t, `string,int,bool`, args.String())
 
 }
@@ -2064,7 +2064,7 @@ func Test_Arguments_String_Representation(t *testing.T) {
 func Test_Arguments_String(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 	assert.Equal(t, "string", args.String(0))
 
 }
@@ -2073,7 +2073,7 @@ func Test_Arguments_Error(t *testing.T) {
 	t.Parallel()
 
 	var err = errors.New("An Error")
-	var args = Arguments([]interface{}{"string", 123, true, err})
+	var args = Arguments([]any{"string", 123, true, err})
 	assert.Equal(t, err, args.Error(3))
 
 }
@@ -2081,7 +2081,7 @@ func Test_Arguments_Error(t *testing.T) {
 func Test_Arguments_Error_Nil(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true, nil})
+	var args = Arguments([]any{"string", 123, true, nil})
 	assert.Equal(t, nil, args.Error(3))
 
 }
@@ -2089,7 +2089,7 @@ func Test_Arguments_Error_Nil(t *testing.T) {
 func Test_Arguments_Int(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 	assert.Equal(t, 123, args.Int(1))
 
 }
@@ -2097,7 +2097,7 @@ func Test_Arguments_Int(t *testing.T) {
 func Test_Arguments_Bool(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"string", 123, true})
+	var args = Arguments([]any{"string", 123, true})
 	assert.Equal(t, true, args.Bool(2))
 
 }
@@ -2193,12 +2193,12 @@ type tCustomLogger struct {
 	errs []string
 }
 
-func (tc *tCustomLogger) Logf(format string, args ...interface{}) {
+func (tc *tCustomLogger) Logf(format string, args ...any) {
 	tc.T.Logf(format, args...)
 	tc.logs = append(tc.logs, fmt.Sprintf(format, args...))
 }
 
-func (tc *tCustomLogger) Errorf(format string, args ...interface{}) {
+func (tc *tCustomLogger) Errorf(format string, args ...any) {
 	tc.errs = append(tc.errs, fmt.Sprintf(format, args...))
 }
 

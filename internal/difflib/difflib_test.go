@@ -15,7 +15,7 @@ func assertAlmostEqual(t *testing.T, a, b float64, places int) {
 	}
 }
 
-func assertEqual(t *testing.T, a, b interface{}) {
+func assertEqual(t *testing.T, a, b any) {
 	if !reflect.DeepEqual(a, b) {
 		t.Errorf("%v != %v", a, b)
 	}
