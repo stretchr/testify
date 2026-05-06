@@ -813,3 +813,44 @@ func TestSuiteSignatureValidation(t *testing.T) {
 	assert.True(t, suiteTester.setUp, "SetupSuite should have been executed")
 	assert.True(t, suiteTester.toreDown, "TearDownSuite should have been executed")
 }
+
+// OnlySubTestSuite tests the OnlySubTest interface.
+type OnlySubTestSuite struct {
+	Suite
+	executedSubTests []string
+}
+
+func (s *OnlySubTestSuite) OnlySubTest(name string) bool {
+	return name == "allowed"
+}
+
+func (s *OnlySubTestSuite) TestSubtests() {
+	for _, t := range []struct {
+		testName string
+	}{
+		{"allowed"},
+		{"not_allowed"},
+	} {
+		s.Run(t.testName, func() {
+			s.executedSubTests = append(s.executedSubTests, t.testName)
+		})
+	}
+}
+
+// TestOnlySubTestSuite ensures that only the allowed subtest runs.
+func TestOnlySubTestSuite(t *testing.T) {
+	suiteTester := new(OnlySubTestSuite)
+
+	ok := testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: "only subtest",
+			F: func(t *testing.T) {
+				Run(t, suiteTester)
+			},
+		},
+	})
+
+	require.True(t, ok, "Suite should pass")
+
+	assert.Equal(t, []string{"allowed"}, suiteTester.executedSubTests, "Only the allowed subtest should have been executed")
+}
