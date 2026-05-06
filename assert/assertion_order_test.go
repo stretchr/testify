@@ -29,7 +29,7 @@ func TestIsIncreasing(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		collection interface{}
+		collection any
 		msg        string
 	}{
 		{collection: []string{"b", "a"}, msg: `"b" is not less than "a"`},
@@ -79,7 +79,7 @@ func TestIsNonIncreasing(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		collection interface{}
+		collection any
 		msg        string
 	}{
 		{collection: []string{"a", "b"}, msg: `"a" is not greater than or equal to "b"`},
@@ -129,7 +129,7 @@ func TestIsDecreasing(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		collection interface{}
+		collection any
 		msg        string
 	}{
 		{collection: []string{"a", "b"}, msg: `"a" is not greater than "b"`},
@@ -179,7 +179,7 @@ func TestIsNonDecreasing(t *testing.T) {
 
 	// Check error report
 	for _, currCase := range []struct {
-		collection interface{}
+		collection any
 		msg        string
 	}{
 		{collection: []string{"b", "a"}, msg: `"b" is not less than or equal to "a"`},
@@ -209,7 +209,7 @@ func TestIsNonDecreasing(t *testing.T) {
 func TestOrderingMsgAndArgsForwarding(t *testing.T) {
 	t.Parallel()
 
-	msgAndArgs := []interface{}{"format %s %x", "this", 0xc001}
+	msgAndArgs := []any{"format %s %x", "this", 0xc001}
 	expectedOutput := "format this c001\n"
 	collection := []int{1, 2, 1}
 	funcs := []func(t TestingT){

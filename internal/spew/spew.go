@@ -29,7 +29,7 @@ import (
 // This function is shorthand for the following syntax:
 //
 //	fmt.Errorf(format, spew.NewFormatter(a), spew.NewFormatter(b))
-func Errorf(format string, a ...interface{}) (err error) {
+func Errorf(format string, a ...any) (err error) {
 	return fmt.Errorf(format, convertArgs(a)...)
 }
 
@@ -41,7 +41,7 @@ func Errorf(format string, a ...interface{}) (err error) {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Fprint(w, spew.NewFormatter(a), spew.NewFormatter(b))
-func Fprint(w io.Writer, a ...interface{}) (n int, err error) {
+func Fprint(w io.Writer, a ...any) (n int, err error) {
 	return fmt.Fprint(w, convertArgs(a)...)
 }
 
@@ -53,7 +53,7 @@ func Fprint(w io.Writer, a ...interface{}) (n int, err error) {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Fprintf(w, format, spew.NewFormatter(a), spew.NewFormatter(b))
-func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
+func Fprintf(w io.Writer, format string, a ...any) (n int, err error) {
 	return fmt.Fprintf(w, format, convertArgs(a)...)
 }
 
@@ -64,7 +64,7 @@ func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error) {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Fprintln(w, spew.NewFormatter(a), spew.NewFormatter(b))
-func Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
+func Fprintln(w io.Writer, a ...any) (n int, err error) {
 	return fmt.Fprintln(w, convertArgs(a)...)
 }
 
@@ -76,7 +76,7 @@ func Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Print(spew.NewFormatter(a), spew.NewFormatter(b))
-func Print(a ...interface{}) (n int, err error) {
+func Print(a ...any) (n int, err error) {
 	return fmt.Print(convertArgs(a)...)
 }
 
@@ -88,7 +88,7 @@ func Print(a ...interface{}) (n int, err error) {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Printf(format, spew.NewFormatter(a), spew.NewFormatter(b))
-func Printf(format string, a ...interface{}) (n int, err error) {
+func Printf(format string, a ...any) (n int, err error) {
 	return fmt.Printf(format, convertArgs(a)...)
 }
 
@@ -100,7 +100,7 @@ func Printf(format string, a ...interface{}) (n int, err error) {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Println(spew.NewFormatter(a), spew.NewFormatter(b))
-func Println(a ...interface{}) (n int, err error) {
+func Println(a ...any) (n int, err error) {
 	return fmt.Println(convertArgs(a)...)
 }
 
@@ -111,7 +111,7 @@ func Println(a ...interface{}) (n int, err error) {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Sprint(spew.NewFormatter(a), spew.NewFormatter(b))
-func Sprint(a ...interface{}) string {
+func Sprint(a ...any) string {
 	return fmt.Sprint(convertArgs(a)...)
 }
 
@@ -122,7 +122,7 @@ func Sprint(a ...interface{}) string {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Sprintf(format, spew.NewFormatter(a), spew.NewFormatter(b))
-func Sprintf(format string, a ...interface{}) string {
+func Sprintf(format string, a ...any) string {
 	return fmt.Sprintf(format, convertArgs(a)...)
 }
 
@@ -133,14 +133,14 @@ func Sprintf(format string, a ...interface{}) string {
 // This function is shorthand for the following syntax:
 //
 //	fmt.Sprintln(spew.NewFormatter(a), spew.NewFormatter(b))
-func Sprintln(a ...interface{}) string {
+func Sprintln(a ...any) string {
 	return fmt.Sprintln(convertArgs(a)...)
 }
 
 // convertArgs accepts a slice of arguments and returns a slice of the same
 // length with each argument converted to a default spew Formatter interface.
-func convertArgs(args []interface{}) (formatters []interface{}) {
-	formatters = make([]interface{}, len(args))
+func convertArgs(args []any) (formatters []any) {
+	formatters = make([]any, len(args))
 	for index, arg := range args {
 		formatters[index] = NewFormatter(arg)
 	}

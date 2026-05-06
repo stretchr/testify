@@ -78,7 +78,7 @@ import (
 // formatterTest is used to describe a test to be performed against NewFormatter.
 type formatterTest struct {
 	format string
-	in     interface{}
+	in     any
 	wants  []string
 }
 
@@ -87,7 +87,7 @@ var formatterTests = make([]formatterTest, 0)
 
 // addFormatterTest is a helper method to append the passed input and desired
 // result to formatterTests.
-func addFormatterTest(format string, in interface{}, wants ...string) {
+func addFormatterTest(format string, in any, wants ...string) {
 	test := formatterTest{format, in, wants}
 	formatterTests = append(formatterTests, test)
 }
@@ -553,8 +553,8 @@ func addArrayFormatterTests() {
 	addFormatterTest("%#+v", nv2, "(*"+v2t+")"+"<nil>")
 
 	// Array containing interfaces.
-	v3 := [3]interface{}{"one", int(2), uint(3)}
-	nv3 := (*[3]interface{})(nil)
+	v3 := [3]any{"one", int(2), uint(3)}
+	nv3 := (*[3]any)(nil)
 	pv3 := &v3
 	v3Addr := fmt.Sprintf("%p", pv3)
 	pv3Addr := fmt.Sprintf("%p", &pv3)
@@ -634,8 +634,8 @@ func addSliceFormatterTests() {
 	addFormatterTest("%#+v", nv2, "(*"+v2t+")"+"<nil>")
 
 	// Slice containing interfaces.
-	v3 := []interface{}{"one", int(2), uint(3), nil}
-	nv3 := (*[]interface{})(nil)
+	v3 := []any{"one", int(2), uint(3), nil}
+	nv3 := (*[]any)(nil)
 	pv3 := &v3
 	v3Addr := fmt.Sprintf("%p", pv3)
 	pv3Addr := fmt.Sprintf("%p", &pv3)
@@ -719,8 +719,8 @@ func addStringFormatterTests() {
 
 func addInterfaceFormatterTests() {
 	// Nil interface.
-	var v interface{}
-	nv := (*interface{})(nil)
+	var v any
+	nv := (*any)(nil)
 	pv := &v
 	vAddr := fmt.Sprintf("%p", pv)
 	pvAddr := fmt.Sprintf("%p", &pv)
@@ -744,7 +744,7 @@ func addInterfaceFormatterTests() {
 	addFormatterTest("%#+v", nv, "(*"+vt+")"+"<nil>")
 
 	// Sub-interface.
-	v2 := interface{}(uint16(65535))
+	v2 := any(uint16(65535))
 	pv2 := &v2
 	v2Addr := fmt.Sprintf("%p", pv2)
 	pv2Addr := fmt.Sprintf("%p", &pv2)
@@ -828,8 +828,8 @@ func addMapFormatterTests() {
 	addFormatterTest("%#+v", nv2, "(*"+v2t+")"+"<nil>")
 
 	// Map with interface keys and values.
-	v3 := map[interface{}]interface{}{"one": 1}
-	nv3 := (*map[interface{}]interface{})(nil)
+	v3 := map[any]any{"one": 1}
+	nv3 := (*map[any]any)(nil)
 	pv3 := &v3
 	v3Addr := fmt.Sprintf("%p", pv3)
 	pv3Addr := fmt.Sprintf("%p", &pv3)
@@ -856,8 +856,8 @@ func addMapFormatterTests() {
 	addFormatterTest("%#+v", nv3, "(*"+v3t+")"+"<nil>")
 
 	// Map with nil interface value
-	v4 := map[string]interface{}{"nil": nil}
-	nv4 := (*map[string]interface{})(nil)
+	v4 := map[string]any{"nil": nil}
+	nv4 := (*map[string]any)(nil)
 	pv4 := &v4
 	v4Addr := fmt.Sprintf("%p", pv4)
 	pv4Addr := fmt.Sprintf("%p", &pv4)

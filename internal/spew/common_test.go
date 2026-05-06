@@ -132,8 +132,8 @@ type sortTestCase struct {
 }
 
 func helpTestSortValues(tests []sortTestCase, cs *spew.ConfigState, t *testing.T) {
-	getInterfaces := func(values []reflect.Value) []interface{} {
-		interfaces := []interface{}{}
+	getInterfaces := func(values []reflect.Value) []any {
+		interfaces := []any{}
 		for _, v := range values {
 			interfaces = append(interfaces, v.Interface())
 		}
