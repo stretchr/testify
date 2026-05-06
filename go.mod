@@ -5,10 +5,6 @@ module github.com/stretchr/testify
 go 1.17
 
 require (
-	github.com/stretchr/objx v0.5.2 // To avoid a cycle the version of testify used by objx should be excluded below
+	github.com/stretchr/objx v0.5.3
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-// Break dependency cycle with objx.
-// See https://github.com/stretchr/objx/pull/140
-exclude github.com/stretchr/testify v1.8.4
