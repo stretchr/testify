@@ -19,7 +19,8 @@ jobs:
       - run: ./.ci.gofmt.sh
       - run: ./.ci.govet.sh
       - run: go test -v -race ./...
-  test:
+
+  test-old-go:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,3 +40,9 @@ jobs:
         with:
           go-version: ${{ matrix.go_version }}
       - run: go test -v -race ./...
+
+  check-actions-hashes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - run: ./.ci.ghactions.sh
