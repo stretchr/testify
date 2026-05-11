@@ -1202,10 +1202,10 @@ func TestSubsetNotSubset(t *testing.T) {
 	}{
 		// cases that are expected to contain
 		{[]int{1, 2, 3}, nil, true, `nil is the empty set which is a subset of every set`},
-		{[]int{1, 2, 3}, []int{}, true, `[] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]int{1, 2, 3}, []int{1, 2}, true, `['\x01' '\x02'] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `['\x01' '\x02' '\x03'] is a subset of ['\x01' '\x02' '\x03']`},
-		{[]string{"hello", "world"}, []string{"hello"}, true, `["hello"] is a subset of ["hello" "world"]`},
+		{[]int{1, 2, 3}, []int{}, true, `[]int{} is a subset of []int{1, 2, 3}`},
+		{[]int{1, 2, 3}, []int{1, 2}, true, `[]int{1, 2} is a subset of []int{1, 2, 3}`},
+		{[]int{1, 2, 3}, []int{1, 2, 3}, true, `[]int{1, 2, 3} is a subset of []int{1, 2, 3}`},
+		{[]string{"hello", "world"}, []string{"hello"}, true, `[]string{"hello"} is a subset of []string{"hello", "world"}`},
 		{map[string]string{
 			"a": "x",
 			"c": "z",
@@ -1213,8 +1213,8 @@ func TestSubsetNotSubset(t *testing.T) {
 		}, map[string]string{
 			"a": "x",
 			"b": "y",
-		}, true, `map["a":"x" "b":"y"] is a subset of map["a":"x" "b":"y" "c":"z"]`},
-		{[]string{"a", "b", "c"}, map[string]int{"a": 1, "c": 3}, true, `map["a":'\x01' "c":'\x03'] is a subset of ["a" "b" "c"]`},
+		}, true, `map[string]string{"a":"x", "b":"y"} is a subset of map[string]string{"a":"x", "b":"y", "c":"z"}`},
+		{[]string{"a", "b", "c"}, map[string]int{"a": 1, "c": 3}, true, `map[string]int{"a":1, "c":3} is a subset of []string{"a", "b", "c"}`},
 
 		// cases that are expected not to contain
 		{[]string{"hello", "world"}, []string{"hello", "testify"}, false, `[]string{"hello", "world"} does not contain "testify"`},
@@ -4025,15 +4025,24 @@ func TestSubsetWithMapTooLongToPrint(t *testing.T) {
 	Contains(t, mockT.errorString(), `<... truncated> does not contain map[bool][]int{false:[]int{0, 0, 0,`)
 }
 
+// Regression test for https://github.com/stretchr/testify/issues/1800:
+// NotSubset was using %q to format error output, producing garbage like
+// [%!q(bool=true)] for non-string element types.
+func TestNotSubsetFormatsNonStringElementsCorrectly(t *testing.T) {
+	mockT := new(mockTestingT)
+	NotSubset(mockT, []bool{true}, []bool{true})
+	errStr := mockT.errorString()
+	NotContains(t, errStr, "%!q", "NotSubset error message should not contain %%q formatting artifacts")
+	Contains(t, errStr, "true", "NotSubset error message should contain the formatted value")
+}
+
 func TestNotSubsetWithSliceTooLongToPrint(t *testing.T) {
 	t.Parallel()
 	mockT := new(mockTestingT)
 	longSlice := make([]int, 1_000_000)
 	NotSubset(mockT, longSlice, longSlice)
-	Contains(t, mockT.errorString(), `
-	Error Trace:	
-	Error:      	['\x00' '\x00' '\x00'`)
-	Contains(t, mockT.errorString(), `<... truncated> is a subset of ['\x00' '\x00' '\x00'`)
+	Contains(t, mockT.errorString(), "[]int{0, 0, 0")
+	Contains(t, mockT.errorString(), "<... truncated> is a subset of []int{0, 0, 0")
 }
 
 func TestNotSubsetWithMapTooLongToPrint(t *testing.T) {
@@ -4041,10 +4050,8 @@ func TestNotSubsetWithMapTooLongToPrint(t *testing.T) {
 	mockT := new(mockTestingT)
 	longSlice := make([]int, 1_000_000)
 	NotSubset(mockT, map[int][]int{1: longSlice}, map[int][]int{1: longSlice})
-	Contains(t, mockT.errorString(), `
-	Error Trace:	
-	Error:      	map['\x01':['\x00' '\x00' '\x00'`)
-	Contains(t, mockT.errorString(), `<... truncated> is a subset of map['\x01':['\x00' '\x00' '\x00'`)
+	Contains(t, mockT.errorString(), "map[int][]int{1:[]int{0, 0, 0")
+	Contains(t, mockT.errorString(), "<... truncated> is a subset of map[int][]int{1:[]int{0, 0, 0")
 }
 
 func TestSameWithSliceTooLongToPrint(t *testing.T) {
