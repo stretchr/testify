@@ -2363,8 +2363,13 @@ func TestInDeltaSlice(t *testing.T) {
 
 	False(t, InDeltaSlice(mockT,
 		[]float64{1, 2},
-		[]float64{0, 3, 2},
+		[]float64{1, 2, 3},
 		1), "Too few elements in expected slice")
+
+	False(t, InDeltaSlice(mockT,
+		[]float64{1, 2, 3},
+		[]float64{1, 2},
+		1), "Too much elements in expected slice")
 }
 
 func TestInDeltaMapValues(t *testing.T) {
