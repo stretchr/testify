@@ -228,7 +228,7 @@ func (f *testFunc) Qualifier(p *types.Package) string {
 func (f *testFunc) Params() string {
 	sig := f.TypeInfo.Type().(*types.Signature)
 	params := sig.Params()
-	p := ""
+	var p strings.Builder
 	comma := ""
 	to := params.Len()
 	var i int
@@ -238,20 +238,23 @@ func (f *testFunc) Params() string {
 	}
 	for i = 1; i < to; i++ {
 		param := params.At(i)
-		p += fmt.Sprintf("%s%s %s", comma, param.Name(), types.TypeString(param.Type(), f.Qualifier))
+		p.WriteString(comma)
+		p.WriteString(param.Name())
+		p.WriteString(" ")
+		p.WriteString(types.TypeString(param.Type(), f.Qualifier))
 		comma = ", "
 	}
 	if sig.Variadic() {
 		param := params.At(params.Len() - 1)
-		p += fmt.Sprintf("%s%s ...%s", comma, param.Name(), types.TypeString(param.Type().(*types.Slice).Elem(), f.Qualifier))
+		fmt.Fprintf(&p, "%s%s ...%s", comma, param.Name(), types.TypeString(param.Type().(*types.Slice).Elem(), f.Qualifier))
 	}
-	return p
+	return p.String()
 }
 
 func (f *testFunc) ForwardedParams() string {
 	sig := f.TypeInfo.Type().(*types.Signature)
 	params := sig.Params()
-	p := ""
+	var p strings.Builder
 	comma := ""
 	to := params.Len()
 	var i int
@@ -261,14 +264,15 @@ func (f *testFunc) ForwardedParams() string {
 	}
 	for i = 1; i < to; i++ {
 		param := params.At(i)
-		p += fmt.Sprintf("%s%s", comma, param.Name())
+		p.WriteString(comma)
+		p.WriteString(param.Name())
 		comma = ", "
 	}
 	if sig.Variadic() {
 		param := params.At(params.Len() - 1)
-		p += fmt.Sprintf("%s%s...", comma, param.Name())
+		fmt.Fprintf(&p, "%s%s...", comma, param.Name())
 	}
-	return p
+	return p.String()
 }
 
 func (f *testFunc) ParamsFormat() string {
