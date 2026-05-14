@@ -131,7 +131,8 @@ func (i *TestExampleImplementation) TheExampleMethodFuncType(fn ExampleFuncType)
 
 // MockTestingT mocks a test struct
 type MockTestingT struct {
-	logfCount, errorfCount, failNowCount int
+	logfMessages, errorfMessages []string
+	failNowCount                 int
 }
 
 // Helper is like [testing.T.Helper] but does nothing.
@@ -139,12 +140,12 @@ func (MockTestingT) Helper() {}
 
 const mockTestingTFailNowCalled = "FailNow was called"
 
-func (m *MockTestingT) Logf(string, ...interface{}) {
-	m.logfCount++
+func (m *MockTestingT) Logf(format string, a ...interface{}) {
+	m.logfMessages = append(m.logfMessages, fmt.Sprintf(format, a...))
 }
 
-func (m *MockTestingT) Errorf(string, ...interface{}) {
-	m.errorfCount++
+func (m *MockTestingT) Errorf(format string, a ...interface{}) {
+	m.errorfMessages = append(m.errorfMessages, fmt.Sprintf(format, a...))
 }
 
 // FailNow mocks the FailNow call.
@@ -324,7 +325,7 @@ func TestMock_WithTest(t *testing.T) {
 	mockedService.TheExampleMethod(1, 2, 3)
 
 	// Assert that Errorf and FailNow were not called
-	assert.Equal(t, 0, mockedTest.errorfCount)
+	assert.Equal(t, 0, len(mockedTest.errorfMessages))
 	assert.Equal(t, 0, mockedTest.failNowCount)
 
 	// Test that on unexpected call, the mocked test was called to fail the test
@@ -334,7 +335,7 @@ func TestMock_WithTest(t *testing.T) {
 	})
 
 	// Assert that Errorf and FailNow were called once
-	assert.Equal(t, 1, mockedTest.errorfCount)
+	assert.Equal(t, 1, len(mockedTest.errorfMessages))
 	assert.Equal(t, 1, mockedTest.failNowCount)
 }
 
@@ -2465,5 +2466,105 @@ func TestIssue1785ArgumentWithMutatingStringer(t *testing.T) {
 func TestIssue1227AssertExpectationsForObjectsWithMock(t *testing.T) {
 	mockT := &MockTestingT{}
 	AssertExpectationsForObjects(mockT, Mock{})
-	assert.Equal(t, 1, mockT.errorfCount)
+	assert.Equal(t, 1, len(mockT.errorfMessages))
+}
+
+func TestIssue1209AnythingOfTypeNilAsString(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", AnythingOfType("string")).Return()
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		m.MethodCalled("Fn", nil)
+	})
+	require.Len(t, mockT.errorfMessages, 1)
+	require.Contains(t, mockT.errorfMessages[0], "Diff: 0: FAIL:  type string != type <nil> - (<nil>=<nil>)")
+}
+
+func TestIssue1209AnythingOfTypeStringAsNil(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", AnythingOfType("<nil>")).Return()
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		m.MethodCalled("Fn", "")
+	})
+	require.Len(t, mockT.errorfMessages, 1)
+	require.Contains(t, mockT.errorfMessages[0], "Diff: 0: FAIL:  type <nil> != type string - (string=)")
+}
+
+func TestIssue1209AnythingOfTypeNilAsNil(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", AnythingOfType("<nil>")).Return()
+	assert.NotPanics(t, func() {
+		m.MethodCalled("Fn", nil)
+	})
+}
+
+func TestIssue1209AnythingOfTypeStringAsEmptyString(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", AnythingOfType("")).Return()
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		m.MethodCalled("Fn", "my lovely string")
+	})
+	require.Len(t, mockT.errorfMessages, 1)
+	require.Contains(t, mockT.errorfMessages[0], "Diff: 0: FAIL:  type  != type string - (string=my lovely string)")
+}
+
+func TestIssue1209AnythingOfTypeNilAsEmptyString(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", AnythingOfType("")).Return()
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		m.MethodCalled("Fn", nil)
+	})
+	require.Len(t, mockT.errorfMessages, 1)
+	require.Contains(t, mockT.errorfMessages[0], "Diff: 0: FAIL:  type  != type <nil> - (<nil>=<nil>)")
+}
+
+func TestIssue1209IsTypeNilAsString(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", IsType("")).Return()
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		m.MethodCalled("Fn", nil)
+	})
+	require.Len(t, mockT.errorfMessages, 1)
+	require.Contains(t, mockT.errorfMessages[0], "Diff: 0: FAIL:  type string != type <nil> - (<nil>=<nil>)")
+}
+
+func TestIssue1209IsTypeStringAsNil(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", IsType(nil)).Return()
+	assert.PanicsWithValue(t, mockTestingTFailNowCalled, func() {
+		m.MethodCalled("Fn", "")
+	})
+	require.Len(t, mockT.errorfMessages, 1)
+	require.Contains(t, mockT.errorfMessages[0], "Diff: 0: FAIL:  type <nil> != type string - (string=)")
+}
+
+func TestIssue1209IsTypeNilAsNil(t *testing.T) {
+	t.Parallel()
+	mockT := &MockTestingT{}
+	m := &Mock{}
+	m.Test(mockT)
+	m.On("Fn", IsType(nil)).Return()
+	assert.NotPanics(t, func() {
+		m.MethodCalled("Fn", nil)
+	})
 }
