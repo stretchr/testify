@@ -64,3 +64,12 @@ type SetupSubTest interface {
 type TearDownSubTest interface {
 	TearDownSubTest()
 }
+
+// testErrAccessor is satisfied by suites embedding *Suite. It is used by
+// Run() to toggle capture of the first assertion error reported during
+// SetupSuite or during any individual test (SetupTest/BeforeTest/body), and
+// to record a panic value as a fallback cause.
+type testErrAccessor interface {
+	enableTestErrCapture(enable bool) string
+	recordTestErr(msg string)
+}

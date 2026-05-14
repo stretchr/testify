@@ -10,9 +10,10 @@ type SuiteInformation struct {
 
 // TestInformation stores information about the execution of each test.
 type TestInformation struct {
-	TestName   string
-	Start, End time.Time
-	Passed     bool
+	TestName     string
+	Start, End   time.Time
+	Passed       bool
+	ErrorMessage string
 }
 
 func newSuiteInformation() *SuiteInformation {
@@ -42,6 +43,29 @@ func (s *SuiteInformation) end(testName string, passed bool) {
 
 	s.TestStats[testName].End = time.Now()
 	s.TestStats[testName].Passed = passed
+}
+
+func (s *SuiteInformation) testStarted(testName string) (*TestInformation, bool) {
+	if s == nil {
+		return nil, false
+	}
+
+	info, ok := s.TestStats[testName]
+	return info, ok
+}
+
+func (s *SuiteInformation) endWithError(testName string, passed bool, errMsg string) {
+	if s == nil {
+		return
+	}
+
+	if _, started := s.TestStats[testName]; !started {
+		return
+	}
+
+	s.TestStats[testName].End = time.Now()
+	s.TestStats[testName].Passed = passed
+	s.TestStats[testName].ErrorMessage = errMsg
 }
 
 func (s *SuiteInformation) Passed() bool {

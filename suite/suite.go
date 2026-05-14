@@ -32,6 +32,9 @@ type Suite struct {
 
 	// Parent suite to have access to the implemented methods of parent struct
 	s TestingSuite
+
+	captureTestErr bool
+	testErrMessage string
 }
 
 // T retrieves the current *testing.T context.
@@ -46,8 +49,42 @@ func (suite *Suite) SetT(t *testing.T) {
 	suite.mu.Lock()
 	defer suite.mu.Unlock()
 	suite.t = t
-	suite.Assertions = assert.New(t)
-	suite.require = require.New(t)
+	capturer := &testErrCapturer{T: t, s: suite}
+	suite.Assertions = assert.New(capturer)
+	suite.require = require.New(capturer)
+}
+
+type testErrCapturer struct {
+	*testing.T
+	s *Suite
+}
+
+func (c *testErrCapturer) Errorf(format string, args ...interface{}) {
+	c.s.mu.Lock()
+	if c.s.captureTestErr && c.s.testErrMessage == "" {
+		c.s.testErrMessage = fmt.Sprintf(format, args...)
+	}
+	c.s.mu.Unlock()
+	c.T.Errorf(format, args...)
+}
+
+func (suite *Suite) enableTestErrCapture(enable bool) string {
+	suite.mu.Lock()
+	defer suite.mu.Unlock()
+	captured := suite.testErrMessage
+	suite.captureTestErr = enable
+	if enable {
+		suite.testErrMessage = ""
+	}
+	return captured
+}
+
+func (suite *Suite) recordTestErr(msg string) {
+	suite.mu.Lock()
+	defer suite.mu.Unlock()
+	if suite.testErrMessage == "" {
+		suite.testErrMessage = msg
+	}
 }
 
 // SetS needs to set the current test suite as parent
@@ -197,8 +234,26 @@ func Run(t *testing.T, suite TestingSuite) {
 					t.Helper()
 
 					r := recover()
+					passed := !t.Failed() && r == nil
 
-					stats.end(method.Name, !t.Failed() && r == nil)
+					var capturedErrMsg string
+					if a, ok := suite.(testErrAccessor); ok {
+						capturedErrMsg = a.enableTestErrCapture(false)
+					}
+
+					if !passed && r != nil && capturedErrMsg == "" {
+						capturedErrMsg = fmt.Sprintf("test panicked: %v", r)
+					}
+
+					if _, started := stats.testStarted(method.Name); !started {
+						stats.start(method.Name)
+					}
+
+					if !passed && capturedErrMsg != "" {
+						stats.endWithError(method.Name, false, capturedErrMsg)
+					} else {
+						stats.end(method.Name, passed)
+					}
 
 					if afterTestSuite, ok := suite.(AfterTest); ok {
 						afterTestSuite.AfterTest(suiteName, method.Name)
@@ -211,6 +266,10 @@ func Run(t *testing.T, suite TestingSuite) {
 					suite.SetT(parentT)
 					failOnPanic(t, r)
 				}()
+
+				if a, ok := suite.(testErrAccessor); ok {
+					a.enableTestErrCapture(true)
+				}
 
 				if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 					setupTestSuite.SetupTest()
@@ -235,20 +294,61 @@ func Run(t *testing.T, suite TestingSuite) {
 		stats.Start = time.Now()
 	}
 
-	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
-		setupAllSuite.SetupSuite()
-	}
+	var setupSuiteCompleted bool
 
 	defer func() {
+		if !setupSuiteCompleted {
+			errMsg := "SetupSuite failed"
+			if a, ok := suite.(testErrAccessor); ok {
+				if captured := a.enableTestErrCapture(false); captured != "" {
+					errMsg = captured
+				}
+			}
+
+			if !t.Skipped() {
+				for _, tt := range tests {
+					if _, started := stats.testStarted(tt.name); started {
+						continue
+					}
+
+					ttName := tt.name
+					t.Run(ttName, func(subT *testing.T) {
+						stats.start(ttName)
+						defer stats.endWithError(ttName, false, errMsg)
+						subT.Error(errMsg)
+					})
+				}
+			}
+		} else if a, ok := suite.(testErrAccessor); ok {
+			a.enableTestErrCapture(false)
+		}
+
 		if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-			tearDownAllSuite.TearDownSuite()
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Fprintf(os.Stderr, "testify: TearDownSuite panicked: %v\n", r)
+					}
+				}()
+				tearDownAllSuite.TearDownSuite()
+			}()
 		}
 
 		if suiteWithStats, measureStats := suite.(WithStats); measureStats {
-			stats.End = time.Now()
-			suiteWithStats.HandleStats(suiteName, stats)
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Fprintf(os.Stderr, "testify: HandleStats panicked: %v\n", r)
+					}
+				}()
+				stats.End = time.Now()
+				suiteWithStats.HandleStats(suiteName, stats)
+			}()
 		}
 	}()
+
+	runSetupSuite(suite)
+	setupSuiteCompleted = true
 
 	// Tests will be shuffled if service name is in servicesToShuffle map
 	if _, ok := servicesToShuffle[serviceName]; ok {
@@ -258,6 +358,33 @@ func Run(t *testing.T, suite TestingSuite) {
 	}
 
 	runTests(t, tests)
+}
+
+func runSetupSuite(suite TestingSuite) {
+	setupAllSuite, ok := suite.(SetupAllSuite)
+	if !ok {
+		return
+	}
+
+	accessor, hasAccessor := suite.(testErrAccessor)
+	if hasAccessor {
+		accessor.enableTestErrCapture(true)
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			if hasAccessor {
+				accessor.recordTestErr(fmt.Sprintf("SetupSuite panicked: %v", r))
+			}
+			panic(r)
+		}
+	}()
+
+	setupAllSuite.SetupSuite()
+
+	if hasAccessor {
+		accessor.enableTestErrCapture(false)
+	}
 }
 
 func runTests(t *testing.T, tests []test) {
