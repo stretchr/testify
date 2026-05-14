@@ -203,6 +203,8 @@ func (c *Call) Maybe() *Call {
 //	   On("MyMethod", 1).Return(nil).
 //	   On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
 //
+// See also [Call.OnF]
+//
 //go:noinline
 func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
@@ -382,6 +384,8 @@ func (m *Mock) fail(format string, args ...interface{}) {
 // being called.
 //
 //	Mock.On("MyMethod", arg1, arg2)
+//
+// See also [Mock.OnF]
 func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	for _, arg := range arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
@@ -404,7 +408,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 //
 // The `method` argument must be a function; otherwise, OnF will panic.
 // The function name is determined using reflection and runtime information,
-// and then passed to On(methodName, args...).
+// and then passed to [Mock.On](methodName, args...).
 func (m *Mock) OnF(method interface{}, args ...interface{}) *Call {
 	return m.On(runtimeMethodName(method), args...)
 }
