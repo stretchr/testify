@@ -16,7 +16,7 @@ func Conditionf(t TestingT, comp Comparison, msg string, args ...interface{}) bo
 	return Condition(t, comp, append([]interface{}{msg}, args...)...)
 }
 
-// Containsf asserts that the specified string, list(array, slice...) or map contains the
+// Containsf asserts that the specified string, list(array, slice, sequence...) or map contains the
 // specified substring or element.
 //
 //	assert.Containsf(t, "Hello World", "World", "error message %s", "formatted")
@@ -587,8 +587,8 @@ func NotContainsf(t TestingT, s interface{}, contains interface{}, msg string, a
 	return NotContains(t, s, contains, append([]interface{}{msg}, args...)...)
 }
 
-// NotElementsMatchf asserts that the specified listA(array, slice...) is NOT equal to specified
-// listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
+// NotElementsMatchf asserts that the specified listA(array, slice, sequence...) is NOT equal to specified
+// listB(array, slice, sequence...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should not match.
 // This is an inverse of ElementsMatch.
 //
