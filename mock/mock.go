@@ -203,26 +203,26 @@ func (c *Call) Maybe() *Call {
 //	   On("MyMethod", 1).Return(nil).
 //	   On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
 //
-// See also [Call.OnF]
+// See also [Call.OnFn]
 //
 //go:noinline
 func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
 
-// OnF chains a new expectation description onto the mcked interface using
+// OnFn chains a new expectation description onto the mcked interface using
 // a function reference instead of a string method name.
 // for example:
 //
 //	mock.
-//	   OnF(mocked.MyMethod, 1).Return(nil).
-//	   OnF(mocked.MyOtherMethod, 'a', 'b', 'c').Return(errors.New("Some Error"))
+//	   OnFn(mocked.MyMethod, 1).Return(nil).
+//	   OnFn(mocked.MyOtherMethod, 'a', 'b', 'c').Return(errors.New("Some Error"))
 //
 // The `method` argument must be a function; otherwise, this call will panic.
 // The function name is resolved using reflection and runtime information.
 //
 //go:noinline
-func (c *Call) OnF(method interface{}, args ...interface{}) *Call {
+func (c *Call) OnFn(method interface{}, args ...interface{}) *Call {
 	return c.Parent.On(runtimeMethodName(method), args...)
 }
 
@@ -385,7 +385,7 @@ func (m *Mock) fail(format string, args ...interface{}) {
 //
 //	Mock.On("MyMethod", arg1, arg2)
 //
-// See also [Mock.OnF]
+// See also [Mock.OnFn]
 func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	for _, arg := range arguments {
 		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
@@ -401,15 +401,15 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 	return c
 }
 
-// OnF starts a description of an expectation of the specified method
+// OnFn starts a description of an expectation of the specified method
 // being called using a function reference instead of a string method name.
 //
-//	Mock.OnF(mocked.MyMethod, arg1, arg2)
+//	Mock.OnFn(mocked.MyMethod, arg1, arg2)
 //
-// The `method` argument must be a function; otherwise, OnF will panic.
+// The `method` argument must be a function; otherwise, OnFn will panic.
 // The function name is determined using reflection and runtime information,
 // and then passed to [Mock.On](methodName, args...).
-func (m *Mock) OnF(method interface{}, args ...interface{}) *Call {
+func (m *Mock) OnFn(method interface{}, args ...interface{}) *Call {
 	return m.On(runtimeMethodName(method), args...)
 }
 

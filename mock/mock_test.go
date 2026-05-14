@@ -558,13 +558,13 @@ func Test_Mock_On_WithFuncTypeArg(t *testing.T) {
 	})
 }
 
-func Test_Mock_OnF(t *testing.T) {
+func Test_Mock_OnFn(t *testing.T) {
 	t.Parallel()
 
 	// make a test impl object
 	var mockedService = new(TestExampleImplementation)
 
-	c := mockedService.OnF(mockedService.TheExampleMethod)
+	c := mockedService.OnFn(mockedService.TheExampleMethod)
 	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
 	assert.Equal(t, "TheExampleMethod", c.Method)
 }
