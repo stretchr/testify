@@ -1497,10 +1497,14 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 	actualSlice := reflect.ValueOf(actual)
 	expectedSlice := reflect.ValueOf(expected)
 
-	for i := 0; i < actualSlice.Len(); i++ {
-		result := InDelta(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta, msgAndArgs...)
-		if !result {
-			return result
+	expectedLen := expectedSlice.Len()
+	if !Len(t, actual, expectedLen, msgAndArgs...) {
+		return false
+	}
+
+	for i := 0; i < expectedLen; i++ {
+		if !InDelta(t, actualSlice.Index(i).Interface(), expectedSlice.Index(i).Interface(), delta, msgAndArgs...) {
+			return false
 		}
 	}
 
