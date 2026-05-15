@@ -19,6 +19,7 @@ jobs:
       - run: ./.ci.gofmt.sh
       - run: ./.ci.govet.sh
       - run: go test -v -race ./...
+      - run: go test -tags testify_no_objx ./...
 
   test-old-go:
     runs-on: ubuntu-latest
@@ -40,6 +41,7 @@ jobs:
         with:
           go-version: ${{ matrix.go_version }}
       - run: go test -v -race ./...
+      - run: go test -tags testify_no_objx ./...
 
   check-actions-hashes:
     runs-on: ubuntu-latest
