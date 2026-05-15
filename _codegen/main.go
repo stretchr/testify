@@ -163,6 +163,12 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []tes
 			continue
 		}
 
+		// Skip generic functions (type parameters present) — they cannot be
+		// reproduced by codegen and are maintained by hand.
+		if sig.TypeParams() != nil && sig.TypeParams().Len() > 0 {
+			continue
+		}
+
 		funcs = append(funcs, testFunc{*outputPkg, fdocs, fn})
 		importer.AddImportsFrom(sig.Params())
 	}
