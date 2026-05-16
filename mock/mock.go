@@ -820,6 +820,30 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 	return anythingOfTypeArgument(t)
 }
 
+type anythingImplementing struct {
+	interfaceType reflect.Type
+}
+
+func (a *anythingImplementing) isImplementedBy(val interface{}) bool {
+	t2 := reflect.TypeOf(val)
+
+	return t2.Implements(a.interfaceType)
+}
+
+// AnythingImplementing is just like AnythingOfType, but instead of checking against a concrete type, it is used to check if a value is of a type that implements a given interface
+//
+// For example, for checking if a value implements the context.Context interface:
+//
+//	var args = Arguments([]interface{}{AnythingImplementing((*context.Context)(nil))})
+//	args.Assert(t, AnythingImplementing(context.Background())
+func AnythingImplementing(val interface{}) anythingImplementing {
+	// Get the dynamic type
+	t := reflect.TypeOf(val)
+	interfaceType := t.Elem()
+
+	return anythingImplementing{interfaceType: interfaceType}
+}
+
 // IsTypeArgument is a struct that contains the type of an argument
 // for use when type checking.  This is an alternative to [AnythingOfType].
 // Used in [Arguments.Diff] and [Arguments.Assert].
@@ -1012,6 +1036,12 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 					// not match
 					differences++
 					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+				}
+			case anythingImplementing:
+				expectedToImplement := expected.interfaceType
+				if !expected.isImplementedBy(actual) {
+					differences++
+					output = fmt.Sprintf("%s\t%d: FAIL: value of type %T does not implement interface %s\n", output, i, actual, expectedToImplement)
 				}
 			case *IsTypeArgument:
 				actualT := reflect.TypeOf(actual)
