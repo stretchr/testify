@@ -177,21 +177,53 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		return false
 	}
 
+	convertedExpectedValue := expectedValue.Convert(actualType).Interface()
+
 	if !isNumericType(expectedType) || !isNumericType(actualType) {
 		// Attempt comparison after type conversion
-		return reflect.DeepEqual(
-			expectedValue.Convert(actualType).Interface(), actual,
-		)
+		return reflect.DeepEqual(convertedExpectedValue, actual)
 	}
 
 	// If BOTH values are numeric, there are chances of false positives due
 	// to overflow or underflow. So, we need to make sure to always convert
 	// the smaller type to a larger type before comparing.
-	if expectedType.Size() >= actualType.Size() {
-		return actualValue.Convert(expectedType).Interface() == expected
+	// Assume smaller is expected value and larger is actual value
+	smallerTypeValue, largerTypeValue := expectedValue, actualValue
+	smallerValueCmp, largerValueCmp := convertedExpectedValue, actual
+
+	// Actual value is smaller than expected value, converting actual value to expected value type
+	if actualType.Size() < expectedType.Size() {
+		smallerTypeValue, largerTypeValue = actualValue, expectedValue
+
+		if !actualType.ConvertibleTo(expectedType) {
+			return false
+		}
+		smallerValueCmp = actualValue.Convert(expectedType).Interface()
+		largerValueCmp = expected
 	}
 
-	return expectedValue.Convert(actualType).Interface() == actual
+	// Quick comparison after type conversion to see if overflow or underflow is resolved
+	if smallerValueCmp == largerValueCmp {
+		return true
+	}
+
+	// We want to allow comparison between float32(10.1) and float64(10.1).
+	// The problem here is when converting from float32 to float64, the converted
+	// value will have trailing non zero decimals due to binary representation differences
+	// For example: float64(float32(10.1)) = 10.100000381469727
+	// To remove the trailing decimals we can round the 64-bit value to
+	// expected precision of 32-bit which is 6 decimal places
+	if smallerTypeValue.Kind() == reflect.Float32 && largerTypeValue.Kind() == reflect.Float64 {
+		float := smallerValueCmp.(float64)
+		integerPart := math.Floor(float)
+		decimalPart := float - integerPart
+
+		scale := math.Pow(10, 6)
+		decimalPart = math.Round(decimalPart*scale) / scale
+		smallerValueCmp = integerPart + decimalPart
+	}
+
+	return smallerValueCmp == largerValueCmp
 }
 
 // isNumericType returns true if the type is one of:
