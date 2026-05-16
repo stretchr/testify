@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"time"
 )
 
 // Some constants in the form of bytes to avoid string overhead.  This mirrors
@@ -227,7 +228,7 @@ type valuesSorter struct {
 // ConfigState to decide if and how to populate those surrogate keys.
 func newValuesSorter(values []reflect.Value, cs *ConfigState) sort.Interface {
 	vs := &valuesSorter{values: values, cs: cs}
-	if canSortSimply(vs.values[0].Kind()) {
+	if canSortSimply(vs.values[0]) {
 		return vs
 	}
 	if !cs.DisableMethods {
@@ -253,9 +254,9 @@ func newValuesSorter(values []reflect.Value, cs *ConfigState) sort.Interface {
 // canSortSimply tests whether a reflect.Kind is a primitive that can be sorted
 // directly, or whether it should be considered for sorting by surrogate keys
 // (if the ConfigState allows it).
-func canSortSimply(kind reflect.Kind) bool {
+func canSortSimply(v reflect.Value) bool {
 	// This switch parallels valueSortLess, except for the default case.
-	switch kind {
+	switch v.Kind() {
 	case reflect.Bool:
 		return true
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
@@ -271,7 +272,8 @@ func canSortSimply(kind reflect.Kind) bool {
 	case reflect.Array:
 		return true
 	}
-	return false
+
+	return isTime(v)
 }
 
 // Len returns the number of values in the slice.  It is part of the
@@ -318,6 +320,13 @@ func valueSortLess(a, b reflect.Value) bool {
 			return valueSortLess(av, bv)
 		}
 	}
+
+	if isTime(a) && a.CanInterface() && b.CanInterface() {
+		timeA, okA := a.Interface().(time.Time)
+		timeB, okB := b.Interface().(time.Time)
+		return okA && okB && timeA.Before(timeB)
+	}
+
 	return a.String() < b.String()
 }
 
@@ -338,4 +347,9 @@ func sortValues(values []reflect.Value, cs *ConfigState) {
 		return
 	}
 	sort.Sort(newValuesSorter(values, cs))
+}
+
+// isTime returns whether the passed reflect.Value is a [time.Time] struct.
+func isTime(v reflect.Value) bool {
+	return v.Kind() == reflect.Struct && v.Type().PkgPath() == "time" && v.Type().Name() == "Time"
 }
