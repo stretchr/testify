@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -3491,6 +3492,54 @@ func TestEventuallyWithTTrue(t *testing.T) {
 	Equal(t, 2, counter, "Condition is expected to be called 2 times")
 }
 
+func TestEventuallyWithT_AvoidsPanic_NilDeref(t *testing.T) {
+	t.Parallel()
+
+	var p atomic.Value
+	go func() {
+		time.Sleep(5 * time.Millisecond)
+		value := 1
+		p.Store(&value)
+	}()
+
+	// If the condition runs before the first tick, this panics on *p.Load()
+	True(t, EventuallyWithT(t, func(c *CollectT) {
+		Equal(c, 1, *p.Load().(*int))
+	}, 200*time.Millisecond, 50*time.Millisecond))
+}
+
+func TestEventually_AvoidsPanic_NilDeref(t *testing.T) {
+	t.Parallel()
+
+	var p atomic.Value
+	go func() {
+		time.Sleep(5 * time.Millisecond)
+		value := 1
+		p.Store(&value)
+	}()
+
+	// If the condition runs before the first tick, this panics on *p.Load()
+	True(t, Eventually(t, func() bool {
+		return *p.Load().(*int) == 1
+	}, 200*time.Millisecond, 50*time.Millisecond))
+}
+
+func TestNever_AvoidsPanic_NilDeref(t *testing.T) {
+	t.Parallel()
+
+	var p atomic.Value
+	go func() {
+		time.Sleep(5 * time.Millisecond)
+		value := 0
+		p.Store(&value)
+	}()
+
+	// If the condition runs before the first tick, this panics on *p.Load()
+	True(t, Never(t, func() bool {
+		return *p.Load().(*int) == 1 // set to 0 above, so this should never == 1
+	}, 200*time.Millisecond, 50*time.Millisecond))
+}
+
 func TestEventuallyWithT_ConcurrencySafe(t *testing.T) {
 	t.Parallel()
 
@@ -3568,28 +3617,26 @@ func TestEventuallyTimeout(t *testing.T) {
 	})
 }
 
-func TestEventuallySucceedQuickly(t *testing.T) {
+func TestEventually_NoImmediateCheckBeforeFirstTick(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(testing.T)
 
 	condition := func() bool { return true }
 
-	// By making the tick longer than the total duration, we expect that this test would fail if
-	// we didn't check the condition before the first tick elapses.
-	True(t, Eventually(mockT, condition, 100*time.Millisecond, time.Second))
+	// By making the tick longer than the total duration, the condition should not be checked.
+	False(t, Eventually(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
-func TestEventuallyWithTSucceedQuickly(t *testing.T) {
+func TestEventuallyWithT_NoImmediateCheckBeforeFirstTick(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(testing.T)
 
 	condition := func(t *CollectT) {}
 
-	// By making the tick longer than the total duration, we expect that this test would fail if
-	// we didn't check the condition before the first tick elapses.
-	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Second))
+	// By making the tick longer than the total duration, the condition should not be checked.
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 func TestNeverFalse(t *testing.T) {
@@ -3623,15 +3670,14 @@ func TestNeverTrue(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
-func TestNeverFailQuickly(t *testing.T) {
+func TestNever_NoImmediateCheckBeforeFirstTick(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(testing.T)
 
-	// By making the tick longer than the total duration, we expect that this test would fail if
-	// we didn't check the condition before the first tick elapses.
+	// By making the tick longer than the total duration, the condition should not be checked.
 	condition := func() bool { return true }
-	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
+	True(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
 func Test_validateEqualArgs(t *testing.T) {
