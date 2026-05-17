@@ -374,8 +374,11 @@ func (a *Assertions) EventuallyWithT(condition func(collect *CollectT), waitFor 
 //	}()
 //	a.EventuallyWithTf(func(c *assert.CollectT) {
 //		// add assertions as needed; any assertion failure will fail the current tick
-//		assert.True(c, externalValue, "expected 'externalValue' to be true")
-//	}, 10*time.Second, 1*time.Second, "error message %s", "formatted")
+//		assert.True(c, externalValue)
+//	}, 10*time.Second, 1*time.Second, "externalValue was not true before timeout")
+//
+// The msg and args format the failure when the condition is never met; they are
+// not passed to the condition callback.
 func (a *Assertions) EventuallyWithTf(condition func(collect *CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
