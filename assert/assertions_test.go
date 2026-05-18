@@ -3038,6 +3038,21 @@ Diff:
 	Equal(t, expected, actual)
 }
 
+// TestDiffSpewPanic exercises an input that makes go-spew panic inside
+// reflect.Value.Interface (an unexported map field with array keys). The
+// diff is just decoration on the failure message, so the assertion
+// shouldn't crash the test run when the dump fails.
+func TestDiffSpewPanic(t *testing.T) {
+	t.Parallel()
+
+	type s struct {
+		m map[[1]byte]*struct{}
+	}
+	a := s{m: map[[1]byte]*struct{}{{1}: nil, {2}: nil}}
+	b := s{}
+	Equal(t, "", diff(a, b))
+}
+
 func TestTimeEqualityErrorFormatting(t *testing.T) {
 	t.Parallel()
 

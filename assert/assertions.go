@@ -1929,7 +1929,7 @@ func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
 
 // diff returns a diff of both values as long as both are of the same type and
 // are a struct, map, slice, array or string. Otherwise it returns an empty string.
-func diff(expected interface{}, actual interface{}) string {
+func diff(expected interface{}, actual interface{}) (result string) {
 	if expected == nil || actual == nil {
 		return ""
 	}
@@ -1944,6 +1944,16 @@ func diff(expected interface{}, actual interface{}) string {
 	if ek != reflect.Struct && ek != reflect.Map && ek != reflect.Slice && ek != reflect.Array && ek != reflect.String {
 		return ""
 	}
+
+	// spew can panic on inputs that hit reflect's unexported-field guard
+	// (e.g. a struct with an unexported map whose keys are arrays). The
+	// diff is informational, so swallow the panic and just skip it
+	// instead of taking down the test run.
+	defer func() {
+		if r := recover(); r != nil {
+			result = ""
+		}
+	}()
 
 	var e, a string
 
