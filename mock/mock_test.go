@@ -2467,3 +2467,83 @@ func TestIssue1227AssertExpectationsForObjectsWithMock(t *testing.T) {
 	AssertExpectationsForObjects(mockT, Mock{})
 	assert.Equal(t, 1, mockT.errorfCount)
 }
+
+func Test_Arguments_Diff_ConcurrentPointerModification(t *testing.T) {
+	// Issue #1866: Arguments.Diff causes data races when pointer arguments
+	// are concurrently modified by other goroutines.
+	args := Arguments{&struct{ N int }{N: 42}}
+	var ptr interface{} = &struct{ N int }{N: 42}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 1000; i++ {
+			s := ptr.(*struct{ N int })
+			s.N = i
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 1000; i++ {
+			args.Diff([]interface{}{ptr})
+		}
+	}()
+
+	wg.Wait()
+}
+
+func Test_Arguments_Diff_ConcurrentMapModification(t *testing.T) {
+	// Concurrent map modification would previously cause
+	// "fatal error: concurrent map iteration and map write"
+	args := Arguments{map[string]int{"key": 1}}
+	val := map[string]int{"key": 1}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100; i++ {
+			val["key"] = i
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100; i++ {
+			args.Diff([]interface{}{val})
+		}
+	}()
+
+	wg.Wait()
+}
+
+func Test_Arguments_Diff_ConcurrentSliceModification(t *testing.T) {
+	// Concurrent slice modification would previously trigger race detector
+	args := Arguments{[]int{1, 2, 3}}
+	val := []int{1, 2, 3}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100; i++ {
+			if i < len(val) {
+				val[i%len(val)] = i
+			}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100; i++ {
+			args.Diff([]interface{}{val})
+		}
+	}()
+
+	wg.Wait()
+}
