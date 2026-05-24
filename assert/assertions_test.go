@@ -2442,6 +2442,20 @@ func TestInDeltaMapValues(t *testing.T) {
 	}
 }
 
+func TestInDeltaMapValues_ErrorIncludesKey(t *testing.T) {
+	t.Parallel()
+
+	mockT := &mockTestingT{}
+	expected := map[string]int{"a": 3, "b": 1}
+	actual := map[string]int{"a": 4, "b": 1}
+
+	False(t, InDeltaMapValues(mockT, expected, actual, 0.01),
+		"InDeltaMapValues should fail when value at key a exceeds delta")
+	True(t, mockT.Failed(), "mockT should have recorded a failure")
+	Contains(t, mockT.errorString(), "key[a]:",
+		"failure message should be prefixed with the offending map key")
+}
+
 func TestInEpsilon(t *testing.T) {
 	t.Parallel()
 
