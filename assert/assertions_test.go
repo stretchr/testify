@@ -2445,15 +2445,51 @@ func TestInDeltaMapValues(t *testing.T) {
 func TestInDeltaMapValues_ErrorIncludesKey(t *testing.T) {
 	t.Parallel()
 
-	mockT := &mockTestingT{}
-	expected := map[string]int{"a": 3, "b": 1}
-	actual := map[string]int{"a": 4, "b": 1}
-
-	False(t, InDeltaMapValues(mockT, expected, actual, 0.01),
-		"InDeltaMapValues should fail when value at key a exceeds delta")
-	True(t, mockT.Failed(), "mockT should have recorded a failure")
-	Contains(t, mockT.errorString(), "key[a]:",
-		"failure message should be prefixed with the offending map key")
+	for _, tc := range []struct {
+		title    string
+		expected interface{}
+		actual   interface{}
+		delta    float64
+		wantSub  string
+	}{
+		{
+			title:    "delta exceeded on string key",
+			expected: map[string]int{"a": 3, "b": 1},
+			actual:   map[string]int{"a": 4, "b": 1},
+			delta:    0.01,
+			wantSub:  "key[a]:",
+		},
+		{
+			title:    "delta exceeded on int key",
+			expected: map[int]float64{1: 1.0, 2: 2.0},
+			actual:   map[int]float64{1: 1.0, 2: 5.0},
+			delta:    0.1,
+			wantSub:  "key[2]:",
+		},
+		{
+			title:    "non-numerical value at key",
+			expected: map[string]interface{}{"a": "not-a-number"},
+			actual:   map[string]interface{}{"a": "still-not"},
+			delta:    0.1,
+			wantSub:  "key[a]: Parameters must be numerical",
+		},
+		{
+			title:    "actual is NaN",
+			expected: map[string]float64{"x": 1.0},
+			actual:   map[string]float64{"x": math.NaN()},
+			delta:    0.1,
+			wantSub:  "key[x]:",
+		},
+	} {
+		t.Run(tc.title, func(t *testing.T) {
+			mockT := new(mockTestingT)
+			False(t, InDeltaMapValues(mockT, tc.expected, tc.actual, tc.delta),
+				"InDeltaMapValues should fail for %s", tc.title)
+			True(t, mockT.Failed(), "mockT should have recorded a failure")
+			Contains(t, mockT.errorString(), tc.wantSub,
+				"failure message should mention the offending map key")
+		})
+	}
 }
 
 func TestInEpsilon(t *testing.T) {
