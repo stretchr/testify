@@ -1370,6 +1370,11 @@ func (a *Assertions) NotPanicsf(f PanicTestFunc, msg string, args ...interface{}
 //
 //	a.NotRegexp(regexp.MustCompile("starts"), "it's starting")
 //	a.NotRegexp("^start", "it's not starting")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1381,6 +1386,11 @@ func (a *Assertions) NotRegexp(rx interface{}, str interface{}, msgAndArgs ...in
 //
 //	a.NotRegexpf(regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
 //	a.NotRegexpf("^start", "it's not starting", "error message %s", "formatted")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func (a *Assertions) NotRegexpf(rx interface{}, str interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1554,6 +1564,11 @@ func (a *Assertions) Positivef(e interface{}, msg string, args ...interface{}) b
 //
 //	a.Regexp(regexp.MustCompile("start"), "it's starting")
 //	a.Regexp("start...$", "it's not starting")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
@@ -1565,6 +1580,11 @@ func (a *Assertions) Regexp(rx interface{}, str interface{}, msgAndArgs ...inter
 //
 //	a.Regexpf(regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
 //	a.Regexpf("start...$", "it's not starting", "error message %s", "formatted")
+//
+// The rx argument may be a *regexp.Regexpf, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexpf value that is not a valid
+// regular expression therefore causes a panic.
 func (a *Assertions) Regexpf(rx interface{}, str interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()

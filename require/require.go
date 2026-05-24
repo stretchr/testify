@@ -1703,6 +1703,11 @@ func NotPanicsf(t TestingT, f assert.PanicTestFunc, msg string, args ...interfac
 //
 //	require.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //	require.NotRegexp(t, "^start", "it's not starting")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1717,6 +1722,11 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 //
 //	require.NotRegexpf(t, regexp.MustCompile("starts"), "it's starting", "error message %s", "formatted")
 //	require.NotRegexpf(t, "^start", "it's not starting", "error message %s", "formatted")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func NotRegexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1935,6 +1945,11 @@ func Positivef(t TestingT, e interface{}, msg string, args ...interface{}) {
 //
 //	require.Regexp(t, regexp.MustCompile("start"), "it's starting")
 //	require.Regexp(t, "start...$", "it's not starting")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1949,6 +1964,11 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 //
 //	require.Regexpf(t, regexp.MustCompile("start"), "it's starting", "error message %s", "formatted")
 //	require.Regexpf(t, "start...$", "it's not starting", "error message %s", "formatted")
+//
+// The rx argument may be a *regexp.Regexpf, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexpf value that is not a valid
+// regular expression therefore causes a panic.
 func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

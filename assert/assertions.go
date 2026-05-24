@@ -1730,6 +1730,11 @@ func matchRegexp(rx interface{}, str interface{}) bool {
 //
 //	assert.Regexp(t, regexp.MustCompile("start"), "it's starting")
 //	assert.Regexp(t, "start...$", "it's not starting")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1748,6 +1753,11 @@ func Regexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface
 //
 //	assert.NotRegexp(t, regexp.MustCompile("starts"), "it's starting")
 //	assert.NotRegexp(t, "^start", "it's not starting")
+//
+// The rx argument may be a *regexp.Regexp, which is used directly, or any
+// other value, which is converted to a string with fmt.Sprint and compiled
+// with regexp.MustCompile. A non-*regexp.Regexp value that is not a valid
+// regular expression therefore causes a panic.
 func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
