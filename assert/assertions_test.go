@@ -2516,6 +2516,19 @@ func TestInEpsilonSlice(t *testing.T) {
 	False(t, InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
+func TestInEpsilonSliceMessage(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	InEpsilonSlice(mockT,
+		[]float64{2.2, 2.0},
+		[]float64{2.1, 2.1},
+		0.04,
+		"custom context",
+	)
+	Contains(t, mockT.errorString(), "custom context")
+}
+
 func TestRegexp(t *testing.T) {
 	t.Parallel()
 
