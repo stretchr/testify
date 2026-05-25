@@ -3634,6 +3634,18 @@ func TestNeverFailQuickly(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
+func TestNeverTimeoutBeforeConditionReturns(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(testing.T)
+
+	condition := func() bool {
+		time.Sleep(2 * time.Second)
+		return true
+	}
+	False(t, Never(mockT, condition, time.Millisecond, time.Second))
+}
+
 func Test_validateEqualArgs(t *testing.T) {
 	t.Parallel()
 

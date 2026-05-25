@@ -2166,6 +2166,7 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 	defer ticker.Stop()
 
 	var tickC <-chan time.Time
+	checked := false
 
 	// Check the condition once first on the initial call.
 	go checkCond()
@@ -2173,11 +2174,15 @@ func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.D
 	for {
 		select {
 		case <-timer.C:
+			if !checked {
+				return Fail(t, "Condition never completed before timeout", msgAndArgs...)
+			}
 			return true
 		case <-tickC:
 			tickC = nil
 			go checkCond()
 		case v := <-ch:
+			checked = true
 			if v {
 				return Fail(t, "Condition satisfied", msgAndArgs...)
 			}
