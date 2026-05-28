@@ -816,7 +816,7 @@ type anythingOfTypeArgument string
 // For example:
 //
 //	args.Assert(t, AnythingOfType("string"), AnythingOfType("int"))
-func AnythingOfType(t string) AnythingOfTypeArgument {
+func AnythingOfType(t string) anythingOfTypeArgument {
 	return anythingOfTypeArgument(t)
 }
 
