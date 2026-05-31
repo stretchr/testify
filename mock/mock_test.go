@@ -2462,6 +2462,35 @@ func TestIssue1785ArgumentWithMutatingStringer(t *testing.T) {
 	m.AssertExpectations(t)
 }
 
+// TestIssue1719StringerDeadlock verifies that MethodCalled does not deadlock
+// when an argument's String() method calls back into MethodCalled.
+// See https://github.com/stretchr/testify/issues/1719
+func TestIssue1719StringerDeadlock(t *testing.T) {
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+
+		m := &Mock{}
+		m.On("String").Return("")
+		m.On("DoAThing", Anything).Return()
+
+		// When DoAThing is called with the mock itself as an argument,
+		// Diff used to format the argument with %v, triggering String(),
+		// which calls MethodCalled("String") — deadlock because the mutex
+		// is already held by the outer MethodCalled("DoAThing").
+		m.MethodCalled("DoAThing", m)
+		m.MethodCalled("String")
+	}()
+
+	select {
+	case <-done:
+		// Success — no deadlock
+	case <-time.After(5 * time.Second):
+		t.Fatal("MethodCalled deadlocked when argument's String() calls MethodCalled")
+	}
+}
+
 func TestIssue1227AssertExpectationsForObjectsWithMock(t *testing.T) {
 	mockT := &MockTestingT{}
 	AssertExpectationsForObjects(mockT, Mock{})
