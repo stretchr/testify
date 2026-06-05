@@ -4218,15 +4218,10 @@ func TestNotErrorAsWithErrorTooLongToPrint(t *testing.T) {
 	Contains(t, mockT.errorString(), "<... truncated>")
 }
 
-// TestContainsUnicode verifies that Contains does not falsely match a byte
-// fragment that straddles a Unicode rune boundary in the haystack string.
-// The old strings.Contains implementation operated on raw bytes, which could
-// produce false positives when the needle bytes happened to align with the
-// internal encoding of adjacent multi-byte runes. runeSliceContains fixes
-// this by working at the rune level.
+// Verify Contains correctly protects against boundary-straddling false positives.
 func TestContainsUnicode(t *testing.T) {
 	t.Parallel()
-	mockT := new(testing.T)
+	mockT := new(mockTestingT)
 
 	// Each emoji is a 4-byte UTF-8 sequence.
 	// "🌟" = 0xF0 0x9F 0x8C 0x9F
@@ -4274,7 +4269,7 @@ func TestContainsUnicode(t *testing.T) {
 // test documents and locks in that behaviour.
 func TestElementsMatchUnicode(t *testing.T) {
 	t.Parallel()
-	mockT := new(testing.T)
+	mockT := new(mockTestingT)
 
 	// Emoji elements — order should not matter.
 	True(t, ElementsMatch(mockT, []string{"🎉", "🌟", "🌍"}, []string{"🌍", "🎉", "🌟"}),

@@ -931,7 +931,15 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 
 	if listKind == reflect.String {
 		elementValue := reflect.ValueOf(element)
-		return true, runeSliceContains([]rune(listValue.String()), []rune(elementValue.String()))
+		haystack := listValue.String()
+		needle := elementValue.String()
+		// Fast-gate: if the bytes aren't present at all, skip the rune
+		// conversion entirely — no rune boundary can be falsely straddled
+		// when there are no matching bytes.
+		if !strings.Contains(haystack, needle) {
+			return true, false
+		}
+		return true, runeSliceContains([]rune(haystack), []rune(needle))
 	}
 
 	if listKind == reflect.Map {
