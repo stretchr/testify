@@ -4302,4 +4302,3 @@ func TestElementsMatchUnicode(t *testing.T) {
 		[]string{"世界", "hello", "🌍"}),
 		"ElementsMatch should match mixed ASCII/Unicode slices")
 }
-
