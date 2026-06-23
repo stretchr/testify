@@ -83,6 +83,16 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 // copyExportedFields iterates downward through nested data structures and creates a copy
 // that only contains the exported struct fields.
 func copyExportedFields(expected interface{}) interface{} {
+	return copyExportedFieldsWithVisited(expected, make(map[copyExportedFieldsVisit]reflect.Value))
+}
+
+type copyExportedFieldsVisit struct {
+	typ    reflect.Type
+	ptr    uintptr
+	length int
+}
+
+func copyExportedFieldsWithVisited(expected interface{}, visited map[copyExportedFieldsVisit]reflect.Value) interface{} {
 	if isNil(expected) {
 		return expected
 	}
@@ -102,15 +112,21 @@ func copyExportedFields(expected interface{}) interface{} {
 				if isNil(fieldValue) || isNil(fieldValue.Interface()) {
 					continue
 				}
-				newValue := copyExportedFields(fieldValue.Interface())
+				newValue := copyExportedFieldsWithVisited(fieldValue.Interface(), visited)
 				result.Field(i).Set(reflect.ValueOf(newValue))
 			}
 		}
 		return result.Interface()
 
 	case reflect.Ptr:
+		visit := copyExportedFieldsVisit{typ: expectedType, ptr: expectedValue.Pointer()}
+		if result, ok := visited[visit]; ok {
+			return result.Interface()
+		}
+
 		result := reflect.New(expectedType.Elem())
-		unexportedRemoved := copyExportedFields(expectedValue.Elem().Interface())
+		visited[visit] = result
+		unexportedRemoved := copyExportedFieldsWithVisited(expectedValue.Elem().Interface(), visited)
 		result.Elem().Set(reflect.ValueOf(unexportedRemoved))
 		return result.Interface()
 
@@ -119,23 +135,35 @@ func copyExportedFields(expected interface{}) interface{} {
 		if expectedKind == reflect.Array {
 			result = reflect.New(reflect.ArrayOf(expectedValue.Len(), expectedType.Elem())).Elem()
 		} else {
+			visit := copyExportedFieldsVisit{typ: expectedType, ptr: expectedValue.Pointer(), length: expectedValue.Len()}
+			if result, ok := visited[visit]; ok {
+				return result.Interface()
+			}
+
 			result = reflect.MakeSlice(expectedType, expectedValue.Len(), expectedValue.Len())
+			visited[visit] = result
 		}
 		for i := 0; i < expectedValue.Len(); i++ {
 			index := expectedValue.Index(i)
 			if isNil(index) {
 				continue
 			}
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFieldsWithVisited(index.Interface(), visited)
 			result.Index(i).Set(reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
 
 	case reflect.Map:
+		visit := copyExportedFieldsVisit{typ: expectedType, ptr: expectedValue.Pointer()}
+		if result, ok := visited[visit]; ok {
+			return result.Interface()
+		}
+
 		result := reflect.MakeMap(expectedType)
+		visited[visit] = result
 		for _, k := range expectedValue.MapKeys() {
 			index := expectedValue.MapIndex(k)
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFieldsWithVisited(index.Interface(), visited)
 			result.SetMapIndex(k, reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
