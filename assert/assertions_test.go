@@ -1288,6 +1288,44 @@ func TestNotSubsetNil(t *testing.T) {
 	}
 }
 
+func TestSubsetNotSubsetWithNilList(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name      string
+		assertion func(TestingT, interface{}, interface{}, ...interface{}) bool
+	}{
+		{"Subset", Subset},
+		{"NotSubset", NotSubset},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockT := new(mockTestingT)
+			var result bool
+
+			funcDidPanic, panicValue, _ := didPanic(func() {
+				result = tc.assertion(mockT, nil, []int{1})
+			})
+
+			False(t, funcDidPanic, "%s should not panic: %#v", tc.name, panicValue)
+			False(t, result)
+			Contains(t, mockT.errorString(), "<nil> has an unsupported type <nil>")
+		})
+	}
+}
+
+func TestSubsetFormatsUnsupportedNonStringListCorrectly(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	Subset(mockT, true, []bool{true})
+
+	errStr := mockT.errorString()
+	NotContains(t, errStr, "%!q", "Subset error message should not contain %%q formatting artifacts")
+	Contains(t, errStr, "true has an unsupported type bool")
+}
+
 func Test_containsElement(t *testing.T) {
 	t.Parallel()
 

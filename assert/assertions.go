@@ -1013,14 +1013,14 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 		return true // we consider nil to be equal to the nil set
 	}
 
-	listKind := reflect.TypeOf(list).Kind()
+	listKind := kindOfList(list)
 	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", list, listKind), msgAndArgs...)
+		return Fail(t, unsupportedListTypeMessage(list, listKind), msgAndArgs...)
 	}
 
-	subsetKind := reflect.TypeOf(subset).Kind()
+	subsetKind := kindOfList(subset)
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%q has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+		return Fail(t, unsupportedListTypeMessage(subset, subsetKind), msgAndArgs...)
 	}
 
 	if subsetKind == reflect.Map && listKind == reflect.Map {
@@ -1081,14 +1081,14 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 		return Fail(t, "nil is the empty set which is a subset of every set", msgAndArgs...)
 	}
 
-	listKind := reflect.TypeOf(list).Kind()
+	listKind := kindOfList(list)
 	if listKind != reflect.Array && listKind != reflect.Slice && listKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", list, listKind), msgAndArgs...)
+		return Fail(t, unsupportedListTypeMessage(list, listKind), msgAndArgs...)
 	}
 
-	subsetKind := reflect.TypeOf(subset).Kind()
+	subsetKind := kindOfList(subset)
 	if subsetKind != reflect.Array && subsetKind != reflect.Slice && subsetKind != reflect.Map {
-		return Fail(t, fmt.Sprintf("%#v has an unsupported type %s", subset, subsetKind), msgAndArgs...)
+		return Fail(t, unsupportedListTypeMessage(subset, subsetKind), msgAndArgs...)
 	}
 
 	if subsetKind == reflect.Map && listKind == reflect.Map {
@@ -1130,6 +1130,21 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 	}
 
 	return Fail(t, fmt.Sprintf("%s is a subset of %s", truncatingFormat("%#v", subset), truncatingFormat("%#v", list)), msgAndArgs...)
+}
+
+func kindOfList(list interface{}) reflect.Kind {
+	listType := reflect.TypeOf(list)
+	if listType == nil {
+		return reflect.Invalid
+	}
+	return listType.Kind()
+}
+
+func unsupportedListTypeMessage(list interface{}, kind reflect.Kind) string {
+	if kind == reflect.Invalid {
+		return fmt.Sprintf("%#v has an unsupported type <nil>", list)
+	}
+	return fmt.Sprintf("%#v has an unsupported type %s", list, kind)
 }
 
 // ElementsMatch asserts that the specified listA(array, slice...) is equal to specified
