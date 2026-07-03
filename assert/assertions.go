@@ -706,13 +706,16 @@ func Exactly(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}
 //
 //	assert.NotNil(t, err)
 func NotNil(t TestingT, object interface{}, msgAndArgs ...interface{}) bool {
-	if !isNil(object) {
-		return true
-	}
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	return Fail(t, "Expected value not to be nil.", msgAndArgs...)
+	if isNil(object) {
+		return Fail(t, "Expected value not to be nil.", msgAndArgs...)
+	}
+	if !isNillableKind(reflect.ValueOf(object).Kind()) {
+		return Fail(t, fmt.Sprintf("Expected value not to be nil, but got non-nillable type %T", object), msgAndArgs...)
+	}
+	return true
 }
 
 // isNil checks if a specified object is nil or not, without Failing.
@@ -722,15 +725,21 @@ func isNil(object interface{}) bool {
 	}
 
 	value := reflect.ValueOf(object)
-	switch value.Kind() {
+	if isNillableKind(value.Kind()) {
+		return value.IsNil()
+	}
+
+	return false
+}
+
+func isNillableKind(kind reflect.Kind) bool {
+	switch kind {
 	case
 		reflect.Chan, reflect.Func,
 		reflect.Interface, reflect.Map,
 		reflect.Ptr, reflect.Slice, reflect.UnsafePointer:
-
-		return value.IsNil()
+		return true
 	}
-
 	return false
 }
 
