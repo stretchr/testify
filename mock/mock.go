@@ -1294,13 +1294,13 @@ func runtimeFunc(opt interface{}) *runtime.Func {
 func funcName(f *runtime.Func) string {
 	name := f.Name()
 	trimmed := strings.TrimSuffix(path.Base(name), path.Ext(name))
-	splitted := strings.Split(trimmed, ".")
+	parts := strings.Split(trimmed, ".")
 
-	if len(splitted) == 0 {
+	if len(parts) == 0 {
 		return trimmed
 	}
 
-	return splitted[len(splitted)-1]
+	return parts[len(parts)-1]
 }
 
 func isFuncSame(f1, f2 *runtime.Func) bool {
