@@ -83,6 +83,10 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 // copyExportedFields iterates downward through nested data structures and creates a copy
 // that only contains the exported struct fields.
 func copyExportedFields(expected interface{}) interface{} {
+	return copyExportedFieldsWithVisited(expected, make(map[uintptr]bool))
+}
+
+func copyExportedFieldsWithVisited(expected interface{}, visited map[uintptr]bool) interface{} {
 	if isNil(expected) {
 		return expected
 	}
@@ -102,15 +106,20 @@ func copyExportedFields(expected interface{}) interface{} {
 				if isNil(fieldValue) || isNil(fieldValue.Interface()) {
 					continue
 				}
-				newValue := copyExportedFields(fieldValue.Interface())
+				newValue := copyExportedFieldsWithVisited(fieldValue.Interface(), visited)
 				result.Field(i).Set(reflect.ValueOf(newValue))
 			}
 		}
 		return result.Interface()
 
 	case reflect.Ptr:
+		ptr := expectedValue.Pointer()
+		if visited[ptr] {
+			return reflect.Zero(expectedType).Interface()
+		}
+		visited[ptr] = true
 		result := reflect.New(expectedType.Elem())
-		unexportedRemoved := copyExportedFields(expectedValue.Elem().Interface())
+		unexportedRemoved := copyExportedFieldsWithVisited(expectedValue.Elem().Interface(), visited)
 		result.Elem().Set(reflect.ValueOf(unexportedRemoved))
 		return result.Interface()
 
@@ -126,7 +135,7 @@ func copyExportedFields(expected interface{}) interface{} {
 			if isNil(index) {
 				continue
 			}
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFieldsWithVisited(index.Interface(), visited)
 			result.Index(i).Set(reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
@@ -135,7 +144,7 @@ func copyExportedFields(expected interface{}) interface{} {
 		result := reflect.MakeMap(expectedType)
 		for _, k := range expectedValue.MapKeys() {
 			index := expectedValue.MapIndex(k)
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFieldsWithVisited(index.Interface(), visited)
 			result.SetMapIndex(k, reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
