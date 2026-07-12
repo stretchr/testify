@@ -1,3 +1,20 @@
+
+
+func TestEqualExportedValuesRecursiveStruct(t *testing.T) {
+	type Node struct {
+		Self *Node
+	}
+	a := &Node{}
+	a.Self = a
+	b := &Node{}
+	b.Self = b
+
+	mockT := new(testing.T)
+	if !EqualExportedValues(mockT, a, b) {
+		t.Error("EqualExportedValues should handle recursive structures without stack overflow")
+	}
+}
+
 package assert
 
 import (
