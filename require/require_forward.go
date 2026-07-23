@@ -919,6 +919,34 @@ func (a *Assertions) JSONEqf(expected string, actual string, msg string, args ..
 	JSONEqf(a.t, expected, actual, msg, args...)
 }
 
+// JsonContentsMatch asserts that two JSON strings (or []byte) decode to values
+// that ObjectsMatch. Object key order and array element order are ignored.
+//
+//	a.JsonContentsMatch(
+//		`{"participants":["Joe","Rick"],"event":"Birthday party"}`,
+//		`{"event":"Birthday party","participants":["Rick","Joe"]}`,
+//	)
+func (a *Assertions) JsonContentsMatch(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	JsonContentsMatch(a.t, expected, actual, msgAndArgs...)
+}
+
+// JsonContentsMatchf asserts that two JSON strings (or []byte) decode to values
+// that ObjectsMatch. Object key order and array element order are ignored.
+//
+//	a.JsonContentsMatchf(
+//		`{"participants":["Joe","Rick"],"event":"Birthday party"}`,
+//		`{"event":"Birthday party","participants":["Rick","Joe"]}`,
+//		"error message %s", "formatted")
+func (a *Assertions) JsonContentsMatchf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	JsonContentsMatchf(a.t, expected, actual, msg, args...)
+}
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -1433,6 +1461,40 @@ func (a *Assertions) NotZerof(i interface{}, msg string, args ...interface{}) {
 		h.Helper()
 	}
 	NotZerof(a.t, i, msg, args...)
+}
+
+// ObjectsMatch asserts that expected and actual are deeply equal while treating
+// every slice and array as an unordered multiset (the same rule as ElementsMatch),
+// recursing into structs and maps. This is useful for comparing values that
+// contain slices whose element order is not meaningful (issue #806).
+//
+//	type T struct{ Names []string }
+//	a.ObjectsMatch(T{Names: []string{"Joe", "Rick"}}, T{Names: []string{"Rick", "Joe"}})
+//
+// []byte values are compared as ordered byte strings, not as unordered lists of
+// bytes. Unexported struct fields are ignored.
+func (a *Assertions) ObjectsMatch(expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	ObjectsMatch(a.t, expected, actual, msgAndArgs...)
+}
+
+// ObjectsMatchf asserts that expected and actual are deeply equal while treating
+// every slice and array as an unordered multiset (the same rule as ElementsMatch),
+// recursing into structs and maps. This is useful for comparing values that
+// contain slices whose element order is not meaningful (issue #806).
+//
+//	type T struct{ Names []string }
+//	a.ObjectsMatchf(T{Names: []string{"Joe", "Rick"}}, T{Names: []string{"Rick", "Joe"}}, "error message %s", "formatted")
+//
+// []byte values are compared as ordered byte strings, not as unordered lists of
+// bytes. Unexported struct fields are ignored.
+func (a *Assertions) ObjectsMatchf(expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	ObjectsMatchf(a.t, expected, actual, msg, args...)
 }
 
 // Panics asserts that the code inside the specified PanicTestFunc panics.
