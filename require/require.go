@@ -117,6 +117,60 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 	t.FailNow()
 }
 
+// ObjectsMatch asserts that expected and actual are deeply equal while treating
+// every slice and array as an unordered multiset, recursing into structs and maps.
+//
+// require.ObjectsMatch(t, exp, act)
+func ObjectsMatch(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsMatch(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// ObjectsMatchf asserts that expected and actual are deeply equal while treating
+// every slice and array as an unordered multiset, recursing into structs and maps.
+//
+// require.ObjectsMatchf(t, exp, act, "error message %s", "formatted")
+func ObjectsMatchf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsMatchf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// JsonContentsMatch asserts that two JSON values decode to ObjectsMatch-equal contents.
+//
+// require.JsonContentsMatch(t, exp, act)
+func JsonContentsMatch(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JsonContentsMatch(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// JsonContentsMatchf asserts that two JSON values decode to ObjectsMatch-equal contents.
+//
+// require.JsonContentsMatchf(t, exp, act, "error message %s", "formatted")
+func JsonContentsMatchf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JsonContentsMatchf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Empty asserts that the given value is "empty".
 //
 // [Zero values] are "empty".

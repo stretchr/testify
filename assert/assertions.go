@@ -1228,6 +1228,161 @@ func formatListDiff(listA, listB interface{}, extraA, extraB []interface{}) stri
 	return msg.String()
 }
 
+// ObjectsMatch asserts that expected and actual are deeply equal while treating
+// every slice and array as an unordered multiset (the same rule as ElementsMatch),
+// recursing into structs and maps. This is useful for comparing values that
+// contain slices whose element order is not meaningful (issue #806).
+//
+//	type T struct{ Names []string }
+//	assert.ObjectsMatch(t, T{Names: []string{"Joe", "Rick"}}, T{Names: []string{"Rick", "Joe"}})
+//
+// []byte values are compared as ordered byte strings, not as unordered lists of
+// bytes. Unexported struct fields are ignored.
+func ObjectsMatch(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if objectsMatch(expected, actual) {
+		return true
+	}
+	return Fail(t, fmt.Sprintf("Not match: %#v, %#v", expected, actual), msgAndArgs...)
+}
+
+// JsonContentsMatch asserts that two JSON strings (or []byte) decode to values
+// that ObjectsMatch. Object key order and array element order are ignored.
+//
+//	assert.JsonContentsMatch(t,
+//	    `{"participants":["Joe","Rick"],"event":"Birthday party"}`,
+//	    `{"event":"Birthday party","participants":["Rick","Joe"]}`,
+//	)
+func JsonContentsMatch(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	expVal, err := jsonDecode(expected)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("expected is not valid JSON: %v", err), msgAndArgs...)
+	}
+	actVal, err := jsonDecode(actual)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("actual is not valid JSON: %v", err), msgAndArgs...)
+	}
+	if objectsMatch(expVal, actVal) {
+		return true
+	}
+	return Fail(t, fmt.Sprintf("JSON contents do not match:\nexpected: %#v\nactual  : %#v", expVal, actVal), msgAndArgs...)
+}
+
+func jsonDecode(v interface{}) (interface{}, error) {
+	var b []byte
+	switch x := v.(type) {
+	case string:
+		b = []byte(x)
+	case []byte:
+		b = x
+	case json.RawMessage:
+		b = x
+	default:
+		return nil, fmt.Errorf("unsupported type %T", v)
+	}
+	var out interface{}
+	if err := json.Unmarshal(b, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func objectsMatch(expected, actual interface{}) bool {
+	if expected == nil || actual == nil {
+		return expected == actual
+	}
+	return valuesMatch(reflect.ValueOf(expected), reflect.ValueOf(actual))
+}
+
+func valuesMatch(a, b reflect.Value) bool {
+	for a.Kind() == reflect.Ptr || a.Kind() == reflect.Interface {
+		if a.IsNil() {
+			return b.Kind() == a.Kind() && b.IsNil() || (b.Kind() == reflect.Interface || b.Kind() == reflect.Ptr) && b.IsNil()
+		}
+		a = a.Elem()
+	}
+	for b.Kind() == reflect.Ptr || b.Kind() == reflect.Interface {
+		if b.IsNil() {
+			return false
+		}
+		b = b.Elem()
+	}
+	if !a.IsValid() || !b.IsValid() {
+		return a.IsValid() == b.IsValid()
+	}
+	if a.Kind() != b.Kind() {
+		// JSON numbers are float64; allow loose match via DeepEqual path
+		return ObjectsAreEqual(a.Interface(), b.Interface())
+	}
+
+	switch a.Kind() {
+	case reflect.Slice, reflect.Array:
+		if a.Kind() == reflect.Slice && a.Type().Elem().Kind() == reflect.Uint8 {
+			if b.Kind() != reflect.Slice || b.Type().Elem().Kind() != reflect.Uint8 {
+				return false
+			}
+			return bytes.Equal(a.Bytes(), b.Bytes())
+		}
+		return matchUnordered(a, b)
+	case reflect.Map:
+		if a.Len() != b.Len() {
+			return false
+		}
+		for _, key := range a.MapKeys() {
+			av := a.MapIndex(key)
+			bv := b.MapIndex(key)
+			if !bv.IsValid() || !valuesMatch(av, bv) {
+				return false
+			}
+		}
+		return true
+	case reflect.Struct:
+		if a.Type() != b.Type() {
+			return false
+		}
+		for i := 0; i < a.NumField(); i++ {
+			if !a.Type().Field(i).IsExported() {
+				continue
+			}
+			if !valuesMatch(a.Field(i), b.Field(i)) {
+				return false
+			}
+		}
+		return true
+	default:
+		return ObjectsAreEqual(a.Interface(), b.Interface())
+	}
+}
+
+func matchUnordered(a, b reflect.Value) bool {
+	if a.Len() != b.Len() {
+		return false
+	}
+	visited := make([]bool, b.Len())
+	for i := 0; i < a.Len(); i++ {
+		found := false
+		for j := 0; j < b.Len(); j++ {
+			if visited[j] {
+				continue
+			}
+			if valuesMatch(a.Index(i), b.Index(j)) {
+				visited[j] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
 // NotElementsMatch asserts that the specified listA(array, slice...) is NOT equal to specified
 // listB(array, slice...) ignoring the order of the elements. If there are duplicate elements,
 // the number of appearances of each of them in both lists should not match.
