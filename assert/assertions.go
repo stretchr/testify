@@ -60,9 +60,36 @@ type Comparison func() (success bool)
 // ObjectsAreEqual determines if two objects are considered equal.
 //
 // This function does no assertion of any kind.
+// Comparer is implemented by types that define custom equality for testify
+// Equal / NotEqual and related assertions (issue #1204).
+//
+// When either expected or actual implements Comparer, that implementation is
+// used instead of reflect.DeepEqual. If both implement Comparer, expected's
+// Equal is used.
+//
+// Example:
+//
+//	type Money struct{ Cents int; Label string }
+//	func (m Money) Equal(other interface{}) bool {
+//		o, ok := other.(Money)
+//		return ok && m.Cents == o.Cents
+//	}
+//	assert.Equal(t, Money{100, "$1"}, Money{100, "1 dollar"}) // true
+type Comparer interface {
+	// Equal reports whether this value equals other for test purposes.
+	Equal(other interface{}) bool
+}
+
 func ObjectsAreEqual(expected, actual interface{}) bool {
 	if expected == nil || actual == nil {
 		return expected == actual
+	}
+
+	if c, ok := expected.(Comparer); ok {
+		return c.Equal(actual)
+	}
+	if c, ok := actual.(Comparer); ok {
+		return c.Equal(expected)
 	}
 
 	exp, ok := expected.([]byte)
