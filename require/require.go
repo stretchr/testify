@@ -117,60 +117,6 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 	t.FailNow()
 }
 
-// ObjectsMatch asserts that expected and actual are deeply equal while treating
-// every slice and array as an unordered multiset, recursing into structs and maps.
-//
-// require.ObjectsMatch(t, exp, act)
-func ObjectsMatch(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.ObjectsMatch(t, expected, actual, msgAndArgs...) {
-		return
-	}
-	t.FailNow()
-}
-
-// ObjectsMatchf asserts that expected and actual are deeply equal while treating
-// every slice and array as an unordered multiset, recursing into structs and maps.
-//
-// require.ObjectsMatchf(t, exp, act, "error message %s", "formatted")
-func ObjectsMatchf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.ObjectsMatchf(t, expected, actual, msg, args...) {
-		return
-	}
-	t.FailNow()
-}
-
-// JsonContentsMatch asserts that two JSON values decode to ObjectsMatch-equal contents.
-//
-// require.JsonContentsMatch(t, exp, act)
-func JsonContentsMatch(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.JsonContentsMatch(t, expected, actual, msgAndArgs...) {
-		return
-	}
-	t.FailNow()
-}
-
-// JsonContentsMatchf asserts that two JSON values decode to ObjectsMatch-equal contents.
-//
-// require.JsonContentsMatchf(t, exp, act, "error message %s", "formatted")
-func JsonContentsMatchf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-	if assert.JsonContentsMatchf(t, expected, actual, msg, args...) {
-		return
-	}
-	t.FailNow()
-}
-
 // Empty asserts that the given value is "empty".
 //
 // [Zero values] are "empty".
@@ -1219,6 +1165,40 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	t.FailNow()
 }
 
+// JsonContentsMatch asserts that two JSON strings (or []byte) decode to values
+// that ObjectsMatch. Object key order and array element order are ignored.
+//
+//	require.JsonContentsMatch(t,
+//		`{"participants":["Joe","Rick"],"event":"Birthday party"}`,
+//		`{"event":"Birthday party","participants":["Rick","Joe"]}`,
+//	)
+func JsonContentsMatch(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JsonContentsMatch(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// JsonContentsMatchf asserts that two JSON strings (or []byte) decode to values
+// that ObjectsMatch. Object key order and array element order are ignored.
+//
+//	require.JsonContentsMatchf(t,
+//		`{"participants":["Joe","Rick"],"event":"Birthday party"}`,
+//		`{"event":"Birthday party","participants":["Rick","Joe"]}`,
+//		"error message %s", "formatted")
+func JsonContentsMatchf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.JsonContentsMatchf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -1868,6 +1848,46 @@ func NotZerof(t TestingT, i interface{}, msg string, args ...interface{}) {
 		h.Helper()
 	}
 	if assert.NotZerof(t, i, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// ObjectsMatch asserts that expected and actual are deeply equal while treating
+// every slice and array as an unordered multiset (the same rule as ElementsMatch),
+// recursing into structs and maps. This is useful for comparing values that
+// contain slices whose element order is not meaningful (issue #806).
+//
+//	type T struct{ Names []string }
+//	require.ObjectsMatch(t, T{Names: []string{"Joe", "Rick"}}, T{Names: []string{"Rick", "Joe"}})
+//
+// []byte values are compared as ordered byte strings, not as unordered lists of
+// bytes. Unexported struct fields are ignored.
+func ObjectsMatch(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsMatch(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// ObjectsMatchf asserts that expected and actual are deeply equal while treating
+// every slice and array as an unordered multiset (the same rule as ElementsMatch),
+// recursing into structs and maps. This is useful for comparing values that
+// contain slices whose element order is not meaningful (issue #806).
+//
+//	type T struct{ Names []string }
+//	require.ObjectsMatchf(t, T{Names: []string{"Joe", "Rick"}}, T{Names: []string{"Rick", "Joe"}}, "error message %s", "formatted")
+//
+// []byte values are compared as ordered byte strings, not as unordered lists of
+// bytes. Unexported struct fields are ignored.
+func ObjectsMatchf(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.ObjectsMatchf(t, expected, actual, msg, args...) {
 		return
 	}
 	t.FailNow()
