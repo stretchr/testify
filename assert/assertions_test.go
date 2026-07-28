@@ -1,7 +1,6 @@
 package assert
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -3653,7 +3652,7 @@ func Test_validateEqualArgs(t *testing.T) {
 func Test_truncatingFormat(t *testing.T) {
 	t.Parallel()
 
-	original := strings.Repeat("a", bufio.MaxScanTokenSize/2-102)
+	original := strings.Repeat("a", maxMessageSize-2)
 	result := truncatingFormat("%#v", original)
 	Equal(t, fmt.Sprintf("%#v", original), result, "string should not be truncated")
 
@@ -3979,6 +3978,25 @@ func TestLenWithSliceTooLongToPrint(t *testing.T) {
 	Error Trace:	
 	Error:      	"[0 0 0`)
 	Contains(t, mockT.errorString(), `<... truncated>" should have 1 item(s), but has 1000000`)
+}
+
+// TestLenWithSliceTooLongToPrintIsReadable is a regression test for
+// https://github.com/stretchr/testify/issues/1801. Truncating the printed
+// value at all (TestLenWithSliceTooLongToPrint above) is not enough on its
+// own: the pre-#1801 limit still let a single assertion dump tens of
+// kilobytes into the console, which is just as unreadable as no output at
+// all. The failure message must be truncated to a size a human can actually
+// read in a terminal.
+func TestLenWithSliceTooLongToPrintIsReadable(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	Len(mockT, longSlice, 1)
+	errStr := mockT.errorString()
+	Contains(t, errStr, "<... truncated>")
+	if len(errStr) > 8000 {
+		t.Errorf("Len failure message on a very large slice is %d bytes, want a readable size (<=8000 bytes):\n%s", len(errStr), errStr)
+	}
 }
 
 func TestContainsWithSliceTooLongToPrint(t *testing.T) {
