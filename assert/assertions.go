@@ -1881,92 +1881,67 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
-type yamlNumberKind uint8
+type yamlNumberKeyKind uint8
 
 const (
-	yamlSignedNumber yamlNumberKind = iota
-	yamlUnsignedNumber
-	yamlFloatNumber
+	yamlNegativeIntegerKey yamlNumberKeyKind = iota
+	yamlNonNegativeIntegerKey
+	yamlFloatKey
 )
 
-type yamlNumber struct {
-	kind     yamlNumberKind
-	signed   int64
-	unsigned uint64
-	floating float64
+type yamlNumberKey struct {
+	kind yamlNumberKeyKind
+	bits uint64
 }
 
-func newYAMLNumber(value interface{}) (yamlNumber, bool) {
+func newYAMLNumberKey(value interface{}) (yamlNumberKey, bool, bool) {
 	switch value := value.(type) {
 	case int:
-		return yamlNumber{kind: yamlSignedNumber, signed: int64(value)}, true
+		return newYAMLSignedNumberKey(int64(value)), true, true
 	case int64:
-		return yamlNumber{kind: yamlSignedNumber, signed: value}, true
+		return newYAMLSignedNumberKey(value), true, true
 	case uint64:
-		return yamlNumber{kind: yamlUnsignedNumber, unsigned: value}, true
+		return yamlNumberKey{kind: yamlNonNegativeIntegerKey, bits: value}, true, true
 	case float64:
-		return yamlNumber{kind: yamlFloatNumber, floating: value}, true
+		key, matchable := newYAMLFloatNumberKey(value)
+		return key, true, matchable
 	default:
-		return yamlNumber{}, false
+		return yamlNumberKey{}, false, false
 	}
 }
 
-func (n yamlNumber) equal(other yamlNumber) bool {
-	if n.kind == yamlFloatNumber {
-		return n.floatEqual(other)
+func newYAMLSignedNumberKey(value int64) yamlNumberKey {
+	if value < 0 {
+		return yamlNumberKey{kind: yamlNegativeIntegerKey, bits: uint64(value)}
 	}
-	if other.kind == yamlFloatNumber {
-		return other.floatEqual(n)
+	return yamlNumberKey{kind: yamlNonNegativeIntegerKey, bits: uint64(value)}
+}
+
+func newYAMLFloatNumberKey(value float64) (yamlNumberKey, bool) {
+	if math.IsNaN(value) {
+		return yamlNumberKey{}, false
 	}
-	if n.kind == other.kind {
-		if n.kind == yamlSignedNumber {
-			return n.signed == other.signed
+	if !math.IsInf(value, 0) && math.Trunc(value) == value {
+		if value >= -0x1p63 && value < 0 {
+			return newYAMLSignedNumberKey(int64(value)), true
 		}
-		return n.unsigned == other.unsigned
+		if value >= 0 && value < 0x1p64 {
+			return yamlNumberKey{kind: yamlNonNegativeIntegerKey, bits: uint64(value)}, true
+		}
 	}
-	if n.kind == yamlSignedNumber {
-		return n.signed >= 0 && uint64(n.signed) == other.unsigned
-	}
-	return other.signed >= 0 && n.unsigned == uint64(other.signed)
-}
-
-func (n yamlNumber) floatEqual(other yamlNumber) bool {
-	switch other.kind {
-	case yamlSignedNumber:
-		return yamlFloatEqualsSigned(n.floating, other.signed)
-	case yamlUnsignedNumber:
-		return yamlFloatEqualsUnsigned(n.floating, other.unsigned)
-	default:
-		return n.floating == other.floating
-	}
-}
-
-func yamlFloatEqualsSigned(value float64, integer int64) bool {
-	if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value ||
-		value < -0x1p63 || value >= 0x1p63 {
-		return false
-	}
-	return int64(value) == integer
-}
-
-func yamlFloatEqualsUnsigned(value float64, integer uint64) bool {
-	if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value ||
-		value < 0 || value >= 0x1p64 {
-		return false
-	}
-	return uint64(value) == integer
+	return yamlNumberKey{kind: yamlFloatKey, bits: math.Float64bits(value)}, true
 }
 
 func yamlNumbersAreEqual(expected, actual interface{}) (bool, bool) {
-	expectedNumber, expectedIsNumber := newYAMLNumber(expected)
-	actualNumber, actualIsNumber := newYAMLNumber(actual)
+	expectedKey, expectedIsNumber, expectedIsMatchable := newYAMLNumberKey(expected)
+	actualKey, actualIsNumber, actualIsMatchable := newYAMLNumberKey(actual)
 	if !expectedIsNumber && !actualIsNumber {
 		return false, false
 	}
-	if !expectedIsNumber || !actualIsNumber {
+	if !expectedIsNumber || !actualIsNumber || !expectedIsMatchable || !actualIsMatchable {
 		return false, true
 	}
-	return expectedNumber.equal(actualNumber), true
+	return expectedKey == actualKey, true
 }
 
 func yamlValuesAreEqual(expected, actual interface{}) bool {
@@ -2010,13 +1985,96 @@ func yamlGeneralMapsAreEqual(expected, actual map[interface{}]interface{}) bool 
 	if len(expected) != len(actual) || (expected == nil) != (actual == nil) {
 		return false
 	}
+	actualNumericValues, actualNonnumericKeys, ok := yamlNumericMapValueGroups(actual)
+	if !ok {
+		return false
+	}
+
+	var expectedNumericValues map[yamlNumberKey][]interface{}
+	expectedNonnumericKeys := 0
 	for key, expectedValue := range expected {
+		numberKey, isNumber, isMatchable := newYAMLNumberKey(key)
+		if isNumber {
+			if !isMatchable {
+				return false
+			}
+			if expectedNumericValues == nil {
+				expectedNumericValues = make(map[yamlNumberKey][]interface{})
+			}
+			expectedNumericValues[numberKey] = append(expectedNumericValues[numberKey], expectedValue)
+			continue
+		}
+
+		expectedNonnumericKeys++
 		actualValue, ok := actual[key]
 		if !ok || !yamlValuesAreEqual(expectedValue, actualValue) {
 			return false
 		}
 	}
+	if expectedNonnumericKeys != actualNonnumericKeys {
+		return false
+	}
+
+	return yamlNumericValueGroupsAreEqual(expectedNumericValues, actualNumericValues)
+}
+
+func yamlNumericMapValueGroups(values map[interface{}]interface{}) (map[yamlNumberKey][]interface{}, int, bool) {
+	var groups map[yamlNumberKey][]interface{}
+	nonnumericKeys := 0
+	for key, value := range values {
+		numberKey, isNumber, isMatchable := newYAMLNumberKey(key)
+		if !isNumber {
+			nonnumericKeys++
+			continue
+		}
+		if !isMatchable {
+			return nil, 0, false
+		}
+		if groups == nil {
+			groups = make(map[yamlNumberKey][]interface{})
+		}
+		groups[numberKey] = append(groups[numberKey], value)
+	}
+	return groups, nonnumericKeys, true
+}
+
+func yamlNumericValueGroupsAreEqual(expected, actual map[yamlNumberKey][]interface{}) bool {
+	if len(expected) != len(actual) {
+		return false
+	}
+	for key, expectedValues := range expected {
+		actualValues, ok := actual[key]
+		if !ok || !yamlUnorderedValuesAreEqual(expectedValues, actualValues) {
+			return false
+		}
+	}
 	return true
+}
+
+func yamlUnorderedValuesAreEqual(expected, actual []interface{}) bool {
+	if len(expected) != len(actual) {
+		return false
+	}
+	// A numeric equivalence class contains at most one key of each decoded Go
+	// numeric type, so this matching is bounded by four entries.
+	return yamlMatchUnorderedValue(0, expected, actual, make([]bool, len(actual)))
+}
+
+func yamlMatchUnorderedValue(expectedIndex int, expected, actual []interface{}, usedActual []bool) bool {
+	if expectedIndex == len(expected) {
+		return true
+	}
+	for actualIndex, actualValue := range actual {
+		if usedActual[actualIndex] || !yamlValuesAreEqual(expected[expectedIndex], actualValue) {
+			continue
+		}
+		usedActual[actualIndex] = true
+		if yamlMatchUnorderedValue(expectedIndex+1, expected, actual, usedActual) {
+			return true
+		}
+		usedActual[actualIndex] = false
+	}
+	return false
 }
 
 func yamlSlicesAreEqual(expected, actual []interface{}) bool {

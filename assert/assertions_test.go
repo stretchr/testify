@@ -2849,6 +2849,241 @@ server:
 	}
 }
 
+func TestYAMLEq_NumericMapKeys(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		expected string
+		actual   string
+		equal    bool
+	}{
+		{
+			name: "numeric key and value",
+			expected: `
+1:
+  value: 2
+`,
+			actual: `
+1.0:
+  value: 2.0
+`,
+			equal: true,
+		},
+		{
+			name: "nested numeric keys",
+			expected: `
+outer:
+  1:
+    values:
+      - 2
+      - 3: 4
+`,
+			actual: `
+outer:
+  1.0:
+    values:
+      - 2.0
+      - 3.0: 4.0
+`,
+			equal: true,
+		},
+		{
+			name: "equivalent key class with crossed values",
+			expected: `
+1: 2
+1.0: 3.0
+`,
+			actual: `
+1: 3
+1.0: 2.0
+`,
+			equal: true,
+		},
+		{
+			name: "equivalent key class value mismatch",
+			expected: `
+1: 2
+1.0: 3
+`,
+			actual: `
+1: 2.0
+1.0: 2
+`,
+		},
+		{
+			name: "equivalent key class cardinality mismatch",
+			expected: `
+1: first
+1.0: second
+`,
+			actual: `
+1.0: first
+2: second
+`,
+		},
+		{
+			name:     "different numeric keys",
+			expected: `1: value`,
+			actual:   `1.5: value`,
+		},
+		{
+			name:     "numeric key with unequal value types",
+			expected: `1: true`,
+			actual:   `1.0: 1`,
+		},
+		{
+			name:     "negative zero key",
+			expected: `0: value`,
+			actual:   `-0.0: value`,
+			equal:    true,
+		},
+		{
+			name:     "infinity key",
+			expected: `.inf: value`,
+			actual:   `.Inf: value`,
+			equal:    true,
+		},
+		{
+			name:     "NaN key",
+			expected: `.nan: value`,
+			actual:   `.NaN: value`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assertYAMLEqSymmetric(t, test.expected, test.actual, test.equal)
+		})
+	}
+}
+
+func TestYAMLValuesAreEqualNumericKeyClasses(t *testing.T) {
+	t.Parallel()
+
+	expected := map[interface{}]interface{}{
+		int(1):     "int",
+		int64(1):   "int64",
+		uint64(1):  "uint64",
+		float64(1): "float64",
+	}
+	actual := map[interface{}]interface{}{
+		int(1):     "float64",
+		int64(1):   "uint64",
+		uint64(1):  "int64",
+		float64(1): "int",
+	}
+	mismatched := map[interface{}]interface{}{
+		int(1):     "float64",
+		int64(1):   "uint64",
+		uint64(1):  "int64",
+		float64(1): "int64",
+	}
+
+	for i := 0; i < 100; i++ {
+		True(t, yamlValuesAreEqual(expected, actual))
+		True(t, yamlValuesAreEqual(actual, expected))
+		False(t, yamlValuesAreEqual(expected, mismatched))
+		False(t, yamlValuesAreEqual(mismatched, expected))
+	}
+}
+
+type yamlTestMapKey int
+
+type yamlTestComparableKey struct {
+	value *int
+}
+
+func TestYAMLValuesAreEqualUsesNativeNonnumericMapKeys(t *testing.T) {
+	t.Parallel()
+
+	leftValue, rightValue := 1, 1
+	leftTime := time.Date(2026, time.August, 10, 0, 0, 0, 0, time.FixedZone("test", 0))
+	rightTime := time.Date(2026, time.August, 10, 0, 0, 0, 0, time.FixedZone("test", 0))
+	tests := []struct {
+		name     string
+		expected interface{}
+		actual   interface{}
+		equal    bool
+	}{
+		{name: "same pointer", expected: &leftValue, actual: &leftValue, equal: true},
+		{name: "different pointers", expected: &leftValue, actual: &rightValue},
+		{name: "named integer", expected: yamlTestMapKey(1), actual: yamlTestMapKey(1), equal: true},
+		{name: "named and built-in integers", expected: yamlTestMapKey(1), actual: int(1)},
+		{name: "different custom keys", expected: yamlTestComparableKey{value: &leftValue}, actual: yamlTestComparableKey{value: &rightValue}},
+		{name: "same timestamp", expected: leftTime, actual: leftTime, equal: true},
+		{name: "different timestamp locations", expected: leftTime, actual: rightTime},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			expected := map[interface{}]interface{}{test.expected: "value"}
+			actual := map[interface{}]interface{}{test.actual: "value"}
+			Equal(t, test.equal, yamlValuesAreEqual(expected, actual), "without numeric key")
+			Equal(t, test.equal, yamlValuesAreEqual(actual, expected), "without numeric key, reversed")
+
+			expected[int(1)] = "number"
+			actual[float64(1)] = "number"
+			Equal(t, test.equal, yamlValuesAreEqual(expected, actual), "with numeric key")
+			Equal(t, test.equal, yamlValuesAreEqual(actual, expected), "with numeric key, reversed")
+		})
+	}
+}
+
+func newYAMLLargeGeneralMaps(nonnumericEntries int) (map[interface{}]interface{}, map[interface{}]interface{}) {
+	expected := make(map[interface{}]interface{}, nonnumericEntries+1)
+	actual := make(map[interface{}]interface{}, nonnumericEntries+1)
+	for i := 0; i < nonnumericEntries; i++ {
+		key := yamlTestMapKey(i)
+		expected[key] = nil
+		actual[key] = nil
+	}
+	expected[int(nonnumericEntries)] = nil
+	actual[float64(nonnumericEntries)] = nil
+	return expected, actual
+}
+
+func TestYAMLValuesAreEqualLargeGeneralMapAllocations(t *testing.T) {
+	expected, actual := newYAMLLargeGeneralMaps(10_000)
+	groups, nonnumericKeys, ok := yamlNumericMapValueGroups(actual)
+	if !ok {
+		t.Fatal("numeric keys should be matchable")
+	}
+	if nonnumericKeys != 10_000 {
+		t.Fatalf("expected 10000 nonnumeric keys, got %d", nonnumericKeys)
+	}
+	if len(groups) != 1 {
+		t.Fatalf("expected one numeric group, got %d", len(groups))
+	}
+	for _, values := range groups {
+		if len(values) != 1 {
+			t.Fatalf("expected one value in the numeric group, got %d", len(values))
+		}
+	}
+
+	var equal bool
+	allocations := testing.AllocsPerRun(10, func() {
+		equal = yamlValuesAreEqual(expected, actual)
+	})
+	if !equal {
+		t.Fatal("maps should be equal")
+	}
+	if allocations >= 100 {
+		t.Fatalf("expected fewer than 100 allocations, got %.0f", allocations)
+	}
+}
+
+func BenchmarkYAMLValuesAreEqualLargeGeneralMap(b *testing.B) {
+	expected, actual := newYAMLLargeGeneralMaps(10_000)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if !yamlValuesAreEqual(expected, actual) {
+			b.Fatal("maps should be equal")
+		}
+	}
+}
+
 func TestYAMLEq_NumericBoundaries(t *testing.T) {
 	t.Parallel()
 
