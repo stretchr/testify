@@ -1881,6 +1881,156 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
+type yamlNumberKind uint8
+
+const (
+	yamlSignedNumber yamlNumberKind = iota
+	yamlUnsignedNumber
+	yamlFloatNumber
+)
+
+type yamlNumber struct {
+	kind     yamlNumberKind
+	signed   int64
+	unsigned uint64
+	floating float64
+}
+
+func newYAMLNumber(value interface{}) (yamlNumber, bool) {
+	switch value := value.(type) {
+	case int:
+		return yamlNumber{kind: yamlSignedNumber, signed: int64(value)}, true
+	case int64:
+		return yamlNumber{kind: yamlSignedNumber, signed: value}, true
+	case uint64:
+		return yamlNumber{kind: yamlUnsignedNumber, unsigned: value}, true
+	case float64:
+		return yamlNumber{kind: yamlFloatNumber, floating: value}, true
+	default:
+		return yamlNumber{}, false
+	}
+}
+
+func (n yamlNumber) equal(other yamlNumber) bool {
+	if n.kind == yamlFloatNumber {
+		return n.floatEqual(other)
+	}
+	if other.kind == yamlFloatNumber {
+		return other.floatEqual(n)
+	}
+	if n.kind == other.kind {
+		if n.kind == yamlSignedNumber {
+			return n.signed == other.signed
+		}
+		return n.unsigned == other.unsigned
+	}
+	if n.kind == yamlSignedNumber {
+		return n.signed >= 0 && uint64(n.signed) == other.unsigned
+	}
+	return other.signed >= 0 && n.unsigned == uint64(other.signed)
+}
+
+func (n yamlNumber) floatEqual(other yamlNumber) bool {
+	switch other.kind {
+	case yamlSignedNumber:
+		return yamlFloatEqualsSigned(n.floating, other.signed)
+	case yamlUnsignedNumber:
+		return yamlFloatEqualsUnsigned(n.floating, other.unsigned)
+	default:
+		return n.floating == other.floating
+	}
+}
+
+func yamlFloatEqualsSigned(value float64, integer int64) bool {
+	if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value ||
+		value < -0x1p63 || value >= 0x1p63 {
+		return false
+	}
+	return int64(value) == integer
+}
+
+func yamlFloatEqualsUnsigned(value float64, integer uint64) bool {
+	if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value ||
+		value < 0 || value >= 0x1p64 {
+		return false
+	}
+	return uint64(value) == integer
+}
+
+func yamlNumbersAreEqual(expected, actual interface{}) (bool, bool) {
+	expectedNumber, expectedIsNumber := newYAMLNumber(expected)
+	actualNumber, actualIsNumber := newYAMLNumber(actual)
+	if !expectedIsNumber && !actualIsNumber {
+		return false, false
+	}
+	if !expectedIsNumber || !actualIsNumber {
+		return false, true
+	}
+	return expectedNumber.equal(actualNumber), true
+}
+
+func yamlValuesAreEqual(expected, actual interface{}) bool {
+	switch expected := expected.(type) {
+	case map[string]interface{}:
+		actual, ok := actual.(map[string]interface{})
+		return ok && yamlStringMapsAreEqual(expected, actual)
+	case map[interface{}]interface{}:
+		actual, ok := actual.(map[interface{}]interface{})
+		return ok && yamlGeneralMapsAreEqual(expected, actual)
+	case []interface{}:
+		actual, ok := actual.([]interface{})
+		return ok && yamlSlicesAreEqual(expected, actual)
+	}
+
+	switch actual.(type) {
+	case map[string]interface{}, map[interface{}]interface{}, []interface{}:
+		return false
+	}
+
+	if equal, compared := yamlNumbersAreEqual(expected, actual); compared {
+		return equal
+	}
+	return ObjectsAreEqual(expected, actual)
+}
+
+func yamlStringMapsAreEqual(expected, actual map[string]interface{}) bool {
+	if len(expected) != len(actual) || (expected == nil) != (actual == nil) {
+		return false
+	}
+	for key, expectedValue := range expected {
+		actualValue, ok := actual[key]
+		if !ok || !yamlValuesAreEqual(expectedValue, actualValue) {
+			return false
+		}
+	}
+	return true
+}
+
+func yamlGeneralMapsAreEqual(expected, actual map[interface{}]interface{}) bool {
+	if len(expected) != len(actual) || (expected == nil) != (actual == nil) {
+		return false
+	}
+	for key, expectedValue := range expected {
+		actualValue, ok := actual[key]
+		if !ok || !yamlValuesAreEqual(expectedValue, actualValue) {
+			return false
+		}
+	}
+	return true
+}
+
+func yamlSlicesAreEqual(expected, actual []interface{}) bool {
+	if len(expected) != len(actual) || (expected == nil) != (actual == nil) {
+		return false
+	}
+	for i := range expected {
+		if !yamlValuesAreEqual(expected[i], actual[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 // YAMLEq asserts that the first documents in the two YAML strings are equivalent.
 //
 //	expected := `---
@@ -1911,6 +2061,10 @@ func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 
 	if err := yaml.Unmarshal([]byte(actual), &actualYAMLAsInterface); err != nil {
 		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid yaml.\nYAML error: '%s'", actual, err.Error()), msgAndArgs...)
+	}
+
+	if yamlValuesAreEqual(expectedYAMLAsInterface, actualYAMLAsInterface) {
+		return true
 	}
 
 	return Equal(t, expectedYAMLAsInterface, actualYAMLAsInterface, msgAndArgs...)

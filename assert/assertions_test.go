@@ -2787,6 +2787,259 @@ func TestYAMLEq_EquivalentButNotEqual(t *testing.T) {
 	True(t, YAMLEq(mockT, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`))
 }
 
+func assertYAMLEqSymmetric(t *testing.T, expected, actual string, equal bool) {
+	t.Helper()
+
+	tests := []struct {
+		name     string
+		expected string
+		actual   string
+	}{
+		{name: "forward", expected: expected, actual: actual},
+		{name: "reverse", expected: actual, actual: expected},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mockT := new(testing.T)
+			Equal(t, equal, YAMLEq(mockT, test.expected, test.actual))
+		})
+	}
+}
+
+func TestYAMLEq_EquivalentNumericFormats(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		expected string
+		actual   string
+	}{
+		{
+			name:     "scalar",
+			expected: "80",
+			actual:   "80.0",
+		},
+		{
+			name: "nested map",
+			expected: `
+server:
+  port: 80
+  limits:
+    retries: 3.0
+`,
+			actual: `
+server:
+  port: 80.0
+  limits:
+    retries: 3
+`,
+		},
+		{
+			name:     "slice",
+			expected: `values: [1, 2.0, {nested: 3}]`,
+			actual:   `values: [1.0, 2, {nested: 3.0}]`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assertYAMLEqSymmetric(t, test.expected, test.actual, true)
+		})
+	}
+}
+
+func TestYAMLEq_NumericBoundaries(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		expected string
+		actual   string
+		equal    bool
+	}{
+		{
+			name:     "two to the fifty-third",
+			expected: "9007199254740992",
+			actual:   "9007199254740992.0",
+			equal:    true,
+		},
+		{
+			name:     "above exact float integer precision",
+			expected: "9007199254740993",
+			actual:   "9007199254740993.0",
+		},
+		{
+			name:     "minimum signed integer",
+			expected: "-9223372036854775808",
+			actual:   "-9223372036854775808.0",
+			equal:    true,
+		},
+		{
+			name:     "maximum signed integer rounds out of range",
+			expected: "9223372036854775807",
+			actual:   "9223372036854775807.0",
+		},
+		{
+			name:     "first unsigned integer above signed range",
+			expected: "9223372036854775808",
+			actual:   "9223372036854775808.0",
+			equal:    true,
+		},
+		{
+			name:     "largest exactly representable unsigned integer below upper bound",
+			expected: "18446744073709549568",
+			actual:   "18446744073709549568.0",
+			equal:    true,
+		},
+		{
+			name:     "maximum unsigned integer rounds out of range",
+			expected: "18446744073709551615",
+			actual:   "18446744073709551615.0",
+		},
+		{
+			name:     "negative zero",
+			expected: "0",
+			actual:   "-0.0",
+			equal:    true,
+		},
+		{
+			name:     "positive infinity",
+			expected: ".inf",
+			actual:   ".Inf",
+			equal:    true,
+		},
+		{
+			name:     "opposite infinities",
+			expected: ".inf",
+			actual:   "-.inf",
+		},
+		{
+			name:     "infinity and integer",
+			expected: ".inf",
+			actual:   "9223372036854775807",
+		},
+		{
+			name:     "NaN",
+			expected: ".nan",
+			actual:   ".NaN",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assertYAMLEqSymmetric(t, test.expected, test.actual, test.equal)
+		})
+	}
+}
+
+func TestYAMLValuesAreEqualNumbers(t *testing.T) {
+	t.Parallel()
+
+	negativeZero := math.Copysign(0, -1)
+	belowMinInt64 := math.Nextafter(-0x1p63, math.Inf(-1))
+	tests := []struct {
+		name     string
+		expected interface{}
+		actual   interface{}
+		equal    bool
+	}{
+		{name: "int and float", expected: int(80), actual: float64(80), equal: true},
+		{name: "int64 and float", expected: int64(-80), actual: float64(-80), equal: true},
+		{name: "uint64 and float", expected: uint64(80), actual: float64(80), equal: true},
+		{name: "int and int64", expected: int(80), actual: int64(80), equal: true},
+		{name: "int and uint64", expected: int(80), actual: uint64(80), equal: true},
+		{name: "maximum int64 and uint64", expected: int64(1<<63 - 1), actual: uint64(1<<63 - 1), equal: true},
+		{name: "negative int and uint64", expected: int64(-1), actual: ^uint64(0)},
+		{name: "negative float and uint64", expected: float64(-1), actual: uint64(0)},
+		{name: "fractional float", expected: int64(80), actual: float64(80.5)},
+		{name: "smallest positive float", expected: int64(0), actual: math.SmallestNonzeroFloat64},
+		{name: "exact two to the fifty-third", expected: int64(1 << 53), actual: float64(0x1p53), equal: true},
+		{name: "inexact integer above two to the fifty-third", expected: int64(1<<53 + 1), actual: float64(0x1p53)},
+		{name: "next exact integer above two to the fifty-third", expected: int64(1<<53 + 2), actual: float64(1<<53 + 2), equal: true},
+		{name: "minimum int64", expected: int64(-1 << 63), actual: float64(-0x1p63), equal: true},
+		{name: "below minimum int64", expected: int64(-1 << 63), actual: belowMinInt64},
+		{name: "maximum int64 rounds out of range", expected: int64(1<<63 - 1), actual: float64(0x1p63)},
+		{name: "two to the sixty-third unsigned", expected: uint64(1 << 63), actual: float64(0x1p63), equal: true},
+		{name: "largest representable uint64 below upper bound", expected: uint64(1<<64 - 2048), actual: float64(0x1.fffffffffffffp63), equal: true},
+		{name: "maximum uint64 rounds out of range", expected: ^uint64(0), actual: float64(0x1p64)},
+		{name: "negative zero floats", expected: negativeZero, actual: float64(0), equal: true},
+		{name: "negative zero and int", expected: negativeZero, actual: int64(0), equal: true},
+		{name: "positive infinities", expected: math.Inf(1), actual: math.Inf(1), equal: true},
+		{name: "opposite infinities", expected: math.Inf(1), actual: math.Inf(-1)},
+		{name: "infinity and integer", expected: math.Inf(1), actual: ^uint64(0)},
+		{name: "NaN values", expected: math.NaN(), actual: math.NaN()},
+		{name: "NaN and integer", expected: math.NaN(), actual: int64(0)},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			Equal(t, test.equal, yamlValuesAreEqual(test.expected, test.actual), "forward comparison")
+			Equal(t, test.equal, yamlValuesAreEqual(test.actual, test.expected), "reverse comparison")
+		})
+	}
+}
+
+func TestYAMLEq_NumericComparisonPreservesOtherValues(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		expected string
+		actual   string
+		equal    bool
+	}{
+		{
+			name:     "different numbers",
+			expected: "80",
+			actual:   "80.5",
+		},
+		{
+			name:     "signed and unsigned overflow",
+			expected: "-1",
+			actual:   "18446744073709551615",
+		},
+		{
+			name:     "number and string",
+			expected: "80",
+			actual:   `"80"`,
+		},
+		{
+			name:     "number and bool",
+			expected: "1",
+			actual:   "true",
+		},
+		{
+			name:     "different strings",
+			expected: `"true"`,
+			actual:   `"false"`,
+		},
+		{
+			name:     "different bools",
+			expected: "true",
+			actual:   "false",
+		},
+		{
+			name:     "equivalent string syntax",
+			expected: `"80"`,
+			actual:   `'80'`,
+			equal:    true,
+		},
+		{
+			name:     "equivalent bool syntax",
+			expected: "true",
+			actual:   "TRUE",
+			equal:    true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assertYAMLEqSymmetric(t, test.expected, test.actual, test.equal)
+		})
+	}
+}
+
 func TestYAMLEq_HashOfArraysAndHashes(t *testing.T) {
 	t.Parallel()
 
