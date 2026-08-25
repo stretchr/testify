@@ -366,6 +366,27 @@ func TestErrorContainsWrapper(t *testing.T) {
 		"ErrorContains should return true")
 }
 
+func TestErrorNotContainsWrapper(t *testing.T) {
+	t.Parallel()
+
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	// start with a nil error
+	var err error
+	assert.False(mockAssert.ErrorNotContains(err, ""),
+		"ErrorNotContains should return false for nil arg")
+
+	// now set an error
+	err = errors.New("some error: another error")
+	assert.True(mockAssert.ErrorNotContains(err, "bad error"),
+		"ErrorNotContains should return true for different error string")
+	assert.False(mockAssert.ErrorNotContains(err, "some error"),
+		"ErrorNotContains should return false")
+	assert.False(mockAssert.ErrorNotContains(err, "another error"),
+		"ErrorNotContains should return false")
+}
+
 func TestEqualErrorWrapper(t *testing.T) {
 	t.Parallel()
 

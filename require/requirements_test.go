@@ -240,6 +240,18 @@ func TestErrorContains(t *testing.T) {
 	}
 }
 
+func TestErrorNotContains(t *testing.T) {
+	t.Parallel()
+
+	ErrorNotContains(t, errors.New("some error: another error"), "different error")
+
+	mockT := new(MockT)
+	ErrorNotContains(mockT, errors.New("some error"), "some error")
+	if !mockT.Failed {
+		t.Error("Check should fail")
+	}
+}
+
 func TestEqualError(t *testing.T) {
 	t.Parallel()
 

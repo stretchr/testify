@@ -1707,6 +1707,27 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 	return true
 }
 
+// ErrorNotContains asserts that a function returned a non-nil error (i.e. an
+// error) and that the error does not contain the specified substring.
+//
+//	actualObj, err := SomeFunction()
+//	assert.ErrorNotContains(t, err,  expectedErrorSubString)
+func ErrorNotContains(t TestingT, theError error, contains string, msgAndArgs ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if !Error(t, theError, msgAndArgs...) {
+		return false
+	}
+
+	actual := theError.Error()
+	if strings.Contains(actual, contains) {
+		return Fail(t, fmt.Sprintf("Error %s contains %#v", truncatingFormat("%#v", actual), contains), msgAndArgs...)
+	}
+
+	return true
+}
+
 // matchRegexp return true if a specified regexp matches a string.
 func matchRegexp(rx interface{}, str interface{}) bool {
 	var r *regexp.Regexp

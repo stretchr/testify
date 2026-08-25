@@ -1760,6 +1760,26 @@ func TestErrorContains(t *testing.T) {
 		"ErrorContains should return true")
 }
 
+func TestErrorNotContains(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(testing.T)
+
+	// start with a nil error
+	var err error
+	False(t, ErrorNotContains(mockT, err, ""),
+		"ErrorNotContains should return false for nil arg")
+
+	// now set an error
+	err = errors.New("some error: another error")
+	True(t, ErrorNotContains(mockT, err, "bad error"),
+		"ErrorNotContains should return true for different error string")
+	False(t, ErrorNotContains(mockT, err, "some error"),
+		"ErrorNotContains should return false")
+	False(t, ErrorNotContains(mockT, err, "another error"),
+		"ErrorNotContains should return false")
+}
+
 func Test_isEmpty(t *testing.T) {
 	t.Parallel()
 
@@ -4148,6 +4168,17 @@ func TestErrorContainsWithErrorTooLongToPrint(t *testing.T) {
 	Error Trace:	
 	Error:      	Error "long: [0 0 0`)
 	Contains(t, mockT.errorString(), `<... truncated> does not contain "EOF"`)
+}
+
+func TestErrorNotContainsWithErrorTooLongToPrint(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+	longSlice := make([]int, 1_000_000)
+	ErrorNotContains(mockT, fmt.Errorf("long: %v", longSlice), "long:")
+	Contains(t, mockT.errorString(), `
+	Error Trace:	
+	Error:      	Error "long: [0 0 0`)
+	Contains(t, mockT.errorString(), `<... truncated> contains "long:"`)
 }
 
 func TestZeroWithSliceTooLongToPrint(t *testing.T) {
