@@ -83,6 +83,37 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 // copyExportedFields iterates downward through nested data structures and creates a copy
 // that only contains the exported struct fields.
 func copyExportedFields(expected interface{}) interface{} {
+	return copyExportedFieldsWithVisited(expected, make(map[copyExportedFieldsVisit]reflect.Value))
+}
+
+// copyExportedFieldsVisit identifies pointer, slice, and map values by identity so
+// copyExportedFields can detect cycles (as encoding/json does) and reuse in-progress copies.
+type copyExportedFieldsVisit struct {
+	typ    reflect.Type
+	ptr    uintptr
+	length int
+}
+
+func copyExportedFieldsVisitKey(v reflect.Value) (copyExportedFieldsVisit, bool) {
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map:
+		if v.IsNil() {
+			return copyExportedFieldsVisit{}, false
+		}
+		return copyExportedFieldsVisit{typ: v.Type(), ptr: v.Pointer()}, true
+	case reflect.Slice:
+		if v.IsNil() {
+			return copyExportedFieldsVisit{}, false
+		}
+		// Include length so reslices of a shared backing array are distinct,
+		// matching encoding/json's slice cycle key.
+		return copyExportedFieldsVisit{typ: v.Type(), ptr: v.Pointer(), length: v.Len()}, true
+	default:
+		return copyExportedFieldsVisit{}, false
+	}
+}
+
+func copyExportedFieldsWithVisited(expected interface{}, visited map[copyExportedFieldsVisit]reflect.Value) interface{} {
 	if isNil(expected) {
 		return expected
 	}
@@ -90,6 +121,13 @@ func copyExportedFields(expected interface{}) interface{} {
 	expectedType := reflect.TypeOf(expected)
 	expectedKind := expectedType.Kind()
 	expectedValue := reflect.ValueOf(expected)
+
+	visit, ok := copyExportedFieldsVisitKey(expectedValue)
+	if ok {
+		if result, seen := visited[visit]; seen {
+			return result.Interface()
+		}
+	}
 
 	switch expectedKind {
 	case reflect.Struct:
@@ -102,7 +140,7 @@ func copyExportedFields(expected interface{}) interface{} {
 				if isNil(fieldValue) || isNil(fieldValue.Interface()) {
 					continue
 				}
-				newValue := copyExportedFields(fieldValue.Interface())
+				newValue := copyExportedFieldsWithVisited(fieldValue.Interface(), visited)
 				result.Field(i).Set(reflect.ValueOf(newValue))
 			}
 		}
@@ -110,7 +148,10 @@ func copyExportedFields(expected interface{}) interface{} {
 
 	case reflect.Ptr:
 		result := reflect.New(expectedType.Elem())
-		unexportedRemoved := copyExportedFields(expectedValue.Elem().Interface())
+		if ok {
+			visited[visit] = result
+		}
+		unexportedRemoved := copyExportedFieldsWithVisited(expectedValue.Elem().Interface(), visited)
 		result.Elem().Set(reflect.ValueOf(unexportedRemoved))
 		return result.Interface()
 
@@ -120,22 +161,28 @@ func copyExportedFields(expected interface{}) interface{} {
 			result = reflect.New(reflect.ArrayOf(expectedValue.Len(), expectedType.Elem())).Elem()
 		} else {
 			result = reflect.MakeSlice(expectedType, expectedValue.Len(), expectedValue.Len())
+			if ok {
+				visited[visit] = result
+			}
 		}
 		for i := 0; i < expectedValue.Len(); i++ {
 			index := expectedValue.Index(i)
 			if isNil(index) {
 				continue
 			}
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFieldsWithVisited(index.Interface(), visited)
 			result.Index(i).Set(reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
 
 	case reflect.Map:
 		result := reflect.MakeMap(expectedType)
+		if ok {
+			visited[visit] = result
+		}
 		for _, k := range expectedValue.MapKeys() {
 			index := expectedValue.MapIndex(k)
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFieldsWithVisited(index.Interface(), visited)
 			result.SetMapIndex(k, reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
@@ -675,7 +722,9 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 
 	if !ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
-		expected, actual = formatUnequalValues(expected, actual)
+		// spew handles pointer/slice/map cycles; fmt's %#v does not and can overflow.
+		expected = truncatingFormat("%s", strings.TrimSuffix(spewConfig.Sdump(expected), "\n"))
+		actual = truncatingFormat("%s", strings.TrimSuffix(spewConfig.Sdump(actual), "\n"))
 		return Fail(t, fmt.Sprintf("Not equal (comparing only exported fields): \n"+
 			"expected: %s\n"+
 			"actual  : %s%s", expected, actual, diff), msgAndArgs...)

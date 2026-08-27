@@ -527,6 +527,207 @@ func TestEqualExportedValues(t *testing.T) {
 	}
 }
 
+func TestCopyExportedFieldsCycles(t *testing.T) {
+	t.Parallel()
+
+	type Node struct {
+		Value      int
+		Self       *Node
+		unexported string
+	}
+
+	n := &Node{Value: 1, unexported: "hidden"}
+	n.Self = n
+
+	copied, ok := copyExportedFields(n).(*Node)
+	if !ok {
+		t.Fatalf("copyExportedFields returned %T, want *Node", copyExportedFields(n))
+	}
+	if copied == n {
+		t.Fatal("copy should not be the original pointer")
+	}
+	if copied.Value != 1 {
+		t.Fatalf("Value = %d, want 1", copied.Value)
+	}
+	if copied.unexported != "" {
+		t.Fatalf("unexported field = %q, want empty", copied.unexported)
+	}
+	if copied.Self != copied {
+		t.Fatal("pointer cycle should be preserved on the copy")
+	}
+
+	m := map[string]interface{}{"v": 1}
+	m["self"] = m
+	copiedMap, ok := copyExportedFields(m).(map[string]interface{})
+	if !ok {
+		t.Fatalf("copyExportedFields returned %T, want map[string]interface{}", copyExportedFields(m))
+	}
+	selfMap, ok := copiedMap["self"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("copied map self = %T, want map[string]interface{}", copiedMap["self"])
+	}
+	if reflect.ValueOf(selfMap).Pointer() != reflect.ValueOf(copiedMap).Pointer() {
+		t.Fatal("map cycle should be preserved on the copy")
+	}
+
+	s := make([]interface{}, 1)
+	s[0] = s
+	copiedSlice, ok := copyExportedFields(s).([]interface{})
+	if !ok {
+		t.Fatalf("copyExportedFields returned %T, want []interface{}", copyExportedFields(s))
+	}
+	selfSlice, ok := copiedSlice[0].([]interface{})
+	if !ok {
+		t.Fatalf("copied slice [0] = %T, want []interface{}", copiedSlice[0])
+	}
+	if reflect.ValueOf(selfSlice).Pointer() != reflect.ValueOf(copiedSlice).Pointer() {
+		t.Fatal("slice cycle should be preserved on the copy")
+	}
+}
+
+func TestEqualExportedValuesCycles(t *testing.T) {
+	t.Parallel()
+
+	type Node struct {
+		Value      int
+		Next       *Node
+		unexported string
+	}
+
+	cyclicNode := func(value int, unexported string) *Node {
+		n := &Node{Value: value, unexported: unexported}
+		n.Next = n
+		return n
+	}
+
+	ring := func(values []int, unexported string) *Node {
+		nodes := make([]*Node, len(values))
+		for i, v := range values {
+			nodes[i] = &Node{Value: v, unexported: unexported}
+		}
+		for i := range nodes {
+			nodes[i].Next = nodes[(i+1)%len(nodes)]
+		}
+		return nodes[0]
+	}
+
+	type ArrNode struct {
+		Value      int
+		Children   [1]*ArrNode
+		unexported string
+	}
+	cyclicArray := func(value int, unexported string) *ArrNode {
+		n := &ArrNode{Value: value, unexported: unexported}
+		n.Children[0] = n
+		return n
+	}
+
+	cyclicMap := func(value int) map[string]interface{} {
+		m := map[string]interface{}{"v": value}
+		m["self"] = m
+		return m
+	}
+
+	cyclicSlice := func(value int) []interface{} {
+		s := []interface{}{value, nil}
+		s[1] = s
+		return s
+	}
+
+	cases := []struct {
+		name          string
+		value1        interface{}
+		value2        interface{}
+		expectedEqual bool
+	}{
+		{
+			name:          "self pointer equal ignoring unexported",
+			value1:        cyclicNode(1, "expected"),
+			value2:        cyclicNode(1, "actual"),
+			expectedEqual: true,
+		},
+		{
+			name:          "self pointer different exported",
+			value1:        cyclicNode(1, "expected"),
+			value2:        cyclicNode(2, "actual"),
+			expectedEqual: false,
+		},
+		{
+			name:          "cyclic vs non-cyclic",
+			value1:        cyclicNode(1, "expected"),
+			value2:        &Node{Value: 1, unexported: "actual"},
+			expectedEqual: false,
+		},
+		{
+			name:          "finite chain equal",
+			value1:        &Node{Value: 1, Next: &Node{Value: 2, Next: &Node{Value: 3}}},
+			value2:        &Node{Value: 1, Next: &Node{Value: 2, Next: &Node{Value: 3, unexported: "x"}}},
+			expectedEqual: true,
+		},
+		{
+			name:          "mutual pointers equal",
+			value1:        ring([]int{1, 2}, "a"),
+			value2:        ring([]int{1, 2}, "b"),
+			expectedEqual: true,
+		},
+		{
+			name:          "mutual pointers different exported",
+			value1:        ring([]int{1, 2}, "a"),
+			value2:        ring([]int{1, 3}, "b"),
+			expectedEqual: false,
+		},
+		{
+			name:          "map cycle equal",
+			value1:        cyclicMap(1),
+			value2:        cyclicMap(1),
+			expectedEqual: true,
+		},
+		{
+			name:          "map cycle different values",
+			value1:        cyclicMap(1),
+			value2:        cyclicMap(2),
+			expectedEqual: false,
+		},
+		{
+			name:          "slice cycle equal",
+			value1:        cyclicSlice(1),
+			value2:        cyclicSlice(1),
+			expectedEqual: true,
+		},
+		{
+			name:          "slice cycle different values",
+			value1:        cyclicSlice(1),
+			value2:        cyclicSlice(2),
+			expectedEqual: false,
+		},
+		{
+			name:          "array of cyclic pointers equal ignoring unexported",
+			value1:        cyclicArray(1, "expected"),
+			value2:        cyclicArray(1, "actual"),
+			expectedEqual: true,
+		},
+		{
+			name:          "array of cyclic pointers different exported",
+			value1:        cyclicArray(1, "expected"),
+			value2:        cyclicArray(2, "actual"),
+			expectedEqual: false,
+		},
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			mockT := new(mockTestingT)
+			actual := EqualExportedValues(mockT, c.value1, c.value2)
+			if actual != c.expectedEqual {
+				t.Errorf("EqualExportedValues() = %t, want %t\nfailure: %s", actual, c.expectedEqual, mockT.errorString())
+			}
+		})
+	}
+}
+
 func TestImplements(t *testing.T) {
 	t.Parallel()
 
