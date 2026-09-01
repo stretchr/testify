@@ -11,7 +11,7 @@ fi
 go run ./_readme-gofmt/main.go
 
 go generate ./...
-if [ -n "$(git status -s -uno)" ]; then
+if [ -n "$(git status --short)" ]; then
   echo "Go generate output does not match commit."
   echo "Did you forget to run go generate ./... ?"
   exit 1
