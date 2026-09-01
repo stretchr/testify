@@ -28,6 +28,9 @@
 
 set -euo pipefail
 
+# Keep the pipeline's while loop in this shell so status updates survive.
+shopt -s lastpipe
+
 declare -A seen
 status=0
 
@@ -41,8 +44,8 @@ do
 		fi
 		seen["$action-$hash-$tag"]=1
 
-		if eval "$( curl -s -H "Accept: application/vnd.github+json" \
-			"https://api.github.com/repos/$action/commits/$tag" | jq -r '.sha == "'"$hash"'"' )"
+		if curl --fail --silent --show-error -H "Accept: application/vnd.github+json" \
+			"https://api.github.com/repos/$action/commits/$tag" | jq -e --arg hash "$hash" '.sha == $hash' >/dev/null
 		then
 			printf "\e[1;32m%s: %s@%s == %s\e[m\n" "$w" "$action" "$tag" "$hash"
 		else
