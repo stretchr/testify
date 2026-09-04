@@ -60,6 +60,8 @@ func ElementsMatchf(t TestingT, listA interface{}, listB interface{}, msg string
 //
 // Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
+// Interface values are "empty" if the interface is nil or if the value it holds is "empty".
+//
 //	assert.Emptyf(t, obj, "error message %s", "formatted")
 //
 // [Zero values]: https://go.dev/ref/spec#The_zero_value
