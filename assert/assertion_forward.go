@@ -1739,6 +1739,10 @@ func (a *Assertions) Zero(i interface{}, msgAndArgs ...interface{}) bool {
 }
 
 // Zerof asserts that i is the zero value for its type.
+//
+// This is unrelated to [encoding/json]'s `omitzero` tag and does not
+// use or check the [encoding.TextMarshaler.IsZero] method. It simply
+// compares against [reflect.Zero] for the given type.
 func (a *Assertions) Zerof(i interface{}, msg string, args ...interface{}) bool {
 	if h, ok := a.t.(tHelper); ok {
 		h.Helper()
