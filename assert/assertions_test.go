@@ -161,6 +161,10 @@ func TestObjectsAreEqualValues(t *testing.T) {
 		{3.14, complex128(1e+100 + 1e+100i), false},
 		{complex128(1e+10 + 1e+10i), complex64(1e+10 + 1e+10i), true},
 		{complex64(1e+10 + 1e+10i), complex128(1e+10 + 1e+10i), true},
+
+		// panics should be caught and treated as inequality
+		// https://github.com/stretchr/testify/issues/1699
+		{[]int{1, 2}, (*[3]int)(nil), false},
 	}
 
 	for _, c := range cases {

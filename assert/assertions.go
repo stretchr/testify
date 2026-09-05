@@ -177,10 +177,25 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		return false
 	}
 
+	// Attempt conversion of expected to actual type
+	// This handles more cases than just the ConvertibleTo check above
+	if !expectedValue.CanConvert(actualType) {
+		// Types are not convertible, so they cannot be equal
+		// This prevents panics when calling [reflect.Value.Convert]
+		return false
+	}
+
+	expectedConverted := expectedValue.Convert(actualType)
+	if !expectedConverted.CanInterface() {
+		// Cannot interface after conversion, so cannot be equal
+		// This prevents panics when calling [reflect.Value.Interface]
+		return false
+	}
+
 	if !isNumericType(expectedType) || !isNumericType(actualType) {
 		// Attempt comparison after type conversion
 		return reflect.DeepEqual(
-			expectedValue.Convert(actualType).Interface(), actual,
+			expectedConverted.Interface(), actual,
 		)
 	}
 
@@ -188,10 +203,23 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 	// to overflow or underflow. So, we need to make sure to always convert
 	// the smaller type to a larger type before comparing.
 	if expectedType.Size() >= actualType.Size() {
-		return actualValue.Convert(expectedType).Interface() == expected
+		if !actualValue.CanConvert(expectedType) {
+			// Cannot convert actual to the expected type, so cannot be equal
+			// This is a hypothetical case to prevent panics when calling [reflect.Value.Convert]
+			return false
+		}
+
+		actualConverted := actualValue.Convert(expectedType)
+		if !actualConverted.CanInterface() {
+			// Cannot interface after conversion, so cannot be equal
+			// This is a hypothetical case to prevent panics when calling [reflect.Value.Convert]
+			return false
+		}
+
+		return actualConverted.Interface() == expected
 	}
 
-	return expectedValue.Convert(actualType).Interface() == actual
+	return expectedConverted.Interface() == actual
 }
 
 // isNumericType returns true if the type is one of:
