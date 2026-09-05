@@ -1508,6 +1508,8 @@ func InDeltaSlice(t TestingT, expected, actual interface{}, delta float64, msgAn
 }
 
 // InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+// When the assertion fails for a particular key, the failure message is prefixed with key[<k>]:
+// so the offending entry can be identified at a glance.
 func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -1537,14 +1539,23 @@ func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, m
 			return Fail(t, fmt.Sprintf("missing key %q in actual map", k), msgAndArgs...)
 		}
 
-		if !InDelta(
-			t,
-			ev.Interface(),
-			av.Interface(),
-			delta,
-			msgAndArgs...,
-		) {
-			return false
+		af, aok := toFloat(ev.Interface())
+		bf, bok := toFloat(av.Interface())
+		if !aok || !bok {
+			return Fail(t, fmt.Sprintf("key[%v]: Parameters must be numerical", k), msgAndArgs...)
+		}
+		if math.IsNaN(af) && math.IsNaN(bf) {
+			continue
+		}
+		if math.IsNaN(af) {
+			return Fail(t, fmt.Sprintf("key[%v]: Expected must not be NaN", k), msgAndArgs...)
+		}
+		if math.IsNaN(bf) {
+			return Fail(t, fmt.Sprintf("key[%v]: Expected %v with delta %v, but was NaN", k, ev.Interface(), delta), msgAndArgs...)
+		}
+		dt := af - bf
+		if dt < -delta || dt > delta {
+			return Fail(t, fmt.Sprintf("key[%v]: Max difference between %v and %v allowed is %v, but difference was %v", k, ev.Interface(), av.Interface(), delta, dt), msgAndArgs...)
 		}
 	}
 
