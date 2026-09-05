@@ -316,11 +316,11 @@ type Mock struct {
 	mutex sync.Mutex
 }
 
-// String provides a %v format string for Mock.
+// GoString provides a %#v format string for Mock.
 // Note: this is used implicitly by Arguments.Diff if a Mock is passed.
-// It exists because go's default %v formatting traverses the struct
+// It exists because go's default %#v formatting traverses the struct
 // without acquiring the mutex, which is detected by go test -race.
-func (m *Mock) String() string {
+func (m *Mock) GoString() string {
 	return fmt.Sprintf("%[1]T<%[1]p>", m)
 }
 
@@ -988,7 +988,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			actualFmt = missing.String()
 		} else {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			actualFmt = fmt.Sprintf("(%[1]T=%#[1]v)", actual)
 		}
 
 		if len(args) <= i {
@@ -996,7 +996,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expectedFmt = missing.String()
 		} else {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			expectedFmt = fmt.Sprintf("(%[1]T=%#[1]v)", expected)
 		}
 
 		// A missing argument on either side means the call and the expectation
