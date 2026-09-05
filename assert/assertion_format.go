@@ -5,6 +5,7 @@ package assert
 import (
 	http "net/http"
 	url "net/url"
+	reflect "reflect"
 	time "time"
 )
 
@@ -475,6 +476,16 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	return JSONEq(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
+// Kindf asserts that the given object's kind matches the expected kind.
+//
+//	assert.Kindf(t, reflect.String, "Hello World", "error message %s", "formatted")
+func Kindf(t TestingT, expectedKind reflect.Kind, object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return Kind(t, expectedKind, object, append([]interface{}{msg}, args...)...)
+}
+
 // Lenf asserts that the specified object has specific length.
 // Lenf also fails if the object has a type that len() not accept.
 //
@@ -665,6 +676,16 @@ func NotImplementsf(t TestingT, interfaceObject interface{}, object interface{},
 		h.Helper()
 	}
 	return NotImplements(t, interfaceObject, object, append([]interface{}{msg}, args...)...)
+}
+
+// NotKindf asserts that the given object's kind does not match the unexpected kind.
+//
+//	assert.NotKindf(t, reflect.Int, "Hello World", "error message %s", "formatted")
+func NotKindf(t TestingT, unexpectedKind reflect.Kind, object interface{}, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return NotKind(t, unexpectedKind, object, append([]interface{}{msg}, args...)...)
 }
 
 // NotNilf asserts that the specified object is not nil.
