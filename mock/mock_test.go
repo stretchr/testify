@@ -889,6 +889,95 @@ func Test_Mock_Return_Run_Out_Of_Order(t *testing.T) {
 	assert.NotNil(t, call.Run)
 }
 
+func Test_Mock_Run_ReturnFunc(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	t.Run("can dynamically set the return values", func(t *testing.T) {
+		mockedService.On("TheExampleMethod", Anything, Anything, Anything).
+			Run(func(a, b, c int) (int, error) {
+				return a + 40, fmt.Errorf("hmm")
+			}).
+			Twice()
+
+		answer, _ := mockedService.TheExampleMethod(2, 4, 5)
+		assert.Equal(t, 42, answer)
+
+		answer, _ = mockedService.TheExampleMethod(44, 4, 5)
+		assert.Equal(t, 84, answer)
+	})
+
+	t.Run("handles func(Args) Args style", func(t *testing.T) {
+		mockedService.On("TheExampleMethod", Anything, Anything, Anything).
+			Run(func(args Arguments) Arguments {
+				return []interface{}{args[0].(int) + 40, fmt.Errorf("hmm")}
+			}).
+			Twice()
+
+		answer, _ := mockedService.TheExampleMethod(2, 4, 5)
+		assert.Equal(t, 42, answer)
+
+		answer, _ = mockedService.TheExampleMethod(44, 4, 5)
+		assert.Equal(t, 84, answer)
+	})
+
+	t.Run("handles pointer input args", func(t *testing.T) {
+		mockedService.On("TheExampleMethod3", Anything).Run(func(et *ExampleType) error {
+			if et == nil {
+				return fmt.Errorf("Nil obj")
+			}
+			return nil
+		}).Twice()
+
+		err := mockedService.TheExampleMethod3(nil)
+		assert.Error(t, err)
+
+		err = mockedService.TheExampleMethod3(&ExampleType{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("handles no return args", func(t *testing.T) {
+		mockedService.On("TheExampleMethod2", Anything).Run(func(yesno bool) {
+			// nothing to return
+		}).Once()
+
+		mockedService.TheExampleMethod2(true)
+	})
+
+	t.Run("handles variadic input args", func(t *testing.T) {
+		mockedService.
+			On("TheExampleMethodMixedVariadic", Anything, Anything).
+			Run(func(a int, b ...int) error {
+				var sum = a
+				for _, v := range b {
+					sum += v
+				}
+				return fmt.Errorf("%v", sum)
+			})
+
+		assert.Equal(t, "42", mockedService.TheExampleMethodMixedVariadic(40, 1, 1).Error())
+		assert.Equal(t, "40", mockedService.TheExampleMethodMixedVariadic(40).Error())
+	})
+
+	t.Run("panics if Run() called with an invalid value", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Invalid argument passed to Run(), must be a function, is a int",
+			func() { mockedService.On("TheExampleMethod").Run(42) },
+		)
+	})
+
+	t.Run("panics if both Return() and Run() are called specifying return args", func(t *testing.T) {
+		mockedService.On("TheExampleMethod", Anything, Anything, Anything).
+			Run(func(a, b, c int) (int, error) {
+				return a + 40, fmt.Errorf("hmm")
+			}).
+			Return(80, nil)
+
+		assert.PanicsWithValue(t, "Cannot specify a function with Run() that returns arguments and also specify a Return() fixed set of return arguments", func() { mockedService.TheExampleMethod(1, 2, 3) })
+	})
+}
+
 func Test_Mock_Return_Once(t *testing.T) {
 	t.Parallel()
 
