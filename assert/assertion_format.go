@@ -475,6 +475,16 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	return JSONEq(t, expected, actual, append([]interface{}{msg}, args...)...)
 }
 
+// JSONEqBytesf asserts that two JSON byte slices are equivalent.
+//
+//	assert.JSONEqBytesf(t, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`), "error message %s", "formatted")
+func JSONEqBytesf(t TestingT, expected []byte, actual []byte, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return JSONEqBytes(t, expected, actual, append([]interface{}{msg}, args...)...)
+}
+
 // Lenf asserts that the specified object has specific length.
 // Lenf also fails if the object has a type that len() not accept.
 //
