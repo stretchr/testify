@@ -312,6 +312,12 @@ func valueSortLess(a, b reflect.Value) bool {
 		for i := 0; i < l; i++ {
 			av := a.Index(i)
 			bv := b.Index(i)
+
+			if !av.CanInterface() || !bv.CanInterface() {
+				// Unexported fields would panic on Interface() call.
+				continue
+			}
+
 			if av.Interface() == bv.Interface() {
 				continue
 			}
