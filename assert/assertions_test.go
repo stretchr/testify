@@ -364,7 +364,7 @@ func TestCopyExportedFields(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("", func(t *testing.T) {
-			output := copyExportedFields(c.input)
+			output := copyExportedFieldsNoSeen(c.input)
 			if !ObjectsAreEqualValues(c.expected, output) {
 				t.Errorf("%#v, %#v should be equal", c.expected, output)
 			}
