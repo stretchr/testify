@@ -1,6 +1,10 @@
 name: All builds
 on: [push, pull_request]
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
