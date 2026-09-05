@@ -168,6 +168,10 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 // Eventuallyf asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
+//
 //	assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
@@ -184,6 +188,12 @@ func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick 
 // The supplied CollectT collects all errors from one tick (if there are any).
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
+//
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// and the exit was not via 'collect.FailNow()', the assertion fails immediately.
+// This usually means that the condition called t.FailNow() on the outer 't'.
+// Use [CollectT.FailNow] or 'require' functions on the provided 'collect' to
+// only fail the current tick.
 //
 //	externalValue := false
 //	go func() {
@@ -524,6 +534,10 @@ func Negativef(t TestingT, e interface{}, msg string, args ...interface{}) bool 
 
 // Neverf asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
+//
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
 //
 //	assert.Neverf(t, func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func Neverf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) bool {

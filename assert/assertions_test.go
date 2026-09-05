@@ -3450,6 +3450,24 @@ func TestEventuallyTrue(t *testing.T) {
 	True(t, Eventually(t, condition, 100*time.Millisecond, 20*time.Millisecond))
 }
 
+func TestEventuallyFailNow(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(CollectT)
+	state := 0
+	condition := func() bool {
+		state += 1
+		mockT.FailNow()
+		panic("unreachable")
+	}
+
+	False(t, Eventually(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	True(t, mockT.failed())
+	Len(t, mockT.errors, 1)
+	ErrorContains(t, mockT.errors[0], "Condition exited unexpectedly")
+	Equal(t, 1, state, "Expected condition to be called exactly once")
+}
+
 // errorsCapturingT is a mock implementation of TestingT that captures errors reported with Errorf.
 type errorsCapturingT struct {
 	errors []error
@@ -3467,12 +3485,16 @@ func TestEventuallyWithTFalse(t *testing.T) {
 
 	mockT := new(errorsCapturingT)
 
+	count := 0
+
 	condition := func(collect *CollectT) {
+		count += 1
 		Fail(collect, "condition fixed failure")
 	}
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 2)
+	Greater(t, count, 3, "Condition is expected to be called multiple times")
 }
 
 func TestEventuallyWithTTrue(t *testing.T) {
@@ -3534,13 +3556,35 @@ func TestEventuallyWithTFailNow(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(CollectT)
+	count := 0
 
 	condition := func(collect *CollectT) {
+		count += 1
 		collect.FailNow()
+		panic("unreachable")
 	}
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 1)
+	Greater(t, count, 3, "Expected condition to be called multiple times")
+}
+
+func TestEventuallyWithTOuterFailNow(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(CollectT)
+	count := 0
+	condition := func(collect *CollectT) {
+		count += 1
+		mockT.FailNow()
+		panic("unreachable")
+	}
+
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	True(t, mockT.failed())
+	Len(t, mockT.errors, 1)
+	ErrorContains(t, mockT.errors[0], "Condition exited unexpectedly")
+	Equal(t, 1, count, "Expected condition to be called exactly once")
 }
 
 // Check that a long running condition doesn't block Eventually.
@@ -3632,6 +3676,24 @@ func TestNeverFailQuickly(t *testing.T) {
 	// we didn't check the condition before the first tick elapses.
 	condition := func() bool { return true }
 	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
+}
+
+func TestNeverFailNow(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(CollectT)
+	counter := 0
+	condition := func() bool {
+		counter += 1
+		mockT.FailNow()
+		panic("unreachable")
+	}
+
+	False(t, Never(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	True(t, mockT.failed(), "Expected Never to mark TestingT as failed")
+	Len(t, mockT.errors, 1)
+	ErrorContains(t, mockT.errors[0], "Condition exited unexpectedly")
+	Equal(t, 1, counter, "Expected condition to be called exactly once")
 }
 
 func Test_validateEqualArgs(t *testing.T) {

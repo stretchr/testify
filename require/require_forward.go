@@ -326,6 +326,10 @@ func (a *Assertions) Errorf(err error, msg string, args ...interface{}) {
 // Eventually asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
+//
 //	a.Eventually(func() bool { return true; }, time.Second, 10*time.Millisecond)
 func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
@@ -342,6 +346,12 @@ func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, ti
 // The supplied CollectT collects all errors from one tick (if there are any).
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
+//
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// and the exit was not via 'collect.FailNow()', the assertion fails immediately.
+// This usually means that the condition called t.FailNow() on the outer 't'.
+// Use [CollectT.FailNow] or 'require' functions on the provided 'collect' to
+// only fail the current tick.
 //
 //	externalValue := false
 //	go func() {
@@ -368,6 +378,12 @@ func (a *Assertions) EventuallyWithT(condition func(collect *assert.CollectT), w
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// and the exit was not via 'collect.FailNow()', the assertion fails immediately.
+// This usually means that the condition called t.FailNow() on the outer 't'.
+// Use [CollectT.FailNow] or 'require' functions on the provided 'collect' to
+// only fail the current tick.
+//
 //	externalValue := false
 //	go func() {
 //		time.Sleep(8*time.Second)
@@ -386,6 +402,10 @@ func (a *Assertions) EventuallyWithTf(condition func(collect *assert.CollectT), 
 
 // Eventuallyf asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
+//
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
 //
 //	a.Eventuallyf(func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func (a *Assertions) Eventuallyf(condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
@@ -1016,6 +1036,10 @@ func (a *Assertions) Negativef(e interface{}, msg string, args ...interface{}) {
 // Never asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
 //
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
+//
 //	a.Never(func() bool { return false; }, time.Second, 10*time.Millisecond)
 func (a *Assertions) Never(condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
@@ -1026,6 +1050,10 @@ func (a *Assertions) Never(condition func() bool, waitFor time.Duration, tick ti
 
 // Neverf asserts that the given condition doesn't satisfy in waitFor time,
 // periodically checking the target function each tick.
+//
+// If the condition does not return normally, but instead calls [runtime.Goexit],
+// the assertion fails immediately. This usually means that the condition called
+// t.FailNow() on the outer 't'.
 //
 //	a.Neverf(func() bool { return false; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
 func (a *Assertions) Neverf(condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
