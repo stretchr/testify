@@ -725,6 +725,15 @@ func Test_Mock_Unset_WithFuncPanics(t *testing.T) {
 	})
 }
 
+func Test_Mock_Unset_WithArgumentMatcherSucceeds(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+	mockedCall := mockedService.On("TheExampleMethod", MatchedBy(func(i int) bool {
+		return true
+	}))
+
+	assert.NotPanics(t, func() { _ = mockedCall.Unset() })
+}
+
 func Test_Mock_Return(t *testing.T) {
 	t.Parallel()
 
