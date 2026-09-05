@@ -121,7 +121,7 @@ func (f *formatState) formatPtr(v reflect.Value) {
 	// Keep list of all dereferenced pointers to possibly show later.
 	pointerChain := make([]uintptr, 0)
 
-	// Figure out how many levels of indirection there are by derferencing
+	// Figure out how many levels of indirection there are by dereferencing
 	// pointers and unpacking interfaces down the chain while detecting circular
 	// references.
 	nilFound := false

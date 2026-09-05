@@ -15,7 +15,7 @@
 // NOTE: Due to the following build constraints, this file will only be compiled
 // when both cgo is supported and "-tags testcgo" is added to the go test
 // command line.  This means the cgo tests are only added (and hence run) when
-// specifially requested.  This configuration is used because spew itself
+// specifically requested.  This configuration is used because spew itself
 // does not require cgo to run even though it does handle certain cgo types
 // specially.  Rather than forcing all clients to require cgo and an external
 // C compiler just to run the tests, this scheme makes them optional.
