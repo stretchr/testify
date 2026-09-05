@@ -2516,6 +2516,39 @@ func TestInEpsilonSlice(t *testing.T) {
 	False(t, InEpsilonSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
+func TestInEpsilonSliceMessage(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(bufferT)
+	False(t, InEpsilonSlice(mockT,
+		[]float64{2.1, 2.0},
+		[]float64{2.1, 2.1},
+		0.04,
+		"ctx %d", 7,
+	))
+	Regexp(t, regexp.MustCompile(
+		`^\tassertions.go:\d+: \n\t+Error Trace:\t\n\t+Error:\s+Relative error is too high: 0.04 \(expected\)\n\s+< 0.050000000000000044 \(actual\)\n\s+Messages:\s+at index 1: ctx 7\n$`,
+	), mockT.buf.String())
+
+	mockT = new(bufferT)
+	False(t, InEpsilonSlice(mockT,
+		[]float64{2.1, 2.0},
+		[]float64{2.1, 2.1},
+		0.04,
+	))
+	Regexp(t, regexp.MustCompile(
+		`^\tassertions.go:\d+: \n\t+Error Trace:\t\n\t+Error:\s+Relative error is too high: 0.04 \(expected\)\n\s+< 0.050000000000000044 \(actual\)\n\s+Messages:\s+at index 1\n$`,
+	), mockT.buf.String())
+
+	mockT = new(bufferT)
+	True(t, InEpsilonSlice(mockT,
+		[]float64{2.1, 2.0},
+		[]float64{2.1, 2.0},
+		0.04,
+	))
+	Empty(t, mockT.buf.String())
+}
+
 func TestRegexp(t *testing.T) {
 	t.Parallel()
 
