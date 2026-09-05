@@ -1,4 +1,4 @@
-//go:build !testify_yaml_fail && !testify_yaml_custom
+//go:build !testify_yaml_fail && !testify_yaml_custom && !testify_no_deps
 
 // Package yaml is just an indirection to handle YAML deserialization.
 //
@@ -10,7 +10,7 @@
 //
 // Alternative implementations are selected using build tags:
 //
-//   - testify_yaml_fail: [Unmarshal] always fails with an error
+//   - testify_yaml_fail or testify_no_deps: [Unmarshal] always fails with an error
 //   - testify_yaml_custom: [Unmarshal] is a variable. Caller must initialize it
 //     before calling any of [github.com/stretchr/testify/assert.YAMLEq] or
 //     [github.com/stretchr/testify/assert.YAMLEqf].
