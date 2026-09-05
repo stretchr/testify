@@ -53,6 +53,12 @@ type ConfigState struct {
 	// invoked for types that implement them.
 	DisableMethods bool
 
+	// EnableTimeStringer specifies whether to invoke the Stringer interface on
+	// time.Time values even when DisableMethods is true. This is useful to get
+	// human-readable output for time.Time values while keeping method calls
+	// disabled for other types.
+	EnableTimeStringer bool
+
 	// DisablePointerMethods specifies whether or not to check for and invoke
 	// error and Stringer interfaces on types which only accept a pointer
 	// receiver when the current type is not a pointer.
