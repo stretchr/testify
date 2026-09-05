@@ -2989,6 +2989,28 @@ Diff:
 Diff:
 --- Expected
 +++ Actual
+@@ -12,3 +12,3 @@
+   x: (int) 4
+- }: (int) 4
++ }: (int) 999
+ }
+`
+
+	type Key struct {
+		x int
+	}
+
+	actual = diff(
+		map[Key]int{Key{1}: 1, Key{2}: 2, Key{3}: 3, Key{4}: 4},
+		map[Key]int{Key{1}: 1, Key{2}: 2, Key{3}: 3, Key{4}: 999},
+	)
+	Equal(t, expected, actual)
+
+	expected = `
+
+Diff:
+--- Expected
++++ Actual
 @@ -1,3 +1,3 @@
  (*errors.errorString)({
 - s: (string) (len=19) "some expected error"
