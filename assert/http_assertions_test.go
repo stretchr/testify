@@ -86,6 +86,43 @@ func TestHTTPRedirect(t *testing.T) {
 	assert.True(mockT4.Failed())
 }
 
+func TestHTTPStatusClasses(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		code     int
+		success  bool
+		redirect bool
+	}{
+		{199, false, false},
+		{http.StatusOK, true, false},
+		{http.StatusPartialContent, true, false},
+		{http.StatusMultiStatus, true, false},
+		{http.StatusAlreadyReported, true, false},
+		{http.StatusIMUsed, true, false},
+		{299, true, false},
+		{http.StatusMultipleChoices, false, true},
+		{http.StatusTemporaryRedirect, false, true},
+		{http.StatusPermanentRedirect, false, true},
+		{399, false, true},
+		{http.StatusBadRequest, false, false},
+	} {
+		t.Run(fmt.Sprint(tt.code), func(t *testing.T) {
+			handler := func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.code)
+			}
+
+			successT := new(mockTestingT)
+			Equal(t, tt.success, HTTPSuccess(successT, handler, "GET", "/", nil), "HTTPSuccess")
+			Equal(t, !tt.success, successT.Failed(), "HTTPSuccess failure")
+
+			redirectT := new(mockTestingT)
+			Equal(t, tt.redirect, HTTPRedirect(redirectT, handler, "GET", "/", nil), "HTTPRedirect")
+			Equal(t, !tt.redirect, redirectT.Failed(), "HTTPRedirect failure")
+		})
+	}
+}
+
 func TestHTTPError(t *testing.T) {
 	t.Parallel()
 
