@@ -443,6 +443,9 @@ func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	if e == nil {
+		return Fail(t, `Can not compare type "<nil>"`, msgAndArgs...)
+	}
 	zero := reflect.Zero(reflect.TypeOf(e))
 	failMessage := fmt.Sprintf("\"%v\" is not positive", e)
 	return compareTwoValues(t, e, zero.Interface(), []compareResult{compareGreater}, failMessage, msgAndArgs...)
@@ -455,6 +458,9 @@ func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+	if e == nil {
+		return Fail(t, `Can not compare type "<nil>"`, msgAndArgs...)
 	}
 	zero := reflect.Zero(reflect.TypeOf(e))
 	failMessage := fmt.Sprintf("\"%v\" is not negative", e)
