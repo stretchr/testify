@@ -338,6 +338,7 @@ func TestPositive(t *testing.T) {
 		e   interface{}
 		msg string
 	}{
+		{e: nil, msg: `Can not compare type "<nil>"`},
 		{e: int(-1), msg: `"-1" is not positive`},
 		{e: int8(-1), msg: `"-1" is not positive`},
 		{e: int16(-1), msg: `"-1" is not positive`},
@@ -379,6 +380,7 @@ func TestNegative(t *testing.T) {
 		e   interface{}
 		msg string
 	}{
+		{e: nil, msg: `Can not compare type "<nil>"`},
 		{e: int(1), msg: `"1" is not negative`},
 		{e: int8(1), msg: `"1" is not negative`},
 		{e: int16(1), msg: `"1" is not negative`},
