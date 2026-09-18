@@ -313,7 +313,7 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (compareResult, bool) {
 	case reflect.Struct:
 		{
 			// All structs enter here. We're not interested in most types.
-			if !obj1Value.CanConvert(timeType) {
+			if !obj1Value.CanConvert(timeType) || !obj2Value.CanConvert(timeType) {
 				break
 			}
 
@@ -339,7 +339,7 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (compareResult, bool) {
 	case reflect.Slice:
 		{
 			// We only care about the []byte type.
-			if !obj1Value.CanConvert(bytesType) {
+			if !obj1Value.CanConvert(bytesType) || !obj2Value.CanConvert(bytesType) {
 				break
 			}
 
