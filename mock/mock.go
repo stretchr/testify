@@ -142,6 +142,8 @@ func (c *Call) Twice() *Call {
 
 // Times indicates that the mock should only return the indicated number
 // of times.
+// A value of 0 restores the default behavior: the call may return any number
+// of times, but must still be called at least once unless Maybe is used.
 //
 //	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (c *Call) Times(i int) *Call {
