@@ -1,6 +1,8 @@
 {{.CommentRequire}}
-func {{.DocInfo.Name}}(t TestingT, {{.Params}}) {
+func {{.DocInfo.Name}}{{.TypeParams}}(t TestingT, {{.Params}}){{.RequireResults}} {
 	if h, ok := t.(tHelper); ok { h.Helper() }
-	if assert.{{.DocInfo.Name}}(t, {{.ForwardedParams}}) { return }
-	t.FailNow()
+	{{if .HasRequireResults}}{{.RequireResultNames}}, success := assert.{{.DocInfo.Name}}{{.TypeArgs}}(t, {{.ForwardedParams}})
+	if !success { t.FailNow() }
+	return {{.RequireResultNames}}{{else}}if assert.{{.DocInfo.Name}}{{.TypeArgs}}(t, {{.ForwardedParams}}) { return }
+	t.FailNow(){{end}}
 }

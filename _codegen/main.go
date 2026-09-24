@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/build"
+	"go/build/constraint"
 	"go/doc"
 	"go/format"
 	"go/importer"
@@ -32,10 +33,16 @@ var (
 	outputPkg = flag.String("output-package", "", "package for the resulting code")
 	tmplFile  = flag.String("template", "", "What file to load the function template from")
 	out       = flag.String("out", "", "What file to write the source code to")
+	goVersion string
 )
 
 func main() {
 	flag.Parse()
+	var err error
+	goVersion, err = inferGoVersion()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	scope, docs, err := parsePackageSource(*pkg)
 	if err != nil {
@@ -59,14 +66,19 @@ func generateCode(importer imports.Importer, funcs []testFunc) error {
 	if err != nil {
 		return err
 	}
+	if strings.Contains(funcTemplate, "assert.") {
+		importer.AddImport(*pkg, "assert")
+	}
 
 	// Generate header
 	if err := tmplHead.Execute(buff, struct {
-		Name    string
-		Imports map[string]string
+		Name      string
+		Imports   map[string]string
+		GoVersion string
 	}{
 		*outputPkg,
 		importer.Imports(),
+		goVersion,
 	}); err != nil {
 		return err
 	}
@@ -92,6 +104,38 @@ func generateCode(importer imports.Importer, funcs []testFunc) error {
 	defer output.Close()
 	_, err = io.Copy(output, bytes.NewReader(code))
 	return err
+}
+
+func inferGoVersion() (string, error) {
+	filename := os.Getenv("GOFILE")
+	if filename == "" {
+		return "", nil
+	}
+
+	source, err := os.ReadFile(filename)
+	if err != nil {
+		return "", fmt.Errorf("read GOFILE %q: %w", filename, err)
+	}
+	for _, line := range strings.Split(string(source), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "package ") {
+			break
+		}
+		if !strings.HasPrefix(line, "//go:build ") {
+			continue
+		}
+
+		expr, err := constraint.Parse(line)
+		if err != nil {
+			return "", fmt.Errorf("parse build constraint in %q: %w", filename, err)
+		}
+		tag, ok := expr.(*constraint.TagExpr)
+		if !ok || !strings.HasPrefix(tag.Tag, "go1.") {
+			return "", nil
+		}
+		return strings.TrimPrefix(tag.Tag, "go"), nil
+	}
+	return "", nil
 }
 
 func parseTemplates() (*template.Template, *template.Template, error) {
@@ -162,9 +206,22 @@ func analyzeCode(scope *types.Scope, docs *doc.Package) (imports.Importer, []tes
 		if strings.HasSuffix(fdocs.Name, "f") && !*includeF {
 			continue
 		}
+		if (sig.TypeParams().Len() > 0) != (goVersion != "") {
+			continue
+		}
+		results := sig.Results()
+		if results.Len() == 0 || !types.Identical(results.At(results.Len()-1).Type(), types.Typ[types.Bool]) {
+			return nil, nil, fmt.Errorf("assertion function %s must return bool as its final result", fdocs.Name)
+		}
 
 		funcs = append(funcs, testFunc{*outputPkg, fdocs, fn})
-		importer.AddImportsFrom(sig.Params())
+		for i := 1; i < sig.Params().Len(); i++ {
+			importer.AddImportsFrom(sig.Params().At(i).Type())
+		}
+		importer.AddImportsFrom(sig.Results())
+		for i := 0; i < sig.TypeParams().Len(); i++ {
+			importer.AddImportsFrom(sig.TypeParams().At(i).Constraint())
+		}
 	}
 	return importer, funcs, nil
 }
@@ -218,6 +275,10 @@ type testFunc struct {
 	TypeInfo   *types.Func
 }
 
+func (f *testFunc) signature() *types.Signature {
+	return f.TypeInfo.Type().(*types.Signature)
+}
+
 func (f *testFunc) Qualifier(p *types.Package) string {
 	if p == nil || p.Name() == f.CurrentPkg {
 		return ""
@@ -226,7 +287,7 @@ func (f *testFunc) Qualifier(p *types.Package) string {
 }
 
 func (f *testFunc) Params() string {
-	sig := f.TypeInfo.Type().(*types.Signature)
+	sig := f.signature()
 	params := sig.Params()
 	var p strings.Builder
 	comma := ""
@@ -249,6 +310,88 @@ func (f *testFunc) Params() string {
 		fmt.Fprintf(&p, "%s%s ...%s", comma, param.Name(), types.TypeString(param.Type().(*types.Slice).Elem(), f.Qualifier))
 	}
 	return p.String()
+}
+
+func (f *testFunc) TypeParams() string {
+	typeParams := f.signature().TypeParams()
+	if typeParams.Len() == 0 {
+		return ""
+	}
+
+	var p strings.Builder
+	p.WriteByte('[')
+	for i := 0; i < typeParams.Len(); i++ {
+		if i > 0 {
+			p.WriteString(", ")
+		}
+		typeParam := typeParams.At(i)
+		p.WriteString(typeParam.Obj().Name())
+		p.WriteByte(' ')
+		p.WriteString(types.TypeString(typeParam.Constraint(), f.Qualifier))
+	}
+	p.WriteByte(']')
+	return p.String()
+}
+
+func (f *testFunc) TypeArgs() string {
+	typeParams := f.signature().TypeParams()
+	if typeParams.Len() == 0 {
+		return ""
+	}
+
+	var p strings.Builder
+	p.WriteByte('[')
+	for i := 0; i < typeParams.Len(); i++ {
+		if i > 0 {
+			p.WriteString(", ")
+		}
+		p.WriteString(typeParams.At(i).Obj().Name())
+	}
+	p.WriteByte(']')
+	return p.String()
+}
+
+func (f *testFunc) Results() string {
+	return f.formatResults(f.signature().Results())
+}
+
+func (f *testFunc) RequireResults() string {
+	results := f.signature().Results()
+	return f.formatResults(resultsWithoutSuccess(results))
+}
+
+func (f *testFunc) HasRequireResults() bool {
+	return f.signature().Results().Len() > 1
+}
+
+func (f *testFunc) RequireResultNames() string {
+	var names strings.Builder
+	for i := 0; i < f.signature().Results().Len()-1; i++ {
+		if i > 0 {
+			names.WriteString(", ")
+		}
+		fmt.Fprintf(&names, "result%d", i)
+	}
+	return names.String()
+}
+
+func (f *testFunc) formatResults(results *types.Tuple) string {
+	switch results.Len() {
+	case 0:
+		return ""
+	case 1:
+		return " " + types.TypeString(results.At(0).Type(), f.Qualifier)
+	default:
+		return " " + types.TypeString(results, f.Qualifier)
+	}
+}
+
+func resultsWithoutSuccess(results *types.Tuple) *types.Tuple {
+	vars := make([]*types.Var, results.Len()-1)
+	for i := range vars {
+		vars[i] = results.At(i)
+	}
+	return types.NewTuple(vars...)
 }
 
 func (f *testFunc) ForwardedParams() string {
@@ -296,14 +439,14 @@ func (f *testFunc) CommentFormat() string {
 	// Change here if the original comment changed.
 	comment = strings.Replace(comment, `, "external state has not changed to 'true'; still false"`, "", 1)
 
-	exp := regexp.MustCompile(replace + `\((([^()]*|\([^()]*\))*)\)`)
-	return exp.ReplaceAllString(comment, replace+`($1, "error message %s", "formatted")`)
+	exp := regexp.MustCompile(replace + `(\[[^\n]*\])?\((([^()]*|\([^()]*\))*)\)`)
+	return exp.ReplaceAllString(comment, replace+`$1($2, "error message %s", "formatted")`)
 }
 
 func (f *testFunc) CommentWithoutT(receiver string) string {
-	search := fmt.Sprintf("assert.%s(t, ", f.DocInfo.Name)
-	replace := fmt.Sprintf("%s.%s(", receiver, f.DocInfo.Name)
-	return strings.Replace(f.Comment(), search, replace, -1)
+	search := regexp.MustCompile(fmt.Sprintf(`assert\.%s(\[[^\n]*\])?\(t, `, regexp.QuoteMeta(f.DocInfo.Name)))
+	replace := fmt.Sprintf("%s.%s$1(", receiver, f.DocInfo.Name)
+	return search.ReplaceAllString(f.Comment(), replace)
 }
 
 func requireComment(comment string) string {
@@ -345,23 +488,27 @@ func (f *testFunc) CommentRequire() string {
 }
 
 func (f *testFunc) CommentRequireWithoutT(receiver string) string {
-	assertCallRe := regexp.MustCompile(`assert\.(\w+)\(t, `)
-	comment := assertCallRe.ReplaceAllString(f.DocInfo.Doc, receiver+".$1(")
+	assertCallRe := regexp.MustCompile(`assert\.(\w+)(\[[^\n]*\])?\(t, `)
+	comment := assertCallRe.ReplaceAllString(f.DocInfo.Doc, receiver+".$1$2(")
 	return requireComment(comment)
 }
 
 // Standard header https://go.dev/s/generatedcode.
-var headerTemplate = `// Code generated with github.com/stretchr/testify/_codegen; DO NOT EDIT.
+var headerTemplate = `{{if .GoVersion}}//go:build go{{.GoVersion}}
+
+{{end}}// Code generated with github.com/stretchr/testify/_codegen; DO NOT EDIT.
 
 package {{.Name}}
 
+{{if .Imports}}
 import (
 {{range $path, $name := .Imports}}
 	{{$name}} "{{$path}}"{{end}}
 )
+{{end}}
 `
 
 var funcTemplate = `{{.Comment}}
-func (fwd *AssertionsForwarder) {{.DocInfo.Name}}({{.Params}}) bool {
-	return assert.{{.DocInfo.Name}}({{.ForwardedParams}})
+func (fwd *AssertionsForwarder) {{.DocInfo.Name}}{{.TypeParams}}({{.Params}}){{.Results}} {
+	return assert.{{.DocInfo.Name}}{{.TypeArgs}}({{.ForwardedParams}})
 }`

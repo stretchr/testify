@@ -32,6 +32,7 @@ import (
 )
 
 type Importer interface {
+	AddImport(path, name string)
 	AddImportsFrom(t types.Type)
 	Imports() map[string]string
 }
@@ -40,17 +41,41 @@ type Importer interface {
 type imports struct {
 	currentpkg string
 	imp        map[string]string
+	seen       map[types.Type]bool
+}
+
+// AddImport adds an import directly.
+func (imp *imports) AddImport(path, name string) {
+	if name == imp.currentpkg {
+		return
+	}
+	imp.imp[cleanImportPath(path)] = name
 }
 
 // AddImportsFrom adds imports used in the passed type
 func (imp *imports) AddImportsFrom(t types.Type) {
+	if imp.seen[t] {
+		return
+	}
+	imp.seen[t] = true
+
 	switch el := t.(type) {
 	case *types.Basic:
 	case *types.Slice:
 		imp.AddImportsFrom(el.Elem())
+	case *types.Array:
+		imp.AddImportsFrom(el.Elem())
 	case *types.Pointer:
 		imp.AddImportsFrom(el.Elem())
+	case *types.Map:
+		imp.AddImportsFrom(el.Key())
+		imp.AddImportsFrom(el.Elem())
+	case *types.Chan:
+		imp.AddImportsFrom(el.Elem())
 	case *types.Named:
+		for i := 0; i < el.TypeArgs().Len(); i++ {
+			imp.AddImportsFrom(el.TypeArgs().At(i))
+		}
 		pkg := el.Obj().Pkg()
 		if pkg == nil {
 			return
@@ -58,10 +83,30 @@ func (imp *imports) AddImportsFrom(t types.Type) {
 		if pkg.Name() == imp.currentpkg {
 			return
 		}
-		imp.imp[cleanImportPath(pkg.Path())] = pkg.Name()
+		imp.AddImport(pkg.Path(), pkg.Name())
 	case *types.Tuple:
 		for i := 0; i < el.Len(); i++ {
 			imp.AddImportsFrom(el.At(i).Type())
+		}
+	case *types.Signature:
+		imp.AddImportsFrom(el.Params())
+		imp.AddImportsFrom(el.Results())
+	case *types.Interface:
+		for i := 0; i < el.NumEmbeddeds(); i++ {
+			imp.AddImportsFrom(el.EmbeddedType(i))
+		}
+		for i := 0; i < el.NumExplicitMethods(); i++ {
+			imp.AddImportsFrom(el.ExplicitMethod(i).Type())
+		}
+	case *types.Struct:
+		for i := 0; i < el.NumFields(); i++ {
+			imp.AddImportsFrom(el.Field(i).Type())
+		}
+	case *types.TypeParam:
+		imp.AddImportsFrom(el.Constraint())
+	case *types.Union:
+		for i := 0; i < el.Len(); i++ {
+			imp.AddImportsFrom(el.Term(i).Type())
 		}
 	default:
 	}
@@ -104,5 +149,6 @@ func New(currentpkg string) Importer {
 	return &imports{
 		currentpkg: currentpkg,
 		imp:        make(map[string]string),
+		seen:       make(map[types.Type]bool),
 	}
 }

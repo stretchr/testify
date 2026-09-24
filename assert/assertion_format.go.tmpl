@@ -1,5 +1,5 @@
 {{.CommentFormat}}
-func {{.DocInfo.Name}}f(t TestingT, {{.ParamsFormat}}) bool {
+func {{.DocInfo.Name}}f{{.TypeParams}}(t TestingT, {{.ParamsFormat}}){{.Results}} {
 	if h, ok := t.(tHelper); ok { h.Helper() }
-	return {{.DocInfo.Name}}(t, {{.ForwardedParamsFormat}})
+	return {{.DocInfo.Name}}{{.TypeArgs}}(t, {{.ForwardedParamsFormat}})
 }

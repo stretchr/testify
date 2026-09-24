@@ -1,5 +1,5 @@
 {{.CommentRequireWithoutT "a"}}
-func (a *Assertions) {{.DocInfo.Name}}({{.Params}}) {
+func (a *Assertions) {{.DocInfo.Name}}{{.TypeParams}}({{.Params}}){{.RequireResults}} {
 	if h, ok := a.t.(tHelper); ok { h.Helper() }
-	{{.DocInfo.Name}}(a.t, {{.ForwardedParams}})
+	{{if .HasRequireResults}}return {{end}}{{.DocInfo.Name}}{{.TypeArgs}}(a.t, {{.ForwardedParams}})
 }

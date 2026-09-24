@@ -28,28 +28,40 @@
 
 set -euo pipefail
 
-declare -A seen
+seen=("")
 status=0
 
 for w in .github/workflows/*.yml
 do
-	sed -n -e '/uses: / s!^ *-\{0,1\} uses: \([^@]*\)@\([0-9a-f][0-9a-f]*\) *# *\(v.*\)$!\1 \2 \3!p' "$w" | while read -r action hash tag
+	actions="$(sed -n -e '/uses: / s!^ *-\{0,1\} uses: \([^@]*\)@\([0-9a-f][0-9a-f]*\) *# *\(v.*\)$!\1 \2 \3!p' "$w")"
+	while read -r action hash tag
 	do
-		if (( ${seen["$action-$hash-$tag"]:-0} )); then
-			printf "\e[1;32m%s: %s@%s == %s\e[m\n" "$w" "$action" "$tag" "$hash"
+		if [[ -z "$action" ]]; then
 			continue
 		fi
-		seen["$action-$hash-$tag"]=1
+		key="$action-$hash-$tag"
+		duplicate=0
+		for seen_key in "${seen[@]}"
+		do
+			if [[ "$seen_key" == "$key" ]]; then
+				duplicate=1
+				break
+			fi
+		done
+		if (( duplicate )); then
+			continue
+		fi
+		seen+=("$key")
 
-		if eval "$( curl -s -H "Accept: application/vnd.github+json" \
-			"https://api.github.com/repos/$action/commits/$tag" | jq -r '.sha == "'"$hash"'"' )"
+		if curl --fail --silent --show-error -H "Accept: application/vnd.github+json" \
+			"https://api.github.com/repos/$action/commits/$tag" | jq -e --arg hash "$hash" '.sha == $hash' >/dev/null
 		then
 			printf "\e[1;32m%s: %s@%s == %s\e[m\n" "$w" "$action" "$tag" "$hash"
 		else
 			printf "\e[1;31m%s: %s@%s != %s\e[m\n" "$w" "$action" "$tag" "$hash"
 			status=1
 		fi
-	done
+	done <<< "$actions"
 done
 
 exit $status
