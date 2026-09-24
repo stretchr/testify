@@ -63,8 +63,12 @@ func TestCompare(t *testing.T) {
 		{less: time.Now(), greater: time.Now().Add(time.Hour), cType: "time.Time"},
 		{less: time.Date(2024, 0, 0, 0, 0, 0, 0, time.Local), greater: time.Date(2263, 0, 0, 0, 0, 0, 0, time.Local), cType: "time.Time"},
 		{less: customTime(time.Now()), greater: customTime(time.Now().Add(time.Hour)), cType: "time.Time"},
+		{less: time.Time{}, greater: customTime(time.Time{}.Add(time.Hour)), cType: "time.Time/customTime"},
+		{less: customTime(time.Time{}), greater: time.Time{}.Add(time.Hour), cType: "customTime/time.Time"},
 		{less: []byte{1, 1}, greater: []byte{1, 2}, cType: "[]byte"},
 		{less: customBytes([]byte{1, 1}), greater: customBytes([]byte{1, 2}), cType: "[]byte"},
+		{less: []byte{1, 1}, greater: customBytes{1, 2}, cType: "[]byte/customBytes"},
+		{less: customBytes(nil), greater: []byte{1}, cType: "customBytes/[]byte"},
 	} {
 		resLess, isComparable := compare(currCase.less, currCase.greater, reflect.ValueOf(currCase.less).Kind())
 		if !isComparable {
@@ -411,6 +415,49 @@ func Test_compareTwoValuesDifferentValuesTypes(t *testing.T) {
 	} {
 		result := compareTwoValues(mockT, currCase.v1, currCase.v2, []compareResult{compareLess, compareEqual, compareGreater}, "testFailMessage")
 		False(t, result)
+	}
+}
+
+func TestComparisonsWithIncompatibleTypes(t *testing.T) {
+	t.Parallel()
+
+	type customTime time.Time
+	type customBytes []byte
+
+	for _, assertion := range []struct {
+		name string
+		call ComparisonAssertionFunc
+	}{
+		{"Greater", Greater},
+		{"GreaterOrEqual", GreaterOrEqual},
+		{"Less", Less},
+		{"LessOrEqual", LessOrEqual},
+	} {
+		t.Run(assertion.name, func(t *testing.T) {
+			for _, tc := range []struct {
+				name string
+				a, b interface{}
+			}{
+				{"time/struct", time.Time{}, struct{}{}},
+				{"struct/time", struct{}{}, time.Time{}},
+				{"customTime/struct", customTime{}, struct{}{}},
+				{"struct/customTime", struct{}{}, customTime{}},
+				{"bytes/ints", []byte{1}, []int{2}},
+				{"ints/bytes", []int{1}, []byte{2}},
+				{"customBytes/ints", customBytes{1}, []int{2}},
+				{"ints/customBytes", []int{1}, customBytes{2}},
+				{"nilBytes/nilInts", []byte(nil), []int(nil)},
+				{"nilInts/nilBytes", []int(nil), []byte(nil)},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					out := &outputT{buf: bytes.NewBuffer(nil)}
+					False(t, assertion.call(out, tc.a, tc.b, "comparison context %d", 42))
+					Contains(t, out.buf.String(), fmt.Sprintf(`Can not compare type "%T"`, tc.a))
+					Contains(t, out.buf.String(), "comparison context 42")
+					Contains(t, out.helpers, "github.com/stretchr/testify/assert."+assertion.name)
+				})
+			}
+		})
 	}
 }
 

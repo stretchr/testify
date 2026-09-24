@@ -77,6 +77,40 @@ func TestEqual(t *testing.T) {
 
 }
 
+func TestComparisonsWithIncompatibleTypes(t *testing.T) {
+	t.Parallel()
+
+	for _, assertion := range []struct {
+		name string
+		call func(TestingT, interface{}, interface{}, ...interface{})
+	}{
+		{"Greater", Greater},
+		{"GreaterOrEqual", GreaterOrEqual},
+		{"Less", Less},
+		{"LessOrEqual", LessOrEqual},
+	} {
+		t.Run(assertion.name, func(t *testing.T) {
+			for _, tc := range []struct {
+				name string
+				a, b interface{}
+			}{
+				{"time/struct", time.Time{}, struct{}{}},
+				{"struct/time", struct{}{}, time.Time{}},
+				{"bytes/ints", []byte{1}, []int{2}},
+				{"ints/bytes", []int{1}, []byte{2}},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					mockT := new(MockT)
+					assertion.call(mockT, tc.a, tc.b)
+					if !mockT.Failed {
+						t.Error("incompatible types should call FailNow")
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestNotEqual(t *testing.T) {
 	t.Parallel()
 
