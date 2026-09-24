@@ -988,7 +988,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			actualFmt = missing.String()
 		} else {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			actualFmt = safeFormatArg(actual)
 		}
 
 		if len(args) <= i {
@@ -996,7 +996,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expectedFmt = missing.String()
 		} else {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			expectedFmt = safeFormatArg(expected)
 		}
 
 		// A missing argument on either side means the call and the expectation
@@ -1332,4 +1332,28 @@ func isFuncSame(f1, f2 *runtime.Func) bool {
 	f2File, f2Loc := f2.FileLine(f2.Entry())
 
 	return f1File == f2File && f1Loc == f2Loc
+}
+
+// safeFormatArg formats an argument for display in diff output, handling
+// concurrent modification safely. For types that contain inherent references
+// (pointers, maps, slices, channels), fmt.Sprintf("%v") would traverse the
+// underlying data structure, which races with concurrent writers. For maps
+// this is a non-recoverable fatal error; for pointers and slices it triggers
+// data races detectable by -race.
+//
+// To avoid this, reference types are formatted with %p (address only) instead
+// of %v. All other types (structs, primitives, strings) are value types that
+// cannot race, so they use the full %v representation.
+//
+// See https://github.com/stretchr/testify/issues/1597
+func safeFormatArg(v interface{}) string {
+	if v == nil {
+		return fmt.Sprintf("(%[1]T=%[1]v)", v)
+	}
+	switch reflect.TypeOf(v).Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan:
+		return fmt.Sprintf("(%T=%p)", v, v)
+	default:
+		return fmt.Sprintf("(%[1]T=%[1]v)", v)
+	}
 }
