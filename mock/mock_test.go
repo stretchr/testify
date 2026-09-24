@@ -1744,6 +1744,23 @@ func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 
 }
 
+func Benchmark_Mock_AssertNumberOfCalls(b *testing.B) {
+	b.ReportAllocs()
+
+	m := new(Mock)
+	m.On("BenchmarkMethod", 1).Return()
+	for i := 0; i < 100; i++ {
+		m.MethodCalled("BenchmarkMethod", 1)
+	}
+
+	t := new(testing.T)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		m.AssertNumberOfCalls(t, "BenchmarkMethod", 100)
+	}
+}
+
 func Test_Mock_AssertCalled(t *testing.T) {
 	t.Parallel()
 
