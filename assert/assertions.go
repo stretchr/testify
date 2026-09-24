@@ -1225,6 +1225,14 @@ func formatListDiff(listA, listB interface{}, extraA, extraB []interface{}) stri
 	msg.WriteString("\n\nlistB:\n")
 	msg.WriteString(spewConfig.Sdump(listB))
 
+	// Compare fields only when there is one unmatched struct of the same type on each side.
+	if len(extraA) == 1 && len(extraB) == 1 &&
+		reflect.TypeOf(extraA[0]) == reflect.TypeOf(extraB[0]) &&
+		reflect.Indirect(reflect.ValueOf(extraA[0])).Kind() == reflect.Struct &&
+		reflect.Indirect(reflect.ValueOf(extraB[0])).Kind() == reflect.Struct {
+		msg.WriteString(diff(extraA[0], extraB[0]))
+	}
+
 	return msg.String()
 }
 

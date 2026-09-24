@@ -1383,6 +1383,83 @@ func TestElementsMatch(t *testing.T) {
 	}
 }
 
+func TestElementsMatchSingleStructDiff(t *testing.T) {
+	t.Parallel()
+
+	type record struct {
+		Name    string
+		Enabled bool
+		Count   int
+	}
+	type otherRecord record
+	a := record{Name: "changed", Enabled: true, Count: 10}
+	b := record{Name: "changed", Enabled: false, Count: 10}
+	common := record{Name: "unchanged", Enabled: true, Count: 1}
+	pa, pb := &a, &b
+
+	cases := []struct {
+		name      string
+		listA     interface{}
+		listB     interface{}
+		wantDiff  bool
+		wantMatch bool
+	}{
+		{name: "structs", listA: []record{a}, listB: []record{b}, wantDiff: true},
+		{name: "reordered structs", listA: []record{common, a}, listB: []record{b, common}, wantDiff: true},
+		{name: "arrays", listA: [2]record{common, a}, listB: [2]record{b, common}, wantDiff: true},
+		{name: "array and slice", listA: [2]record{common, a}, listB: []record{b, common}, wantDiff: true},
+		{name: "struct pointers", listA: []*record{&a}, listB: []*record{&b}, wantDiff: true},
+		{name: "reordered pointers", listA: []*record{&common, &a}, listB: []*record{&b, &common}, wantDiff: true},
+		{name: "interface elements", listA: []interface{}{nil, a}, listB: []interface{}{b, nil}, wantDiff: true},
+		{name: "duplicate common elements", listA: []record{common, common, a}, listB: []record{common, b, common}, wantDiff: true},
+		{name: "integers", listA: []int{1}, listB: []int{2}},
+		{name: "strings", listA: []string{"a"}, listB: []string{"b"}},
+		{name: "nested slices", listA: [][]int{{1}}, listB: [][]int{{2}}},
+		{name: "maps", listA: []map[string]int{{"value": 1}}, listB: []map[string]int{{"value": 2}}},
+		{name: "different struct types", listA: []record{a}, listB: []otherRecord{otherRecord(b)}},
+		{name: "extra in A only", listA: []record{common, a}, listB: []record{common}},
+		{name: "extra in B only", listA: []record{common}, listB: []record{common, b}},
+		{name: "multiple unmatched structs", listA: []record{a, a}, listB: []record{b, b}},
+		{name: "unequal unmatched counts", listA: []record{a, a}, listB: []record{b}},
+		{name: "nil and struct", listA: []interface{}{nil}, listB: []interface{}{b}},
+		{name: "struct and nil", listA: []interface{}{a}, listB: []interface{}{nil}},
+		{name: "nil pointer and struct pointer", listA: []*record{nil}, listB: []*record{&b}},
+		{name: "struct pointer and nil pointer", listA: []*record{&a}, listB: []*record{nil}},
+		{name: "struct and pointer", listA: []interface{}{a}, listB: []interface{}{&b}},
+		{name: "pointers to pointers", listA: []**record{&pa}, listB: []**record{&pb}},
+		{name: "duplicate count differs", listA: []record{a, a}, listB: []record{a}},
+		{name: "equal structs", listA: []record{a}, listB: []record{a}, wantMatch: true},
+		{name: "equal reordered structs", listA: []record{common, a}, listB: []record{a, common}, wantMatch: true},
+		{name: "equal duplicate counts", listA: []record{common, a, a}, listB: []record{a, common, a}, wantMatch: true},
+	}
+
+	for _, tt := range cases {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			mockT := new(mockTestingT)
+			Equal(t, tt.wantMatch, ElementsMatch(mockT, tt.listA, tt.listB))
+			message := mockT.errorString()
+			if tt.wantMatch {
+				Empty(t, message)
+				return
+			}
+			Contains(t, message, "elements differ")
+			Contains(t, message, "listA:")
+			Contains(t, message, "listB:")
+			Equal(t, tt.wantDiff, strings.Contains(message, "Diff:"))
+			if tt.wantDiff {
+				Contains(t, message, "extra elements in list A:")
+				Contains(t, message, "extra elements in list B:")
+				Contains(t, message, "--- Expected")
+				Contains(t, message, "+++ Actual")
+				Contains(t, message, "- Enabled: (bool) true,")
+				Contains(t, message, "+ Enabled: (bool) false,")
+			}
+		})
+	}
+}
+
 func TestDiffLists(t *testing.T) {
 	t.Parallel()
 
