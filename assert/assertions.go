@@ -614,14 +614,28 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 	return truncatingFormat("%#v", expected), truncatingFormat("%#v", actual)
 }
 
+// maxMessageSize is the maximum length, in bytes, of a single formatted
+// value that truncatingFormat will print before appending "<... truncated>".
+//
+// This used to be derived from bufio.MaxScanTokenSize, sized just small
+// enough that two truncated values plus their surrounding sentence couldn't
+// exceed the line-length limit go test's output scanner imposes; that
+// avoided losing failure output entirely (#1525), but a limit of ~32KB per
+// value still let a single assertion swamp the console with output no one
+// can read (#1801). 4000 keeps failure output readable, matches the default
+// MaxLength used by Gomega's format package (github.com/onsi/gomega/format)
+// for the same purpose, and remains comfortably below bufio.MaxScanTokenSize
+// so the original line-length guarantee still holds. Anyone who needs the
+// untruncated value can print it themselves, e.g. via t.Logf.
+const maxMessageSize = 4000
+
 // truncatingFormat formats the data and truncates it if it's too long.
 //
-// This helps keep formatted error messages lines from exceeding the
-// bufio.MaxScanTokenSize max line length that the go testing framework imposes.
+// This helps keep formatted error messages readable and ensures they don't
+// exceed the bufio.MaxScanTokenSize max line length that the go testing
+// framework imposes.
 func truncatingFormat(format string, data interface{}) string {
 	value := fmt.Sprintf(format, data)
-	// Give us space for two truncated objects and the surrounding sentence.
-	maxMessageSize := bufio.MaxScanTokenSize/2 - 100
 	if len(value) > maxMessageSize {
 		value = value[0:maxMessageSize] + "<... truncated>"
 	}
