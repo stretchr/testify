@@ -628,6 +628,29 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+// Regression test for the issue #746: a diff line longer than
+// bufio.MaxScanTokenSize replaced the whole failure message with
+// "cannot display message: bufio.Scanner: token too long".
+func TestEqualLongDiffLines(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+
+	longLine := strings.Repeat("a", bufio.MaxScanTokenSize)
+	Equal(mockT, longLine+"expected", longLine+"actual")
+
+	errorString := mockT.errorString()
+	if strings.Contains(errorString, "cannot display message") {
+		t.Errorf("Equal failure message should be displayed, got: %.100q...", errorString)
+	}
+	if !strings.Contains(errorString, "--- Expected") {
+		t.Errorf("Equal failure message should contain the diff, got: %.100q...", errorString)
+	}
+	if !strings.Contains(errorString, longLine+"expected") {
+		t.Errorf("Equal failure message should contain the long expected line, got: %.100q...", errorString)
+	}
+}
+
 func ptr(i int) *int {
 	return &i
 }

@@ -324,15 +324,20 @@ func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
 func indentMessageLines(message string, longestLabelLen int) string {
 	outBuf := new(bytes.Buffer)
 
-	scanner := bufio.NewScanner(strings.NewReader(message))
-	for firstLine := true; scanner.Scan(); firstLine = false {
-		if !firstLine {
-			fmt.Fprint(outBuf, "\n\t"+strings.Repeat(" ", longestLabelLen+1)+"\t")
-		}
-		fmt.Fprint(outBuf, scanner.Text())
+	// Splitting manually instead of using bufio.Scanner because the scanner
+	// errors out on lines longer than bufio.MaxScanTokenSize (64KiB), hiding
+	// the whole message. See issue #746.
+	lines := strings.Split(message, "\n")
+	// Like bufio.ScanLines, ignore the trailing empty line after a final "\n".
+	if len(lines) > 1 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
 	}
-	if err := scanner.Err(); err != nil {
-		return fmt.Sprintf("cannot display message: %s", err)
+	for i, line := range lines {
+		if i != 0 {
+			outBuf.WriteString("\n\t" + strings.Repeat(" ", longestLabelLen+1) + "\t")
+		}
+		// Like bufio.ScanLines, treat "\r\n" as a line ending as well.
+		outBuf.WriteString(strings.TrimSuffix(line, "\r"))
 	}
 
 	return outBuf.String()
