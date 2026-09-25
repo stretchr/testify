@@ -1766,6 +1766,19 @@ func Test_isEmpty(t *testing.T) {
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
+	// Values held in an interface, so that &x below is a pointer to an interface.
+	var (
+		emptyStringAny    interface{} = ""
+		emptyIntAny       interface{} = 0
+		emptySliceAny     interface{} = []int{}
+		emptyPtrAny       interface{} = new(int)
+		emptyErr                      = errors.New("") // error interface holding a non-nil, empty-message error
+		nonEmptyStringAny interface{} = "something"
+		nonEmptyIntAny    interface{} = 42
+		nonEmptySliceAny  interface{} = []int{42}
+		nonEmptyErr                   = errors.New("something")
+	)
+
 	True(t, isEmpty(""))
 	True(t, isEmpty(nil))
 	True(t, isEmpty(error(nil)))
@@ -1826,6 +1839,12 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty([]error(nil)))
 	True(t, isEmpty(&[1]int{0}))
 	True(t, isEmpty(&[2]int{0, 0}))
+	True(t, isEmpty(new(error)))      // ptr to nil interface
+	True(t, isEmpty(&emptyStringAny)) // ptr to interface holding ""
+	True(t, isEmpty(&emptyIntAny))    // ptr to interface holding 0
+	True(t, isEmpty(&emptySliceAny))  // ptr to interface holding []int{}
+	True(t, isEmpty(&emptyPtrAny))    // ptr to interface holding a ptr to a zero value
+	True(t, isEmpty(&emptyErr))       // ptr to error holding errors.New("") - BEWARE
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
 	False(t, isEmpty([]string{"something"}))
@@ -1852,6 +1871,10 @@ func Test_isEmpty(t *testing.T) {
 	False(t, isEmpty([]bool{false})) // elements values are ignored for slices
 	False(t, isEmpty([]bool{true}))  // elements values are ignored for slices
 	False(t, isEmpty([]error{errors.New("xxx")}))
+	False(t, isEmpty(&nonEmptyStringAny))      // ptr to interface holding "something"
+	False(t, isEmpty(&nonEmptyIntAny))         // ptr to interface holding 42
+	False(t, isEmpty(&nonEmptySliceAny))       // ptr to interface holding []int{42}
+	False(t, isEmpty(&nonEmptyErr))            // ptr to error holding errors.New("something")
 	False(t, isEmpty([]error{nil}))            // BEWARE
 	False(t, isEmpty([]error{errors.New("")})) // BEWARE
 	False(t, isEmpty(map[string]string{"Hello": "World"}))
@@ -1915,6 +1938,13 @@ func TestEmpty(t *testing.T) {
 		x int
 	}
 
+	// Pointers to an interface: Empty(&i) must agree with Empty(i).
+	var emptyIface interface{} = ""
+	var nonEmptyIface interface{} = "something"
+	var nilIface interface{}
+	var emptyStructIface interface{} = &TStruct{}
+	var nonEmptyStructIface interface{} = &TStruct{x: 1}
+
 	True(t, Empty(mockT, ""), "Empty string is empty")
 	True(t, Empty(mockT, nil), "Nil is empty")
 	True(t, Empty(mockT, []string{}), "Empty string array is empty")
@@ -1929,6 +1959,9 @@ func TestEmpty(t *testing.T) {
 	True(t, Empty(mockT, TString("")), "empty aliased string is empty")
 	True(t, Empty(mockT, sP), "ptr to nil value is empty")
 	True(t, Empty(mockT, [1]int{}), "array is state")
+	True(t, Empty(mockT, &nilIface), "ptr to nil interface is empty")
+	True(t, Empty(mockT, &emptyIface), "ptr to interface holding an empty value is empty")
+	True(t, Empty(mockT, &emptyStructIface), "ptr to interface holding a ptr to an empty struct is empty")
 
 	False(t, Empty(mockT, "something"), "Non Empty string is not empty")
 	False(t, Empty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -1940,6 +1973,8 @@ func TestEmpty(t *testing.T) {
 	False(t, Empty(mockT, TString("abc")), "non-empty aliased string is empty")
 	False(t, Empty(mockT, xP), "ptr to non-nil value is not empty")
 	False(t, Empty(mockT, [1]int{42}), "array is not state")
+	False(t, Empty(mockT, &nonEmptyIface), "ptr to interface holding a non-empty value is not empty")
+	False(t, Empty(mockT, &nonEmptyStructIface), "ptr to interface holding a ptr to a non-empty struct is not empty")
 
 	// error messages validation
 	tests := []struct {
@@ -2085,6 +2120,10 @@ func TestNotEmpty(t *testing.T) {
 	chWithValue := make(chan struct{}, 1)
 	chWithValue <- struct{}{}
 
+	var emptyIface interface{} = ""
+	var nonEmptyIface interface{} = "something"
+	var nilIface interface{}
+
 	False(t, NotEmpty(mockT, ""), "Empty string is empty")
 	False(t, NotEmpty(mockT, nil), "Nil is empty")
 	False(t, NotEmpty(mockT, []string{}), "Empty string array is empty")
@@ -2092,6 +2131,8 @@ func TestNotEmpty(t *testing.T) {
 	False(t, NotEmpty(mockT, false), "False value is empty")
 	False(t, NotEmpty(mockT, make(chan struct{})), "Channel without values is empty")
 	False(t, NotEmpty(mockT, [1]int{}), "array is state")
+	False(t, NotEmpty(mockT, &nilIface), "ptr to nil interface is empty")
+	False(t, NotEmpty(mockT, &emptyIface), "ptr to interface holding an empty value is empty")
 
 	True(t, NotEmpty(mockT, "something"), "Non Empty string is not empty")
 	True(t, NotEmpty(mockT, errors.New("something")), "Non nil object is not empty")
@@ -2100,6 +2141,7 @@ func TestNotEmpty(t *testing.T) {
 	True(t, NotEmpty(mockT, true), "True value is not empty")
 	True(t, NotEmpty(mockT, chWithValue), "Channel with values is not empty")
 	True(t, NotEmpty(mockT, [1]int{42}), "array is not state")
+	True(t, NotEmpty(mockT, &nonEmptyIface), "ptr to interface holding a non-empty value is not empty")
 
 	// error messages validation
 	tests := []struct {
