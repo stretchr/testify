@@ -1905,6 +1905,35 @@ func Test_Arguments_Is(t *testing.T) {
 
 }
 
+func Test_Arguments_IsArityMismatch(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{"string", 123, true})
+
+	// Fewer objects than arguments used to index past the end of the slice.
+	assert.NotPanics(t, func() {
+		assert.False(t, args.Is("string", 123))
+	})
+	assert.False(t, args.Is("string", 123))
+
+	// More objects than arguments used to be ignored, so a call that could
+	// never match the expectation was reported as a match.
+	assert.False(t, args.Is("string", 123, true, "extra"))
+}
+
+func Test_Arguments_IsUncomparableType(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{[]int{1, 2}, map[string]int{"a": 1}})
+
+	// Comparing interface values with != panics on an uncomparable dynamic
+	// type, so a slice or map argument could not be compared at all.
+	assert.NotPanics(t, func() {
+		assert.True(t, args.Is([]int{1, 2}, map[string]int{"a": 1}))
+		assert.False(t, args.Is([]int{1, 3}, map[string]int{"a": 1}))
+	})
+}
+
 func Test_Arguments_Diff(t *testing.T) {
 	t.Parallel()
 
