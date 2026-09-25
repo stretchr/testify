@@ -943,12 +943,20 @@ func (args Arguments) Get(index int) interface{} {
 }
 
 // Is gets whether the objects match the arguments specified.
+//
+// If the amount of objects doesn't match the amount of arguments, false is
+// returned.
 func (args Arguments) Is(objects ...interface{}) bool {
+	if len(objects) != len(args) {
+		return false
+	}
+
 	for i, obj := range args {
-		if obj != objects[i] {
+		if !assert.ObjectsAreEqual(obj, objects[i]) {
 			return false
 		}
 	}
+
 	return true
 }
 
