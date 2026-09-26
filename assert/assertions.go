@@ -2055,7 +2055,12 @@ func (c *CollectT) Errorf(format string, args ...interface{}) {
 	c.errors = append(c.errors, fmt.Errorf(format, args...))
 }
 
-// FailNow stops execution by calling runtime.Goexit.
+// FailNow marks the CollectT as failed and stops the execution of the
+// function that called it by calling [runtime.Goexit].
+//
+// When used inside [EventuallyWithT], FailNow terminates only the current
+// execution of the condition function, not the entire test. See
+// [EventuallyWithT] for details.
 func (c *CollectT) FailNow() {
 	c.fail()
 	runtime.Goexit()
@@ -2081,14 +2086,26 @@ func (c *CollectT) failed() bool {
 	return c.errors != nil
 }
 
-// EventuallyWithT asserts that given condition will be met in waitFor time,
-// periodically checking target function each tick. In contrast to Eventually,
-// it supplies a CollectT to the condition function, so that the condition
-// function can use the CollectT to call other assertions.
+// EventuallyWithT asserts that the given condition will be met in waitFor time,
+// periodically checking the target function each tick. In contrast to
+// Eventually, it supplies a CollectT to the condition function, so that the
+// condition function can use the CollectT to call other assertions.
 // The condition is considered "met" if no errors are raised in a tick.
 // The supplied CollectT collects all errors from one tick (if there are any).
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
+//
+// The condition function runs in its own goroutine for each tick. Calling
+// FailNow on the outer testing.T from within the condition function is not
+// supported because [testing.T.FailNow] must be called from the goroutine that
+// created the test ([testing.T.Run]). Use the provided CollectT for all
+// assertions instead.
+//
+// Calling [CollectT.FailNow] (for example through a require assertion that
+// uses the CollectT) terminates only the current tick's condition function.
+// This stops the remaining assertions in the current tick from running, but
+// does not stop EventuallyWithT from retrying on the next tick and does not
+// stop test execution.
 //
 //	externalValue := false
 //	go func() {
