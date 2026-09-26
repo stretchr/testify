@@ -2339,6 +2339,26 @@ func TestInDelta(t *testing.T) {
 	}
 }
 
+func TestInDeltaNaNDelta(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name             string
+		expected, actual float64
+	}{
+		{"different values", 1, 100},
+		{"equal values", 1, 1},
+		{"NaN values", math.NaN(), math.NaN()},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockT := new(mockTestingT)
+			False(t, InDelta(mockT, tc.expected, tc.actual, math.NaN(), "comparison %d", 42))
+			Contains(t, mockT.errorString(), "delta must not be NaN")
+			Contains(t, mockT.errorString(), "comparison 42")
+		})
+	}
+}
+
 func TestInDeltaSlice(t *testing.T) {
 	t.Parallel()
 
