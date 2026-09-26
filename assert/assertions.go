@@ -101,6 +101,20 @@ func copyExportedFieldsWithVisited(expected interface{}, visited map[copyExporte
 	expectedKind := expectedType.Kind()
 	expectedValue := reflect.ValueOf(expected)
 
+	// Pointers, slices and maps can form cycles. Reuse the copy already made
+	// for a value seen earlier so that recursive structures terminate.
+	var visit copyExportedFieldsVisit
+	switch expectedKind {
+	case reflect.Ptr, reflect.Slice, reflect.Map:
+		visit = copyExportedFieldsVisit{typ: expectedType, ptr: expectedValue.Pointer()}
+		if expectedKind == reflect.Slice {
+			visit.length = expectedValue.Len()
+		}
+		if result, ok := visited[visit]; ok {
+			return result.Interface()
+		}
+	}
+
 	switch expectedKind {
 	case reflect.Struct:
 		result := reflect.New(expectedType).Elem()
@@ -119,11 +133,6 @@ func copyExportedFieldsWithVisited(expected interface{}, visited map[copyExporte
 		return result.Interface()
 
 	case reflect.Ptr:
-		visit := copyExportedFieldsVisit{typ: expectedType, ptr: expectedValue.Pointer()}
-		if result, ok := visited[visit]; ok {
-			return result.Interface()
-		}
-
 		result := reflect.New(expectedType.Elem())
 		visited[visit] = result
 		unexportedRemoved := copyExportedFieldsWithVisited(expectedValue.Elem().Interface(), visited)
@@ -135,11 +144,6 @@ func copyExportedFieldsWithVisited(expected interface{}, visited map[copyExporte
 		if expectedKind == reflect.Array {
 			result = reflect.New(reflect.ArrayOf(expectedValue.Len(), expectedType.Elem())).Elem()
 		} else {
-			visit := copyExportedFieldsVisit{typ: expectedType, ptr: expectedValue.Pointer(), length: expectedValue.Len()}
-			if result, ok := visited[visit]; ok {
-				return result.Interface()
-			}
-
 			result = reflect.MakeSlice(expectedType, expectedValue.Len(), expectedValue.Len())
 			visited[visit] = result
 		}
@@ -154,11 +158,6 @@ func copyExportedFieldsWithVisited(expected interface{}, visited map[copyExporte
 		return result.Interface()
 
 	case reflect.Map:
-		visit := copyExportedFieldsVisit{typ: expectedType, ptr: expectedValue.Pointer()}
-		if result, ok := visited[visit]; ok {
-			return result.Interface()
-		}
-
 		result := reflect.MakeMap(expectedType)
 		visited[visit] = result
 		for _, k := range expectedValue.MapKeys() {
