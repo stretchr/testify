@@ -165,6 +165,18 @@ func ErrorIsf(t TestingT, err error, target error, msg string, args ...interface
 	return ErrorIs(t, err, target, append([]interface{}{msg}, args...)...)
 }
 
+// ErrorNotContainsf asserts that a function returned a non-nil error (i.e. an
+// error) and that the error does not contain the specified substring.
+//
+//	actualObj, err := SomeFunction()
+//	assert.ErrorNotContainsf(t, err,  expectedErrorSubString, "error message %s", "formatted")
+func ErrorNotContainsf(t TestingT, theError error, contains string, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return ErrorNotContains(t, theError, contains, append([]interface{}{msg}, args...)...)
+}
+
 // Eventuallyf asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick.
 //
