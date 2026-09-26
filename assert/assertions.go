@@ -1456,6 +1456,10 @@ func InDelta(t TestingT, expected, actual interface{}, delta float64, msgAndArgs
 		h.Helper()
 	}
 
+	if math.IsNaN(delta) {
+		return Fail(t, "delta must not be NaN", msgAndArgs...)
+	}
+
 	af, aok := toFloat(expected)
 	bf, bok := toFloat(actual)
 
