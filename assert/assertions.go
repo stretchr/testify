@@ -1878,6 +1878,24 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 		return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
 	}
 
+	if ObjectsAreEqual(expectedJSONAsInterface, actualJSONAsInterface) {
+		// Float64 conversion can hide differences in large integers and precise decimals.
+		var err error
+		expectedJSONAsInterface, err = decodeJSONNumbers(expected)
+		if err != nil {
+			return Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
+		}
+		actualJSONAsInterface, err = decodeJSONNumbers(actual)
+		if err != nil {
+			return Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
+		}
+		if ObjectsAreEqual(expectedJSONAsInterface, actualJSONAsInterface) {
+			return true
+		}
+		expectedJSONAsInterface = normalizeJSONNumbers(expectedJSONAsInterface)
+		actualJSONAsInterface = normalizeJSONNumbers(actualJSONAsInterface)
+	}
+
 	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
 
