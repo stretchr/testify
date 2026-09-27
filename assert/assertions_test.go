@@ -372,6 +372,26 @@ func TestCopyExportedFields(t *testing.T) {
 	}
 }
 
+func TestEqualExportedValuesRecursiveStruct(t *testing.T) {
+	t.Parallel()
+
+	type Node struct {
+		Value      int
+		Self       *Node
+		unexported string
+	}
+
+	expected := &Node{Value: 1, unexported: "expected"}
+	expected.Self = expected
+
+	actual := &Node{Value: 1, unexported: "actual"}
+	actual.Self = actual
+
+	if !EqualExportedValues(t, expected, actual) {
+		t.Error("expected EqualExportedValues to handle recursive values")
+	}
+}
+
 func TestEqualExportedValues(t *testing.T) {
 	t.Parallel()
 
