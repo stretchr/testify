@@ -82,7 +82,10 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 
 // copyExportedFields iterates downward through nested data structures and creates a copy
 // that only contains the exported struct fields.
-func copyExportedFields(expected interface{}) interface{} {
+//
+// To prevent infinite recursion on cyclic data structures, this function
+// tracks visited pointers using the provided seen map.
+func copyExportedFields(expected interface{}, seen map[uintptr]struct{}) interface{} {
 	if isNil(expected) {
 		return expected
 	}
@@ -102,15 +105,20 @@ func copyExportedFields(expected interface{}) interface{} {
 				if isNil(fieldValue) || isNil(fieldValue.Interface()) {
 					continue
 				}
-				newValue := copyExportedFields(fieldValue.Interface())
+				newValue := copyExportedFields(fieldValue.Interface(), seen)
 				result.Field(i).Set(reflect.ValueOf(newValue))
 			}
 		}
 		return result.Interface()
 
 	case reflect.Ptr:
+		ptr := expectedValue.Pointer()
+		if _, ok := seen[ptr]; ok {
+			return nil
+		}
+		seen[ptr] = struct{}{}
 		result := reflect.New(expectedType.Elem())
-		unexportedRemoved := copyExportedFields(expectedValue.Elem().Interface())
+		unexportedRemoved := copyExportedFields(expectedValue.Elem().Interface(), seen)
 		result.Elem().Set(reflect.ValueOf(unexportedRemoved))
 		return result.Interface()
 
@@ -126,7 +134,7 @@ func copyExportedFields(expected interface{}) interface{} {
 			if isNil(index) {
 				continue
 			}
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFields(index.Interface(), seen)
 			result.Index(i).Set(reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
@@ -135,7 +143,7 @@ func copyExportedFields(expected interface{}) interface{} {
 		result := reflect.MakeMap(expectedType)
 		for _, k := range expectedValue.MapKeys() {
 			index := expectedValue.MapIndex(k)
-			unexportedRemoved := copyExportedFields(index.Interface())
+			unexportedRemoved := copyExportedFields(index.Interface(), seen)
 			result.SetMapIndex(k, reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
@@ -143,6 +151,11 @@ func copyExportedFields(expected interface{}) interface{} {
 	default:
 		return expected
 	}
+}
+
+// copyExportedFieldsNoSeen is a wrapper that creates a new seen map for the initial call.
+func copyExportedFieldsNoSeen(expected interface{}) interface{} {
+	return copyExportedFields(expected, make(map[uintptr]struct{}))
 }
 
 // ObjectsExportedFieldsAreEqual determines if the exported (public) fields of two objects are
@@ -153,8 +166,8 @@ func copyExportedFields(expected interface{}) interface{} {
 //
 // Deprecated: Use [EqualExportedValues] instead.
 func ObjectsExportedFieldsAreEqual(expected, actual interface{}) bool {
-	expectedCleaned := copyExportedFields(expected)
-	actualCleaned := copyExportedFields(actual)
+	expectedCleaned := copyExportedFieldsNoSeen(expected)
+	actualCleaned := copyExportedFieldsNoSeen(actual)
 	return ObjectsAreEqualValues(expectedCleaned, actualCleaned)
 }
 
@@ -670,8 +683,8 @@ func EqualExportedValues(t TestingT, expected, actual interface{}, msgAndArgs ..
 		return Fail(t, fmt.Sprintf("Types expected to match exactly\n\t%v != %v", aType, bType), msgAndArgs...)
 	}
 
-	expected = copyExportedFields(expected)
-	actual = copyExportedFields(actual)
+	expected = copyExportedFieldsNoSeen(expected)
+	actual = copyExportedFieldsNoSeen(actual)
 
 	if !ObjectsAreEqualValues(expected, actual) {
 		diff := diff(expected, actual)
