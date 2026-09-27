@@ -1064,7 +1064,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				}
 
 			default:
-				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
+				if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, expected) {
 					// match
 					output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actualFmt, expectedFmt)
 				} else {

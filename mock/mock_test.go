@@ -2015,18 +2015,18 @@ func Test_Arguments_Diff_MissingArgument_StillMatchesWhenPresent(t *testing.T) {
 	assert.Equal(t, 0, count)
 }
 
-func Test_Arguments_Diff_WithAnythingArgument(t *testing.T) {
+func Test_Arguments_Diff_WithAnythingAsActualArgument(t *testing.T) {
 	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", 123, true})
-	var count int
-	_, count = args.Diff([]interface{}{"string", Anything, true})
+	diff, count := args.Diff([]interface{}{"string", Anything, true})
 
-	assert.Equal(t, 0, count)
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(string=mock.Anything) != (int=123)`)
 
 }
 
-func Test_Arguments_Diff_WithAnythingArgument_InActualToo(t *testing.T) {
+func Test_Arguments_Diff_WithAnythingAsExpectedArgument(t *testing.T) {
 	t.Parallel()
 
 	var args = Arguments([]interface{}{"string", Anything, true})
@@ -2222,6 +2222,15 @@ func Test_MockMethodCalled(t *testing.T) {
 	require.True(t, len(retArgs) == 1)
 	require.Equal(t, "world", retArgs[0])
 	m.AssertExpectations(t)
+}
+
+func Test_MockMethodCalled_AnythingAsActualArgument(t *testing.T) {
+	t.Parallel()
+
+	m := new(Mock)
+	m.On("foo", "hello").Return("world")
+
+	require.Panics(t, func() { m.MethodCalled("foo", Anything) })
 }
 
 func Test_MockMethodCalled_Panic(t *testing.T) {
