@@ -17,6 +17,7 @@ jobs:
           go-version: ${{ matrix.go_version }}
       - run: ./.ci.gogenerate.sh
       - run: ./.ci.gofmt.sh
+        if: matrix.go_version == 'stable'
       - run: ./.ci.govet.sh
       - run: go test -v -race ./...
 
