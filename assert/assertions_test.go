@@ -1772,6 +1772,9 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty((*int)(nil)))
 	True(t, isEmpty((*string)(nil)))
 	True(t, isEmpty(new(string)))
+	// pointer to an interface (regression test for #1955): empty when the
+	// interface it points to is nil or holds an empty concrete value.
+	True(t, isEmpty(new(error)))
 	True(t, isEmpty([]string{}))
 	True(t, isEmpty([]string(nil)))
 	True(t, isEmpty([]byte(nil)))
@@ -1828,6 +1831,8 @@ func Test_isEmpty(t *testing.T) {
 	True(t, isEmpty(&[2]int{0, 0}))
 	False(t, isEmpty("something"))
 	False(t, isEmpty(errors.New("something")))
+	// pointer to an interface holding a non-empty value (regression #1955)
+	False(t, isEmpty(func() *error { e := errors.New("boom"); return &e }()))
 	False(t, isEmpty([]string{"something"}))
 	False(t, isEmpty(1))
 	False(t, isEmpty(int(1)))
