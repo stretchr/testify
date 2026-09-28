@@ -771,6 +771,12 @@ func isEmptyValue(objValue reflect.Value) bool {
 	// non-nil pointers are empty if the value they point to is empty
 	case reflect.Ptr:
 		return isEmptyValue(objValue.Elem())
+	// a non-nil interface is empty if the concrete value it holds is empty.
+	// This also covers a pointer to an interface, whose Elem() has kind
+	// Interface: without this case such a value would fall through to the
+	// default and be reported as non-empty (regression from v1.11.0, #1955).
+	case reflect.Interface:
+		return isEmptyValue(objValue.Elem())
 	}
 	return false
 }
