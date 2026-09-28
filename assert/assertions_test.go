@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -3541,6 +3542,27 @@ func TestEventuallyWithTFailNow(t *testing.T) {
 
 	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
 	Len(t, mockT.errors, 1)
+}
+
+func TestEventuallyWithTHalts(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(CollectT)
+
+	var timesCalled int32
+	condition := func(collect *CollectT) {
+		if times := atomic.AddInt32(&timesCalled, 1); times == 1 {
+			FailNow(collect.Halt(), "This should be captured")
+			Fail(collect, "FailNow(CollectT.Halt(), ...) didn't diverge")
+		}
+	}
+
+	False(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond))
+	Equal(t, int32(1), atomic.LoadInt32(&timesCalled), "Condition wasn't called exactly once")
+	if Len(t, mockT.errors, 2) {
+		ErrorContains(t, mockT.errors[0], "This should be captured")
+		ErrorContains(t, mockT.errors[1], "Halted")
+	}
 }
 
 // Check that a long running condition doesn't block Eventually.
