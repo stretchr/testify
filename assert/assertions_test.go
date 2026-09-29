@@ -3634,6 +3634,40 @@ func TestNeverFailQuickly(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
+// A nil condition used to be dereferenced on the goroutine Eventually/Never
+// spawn, so the panic could not be recovered by the caller and took the whole
+// test binary down.
+func TestEventuallyNilCondition(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(testing.T)
+
+	NotPanics(t, func() {
+		False(t, Eventually(mockT, nil, 100*time.Millisecond, 20*time.Millisecond))
+	})
+	False(t, Never(mockT, nil, 100*time.Millisecond, 20*time.Millisecond))
+
+	mockCollectT := new(CollectT)
+	False(t, EventuallyWithT(mockCollectT, nil, 100*time.Millisecond, 20*time.Millisecond))
+	Len(t, mockCollectT.errors, 1)
+}
+
+// time.NewTicker panics on a non-positive interval, and the ticker is created
+// unconditionally even though it is only read after the first result.
+func TestEventuallyNonPositiveTick(t *testing.T) {
+	t.Parallel()
+
+	for _, tick := range []time.Duration{0, -time.Second} {
+		mockT := new(testing.T)
+
+		NotPanics(t, func() {
+			False(t, Eventually(mockT, func() bool { return true }, 100*time.Millisecond, tick))
+			False(t, Never(mockT, func() bool { return true }, 100*time.Millisecond, tick))
+			False(t, EventuallyWithT(mockT, func(*CollectT) {}, 100*time.Millisecond, tick))
+		})
+	}
+}
+
 func Test_validateEqualArgs(t *testing.T) {
 	t.Parallel()
 

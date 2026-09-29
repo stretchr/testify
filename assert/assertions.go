@@ -2009,6 +2009,25 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
+	// A nil condition would be dereferenced on the goroutine below, where the
+	// panic cannot be recovered by the caller and takes the whole binary down.
+	// Reported as a failure rather than treated as vacuously satisfied: Never is
+	// given the same treatment as Eventually so that one malformed argument fails
+	// the same way in all three entry points, instead of Never quietly passing
+	// because there was no condition for it to violate.
+	if condition == nil {
+		return Fail(t, "Condition must not be nil", msgAndArgs...)
+	}
+
+	// The ticker is built here, before the condition has been called even once, and
+	// time.NewTicker panics on a non-positive interval. That panic happens in the
+	// caller's goroutine, so it aborts the test run instead of failing one
+	// assertion -- and there is nothing to wait for, since a zero or negative tick
+	// can never be a usable polling interval.
+	if tick <= 0 {
+		return Fail(t, "Tick must be positive", msgAndArgs...)
+	}
+
 	ch := make(chan bool, 1)
 	checkCond := func() { ch <- condition() }
 
@@ -2104,6 +2123,25 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		h.Helper()
 	}
 
+	// A nil condition would be dereferenced on the goroutine below, where the
+	// panic cannot be recovered by the caller and takes the whole binary down.
+	// Reported as a failure rather than treated as vacuously satisfied: Never is
+	// given the same treatment as Eventually so that one malformed argument fails
+	// the same way in all three entry points, instead of Never quietly passing
+	// because there was no condition for it to violate.
+	if condition == nil {
+		return Fail(t, "Condition must not be nil", msgAndArgs...)
+	}
+
+	// The ticker is built here, before the condition has been called even once, and
+	// time.NewTicker panics on a non-positive interval. That panic happens in the
+	// caller's goroutine, so it aborts the test run instead of failing one
+	// assertion -- and there is nothing to wait for, since a zero or negative tick
+	// can never be a usable polling interval.
+	if tick <= 0 {
+		return Fail(t, "Tick must be positive", msgAndArgs...)
+	}
+
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
@@ -2154,6 +2192,25 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+
+	// A nil condition would be dereferenced on the goroutine below, where the
+	// panic cannot be recovered by the caller and takes the whole binary down.
+	// Reported as a failure rather than treated as vacuously satisfied: Never is
+	// given the same treatment as Eventually so that one malformed argument fails
+	// the same way in all three entry points, instead of Never quietly passing
+	// because there was no condition for it to violate.
+	if condition == nil {
+		return Fail(t, "Condition must not be nil", msgAndArgs...)
+	}
+
+	// The ticker is built here, before the condition has been called even once, and
+	// time.NewTicker panics on a non-positive interval. That panic happens in the
+	// caller's goroutine, so it aborts the test run instead of failing one
+	// assertion -- and there is nothing to wait for, since a zero or negative tick
+	// can never be a usable polling interval.
+	if tick <= 0 {
+		return Fail(t, "Tick must be positive", msgAndArgs...)
 	}
 
 	ch := make(chan bool, 1)
