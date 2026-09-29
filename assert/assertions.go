@@ -1711,6 +1711,11 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 func matchRegexp(rx interface{}, str interface{}) bool {
 	var r *regexp.Regexp
 	if rr, ok := rx.(*regexp.Regexp); ok {
+		// A typed nil passes the type assertion, and MatchString would then
+		// dereference it. There is no pattern, so nothing can match.
+		if rr == nil {
+			return false
+		}
 		r = rr
 	} else {
 		r = regexp.MustCompile(fmt.Sprint(rx))
