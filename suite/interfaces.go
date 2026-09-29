@@ -59,6 +59,12 @@ type SetupSubTest interface {
 	SetupSubTest()
 }
 
+// OnlySubTest has a OnlySubTest method, which will run only the subtest
+// with the given name in the suite.
+type OnlySubTest interface {
+	OnlySubTest(name string) bool
+}
+
 // TearDownSubTest has a TearDownSubTest method, which will run after
 // each subtest in the suite have been run.
 type TearDownSubTest interface {

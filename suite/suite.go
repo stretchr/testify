@@ -108,6 +108,12 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 
 		defer recoverAndFailOnPanic(t)
 
+		if onlySubTest, ok := suite.s.(OnlySubTest); ok {
+			if !onlySubTest.OnlySubTest(name) {
+				t.Skipf(`skipping subtest %q as OnlySubTest returned false`, name)
+			}
+		}
+
 		if setupSubTest, ok := suite.s.(SetupSubTest); ok {
 			setupSubTest.SetupSubTest()
 		}
