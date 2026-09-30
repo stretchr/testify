@@ -152,6 +152,8 @@ func TestObjectsAreEqualValues(t *testing.T) {
 		{now, now.In(time.Local), false}, // should not be time zone independent
 		{int(270), int8(14), false},      // should handle overflow/underflow
 		{int8(14), int(270), false},
+		{int64(-1), uint64(math.MaxUint64), false},
+		{uint64(math.MaxUint64), int64(-1), false},
 		{[]int{270, 270}, []int8{14, 14}, false},
 		{complex128(1e+100 + 1e+100i), complex64(complex(math.Inf(0), math.Inf(0))), false},
 		{complex64(complex(math.Inf(0), math.Inf(0))), complex128(1e+100 + 1e+100i), false},

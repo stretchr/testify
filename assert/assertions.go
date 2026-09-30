@@ -184,6 +184,19 @@ func ObjectsAreEqualValues(expected, actual interface{}) bool {
 		)
 	}
 
+	expectedKind := expectedType.Kind()
+	actualKind := actualType.Kind()
+	if expectedKind >= reflect.Int && expectedKind <= reflect.Int64 &&
+		actualKind >= reflect.Uint && actualKind <= reflect.Uintptr &&
+		expectedValue.Int() < 0 {
+		return false
+	}
+	if actualKind >= reflect.Int && actualKind <= reflect.Int64 &&
+		expectedKind >= reflect.Uint && expectedKind <= reflect.Uintptr &&
+		actualValue.Int() < 0 {
+		return false
+	}
+
 	// If BOTH values are numeric, there are chances of false positives due
 	// to overflow or underflow. So, we need to make sure to always convert
 	// the smaller type to a larger type before comparing.
