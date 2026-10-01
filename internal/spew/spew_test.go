@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/internal/spew"
 )
@@ -127,6 +128,7 @@ func initSpewTests() {
 	// Config states with various settings.
 	scsDefault := spew.NewDefaultConfig()
 	scsNoMethods := &spew.ConfigState{Indent: " ", DisableMethods: true}
+	scsNoMethodsButTimeStringer := &spew.ConfigState{Indent: " ", DisableMethods: true, EnableTimeStringer: true}
 	scsNoPmethods := &spew.ConfigState{Indent: " ", DisablePointerMethods: true}
 	scsMaxDepth := &spew.ConfigState{Indent: " ", MaxDepth: 1}
 	scsContinue := &spew.ConfigState{Indent: " ", ContinueOnMethod: true}
@@ -137,6 +139,8 @@ func initSpewTests() {
 	// without a pointer receiver.
 	ts := stringer("test")
 	tps := pstringer("test")
+
+	tm := time.Date(2006, time.January, 2, 15, 4, 5, 999999999, time.UTC)
 
 	type ptrTester struct {
 		s *struct{}
@@ -203,6 +207,16 @@ func initSpewTests() {
 		{scsNoPtrAddr, fCSSdump, "", tptr, "(*spew_test.ptrTester)({\ns: (*struct {})({\n})\n})\n"},
 		{scsNoCap, fCSSdump, "", make([]string, 0, 10), "([]string) {\n}\n"},
 		{scsNoCap, fCSSdump, "", make([]string, 1, 10), "([]string) (len=1) {\n(string) \"\"\n}\n"},
+
+		// time.Time formatting:
+		{scsDefault, fCSFprint, "", tm, "2006-01-02 15:04:05.999999999 +0000 UTC"},
+		{scsNoMethods, fCSFprint, "", tm, scsNoMethods.Sprint(tm)},
+		{scsNoMethodsButTimeStringer, fCSFprint, "", tm, "2006-01-02 15:04:05.999999999 +0000 UTC"},
+
+		// *time.Time formatting:
+		{scsDefault, fCSFprint, "", &tm, "<*>2006-01-02 15:04:05.999999999 +0000 UTC"},
+		{scsNoMethods, fCSFprint, "", &tm, scsNoMethods.Sprint(&tm)},
+		{scsNoMethodsButTimeStringer, fCSFprint, "", &tm, "<*>2006-01-02 15:04:05.999999999 +0000 UTC"},
 	}
 }
 
