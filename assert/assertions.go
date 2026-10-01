@@ -1526,6 +1526,9 @@ func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, m
 	}
 
 	for _, k := range expectedMap.MapKeys() {
+		if !k.Type().AssignableTo(actualMap.Type().Key()) {
+			return Fail(t, fmt.Sprintf("Cannot compare map keys of type %v with %v", k.Type(), actualMap.Type().Key()), msgAndArgs...)
+		}
 		ev := expectedMap.MapIndex(k)
 		av := actualMap.MapIndex(k)
 
