@@ -2442,6 +2442,31 @@ func TestInDeltaMapValues(t *testing.T) {
 	}
 }
 
+func TestInDeltaMapValuesKeyTypes(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name     string
+		expected interface{}
+		actual   interface{}
+	}{
+		{"string and int", map[string]float64{"1": 1}, map[int]float64{1: 1}},
+		{"int and int64", map[int]float64{1: 1}, map[int64]float64{1: 1}},
+		{"interface and string", map[interface{}]float64{"key": 1}, map[string]float64{"key": 1}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			out := &outputT{buf: bytes.NewBuffer(nil)}
+			NotPanics(t, func() {
+				False(t, InDeltaMapValues(out, tc.expected, tc.actual, 0.1, "map comparison"))
+			})
+			Contains(t, out.buf.String(), "map comparison")
+		})
+	}
+
+	// A concrete key can already be assigned to an interface-keyed map.
+	True(t, InDeltaMapValues(t, map[string]float64{"key": 1}, map[interface{}]float64{"key": 1.01}, 0.1))
+}
+
 func TestInEpsilon(t *testing.T) {
 	t.Parallel()
 
