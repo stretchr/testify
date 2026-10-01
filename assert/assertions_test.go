@@ -113,6 +113,7 @@ func TestObjectsAreEqual(t *testing.T) {
 		{123.5, 123.5, true},
 		{[]byte("Hello World"), []byte("Hello World"), true},
 		{nil, nil, true},
+		{[]interface{}{1}, []interface{}{1}, true},
 
 		// cases that are expected not to be equal
 		{map[int]int{5: 10}, map[int]int{10: 20}, false},
@@ -159,8 +160,12 @@ func TestObjectsAreEqualValues(t *testing.T) {
 		{270, complex128(1e+100 + 1e+100i), false},
 		{complex128(1e+100 + 1e+100i), 3.14, false},
 		{3.14, complex128(1e+100 + 1e+100i), false},
+		{[]interface{}{1}, [1]interface{}{int64(1)}, true},
 		{complex128(1e+10 + 1e+10i), complex64(1e+10 + 1e+10i), true},
 		{complex64(1e+10 + 1e+10i), complex128(1e+10 + 1e+10i), true},
+		{map[string]interface{}{"1": int32(1)}, map[string]interface{}{"1": int64(1)}, true},
+		{map[int]interface{}{1: int32(1)}, map[int64]interface{}{1: int64(1)}, false},
+		{map[interface{}]interface{}{1: int32(1)}, map[interface{}]interface{}{"1": int64(1)}, false},
 	}
 
 	for _, c := range cases {
