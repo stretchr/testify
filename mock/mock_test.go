@@ -1742,6 +1742,37 @@ func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 	mockedService.Called(1, 2, 3)
 	assert.True(t, mockedService.AssertNumberOfCalls(t, "Test_Mock_AssertNumberOfCalls", 2))
 
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertNumberOfCalls(tt, "Test_Mock_AssertNumberOfCalls", 3))
+	assert.True(t, mockedService.AssertNumberOfCalls(t, "Test_Mock_UncalledMethod", 0))
+	assert.False(t, mockedService.AssertNumberOfCalls(tt, "Test_Mock_UncalledMethod", 1))
+}
+
+func Test_Mock_AssertNumberOfCalls_Allocations(t *testing.T) {
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("TheMethod").Return()
+	for i := 0; i < 100; i++ {
+		mockedService.MethodCalled("TheMethod")
+	}
+
+	allocs := testing.AllocsPerRun(100, func() {
+		mockedService.AssertNumberOfCalls(t, "TheMethod", 100)
+	})
+	assert.LessOrEqual(t, allocs, float64(3))
+}
+
+func Benchmark_Mock_AssertNumberOfCalls(b *testing.B) {
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("TheMethod").Return()
+	for i := 0; i < 100; i++ {
+		mockedService.MethodCalled("TheMethod")
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		mockedService.AssertNumberOfCalls(b, "TheMethod", 100)
+	}
 }
 
 func Test_Mock_AssertCalled(t *testing.T) {
