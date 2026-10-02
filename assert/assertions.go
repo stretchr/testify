@@ -1382,7 +1382,9 @@ func WithinDuration(t TestingT, expected, actual time.Time, delta time.Duration,
 	}
 
 	dt := expected.Sub(actual)
-	if dt < -delta || dt > delta {
+	// Sub saturates for differences outside the range of time.Duration.
+	// Compare the times directly so saturation cannot hide an exceeded delta.
+	if delta < 0 || actual.Before(expected.Add(-delta)) || actual.After(expected.Add(delta)) {
 		return Fail(t, fmt.Sprintf("Max difference between %v and %v allowed is %v, but difference was %v", expected, actual, delta, dt), msgAndArgs...)
 	}
 
