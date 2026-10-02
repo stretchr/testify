@@ -3634,6 +3634,75 @@ func TestNeverFailQuickly(t *testing.T) {
 	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
+func TestEventually_NilCondition(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	False(t, Eventually(mockT, nil, 100*time.Millisecond, 20*time.Millisecond))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "Condition must not be nil")
+}
+
+func TestEventually_InvalidTick(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	False(t, Eventually(mockT, func() bool { return true }, 100*time.Millisecond, 0))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "tick must be greater than 0")
+
+	mockT = new(mockTestingT)
+	False(t, Eventually(mockT, func() bool { return true }, 100*time.Millisecond, -time.Millisecond))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "tick must be greater than 0")
+}
+
+func TestEventuallyWithT_NilCondition(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	False(t, EventuallyWithT(mockT, nil, 100*time.Millisecond, 20*time.Millisecond))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "Condition must not be nil")
+}
+
+func TestEventuallyWithT_InvalidTick(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	False(t, EventuallyWithT(mockT, func(c *CollectT) {}, 100*time.Millisecond, 0))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "tick must be greater than 0")
+
+	mockT = new(mockTestingT)
+	False(t, EventuallyWithT(mockT, func(c *CollectT) {}, 100*time.Millisecond, -time.Millisecond))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "tick must be greater than 0")
+}
+
+func TestNever_NilCondition(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	False(t, Never(mockT, nil, 100*time.Millisecond, 20*time.Millisecond))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "Condition must not be nil")
+}
+
+func TestNever_InvalidTick(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	False(t, Never(mockT, func() bool { return false }, 100*time.Millisecond, 0))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "tick must be greater than 0")
+
+	mockT = new(mockTestingT)
+	False(t, Never(mockT, func() bool { return false }, 100*time.Millisecond, -time.Millisecond))
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "tick must be greater than 0")
+}
+
 func Test_validateEqualArgs(t *testing.T) {
 	t.Parallel()
 
