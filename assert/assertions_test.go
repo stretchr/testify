@@ -1517,6 +1517,32 @@ func TestNotElementsMatch(t *testing.T) {
 	}
 }
 
+func TestNotElementsMatchFormatting(t *testing.T) {
+	t.Parallel()
+
+	for _, lists := range []struct {
+		name  string
+		listA []int
+		listB []int
+	}{
+		{name: "empty"},
+		{name: "nonempty", listA: []int{1, 2}, listB: []int{2, 1}},
+	} {
+		t.Run(lists.name, func(t *testing.T) {
+			t.Run("without message", func(t *testing.T) {
+				mockT := new(mockTestingT)
+				False(t, NotElementsMatch(mockT, lists.listA, lists.listB))
+				Equal(t, "\n\tError Trace:\t\n\tError:      \tlistA and listB contain the same elements\n", mockT.errorString())
+			})
+			t.Run("formatted message", func(t *testing.T) {
+				mockT := new(mockTestingT)
+				False(t, NotElementsMatchf(mockT, lists.listA, lists.listB, "matching values for case %d", 42))
+				Equal(t, "\n\tError Trace:\t\n\tError:      \tlistA and listB contain the same elements\n\tMessages:   \tmatching values for case 42\n", mockT.errorString())
+			})
+		})
+	}
+}
+
 func TestCondition(t *testing.T) {
 	t.Parallel()
 

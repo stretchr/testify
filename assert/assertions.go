@@ -1243,7 +1243,7 @@ func NotElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interf
 		h.Helper()
 	}
 	if isEmpty(listA) && isEmpty(listB) {
-		return Fail(t, "listA and listB contain the same elements", msgAndArgs)
+		return Fail(t, "listA and listB contain the same elements", msgAndArgs...)
 	}
 
 	if !isList(t, listA, msgAndArgs...) {
@@ -1255,7 +1255,7 @@ func NotElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interf
 
 	extraA, extraB := diffLists(listA, listB)
 	if len(extraA) == 0 && len(extraB) == 0 {
-		return Fail(t, "listA and listB contain the same elements", msgAndArgs)
+		return Fail(t, "listA and listB contain the same elements", msgAndArgs...)
 	}
 
 	return true
