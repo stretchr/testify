@@ -389,6 +389,14 @@ func InEpsilonf(t TestingT, expected interface{}, actual interface{}, epsilon fl
 	return InEpsilon(t, expected, actual, epsilon, append([]interface{}{msg}, args...)...)
 }
 
+// InEpsilonMapValuesf is the same as InEpsilon, but it compares all values between two maps. Both maps must have exactly the same keys.
+func InEpsilonMapValuesf(t TestingT, expected interface{}, actual interface{}, epsilon float64, msg string, args ...interface{}) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	return InEpsilonMapValues(t, expected, actual, epsilon, append([]interface{}{msg}, args...)...)
+}
+
 // InEpsilonSlicef is the same as InEpsilon, except it compares each value from two slices.
 func InEpsilonSlicef(t TestingT, expected interface{}, actual interface{}, epsilon float64, msg string, args ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
