@@ -2359,6 +2359,21 @@ func TestInDeltaSlice(t *testing.T) {
 		[]float64{0, math.NaN(), 3},
 		0.1), "{1, NaN, 2} is not element-wise close to {0, NaN, 3} in delta=0.1")
 
+	False(t, InDeltaSlice(mockT,
+		[]float64{1, 2},
+		[]float64{1},
+		0.1), "Expected slices with extra expected values to fail")
+
+	False(t, InDeltaSlice(mockT,
+		[]float64{1},
+		[]float64{1, 2},
+		0.1), "Expected slices with extra actual values to fail")
+
+	False(t, InDeltaSlice(mockT,
+		[]float64{1},
+		[]int{1},
+		0.1), "Expected slices with different types to fail")
+
 	False(t, InDeltaSlice(mockT, "", nil, 1), "Expected non numeral slices to fail")
 }
 
