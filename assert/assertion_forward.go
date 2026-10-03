@@ -932,6 +932,26 @@ func (a *Assertions) JSONEq(expected string, actual string, msgAndArgs ...interf
 	return JSONEq(a.t, expected, actual, msgAndArgs...)
 }
 
+// JSONEqBytes asserts that two JSON byte slices are equivalent.
+//
+//	a.JSONEqBytes([]byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`))
+func (a *Assertions) JSONEqBytes(expected []byte, actual []byte, msgAndArgs ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return JSONEqBytes(a.t, expected, actual, msgAndArgs...)
+}
+
+// JSONEqBytesf asserts that two JSON byte slices are equivalent.
+//
+//	a.JSONEqBytesf([]byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`), "error message %s", "formatted")
+func (a *Assertions) JSONEqBytesf(expected []byte, actual []byte, msg string, args ...interface{}) bool {
+	if h, ok := a.t.(tHelper); ok {
+		h.Helper()
+	}
+	return JSONEqBytesf(a.t, expected, actual, msg, args...)
+}
+
 // JSONEqf asserts that two JSON strings are equivalent.
 //
 //	a.JSONEqf(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`, "error message %s", "formatted")

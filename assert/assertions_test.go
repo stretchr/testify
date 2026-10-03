@@ -2702,7 +2702,7 @@ func TestNoDirExists(t *testing.T) {
 	True(t, NoDirExists(mockT, link))
 }
 
-func TestJSONEq_EqualSONString(t *testing.T) {
+func TestJSONEq_EqualJSONString(t *testing.T) {
 	t.Parallel()
 
 	mockT := new(testing.T)
@@ -2771,6 +2771,57 @@ func TestJSONEq_ArraysOfDifferentOrder(t *testing.T) {
 
 	mockT := new(testing.T)
 	False(t, JSONEq(mockT, `["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`))
+}
+
+func TestJSONEqBytes_EqualJSONString(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONEqBytes(mockT, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"hello": "world", "foo": "bar"}`)))
+}
+
+func TestJSONEqBytes_EquivalentButNotEqual(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONEqBytes(mockT, []byte(`{"hello": "world", "foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`)))
+}
+
+func TestJSONEqBytes_HashOfArraysAndHashes(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONEqBytes(mockT, []byte("{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}"),
+		[]byte("{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}")))
+}
+
+func TestJSONEqBytes_Array(t *testing.T) {
+	mockT := new(testing.T)
+	True(t, JSONEqBytes(mockT, []byte(`["foo", {"hello": "world", "nested": "hash"}]`), []byte(`["foo", {"nested": "hash", "hello": "world"}]`)))
+}
+
+func TestJSONEqBytes_HashAndArrayNotEquivalent(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONEqBytes(mockT, []byte(`["foo", {"hello": "world", "nested": "hash"}]`), []byte(`{"foo": "bar", {"nested": "hash", "hello": "world"}}`)))
+}
+
+func TestJSONEqBytes_HashesNotEquivalent(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONEqBytes(mockT, []byte(`{"foo": "bar"}`), []byte(`{"foo": "bar", "hello": "world"}`)))
+}
+
+func TestJSONEqBytes_ActualIsNotJSON(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONEqBytes(mockT, []byte(`{"foo": "bar"}`), []byte("Not JSON")))
+}
+
+func TestJSONEqBytes_ExpectedIsNotJSON(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONEqBytes(mockT, []byte("Not JSON"), []byte(`{"foo": "bar", "hello": "world"}`)))
+}
+
+func TestJSONEqBytes_ExpectedAndActualNotJSON(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONEqBytes(mockT, []byte("Not JSON"), []byte("Not JSON")))
+}
+
+func TestJSONEqBytes_ArraysOfDifferentOrder(t *testing.T) {
+	mockT := new(testing.T)
+	False(t, JSONEqBytes(mockT, []byte(`["foo", {"hello": "world", "nested": "hash"}]`), []byte(`[{ "hello": "world", "nested": "hash"}, "foo"]`)))
 }
 
 func TestYAMLEq_EqualYAMLString(t *testing.T) {
