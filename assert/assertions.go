@@ -1762,6 +1762,10 @@ func NotRegexp(t TestingT, rx interface{}, str interface{}, msgAndArgs ...interf
 }
 
 // Zero asserts that i is the zero value for its type.
+//
+// This is unrelated to [encoding/json]'s `omitzero` tag and does not
+// use or check the [encoding.TextMarshaler.IsZero] method. It simply
+// compares against [reflect.Zero] for the given type.
 func Zero(t TestingT, i interface{}, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
