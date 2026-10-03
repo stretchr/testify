@@ -4217,3 +4217,83 @@ func TestNotErrorAsWithErrorTooLongToPrint(t *testing.T) {
 	            	in chain: "long: [0 0 0`)
 	Contains(t, mockT.errorString(), "<... truncated>")
 }
+
+// Verify Contains correctly protects against boundary-straddling false positives.
+func TestContainsUnicode(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+
+	// Each emoji is a 4-byte UTF-8 sequence.
+	// "🌟" = 0xF0 0x9F 0x8C 0x9F
+	// "🎉" = 0xF0 0x9F 0x8E 0x89
+	// The two-byte sequence "\x9f\x8e" is formed by the last byte of 🌟
+	// and the second byte of 🎉. strings.Contains would find it; runeSliceContains
+	// must NOT, because "\x9f\x8e" does not correspond to any rune in the string.
+	haystack := "🌟🎉"
+	byteFragment := "\x9f\x8e" // straddles the rune boundary between the two emojis
+
+	// Confirm the fragment is NOT a valid rune sequence (sanity check).
+	// The real assertion: Contains must return false for a byte-only match.
+	False(t, Contains(mockT, haystack, byteFragment),
+		"Contains should not match a raw byte fragment that straddles a rune boundary")
+
+	// Positive cases: real rune substrings must still be found.
+	True(t, Contains(mockT, haystack, "🌟"),
+		"Contains should find an exact emoji in the string")
+	True(t, Contains(mockT, haystack, "🎉"),
+		"Contains should find an exact emoji in the string")
+	True(t, Contains(mockT, haystack, "🌟🎉"),
+		"Contains should find the full emoji string")
+
+	// Empty needle is always found.
+	True(t, Contains(mockT, haystack, ""),
+		"Contains should find an empty string in any string")
+
+	// ASCII inside a Unicode string still works.
+	True(t, Contains(mockT, "hello 🌍 world", "world"),
+		"Contains should find ASCII substring in a Unicode string")
+	False(t, Contains(mockT, "hello 🌍 world", "earth"),
+		"Contains should not find absent ASCII substring")
+
+	// Multi-byte CJK characters.
+	True(t, Contains(mockT, "日本語テスト", "テスト"),
+		"Contains should find a CJK substring")
+	False(t, Contains(mockT, "日本語テスト", "中文"),
+		"Contains should not find absent CJK substring")
+}
+
+// TestElementsMatchUnicode verifies that ElementsMatch correctly compares
+// slices whose elements are multi-byte Unicode strings (emojis, CJK, accented
+// characters). Because diffLists delegates to ObjectsAreEqual → reflect.DeepEqual
+// for whole-string element comparison, these cases already work correctly; this
+// test documents and locks in that behaviour.
+func TestElementsMatchUnicode(t *testing.T) {
+	t.Parallel()
+	mockT := new(mockTestingT)
+
+	// Emoji elements — order should not matter.
+	True(t, ElementsMatch(mockT, []string{"🎉", "🌟", "🌍"}, []string{"🌍", "🎉", "🌟"}),
+		"ElementsMatch should match emoji slices regardless of order")
+
+	// Duplicate emoji elements must also match count-for-count.
+	True(t, ElementsMatch(mockT, []string{"🎉", "🎉", "🌟"}, []string{"🌟", "🎉", "🎉"}),
+		"ElementsMatch should respect duplicate emoji counts")
+
+	// Mismatched emoji slices must not match.
+	False(t, ElementsMatch(mockT, []string{"🎉", "🌟"}, []string{"🎉", "🌍"}),
+		"ElementsMatch should reject slices with different emoji elements")
+
+	// CJK characters.
+	True(t, ElementsMatch(mockT, []string{"日本語", "テスト"}, []string{"テスト", "日本語"}),
+		"ElementsMatch should match CJK string slices regardless of order")
+
+	// Accented Latin characters.
+	True(t, ElementsMatch(mockT, []string{"café", "naïve", "résumé"}, []string{"résumé", "café", "naïve"}),
+		"ElementsMatch should match accented Latin strings regardless of order")
+
+	// Mixed ASCII and Unicode.
+	True(t, ElementsMatch(mockT,
+		[]string{"hello", "🌍", "世界"},
+		[]string{"世界", "hello", "🌍"}),
+		"ElementsMatch should match mixed ASCII/Unicode slices")
+}

@@ -931,7 +931,15 @@ func containsElement(list interface{}, element interface{}) (ok, found bool) {
 
 	if listKind == reflect.String {
 		elementValue := reflect.ValueOf(element)
-		return true, strings.Contains(listValue.String(), elementValue.String())
+		haystack := listValue.String()
+		needle := elementValue.String()
+		// Fast-gate: if the bytes aren't present at all, skip the rune
+		// conversion entirely — no rune boundary can be falsely straddled
+		// when there are no matching bytes.
+		if !strings.Contains(haystack, needle) {
+			return true, false
+		}
+		return true, runeSliceContains([]rune(haystack), []rune(needle))
 	}
 
 	if listKind == reflect.Map {
@@ -2311,4 +2319,29 @@ func buildErrorChainString(err error, withType bool) string {
 		}
 	}
 	return chain
+}
+
+// runeSliceContains reports whether needle appears as a contiguous sub-slice
+// of haystack. Comparisons are performed rune-by-rune, so the search is safe
+// across multi-byte Unicode boundaries.
+func runeSliceContains(haystack, needle []rune) bool {
+	if len(needle) == 0 {
+		return true
+	}
+	if len(needle) > len(haystack) {
+		return false
+	}
+	for i := 0; i <= len(haystack)-len(needle); i++ {
+		match := true
+		for j := 0; j < len(needle); j++ {
+			if haystack[i+j] != needle[j] {
+				match = false
+				break
+			}
+		}
+		if match {
+			return true
+		}
+	}
+	return false
 }
