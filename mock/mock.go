@@ -504,7 +504,7 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 		// expected call found, but it has already been called with repeatable times
 		if call != nil {
 			m.mutex.Unlock()
-			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(%#v).Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(%#v).Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), outputCallerInfo(assert.CallerInfo()))
 		}
 		// we have to fail here - because we don't know what to do
 		// as the return arguments.  This is because:
@@ -520,10 +520,10 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 				callString(methodName, closestCall.Arguments, true),
 				diffArguments(closestCall.Arguments, arguments),
 				strings.TrimSpace(mismatch),
-				assert.CallerInfo(),
+				outputCallerInfo(assert.CallerInfo()),
 			)
 		} else {
-			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(%#v).Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+			m.fail("\nassert: mock: I don't know what to return because the method call was unexpected.\n\tEither do Mock.On(%#v).Return(...) first, or remove the %s() call.\n\tThis method was unexpected:\n\t\t%s\n\tat: %s", methodName, methodName, callString(methodName, arguments, true), outputCallerInfo(assert.CallerInfo()))
 		}
 	}
 
@@ -642,7 +642,7 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	}
 
 	if failedExpectations != 0 {
-		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, outputCallerInfo(assert.CallerInfo()))
 	}
 
 	return failedExpectations == 0
@@ -650,10 +650,10 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 
 func (m *Mock) checkExpectation(call *Call) (bool, string) {
 	if !call.optional && !m.methodWasCalled(call.Method, call.Arguments) && call.totalCalls == 0 {
-		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), outputCallerInfo(call.callerInfo))
 	}
 	if call.Repeatability > 0 {
-		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), call.callerInfo)
+		return false, fmt.Sprintf("FAIL:\t%s(%s)\n\t\tat: %s", call.Method, call.Arguments.String(), outputCallerInfo(call.callerInfo))
 	}
 	return true, fmt.Sprintf("PASS:\t%s(%s)", call.Method, call.Arguments.String())
 }
@@ -1100,7 +1100,7 @@ func (args Arguments) Assert(t TestingT, objects ...interface{}) bool {
 
 	// there are differences... report them...
 	t.Logf(diff)
-	t.Errorf("%sArguments do not match.", assert.CallerInfo())
+	t.Errorf("%sArguments do not match.", outputCallerInfo(assert.CallerInfo()))
 
 	return false
 }
@@ -1332,4 +1332,8 @@ func isFuncSame(f1, f2 *runtime.Func) bool {
 	f2File, f2Loc := f2.FileLine(f2.Entry())
 
 	return f1File == f2File && f1Loc == f2Loc
+}
+
+func outputCallerInfo(info []string) string {
+	return fmt.Sprintf("[ %s ]", strings.Join(info, "\n\t"))
 }
