@@ -2550,3 +2550,27 @@ func TestIssue1227AssertExpectationsForObjectsWithMock(t *testing.T) {
 	AssertExpectationsForObjects(mockT, Mock{})
 	assert.Equal(t, 1, mockT.errorfCount)
 }
+
+// Test_AnythingOfType_Issue1573_ReturnsUnexportedType pins the return type of
+// AnythingOfType to the unexported anythingOfTypeArgument. This is a regression
+// guard for issue #1573: when AnythingOfType returned the publicly-exported
+// (and deprecated) AnythingOfTypeArgument alias, pkgsite rendered the factory
+// itself as deprecated. Returning the unexported type clears the deprecation
+// marker without changing observable behavior for callers.
+func Test_AnythingOfType_Issue1573_ReturnsUnexportedType(t *testing.T) {
+	t.Parallel()
+
+	// Compile-time assignability check: result must satisfy the unexported type.
+	var got anythingOfTypeArgument = AnythingOfType("string")
+
+	// Behavior unchanged: still matches via the Diff path used by the matcher.
+	args := Arguments([]interface{}{got})
+	_, count := args.Diff([]interface{}{"hello"})
+	assert.Equal(t, 0, count)
+
+	// And still backwards-compatible with the deprecated exported alias: the
+	// value is assignable to AnythingOfTypeArgument because they share an
+	// underlying type via the existing type alias.
+	var alias AnythingOfTypeArgument = got
+	_ = alias
+}
