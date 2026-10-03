@@ -59,7 +59,7 @@ type ConfigState struct {
 	//
 	// NOTE: This might be an unsafe action since calling one of these methods
 	// with a pointer receiver could technically mutate the value, however,
-	// in practice, types which choose to satisify an error or Stringer
+	// in practice, types which choose to satisfy an error or Stringer
 	// interface with a pointer receiver should not be mutating their state
 	// inside these interface methods.  As a result, this option relies on
 	// access to the unsafe package, so it will not have any effect when
