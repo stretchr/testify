@@ -1570,7 +1570,8 @@ func calcRelativeError(expected, actual interface{}) (float64, error) {
 		return 0, errors.New("actual value must not be NaN")
 	}
 
-	return math.Abs(af-bf) / math.Abs(af), nil
+	denom := math.Max(math.Abs(af), math.Abs(bf))
+	return math.Abs(af-bf) / denom, nil
 }
 
 // InEpsilon asserts that expected and actual have a relative error less than epsilon

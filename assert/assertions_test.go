@@ -2459,6 +2459,7 @@ func TestInEpsilon(t *testing.T) {
 		{uint64(100), uint8(101), 0.01},
 		{0.1, -0.1, 2},
 		{0.1, 0, 2},
+		{0.1, 0.14, 0.4},
 		{math.NaN(), math.NaN(), 1},
 		{time.Second, time.Second + time.Millisecond, 0.002},
 	}
