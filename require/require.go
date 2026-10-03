@@ -867,6 +867,8 @@ func InDelta(t TestingT, expected interface{}, actual interface{}, delta float64
 }
 
 // InDeltaMapValues is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+// When the assertion fails for a particular key, the failure message is prefixed with key[<k>]:
+// so the offending entry can be identified at a glance.
 func InDeltaMapValues(t TestingT, expected interface{}, actual interface{}, delta float64, msgAndArgs ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -878,6 +880,8 @@ func InDeltaMapValues(t TestingT, expected interface{}, actual interface{}, delt
 }
 
 // InDeltaMapValuesf is the same as InDelta, but it compares all values between two maps. Both maps must have exactly the same keys.
+// When the assertion fails for a particular key, the failure message is prefixed with key[<k>]:
+// so the offending entry can be identified at a glance.
 func InDeltaMapValuesf(t TestingT, expected interface{}, actual interface{}, delta float64, msg string, args ...interface{}) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
