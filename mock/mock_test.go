@@ -1908,14 +1908,15 @@ func Test_Arguments_Is(t *testing.T) {
 func Test_Arguments_Diff(t *testing.T) {
 	t.Parallel()
 
-	var args = Arguments([]interface{}{"Hello World", 123, true})
+	var args = Arguments([]interface{}{"Hello World", 123, true, map[string]int{}})
 	var diff string
 	var count int
-	diff, count = args.Diff([]interface{}{"Hello World", 456, "false"})
+	diff, count = args.Diff([]interface{}{"Hello World", 456, "false", *new(map[string]int)})
 
-	assert.Equal(t, 2, count)
+	assert.Equal(t, 3, count)
 	assert.Contains(t, diff, `(int=456) != (int=123)`)
-	assert.Contains(t, diff, `(string=false) != (bool=true)`)
+	assert.Contains(t, diff, `(string="false") != (bool=true)`)
+	assert.Contains(t, diff, `(map[string]int=map[string]int(nil)) != (map[string]int=map[string]int{})`)
 
 }
 
@@ -1928,7 +1929,7 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 	diff, count = args.Diff([]interface{}{"string", 456, "false", "extra"})
 
 	assert.Equal(t, 3, count)
-	assert.Contains(t, diff, `(string=extra) != (Missing)`)
+	assert.Contains(t, diff, `(string="extra") != (Missing)`)
 
 }
 
