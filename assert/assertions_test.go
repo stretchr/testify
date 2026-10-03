@@ -508,6 +508,29 @@ func TestEqualExportedValues(t *testing.T) {
 	            	+  Exported: (int) 2,
 	            	   notExported: (interface {}) <nil>`,
 		},
+		// A map entry holding a nil interface value is still an entry: the
+		// key must not be dropped while copying, otherwise maps with
+		// different keys would wrongly compare as equal.
+		{
+			value1:        map[string]interface{}{"a": nil},
+			value2:        map[string]interface{}{"a": nil},
+			expectedEqual: true,
+		},
+		{
+			value1:        map[string]interface{}{"a": nil},
+			value2:        map[string]interface{}{},
+			expectedEqual: false,
+		},
+		{
+			value1:        map[string]interface{}{"a": nil, "b": 1},
+			value2:        map[string]interface{}{"b": 1},
+			expectedEqual: false,
+		},
+		{
+			value1:        map[string]interface{}{"a": nil},
+			value2:        map[string]interface{}{"a": 1},
+			expectedEqual: false,
+		},
 	}
 
 	for _, c := range cases {

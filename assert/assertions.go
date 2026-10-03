@@ -136,6 +136,15 @@ func copyExportedFields(expected interface{}) interface{} {
 		for _, k := range expectedValue.MapKeys() {
 			index := expectedValue.MapIndex(k)
 			unexportedRemoved := copyExportedFields(index.Interface())
+			if unexportedRemoved == nil {
+				// reflect.ValueOf(nil) is the zero Value, which
+				// SetMapIndex interprets as "delete this key". Store the
+				// element type's zero value instead so nil map values are
+				// preserved and the entry keeps taking part in the
+				// comparison.
+				result.SetMapIndex(k, reflect.Zero(expectedType.Elem()))
+				continue
+			}
 			result.SetMapIndex(k, reflect.ValueOf(unexportedRemoved))
 		}
 		return result.Interface()
