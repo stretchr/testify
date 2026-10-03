@@ -21,6 +21,23 @@ import (
 // regex for GCCGO functions
 var gccgoRE = regexp.MustCompile(`\.pN\d+_`)
 
+// formatArg returns a safe string representation of v for use in Diff output.
+// Pointer-like types (pointer, map, slice, chan) are formatted with %p
+// (address only) to avoid data races when other goroutines concurrently
+// modify them.
+func formatArg(v interface{}) string {
+	if v == nil {
+		return "<nil>"
+	}
+	rv := reflect.ValueOf(v)
+	kind := rv.Kind()
+	switch kind {
+	case reflect.Map, reflect.Ptr, reflect.Slice, reflect.Chan:
+		return fmt.Sprintf("(%[1]T=%[1]p)", v)
+	}
+	return fmt.Sprintf("(%[1]T=%[1]v)", v)
+}
+
 // TestingT is an interface wrapper around *testing.T
 type TestingT interface {
 	Logf(format string, args ...interface{})
@@ -988,7 +1005,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			actualFmt = missing.String()
 		} else {
 			actual = objects[i]
-			actualFmt = fmt.Sprintf("(%[1]T=%[1]v)", actual)
+			actualFmt = formatArg(actual)
 		}
 
 		if len(args) <= i {
@@ -996,7 +1013,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			expectedFmt = missing.String()
 		} else {
 			expected = args[i]
-			expectedFmt = fmt.Sprintf("(%[1]T=%[1]v)", expected)
+			expectedFmt = formatArg(expected)
 		}
 
 		// A missing argument on either side means the call and the expectation

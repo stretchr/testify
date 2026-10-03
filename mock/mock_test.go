@@ -2354,7 +2354,7 @@ func TestArgumentMatcherToPrintMismatchWithReferenceType(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			matchingExp := regexp.MustCompile(
-				`\s+mock: Unexpected Method Call\s+-*\s+GetTimes\(\[\]int\)\s+0: \[\]int\{1\}\s+The closest call I have is:\s+GetTimes\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(\[\]int=\[1\]\) not matched by func\(\[\]int\) bool\nat: \[[^\]]+mock\/mock_test.go`)
+				`\s+mock: Unexpected Method Call\s+-*\s+GetTimes\(\[\]int\)\s+0: \[\]int\{1\}\s+The closest call I have is:\s+GetTimes\(mock.argumentMatcher\)\s+0: mock.argumentMatcher\{.*?\}\s+Diff:.*\(\[\]int=0x[0-9a-f]+\) not matched by func\(\[\]int\) bool\nat: \[[^\]]+mock\/mock_test.go`)
 			assert.Regexp(t, matchingExp, r)
 		}
 	}()
@@ -2389,7 +2389,7 @@ func TestClosestCallFavorsFirstMock(t *testing.T) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -2,4 \+2,4 @@\s+\(bool\) true,\s+- \(bool\) true,\s+- \(bool\) true\s+\+ \(bool\) false,\s+\+ \(bool\) false\s+}\s+Diff: 0: FAIL:  \(\[\]bool=\[(true\s?|false\s?){3}]\) != \(\[\]bool=\[(true\s?|false\s?){3}\]\)`
+			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -2,4 \+2,4 @@\s+\(bool\) true,\s+- \(bool\) true,\s+- \(bool\) true\s+\+ \(bool\) false,\s+\+ \(bool\) false\s+}\s+Diff: 0: FAIL:  \(\[\]bool=0x[0-9a-f]+\) != \(\[\]bool=0x[0-9a-f]+\)`
 			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod7([]bool)`, `0: \[\]bool{true, false, false}`, `0: \[\]bool{true, true, true}`, diffRegExp))
 			assert.Regexp(t, matchingExp, r)
 		}
@@ -2407,7 +2407,7 @@ func TestClosestCallUsesRepeatabilityToFindClosest(t *testing.T) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -1,4 \+1,4 @@\s+\(\[\]bool\) \(len=3\) {\s+- \(bool\) false,\s+- \(bool\) false,\s+\+ \(bool\) true,\s+\+ \(bool\) true,\s+\(bool\) false\s+Diff: 0: FAIL:  \(\[\]bool=\[(true\s?|false\s?){3}]\) != \(\[\]bool=\[(true\s?|false\s?){3}\]\)`
+			diffRegExp := `Difference found in argument 0:\s+--- Expected\s+\+\+\+ Actual\s+@@ -1,4 \+1,4 @@\s+\(\[\]bool\) \(len=3\) {\s+- \(bool\) false,\s+- \(bool\) false,\s+\+ \(bool\) true,\s+\+ \(bool\) true,\s+\(bool\) false\s+Diff: 0: FAIL:  \(\[\]bool=0x[0-9a-f]+\) != \(\[\]bool=0x[0-9a-f]+\)`
 			matchingExp := regexp.MustCompile(unexpectedCallRegex(`TheExampleMethod7([]bool)`, `0: \[\]bool{true, true, false}`, `0: \[\]bool{false, false, false}`, diffRegExp))
 			assert.Regexp(t, matchingExp, r)
 		}
@@ -2542,6 +2542,128 @@ func TestIssue1785ArgumentWithMutatingStringer(t *testing.T) {
 	m.On("Method", &mutatingStringer{N: 1})
 	m.MethodCalled("Method", &mutatingStringer{N: 1})
 	m.MethodCalled("Method", &mutatingStringer{N: 2})
+	m.AssertExpectations(t)
+}
+func Test_formatArg(t *testing.T) {
+	t.Parallel()
+
+	// Pointer types should use %p (address only) to avoid deep traversal
+	ptr := 42
+	ptrFmt := formatArg(&ptr)
+	assert.Contains(t, ptrFmt, "*int=0x", "pointer should use %p format")
+
+	// Map types should use %p to avoid concurrent map iteration crashes
+	m := map[string]int{"a": 1}
+	mapFmt := formatArg(m)
+	assert.Contains(t, mapFmt, "map[string]int=0x", "map should use %p format")
+
+	// Slice types should use %p to avoid deep traversal
+	slice := []int{1, 2, 3}
+	sliceFmt := formatArg(slice)
+	assert.Contains(t, sliceFmt, "[]int=0x", "slice should use %p format")
+
+	// Channel types should use %p
+	ch := make(chan int)
+	chFmt := formatArg(ch)
+	assert.Contains(t, chFmt, "chan int=0x", "chan should use %p format")
+
+	// Basic types should use %v (readable value)
+	assert.Equal(t, "(int=42)", formatArg(42))
+	assert.Equal(t, "(string=hello)", formatArg("hello"))
+	assert.Equal(t, "<nil>", formatArg(nil))
+}
+
+func Test_Arguments_Diff_RaceSafeFormatting(t *testing.T) {
+	t.Parallel()
+
+	m := map[string]int{"key": 1}
+	out := formatArg(m)
+
+	assert.Contains(t, out, "map[string]int=0x")
+	assert.NotContains(t, out, "key")
+}
+
+func Test_Arguments_Diff_RaceSafeFormatting_Slice(t *testing.T) {
+	t.Parallel()
+
+	s := []int{101, 202, 303}
+	out := formatArg(s)
+
+	assert.Contains(t, out, "[]int=0x")
+	assert.NotContains(t, out, "101")
+	assert.NotContains(t, out, "202")
+	assert.NotContains(t, out, "303")
+}
+
+func Test_Arguments_Diff_RaceSafeFormatting_Pointer(t *testing.T) {
+	t.Parallel()
+
+	val := 999
+	out := formatArg(&val)
+
+	assert.Contains(t, out, "*int=0x")
+	assert.NotContains(t, out, "999")
+}
+func Test_CallMockWithConcurrentlyModifiedPointerArg(t *testing.T) {
+	// Regression test for https://github.com/stretchr/testify/issues/1597.
+	m := &Mock{}
+	m.On("Question", Anything).Return(42)
+
+	ptrArg := &struct{ Question string }{Question: "What is the meaning of life?"}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ptrArg.Question = "What is 7 * 6?"
+	}()
+
+	args := m.MethodCalled("Question", ptrArg)
+	assert.Equal(t, 42, args.Int(0))
+
+	wg.Wait()
+	m.AssertExpectations(t)
+}
+
+func Test_CallMockWithConcurrentlyModifiedSliceArg(t *testing.T) {
+	// Regression test for https://github.com/stretchr/testify/issues/1597.
+	m := &Mock{}
+	m.On("Fetch", Anything).Return("ok")
+
+	sliceArg := []int{1, 2, 3}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		sliceArg[0] = 999
+	}()
+
+	args := m.MethodCalled("Fetch", sliceArg)
+	assert.Equal(t, "ok", args.String(0))
+
+	wg.Wait()
+	m.AssertExpectations(t)
+}
+
+func Test_CallMockWithConcurrentlyModifiedMapArg(t *testing.T) {
+	// Regression test for https://github.com/stretchr/testify/issues/1597.
+	m := &Mock{}
+	m.On("Lookup", Anything).Return("found")
+
+	mapArg := map[string]int{"key": 1}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		mapArg["key"] = 2
+	}()
+
+	args := m.MethodCalled("Lookup", mapArg)
+	assert.Equal(t, "found", args.String(0))
+
+	wg.Wait()
 	m.AssertExpectations(t)
 }
 
