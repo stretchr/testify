@@ -1029,7 +1029,13 @@ func Subset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) (ok
 
 		for _, k := range subsetMap.MapKeys() {
 			ev := subsetMap.MapIndex(k)
-			av := actualMap.MapIndex(k)
+			if k.Kind() == reflect.Interface && !k.IsNil() {
+				k = k.Elem()
+			}
+			var av reflect.Value
+			if k.Type().AssignableTo(actualMap.Type().Key()) {
+				av = actualMap.MapIndex(k)
+			}
 
 			if !av.IsValid() {
 				return Fail(t, fmt.Sprintf("%s does not contain %s", truncatingFormat("%#v", list), truncatingFormat("%#v", subset)), msgAndArgs...)
@@ -1097,7 +1103,13 @@ func NotSubset(t TestingT, list, subset interface{}, msgAndArgs ...interface{}) 
 
 		for _, k := range subsetMap.MapKeys() {
 			ev := subsetMap.MapIndex(k)
-			av := actualMap.MapIndex(k)
+			if k.Kind() == reflect.Interface && !k.IsNil() {
+				k = k.Elem()
+			}
+			var av reflect.Value
+			if k.Type().AssignableTo(actualMap.Type().Key()) {
+				av = actualMap.MapIndex(k)
+			}
 
 			if !av.IsValid() {
 				return true
