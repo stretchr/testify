@@ -1278,6 +1278,52 @@ func TestSubsetNotSubset(t *testing.T) {
 	}
 }
 
+func TestSubsetMapKeyTypes(t *testing.T) {
+	t.Parallel()
+
+	type namedKey string
+	type namedMap map[string]int
+	for _, tc := range []struct {
+		name   string
+		list   interface{}
+		subset interface{}
+		result bool
+	}{
+		{"string and int", map[string]int{"1": 1}, map[int]int{1: 1}, false},
+		{"int and int64", map[int]int{1: 1}, map[int64]int{1: 1}, false},
+		{"string and named string", map[string]int{"key": 1}, map[namedKey]int{"key": 1}, false},
+		{"empty list", map[string]int{}, map[int]int{1: 1}, false},
+		{"interface to concrete", map[string]int{"key": 1}, map[interface{}]int{"key": 1}, true},
+		{"incompatible interface value", map[string]int{"1": 1}, map[interface{}]int{1: 1}, false},
+		{"concrete to interface", map[interface{}]int{"key": 1}, map[string]int{"key": 1}, true},
+		{"named to interface", map[interface{}]int{namedKey("key"): 1}, map[namedKey]int{"key": 1}, true},
+		{"matching interfaces", map[interface{}]int{"key": 1}, map[interface{}]int{"key": 1}, true},
+		{"matching named maps", namedMap{"key": 1}, map[string]int{"key": 1}, true},
+		{"nil interface key", map[interface{}]int{nil: 1}, map[interface{}]int{nil: 1}, true},
+		{"nil interface and concrete", map[string]int{"key": 1}, map[interface{}]int{nil: 1}, false},
+		{"missing key", map[interface{}]int{"other": 1}, map[string]int{"key": 1}, false},
+		{"different value", map[interface{}]int{"key": 2}, map[string]int{"key": 1}, false},
+		{"empty subset", map[string]int{"key": 1}, map[int]int{}, true},
+		{"nil subset map", map[string]int{"key": 1}, map[int]int(nil), true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			subsetT, notSubsetT := new(mockTestingT), new(mockTestingT)
+			NotPanics(t, func() {
+				Equal(t, tc.result, Subset(subsetT, tc.list, tc.subset, "comparison %d", 42))
+			})
+			NotPanics(t, func() {
+				Equal(t, !tc.result, NotSubset(notSubsetT, tc.list, tc.subset, "comparison %d", 42))
+			})
+			Equal(t, !tc.result, subsetT.Failed())
+			Equal(t, tc.result, notSubsetT.Failed())
+			if !tc.result {
+				Contains(t, subsetT.errorString(), "does not contain")
+				Contains(t, subsetT.errorString(), "comparison 42")
+			}
+		})
+	}
+}
+
 func TestNotSubsetNil(t *testing.T) {
 	t.Parallel()
 
