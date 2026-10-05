@@ -1287,7 +1287,7 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 		var expectedValues []reflect.Value
 		var actualValues []reflect.Value
 		if ot.NumIn() == 0 {
-			return
+			continue
 		}
 
 		for i := 0; i < ot.NumIn(); i++ {
