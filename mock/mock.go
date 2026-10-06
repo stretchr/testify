@@ -602,10 +602,12 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
+	success := true
 	for _, obj := range testObjects {
 		m, ok := obj.(assertExpectationiser)
 		if !ok {
 			t.Errorf("Invalid test object type %T. Expected reference to a mock.Mock, eg: 'AssertExpectationsForObjects(t, myMock)' or 'AssertExpectationsForObjects(t, &myMock.Mock)'", obj)
+			success = false
 			continue
 
 		}
@@ -614,7 +616,7 @@ func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
 			return false
 		}
 	}
-	return true
+	return success
 }
 
 // AssertExpectations asserts that everything specified with [Mock.On] was
