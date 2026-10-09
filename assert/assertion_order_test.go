@@ -6,6 +6,35 @@ import (
 	"testing"
 )
 
+func TestOrderAssertionsNil(t *testing.T) {
+	t.Parallel()
+
+	for _, assertion := range []struct {
+		name string
+		call ValueAssertionFunc
+	}{
+		{"IsIncreasing", IsIncreasing},
+		{"IsNonIncreasing", IsNonIncreasing},
+		{"IsDecreasing", IsDecreasing},
+		{"IsNonDecreasing", IsNonDecreasing},
+	} {
+		t.Run(assertion.name, func(t *testing.T) {
+			out := &outputT{buf: bytes.NewBuffer(nil)}
+			if !NotPanics(t, func() {
+				False(t, assertion.call(out, nil, "order context %d", 42))
+			}) {
+				return
+			}
+			Contains(t, out.buf.String(), "object <nil> is not an ordered collection")
+			Contains(t, out.buf.String(), "order context 42")
+			Contains(t, out.helpers, "github.com/stretchr/testify/assert."+assertion.name)
+			True(t, assertion.call(t, []int(nil)))
+			True(t, assertion.call(t, []int{}))
+			True(t, assertion.call(t, [0]int{}))
+		})
+	}
+}
+
 func TestIsIncreasing(t *testing.T) {
 	t.Parallel()
 
