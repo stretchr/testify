@@ -3592,6 +3592,40 @@ func TestEventuallyWithTSucceedQuickly(t *testing.T) {
 	True(t, EventuallyWithT(mockT, condition, 100*time.Millisecond, time.Second))
 }
 
+func TestEventually_NilCondition(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	res := Eventually(mockT, nil, 100*time.Millisecond, 20*time.Millisecond)
+	False(t, res)
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "Condition must not be nil")
+
+	mockTWithMsg := new(mockTestingT)
+	resWithMsg := Eventually(mockTWithMsg, nil, 100*time.Millisecond, 20*time.Millisecond, "custom message %s", "arg")
+	False(t, resWithMsg)
+	True(t, mockTWithMsg.Failed())
+	Contains(t, mockTWithMsg.errorString(), "Condition must not be nil")
+	Contains(t, mockTWithMsg.errorString(), "custom message arg")
+}
+
+func TestEventuallyWithT_NilCondition(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	res := EventuallyWithT(mockT, nil, 100*time.Millisecond, 20*time.Millisecond)
+	False(t, res)
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "Condition must not be nil")
+
+	mockTWithMsg := new(mockTestingT)
+	resWithMsg := EventuallyWithT(mockTWithMsg, nil, 100*time.Millisecond, 20*time.Millisecond, "custom message %s", "arg")
+	False(t, resWithMsg)
+	True(t, mockTWithMsg.Failed())
+	Contains(t, mockTWithMsg.errorString(), "Condition must not be nil")
+	Contains(t, mockTWithMsg.errorString(), "custom message arg")
+}
+
 func TestNeverFalse(t *testing.T) {
 	t.Parallel()
 
@@ -3632,6 +3666,23 @@ func TestNeverFailQuickly(t *testing.T) {
 	// we didn't check the condition before the first tick elapses.
 	condition := func() bool { return true }
 	False(t, Never(mockT, condition, 100*time.Millisecond, time.Second))
+}
+
+func TestNever_NilCondition(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(mockTestingT)
+	res := Never(mockT, nil, 100*time.Millisecond, 20*time.Millisecond)
+	False(t, res)
+	True(t, mockT.Failed())
+	Contains(t, mockT.errorString(), "Condition must not be nil")
+
+	mockTWithMsg := new(mockTestingT)
+	resWithMsg := Never(mockTWithMsg, nil, 100*time.Millisecond, 20*time.Millisecond, "custom message %s", "arg")
+	False(t, resWithMsg)
+	True(t, mockTWithMsg.Failed())
+	Contains(t, mockTWithMsg.errorString(), "Condition must not be nil")
+	Contains(t, mockTWithMsg.errorString(), "custom message arg")
 }
 
 func Test_validateEqualArgs(t *testing.T) {
