@@ -666,7 +666,7 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	var actualCalls int
-	for _, call := range m.calls() {
+	for _, call := range m.Calls {
 		if call.Method == methodName {
 			actualCalls++
 		}

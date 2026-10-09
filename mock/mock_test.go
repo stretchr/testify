@@ -1742,6 +1742,60 @@ func Test_Mock_AssertNumberOfCalls(t *testing.T) {
 	mockedService.Called(1, 2, 3)
 	assert.True(t, mockedService.AssertNumberOfCalls(t, "Test_Mock_AssertNumberOfCalls", 2))
 
+	tt := new(testing.T)
+	assert.False(t, mockedService.AssertNumberOfCalls(tt, "Test_Mock_AssertNumberOfCalls", 1))
+	assert.False(t, mockedService.AssertNumberOfCalls(tt, "Test_Mock_AssertNumberOfCalls", 3))
+	assert.True(t, mockedService.AssertNumberOfCalls(t, "NonExistentMethod", 0))
+	assert.False(t, mockedService.AssertNumberOfCalls(tt, "NonExistentMethod", 1))
+}
+
+func Test_Mock_AssertNumberOfCalls_EdgeCases(t *testing.T) {
+	t.Parallel()
+
+	t.Run("empty call history", func(t *testing.T) {
+		t.Parallel()
+		var m Mock
+		tt := new(testing.T)
+		assert.True(t, m.AssertNumberOfCalls(t, "SomeMethod", 0))
+		assert.False(t, m.AssertNumberOfCalls(tt, "SomeMethod", 1))
+	})
+
+	t.Run("multiple methods with distinct call counts", func(t *testing.T) {
+		t.Parallel()
+		var m Mock
+		m.On("MethodA").Return()
+		m.On("MethodB").Return()
+
+		m.MethodCalled("MethodA")
+		m.MethodCalled("MethodA")
+		m.MethodCalled("MethodB")
+
+		tt := new(testing.T)
+		assert.True(t, m.AssertNumberOfCalls(t, "MethodA", 2))
+		assert.True(t, m.AssertNumberOfCalls(t, "MethodB", 1))
+		assert.True(t, m.AssertNumberOfCalls(t, "MethodC", 0))
+
+		assert.False(t, m.AssertNumberOfCalls(tt, "MethodA", 1))
+		assert.False(t, m.AssertNumberOfCalls(tt, "MethodA", 3))
+		assert.False(t, m.AssertNumberOfCalls(tt, "MethodB", 0))
+		assert.False(t, m.AssertNumberOfCalls(tt, "MethodB", 2))
+		assert.False(t, m.AssertNumberOfCalls(tt, "MethodC", 1))
+	})
+}
+
+func Benchmark_Mock_AssertNumberOfCalls(b *testing.B) {
+	var m Mock
+	const callCount = 100
+	m.On("BenchmarkMethod").Return()
+	for i := 0; i < callCount; i++ {
+		m.MethodCalled("BenchmarkMethod")
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_ = m.AssertNumberOfCalls(b, "BenchmarkMethod", callCount)
+	}
 }
 
 func Test_Mock_AssertCalled(t *testing.T) {
