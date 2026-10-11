@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -193,6 +194,47 @@ func TestHTTPRequestWithParams(t *testing.T) {
 	Equal(t, url.Values{"id": []string{"12345"}}, got.URL.Query())
 	Equal(t, "/url?id=12345", got.URL.String())
 	Equal(t, "/url?id=12345", got.URL.RequestURI())
+}
+
+func TestHTTPBodyQueryComponents(t *testing.T) {
+	t.Parallel()
+
+	for _, target := range []string{"/hello", "/hello#section", "/hello?lang=en", "/hello?lang=en#section"} {
+		target := target
+		t.Run(target, func(t *testing.T) {
+			t.Parallel()
+
+			params := url.Values{"name": {"World & friends"}}
+			handler := func(w http.ResponseWriter, r *http.Request) {
+				if got := r.URL.Query().Get("name"); got != params.Get("name") {
+					t.Fatalf("query name = %q, want %q", got, params.Get("name"))
+				}
+				if strings.Contains(target, "?") {
+					Equal(t, "en", r.URL.Query().Get("lang"))
+				}
+				if strings.Contains(target, "#") {
+					Equal(t, "section", r.URL.Fragment)
+				}
+				httpHelloName(w, r)
+			}
+			Equal(t, "Hello, World & friends!", HTTPBody(handler, "GET", target, params))
+			True(t, HTTPBodyContains(t, handler, "GET", target, params, "World & friends"))
+			False(t, HTTPBodyNotContains(new(mockTestingT), handler, "GET", target, params, "World & friends"))
+		})
+	}
+}
+
+func TestHTTPBodyWithoutAdditionalQuery(t *testing.T) {
+	t.Parallel()
+
+	for _, values := range []url.Values{nil, {}} {
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			Equal(t, "name=World", r.URL.RawQuery)
+			Equal(t, "section", r.URL.Fragment)
+			httpHelloName(w, r)
+		}
+		Equal(t, "Hello, World!", HTTPBody(handler, "GET", "/hello?name=World#section", values))
+	}
 }
 
 func TestHttpBody(t *testing.T) {

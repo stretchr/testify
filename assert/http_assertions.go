@@ -113,12 +113,15 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method, url string, va
 // empty string if building a new request fails.
 func HTTPBody(handler http.HandlerFunc, method, url string, values url.Values) string {
 	w := httptest.NewRecorder()
-	if len(values) > 0 {
-		url += "?" + values.Encode()
-	}
 	req, err := http.NewRequest(method, url, http.NoBody)
 	if err != nil {
 		return ""
+	}
+	if len(values) > 0 {
+		if req.URL.RawQuery != "" {
+			req.URL.RawQuery += "&"
+		}
+		req.URL.RawQuery += values.Encode()
 	}
 	handler(w, req)
 	return w.Body.String()
