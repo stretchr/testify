@@ -67,6 +67,9 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 
 	exp, ok := expected.([]byte)
 	if !ok {
+		if equal, handled := objectsAreEqualAtomic(expected, actual); handled {
+			return equal
+		}
 		return reflect.DeepEqual(expected, actual)
 	}
 
