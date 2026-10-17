@@ -630,6 +630,7 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	var failedExpectations int
+	var remainingCalls int
 
 	// iterate through each expectation
 	expectedCalls := m.expectedCalls()
@@ -637,12 +638,17 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 		satisfied, reason := m.checkExpectation(expectedCall)
 		if !satisfied {
 			failedExpectations++
+			if expectedCall.Repeatability > 0 {
+				remainingCalls += expectedCall.Repeatability
+			} else {
+				remainingCalls++
+			}
 			t.Logf(reason)
 		}
 	}
 
 	if failedExpectations != 0 {
-		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), failedExpectations, assert.CallerInfo())
+		t.Errorf("FAIL: %d out of %d expectation(s) were met.\n\tThe code you are testing needs to make %d more call(s).\n\tat: %s", len(expectedCalls)-failedExpectations, len(expectedCalls), remainingCalls, assert.CallerInfo())
 	}
 
 	return failedExpectations == 0

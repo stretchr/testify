@@ -2303,6 +2303,72 @@ func TestLoggingAssertExpectations(t *testing.T) {
 	require.Equal(t, "Expectations didn't match for Mock: *mock.timer", tcl.logs[1])
 }
 
+func TestLoggingAssertExpectationsRemainingCalls(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		times     int
+		called    int
+		optional  bool
+		remaining int
+	}{
+		{name: "five calls with none made", times: 5, remaining: 5},
+		{name: "five calls with one made", times: 5, called: 1, remaining: 4},
+		{name: "twice with none made", times: 2, remaining: 2},
+		{name: "twice with one made", times: 2, called: 1, remaining: 1},
+		{name: "once with none made", times: 1, remaining: 1},
+		{name: "required unbounded with none made", remaining: 1},
+		{name: "required unbounded with one made", called: 1},
+		{name: "optional unbounded with none made", optional: true},
+		{name: "optional bounded with none made", times: 5, optional: true, remaining: 5},
+		{name: "optional bounded with one made", times: 5, called: 1, optional: true, remaining: 4},
+		{name: "satisfied bounded", times: 5, called: 5},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			m := new(Mock)
+			call := m.On("Method").Return().Times(tt.times)
+			if tt.optional {
+				call.Maybe()
+			}
+			for i := 0; i < tt.called; i++ {
+				m.MethodCalled("Method")
+			}
+			tcl := &tCustomLogger{T: t}
+			assert.Equal(t, tt.remaining == 0, m.AssertExpectations(tcl))
+			if tt.remaining == 0 {
+				assert.Empty(t, tcl.errs)
+				return
+			}
+			require.Len(t, tcl.errs, 1)
+			assert.Contains(t, tcl.errs[0], "0 out of 1 expectation(s) were met.")
+			assert.Contains(t, tcl.errs[0], fmt.Sprintf("needs to make %d more call(s).", tt.remaining))
+		})
+	}
+}
+
+func TestLoggingAssertExpectationsMultipleRemainingCalls(t *testing.T) {
+	t.Parallel()
+
+	m := new(Mock)
+	m.On("First").Return().Times(5)
+	m.On("Second").Return().Twice()
+	m.On("Third").Return()
+	m.On("Fourth").Return().Once()
+	m.MethodCalled("First")
+	m.MethodCalled("Second")
+	m.MethodCalled("Fourth")
+	tcl := &tCustomLogger{T: t}
+
+	assert.False(t, m.AssertExpectations(tcl))
+	require.Len(t, tcl.errs, 1)
+	assert.Contains(t, tcl.errs[0], "1 out of 4 expectation(s) were met.")
+	assert.Contains(t, tcl.errs[0], "needs to make 6 more call(s).")
+}
+
 func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
 	t.Parallel()
 
