@@ -145,6 +145,50 @@ func TestSuiteRecoverPanic(t *testing.T) {
 	assert.False(t, ok)
 }
 
+type hookPanicSuite struct {
+	Suite
+	panicHook     string
+	tearDownPanic bool
+}
+
+func (s *hookPanicSuite) TestFirst() {}
+
+func (s *hookPanicSuite) TestSecond() {}
+
+func (s *hookPanicSuite) AfterTest(_, testName string) {
+	if s.panicHook == "AfterTest" && testName == "TestFirst" {
+		panic("oops in after test")
+	}
+}
+
+func (s *hookPanicSuite) TearDownTest() {
+	if s.panicHook == "TearDownTest" && !s.tearDownPanic {
+		s.tearDownPanic = true
+		panic("oops in tear down test")
+	}
+}
+
+func TestSuiteRestoresTAfterHookPanic(t *testing.T) {
+	for _, hook := range []string{"AfterTest", "TearDownTest"} {
+		t.Run(hook, func(t *testing.T) {
+			suite := &hookPanicSuite{panicHook: hook}
+			var parentTName, suiteTName string
+			ok := testing.RunTests(allTestsFilter, []testing.InternalTest{{
+				Name: t.Name(),
+				F: func(t *testing.T) {
+					parentTName = t.Name()
+					Run(t, suite)
+					suiteTName = suite.T().Name()
+				},
+			}})
+			if ok {
+				t.Fatal("expected the hook panic to fail the suite")
+			}
+			assert.Equal(t, parentTName, suiteTName)
+		})
+	}
+}
+
 // This suite is intended to store values to make sure that only
 // testing-suite-related methods are run.  It's also a fully
 // functional example of a testing suite, using setup/teardown methods

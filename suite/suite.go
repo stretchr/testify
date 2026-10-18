@@ -181,6 +181,7 @@ func Run(t *testing.T, suite TestingSuite) {
 				parentT := suite.T()
 				suite.SetT(t)
 				defer recoverAndFailOnPanic(t)
+				defer suite.SetT(parentT)
 				defer func() {
 					t.Helper()
 
@@ -196,7 +197,6 @@ func Run(t *testing.T, suite TestingSuite) {
 						tearDownTestSuite.TearDownTest()
 					}
 
-					suite.SetT(parentT)
 					failOnPanic(t, r)
 				}()
 
