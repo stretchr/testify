@@ -863,6 +863,15 @@ func TestFormatUnequalValues(t *testing.T) {
 	expected, actual = formatUnequalValues(&testStructType{Val: "test"}, &testStructType{Val: "test"})
 	Equal(t, `&assert.testStructType{Val:"test"}`, expected, "value should not include type annotation")
 	Equal(t, `&assert.testStructType{Val:"test"}`, actual, "value should not include type annotation")
+
+	// Unsigned integers should print as decimal, not hex (issue #400).
+	expected, actual = formatUnequalValues(uint(1700), uint(1701))
+	Equal(t, `1700`, expected, "uint should print as decimal")
+	Equal(t, `1701`, actual, "uint should print as decimal")
+
+	expected, actual = formatUnequalValues(uint(1700), int(1701))
+	Equal(t, `uint(1700)`, expected, "uint should print as decimal with type prefix")
+	Equal(t, `int(1701)`, actual, "int should print as decimal with type prefix")
 }
 
 func TestNotNil(t *testing.T) {
