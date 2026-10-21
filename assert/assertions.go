@@ -596,6 +596,19 @@ func samePointers(first, second interface{}) (same bool, ok bool) {
 	return first == second, true
 }
 
+// formatValue formats a value for display in error messages. It uses %v for
+// unsigned integers to avoid the hex representation that %#v produces, and
+// %#v for all other types to preserve struct field names and string quotes.
+func formatValue(value interface{}) string {
+	if value != nil {
+		kind := reflect.TypeOf(value).Kind()
+		if kind >= reflect.Uint && kind <= reflect.Uintptr {
+			return truncatingFormat("%v", value)
+		}
+	}
+	return truncatingFormat("%#v", value)
+}
+
 // formatUnequalValues takes two values of arbitrary types and returns string
 // representations appropriate to be presented to the user.
 //
@@ -604,14 +617,14 @@ func samePointers(first, second interface{}) (same bool, ok bool) {
 // to a type conversion in the Go grammar.
 func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 	if reflect.TypeOf(expected) != reflect.TypeOf(actual) {
-		return fmt.Sprintf("%T(%s)", expected, truncatingFormat("%#v", expected)),
-			fmt.Sprintf("%T(%s)", actual, truncatingFormat("%#v", actual))
+		return fmt.Sprintf("%T(%s)", expected, formatValue(expected)),
+			fmt.Sprintf("%T(%s)", actual, formatValue(actual))
 	}
 	switch expected.(type) {
 	case time.Duration:
 		return fmt.Sprintf("%v", expected), fmt.Sprintf("%v", actual)
 	}
-	return truncatingFormat("%#v", expected), truncatingFormat("%#v", actual)
+	return formatValue(expected), formatValue(actual)
 }
 
 // truncatingFormat formats the data and truncates it if it's too long.
