@@ -86,6 +86,19 @@ func TestHTTPRedirect(t *testing.T) {
 	assert.True(mockT4.Failed())
 }
 
+func TestHTTPRedirectIncludesMultipleChoices(t *testing.T) {
+	handler := func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusMultipleChoices)
+	}
+	mockT := new(mockTestingT)
+	if !HTTPRedirect(mockT, handler, "GET", "/", nil) {
+		t.Error("HTTP 300 should be classified as a redirect")
+	}
+	if mockT.Failed() {
+		t.Error("HTTPRedirect should not report an assertion failure for HTTP 300")
+	}
+}
+
 func TestHTTPError(t *testing.T) {
 	t.Parallel()
 
