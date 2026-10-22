@@ -611,7 +611,7 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 	case time.Duration:
 		return fmt.Sprintf("%v", expected), fmt.Sprintf("%v", actual)
 	}
-	return truncatingFormat("%#v", expected), truncatingFormat("%#v", actual)
+	return truncatingFormatValues(expected), truncatingFormatValues(actual)
 }
 
 // truncatingFormat formats the data and truncates it if it's too long.
@@ -620,8 +620,36 @@ func formatUnequalValues(expected, actual interface{}) (e string, a string) {
 // bufio.MaxScanTokenSize max line length that the go testing framework imposes.
 func truncatingFormat(format string, data interface{}) string {
 	value := fmt.Sprintf(format, data)
+	return truncateString(value)
+}
+
+// truncatingFormatValues formats a value, including the underlying value
+// of pointers to basic types, and truncates the result if necessary.
+func truncatingFormatValues(data interface{}) string {
+	value := reflect.ValueOf(data)
+	if value.Kind() == reflect.Ptr {
+		elem := value.Elem()
+		if isBasicType(elem.Kind()) {
+			if elem.Kind() == reflect.String {
+				return truncateString(fmt.Sprintf("%#v %#v", data, elem.Interface()))
+			}
+			return truncateString(fmt.Sprintf("%#v %v", data, elem.Interface()))
+		}
+	}
+	return truncateString(fmt.Sprintf("%#v", data))
+}
+
+// isBasicType reports whether k is a scalar bool, numeric, or string kind,
+// including the underlying kinds of named Go types.
+func isBasicType(k reflect.Kind) bool {
+	return k == reflect.String || (k >= reflect.Bool && k <= reflect.Complex128)
+}
+
+// truncateString truncates a string if it exceeds the maximum message size.
+func truncateString(value string) string {
 	// Give us space for two truncated objects and the surrounding sentence.
 	maxMessageSize := bufio.MaxScanTokenSize/2 - 100
+
 	if len(value) > maxMessageSize {
 		value = value[0:maxMessageSize] + "<... truncated>"
 	}
