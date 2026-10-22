@@ -863,6 +863,40 @@ func TestFormatUnequalValues(t *testing.T) {
 	expected, actual = formatUnequalValues(&testStructType{Val: "test"}, &testStructType{Val: "test"})
 	Equal(t, `&assert.testStructType{Val:"test"}`, expected, "value should not include type annotation")
 	Equal(t, `&assert.testStructType{Val:"test"}`, actual, "value should not include type annotation")
+
+	t.Run("different-pointer-types", func(t *testing.T) {
+		t.Parallel()
+		first, second := int(5), int64(10)
+		gotExpected, gotActual := formatUnequalValues(&first, &second)
+		wantExpected := fmt.Sprintf("%T(%#v)", &first, &first)
+		wantActual := fmt.Sprintf("%T(%#v)", &second, &second)
+		if gotExpected != wantExpected || gotActual != wantActual {
+			t.Errorf("unexpected formatting for different types: got (%q, %q), want (%q, %q)",
+				gotExpected, gotActual, wantExpected, wantActual)
+		}
+	})
+
+	t.Run("pointer-and-untyped-nil", func(t *testing.T) {
+		t.Parallel()
+		first := "hello"
+		gotExpected, gotActual := formatUnequalValues(&first, nil)
+		wantExpected := fmt.Sprintf("%T(%#v)", &first, &first)
+		if gotExpected != wantExpected || gotActual != "<nil>(<nil>)" {
+			t.Errorf("unexpected pointer/nil formatting: got (%q, %q)", gotExpected, gotActual)
+		}
+	})
+
+	t.Run("long-string", func(t *testing.T) {
+		t.Parallel()
+		longString := strings.Repeat("x", 70000)
+		formatted := truncatingFormatValues(&longString)
+		if !strings.HasSuffix(formatted, "<... truncated>") {
+			t.Error("long pointer value should be truncated")
+		}
+		if len(formatted) > bufio.MaxScanTokenSize/2 {
+			t.Errorf("truncated value is too long: %d bytes", len(formatted))
+		}
+	})
 }
 
 func TestNotNil(t *testing.T) {
@@ -3664,6 +3698,116 @@ func Test_truncatingFormat(t *testing.T) {
 	if !strings.HasSuffix(result, "<... truncated>") {
 		t.Error("truncated string should have <... truncated> suffix")
 	}
+}
+
+func ptrUniversal(v interface{}) interface{} {
+	ptr := reflect.New(reflect.TypeOf(v))
+	ptr.Elem().Set(reflect.ValueOf(v))
+	return ptr.Interface()
+}
+
+// TestEqualPointerFormatting verifies that equality failure messages include
+// the underlying values of pointers to basic types, preserve standard
+// formatting for other pointers, and produce no errors for equal values.
+func TestEqualPointerFormatting(t *testing.T) {
+	t.Parallel()
+
+	type Person struct {
+		Age int
+	}
+	type MyInt int
+	var nilInt *int
+
+	cases := []struct {
+		name            string
+		expected        interface{}
+		actual          interface{}
+		expectedPattern string
+		actualPattern   string
+	}{
+		{
+			name: "int", expected: ptrUniversal(5), actual: ptrUniversal(10),
+			expectedPattern: `expected:\s+\(\*int\)\(0x[0-9a-f]+\) 5`,
+			actualPattern:   `actual\s+:\s+\(\*int\)\(0x[0-9a-f]+\) 10`,
+		},
+		{
+			name: "bool", expected: ptrUniversal(true), actual: ptrUniversal(false),
+			expectedPattern: `expected:\s+\(\*bool\)\(0x[0-9a-f]+\) true`,
+			actualPattern:   `actual\s+:\s+\(\*bool\)\(0x[0-9a-f]+\) false`,
+		},
+		{
+			name: "string", expected: ptrUniversal("hello"), actual: ptrUniversal("world"),
+			expectedPattern: `expected:\s+\(\*string\)\(0x[0-9a-f]+\) "hello"`,
+			actualPattern:   `actual\s+:\s+\(\*string\)\(0x[0-9a-f]+\) "world"`,
+		},
+		{
+			name: "nil-pointer", expected: nilInt, actual: ptrUniversal(10),
+			expectedPattern: `expected:\s+\(\*int\)\(nil\)`,
+			actualPattern:   `actual\s+:\s+\(\*int\)\(0x[0-9a-f]+\) 10`,
+		},
+		{
+			name: "struct", expected: ptrUniversal(Person{Age: 5}), actual: ptrUniversal(Person{Age: 10}),
+			expectedPattern: `expected:\s+&assert\.Person\{Age:5\}`,
+			actualPattern:   `actual\s+:\s+&assert\.Person\{Age:10\}`,
+		},
+		{
+			name: "empty-string", expected: ptrUniversal(""), actual: ptrUniversal("hello"),
+			expectedPattern: `expected:\s+\(\*string\)\(0x[0-9a-f]+\) ""`,
+			actualPattern:   `actual\s+:\s+\(\*string\)\(0x[0-9a-f]+\) "hello"`,
+		},
+		{
+			name: "multiline-string", expected: ptrUniversal("hello\nworld"), actual: ptrUniversal("world"),
+			expectedPattern: `expected:\s+\(\*string\)\(0x[0-9a-f]+\) "hello\\nworld"`,
+			actualPattern:   `actual\s+:\s+\(\*string\)\(0x[0-9a-f]+\) "world"`,
+		},
+		{
+			name: "uintptr", expected: ptrUniversal(uintptr(17)), actual: ptrUniversal(uintptr(42)),
+			expectedPattern: `expected:\s+\(\*uintptr\)\(0x[0-9a-f]+\) 17`,
+			actualPattern:   `actual\s+:\s+\(\*uintptr\)\(0x[0-9a-f]+\) 42`,
+		},
+		{
+			name: "named-int", expected: ptrUniversal(MyInt(5)), actual: ptrUniversal(MyInt(10)),
+			expectedPattern: `expected:\s+\(\*assert\.MyInt\)\(0x[0-9a-f]+\) 5`,
+			actualPattern:   `actual\s+:\s+\(\*assert\.MyInt\)\(0x[0-9a-f]+\) 10`,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			mockT := &bufferT{}
+			if Equal(mockT, tc.expected, tc.actual) {
+				t.Fatal("Equal unexpectedly returned true")
+			}
+			message := mockT.buf.String()
+			Regexp(t, tc.expectedPattern, message)
+			Regexp(t, tc.actualPattern, message)
+		})
+	}
+
+	t.Run("equal-values", func(t *testing.T) {
+		t.Parallel()
+		first, second := 5, 5
+		mockT := &bufferT{}
+		if !Equal(mockT, &first, &second) {
+			t.Error("Equal should accept pointers to equal values")
+		}
+		if mockT.buf.Len() != 0 {
+			t.Errorf("unexpected failure message: %s", mockT.buf.String())
+		}
+	})
+
+	t.Run("not-equal-values", func(t *testing.T) {
+		t.Parallel()
+		first, second := 5, 10
+		mockT := &bufferT{}
+		if EqualValues(mockT, &first, &second) {
+			t.Fatal("EqualValues unexpectedly returned true")
+		}
+		Regexp(t, `expected:\s+\(\*int\)\(0x[0-9a-f]+\) 5`, mockT.buf.String())
+		Regexp(t, `actual\s+:\s+\(\*int\)\(0x[0-9a-f]+\) 10`, mockT.buf.String())
+	})
 }
 
 // parseLabeledOutput does the inverse of labeledOutput - it takes a formatted
