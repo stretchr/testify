@@ -10,18 +10,17 @@ jobs:
           - stable
           - oldstable
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go_version }}
-      - run: npm install -g mdsf-cli
       - run: ./.ci.gogenerate.sh
       - run: ./.ci.gofmt.sh
-      - run: ./.ci.readme.fmt.sh
       - run: ./.ci.govet.sh
       - run: go test -v -race ./...
-  test:
+
+  test-old-go:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,10 +33,17 @@ jobs:
           - "1.22"
           - "1.23"
           - "1.24"
+          - "1.25"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go_version }}
       - run: go test -v -race ./...
+
+  check-actions-hashes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: ./.ci.ghactions.sh

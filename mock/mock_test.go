@@ -1932,6 +1932,89 @@ func Test_Arguments_Diff_DifferentNumberOfArgs(t *testing.T) {
 
 }
 
+func Test_Arguments_Diff_MissingArgument_WithAnythingArgument(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{"string", Anything})
+	diff, count := args.Diff([]interface{}{"string"})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(Missing) != (string=mock.Anything)`)
+}
+
+func Test_Arguments_Diff_MissingArgument_WithAnythingOfTypeArgument(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{"string", AnythingOfType("string")})
+	diff, count := args.Diff([]interface{}{"string"})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(Missing) != (mock.anythingOfTypeArgument=string)`)
+}
+
+func Test_Arguments_Diff_MissingArgument_WithIsTypeArgument(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{"string", IsType("")})
+	_, count := args.Diff([]interface{}{"string"})
+
+	assert.Equal(t, 1, count)
+}
+
+func Test_Arguments_Diff_MissingArgument_WithArgMatcher(t *testing.T) {
+	t.Parallel()
+
+	var called bool
+	matchFn := func(s string) bool {
+		called = true
+		return true
+	}
+	var args = Arguments([]interface{}{"string", MatchedBy(matchFn)})
+	diff, count := args.Diff([]interface{}{"string"})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(Missing) != (mock.argumentMatcher=func(string) bool)`)
+	assert.False(t, called, "the matcher must not be called for an argument that was never passed")
+}
+
+func Test_Arguments_Diff_MissingArgument_WithFunctionalOptionsArgument(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{"string", FunctionalOptions()})
+	_, count := args.Diff([]interface{}{"string"})
+
+	assert.Equal(t, 1, count)
+}
+
+func Test_Arguments_Diff_MissingArgument_WithLiteralMissingString(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{"string", "(Missing)"})
+	diff, count := args.Diff([]interface{}{"string"})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(Missing) != (string=(Missing))`)
+}
+
+func Test_Arguments_Diff_MissingExpectation_WithAnythingArgument(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{"string"})
+	diff, count := args.Diff([]interface{}{"string", Anything})
+
+	assert.Equal(t, 1, count)
+	assert.Contains(t, diff, `(string=mock.Anything) != (Missing)`)
+}
+
+func Test_Arguments_Diff_MissingArgument_StillMatchesWhenPresent(t *testing.T) {
+	t.Parallel()
+
+	var args = Arguments([]interface{}{Anything, AnythingOfType("string"), IsType(0), MatchedBy(func(b bool) bool { return b })})
+	_, count := args.Diff([]interface{}{"anything", "string", 123, true})
+
+	assert.Equal(t, 0, count)
+}
+
 func Test_Arguments_Diff_WithAnythingArgument(t *testing.T) {
 	t.Parallel()
 

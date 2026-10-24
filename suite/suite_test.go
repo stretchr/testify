@@ -583,6 +583,42 @@ func TestSuiteWithStats(t *testing.T) {
 	assert.False(t, testStats["TestPanic"].Passed)
 }
 
+type suiteWithSkipInSetupAndStats struct {
+	Suite
+	wasCalled bool
+	stats     *SuiteInformation
+}
+
+func (s *suiteWithSkipInSetupAndStats) SetupTest() {
+	s.T().Skip("skip in setup")
+}
+
+func (s *suiteWithSkipInSetupAndStats) HandleStats(_ string, stats *SuiteInformation) {
+	s.wasCalled = true
+	s.stats = stats
+}
+
+func (s *suiteWithSkipInSetupAndStats) TestSomething() {
+	s.Fail("should not run")
+}
+
+func TestSuiteWithSkipInSetupAndStats(t *testing.T) {
+	skipSuite := new(suiteWithSkipInSetupAndStats)
+
+	testing.RunTests(allTestsFilter, []testing.InternalTest{
+		{
+			Name: t.Name() + "/skipSuite",
+			F: func(t *testing.T) {
+				Run(t, skipSuite)
+			},
+		},
+	})
+
+	assert.True(t, skipSuite.wasCalled, "HandleStats should have been called")
+	assert.NotNil(t, skipSuite.stats, "stats should not be nil")
+	assert.NotNil(t, skipSuite.stats.TestStats["TestSomething"], "test stats entry should exist even when skipped in SetupTest")
+}
+
 // FailfastSuite will test the behavior when running with the failfast flag
 // It logs calls in the callOrder slice which we then use to assert the correct calls were made
 type FailfastSuite struct {

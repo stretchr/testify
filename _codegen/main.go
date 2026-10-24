@@ -177,23 +177,22 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 	}
 
 	fset := token.NewFileSet()
-	files := make(map[string]*ast.File)
 	fileList := make([]*ast.File, len(pd.GoFiles))
 	for i, fname := range pd.GoFiles {
 		src, err := os.ReadFile(path.Join(pd.Dir, fname))
 		if err != nil {
 			return nil, nil, err
 		}
-		f, err := parser.ParseFile(fset, fname, src, parser.ParseComments|parser.AllErrors)
+		// SkipObjectResolution for less memory usage in the go/types era
+		f, err := parser.ParseFile(fset, fname, src, parser.ParseComments|parser.AllErrors|parser.SkipObjectResolution)
 		if err != nil {
 			return nil, nil, err
 		}
-		files[fname] = f
 		fileList[i] = f
 	}
 
 	cfg := types.Config{
-		Importer: importer.For("source", nil),
+		Importer: importer.ForCompiler(fset, "source", nil),
 	}
 	info := types.Info{
 		Defs: make(map[*ast.Ident]types.Object),
@@ -205,8 +204,10 @@ func parsePackageSource(pkg string) (*types.Scope, *doc.Package, error) {
 
 	scope := tp.Scope()
 
-	ap, _ := ast.NewPackage(fset, files, nil, nil)
-	docs := doc.New(ap, pkg, 0)
+	docs, err := doc.NewFromFiles(fset, fileList, pkg)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return scope, docs, nil
 }
@@ -227,7 +228,7 @@ func (f *testFunc) Qualifier(p *types.Package) string {
 func (f *testFunc) Params() string {
 	sig := f.TypeInfo.Type().(*types.Signature)
 	params := sig.Params()
-	p := ""
+	var p strings.Builder
 	comma := ""
 	to := params.Len()
 	var i int
@@ -237,20 +238,23 @@ func (f *testFunc) Params() string {
 	}
 	for i = 1; i < to; i++ {
 		param := params.At(i)
-		p += fmt.Sprintf("%s%s %s", comma, param.Name(), types.TypeString(param.Type(), f.Qualifier))
+		p.WriteString(comma)
+		p.WriteString(param.Name())
+		p.WriteString(" ")
+		p.WriteString(types.TypeString(param.Type(), f.Qualifier))
 		comma = ", "
 	}
 	if sig.Variadic() {
 		param := params.At(params.Len() - 1)
-		p += fmt.Sprintf("%s%s ...%s", comma, param.Name(), types.TypeString(param.Type().(*types.Slice).Elem(), f.Qualifier))
+		fmt.Fprintf(&p, "%s%s ...%s", comma, param.Name(), types.TypeString(param.Type().(*types.Slice).Elem(), f.Qualifier))
 	}
-	return p
+	return p.String()
 }
 
 func (f *testFunc) ForwardedParams() string {
 	sig := f.TypeInfo.Type().(*types.Signature)
 	params := sig.Params()
-	p := ""
+	var p strings.Builder
 	comma := ""
 	to := params.Len()
 	var i int
@@ -260,14 +264,15 @@ func (f *testFunc) ForwardedParams() string {
 	}
 	for i = 1; i < to; i++ {
 		param := params.At(i)
-		p += fmt.Sprintf("%s%s", comma, param.Name())
+		p.WriteString(comma)
+		p.WriteString(param.Name())
 		comma = ", "
 	}
 	if sig.Variadic() {
 		param := params.At(params.Len() - 1)
-		p += fmt.Sprintf("%s%s...", comma, param.Name())
+		fmt.Fprintf(&p, "%s%s...", comma, param.Name())
 	}
-	return p
+	return p.String()
 }
 
 func (f *testFunc) ParamsFormat() string {
