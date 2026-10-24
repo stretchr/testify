@@ -3,6 +3,7 @@ package require
 import (
 	"encoding/json"
 	"errors"
+	"runtime"
 	"testing"
 	"time"
 
@@ -787,4 +788,23 @@ func TestEventuallyWithTTrue(t *testing.T) {
 	EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
 	False(t, mockT.Failed, "Check should pass")
 	Equal(t, 2, counter, "Condition is expected to be called 2 times")
+}
+
+func TestEventuallyWithTOuterFailNow(t *testing.T) {
+	t.Parallel()
+
+	mockT := new(MockT)
+
+	counter := 0
+	condition := func(collect *assert.CollectT) {
+		counter += 1
+
+		// Simulate [testing.T.FailNow] on the outer 't' by calling
+		// runtime.Goexit() manually.
+		runtime.Goexit()
+	}
+
+	EventuallyWithT(mockT, condition, 100*time.Millisecond, 20*time.Millisecond)
+	True(t, mockT.Failed, "Check should fail")
+	Equal(t, 1, counter, "Condition is expected to be called once")
 }
