@@ -1365,11 +1365,17 @@ func TestElementsMatch(t *testing.T) {
 		{[]string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}, true},
 		{[3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}, true},
 		{[]int{}, nil, true},
+		{[0]int{}, nil, true},
+		{[2]int{}, []int{0, 0}, true},
 
 		// not matching
 		{[]int{1}, []int{1, 1}, false},
 		{[]int{1, 2}, []int{2, 2}, false},
 		{[]string{"hello", "hello"}, []string{"hello"}, false},
+		{[2]int{}, []int{}, false},
+		{[2]int{}, [1]int{}, false},
+		{nil, []int{1}, false},
+		{[]int{1}, nil, false},
 	}
 
 	for _, c := range cases {
@@ -1490,6 +1496,10 @@ func TestNotElementsMatch(t *testing.T) {
 		{[]string{"hello"}, []string{"world"}, true},
 		{[]string{"hello", "hello"}, []string{"world", "world"}, true},
 		{[3]string{"hello", "hello", "hello"}, [3]string{"world", "world", "world"}, true},
+		{[2]int{}, []int{}, true},
+		{[2]int{}, [1]int{}, true},
+		{nil, []int{1}, true},
+		{[]int{1}, nil, true},
 
 		// matching
 		{nil, nil, false},
@@ -1504,6 +1514,8 @@ func TestNotElementsMatch(t *testing.T) {
 		{[]string{"hello", "hello"}, []string{"hello", "hello"}, false},
 		{[]string{"hello", "hello", "world"}, []string{"hello", "world", "hello"}, false},
 		{[3]string{"hello", "hello", "world"}, [3]string{"hello", "world", "hello"}, false},
+		{[0]int{}, nil, false},
+		{[2]int{}, []int{0, 0}, false},
 	}
 
 	for _, c := range cases {
