@@ -1141,10 +1141,6 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if isEmpty(listA) && isEmpty(listB) {
-		return true
-	}
-
 	if !isList(t, listA, msgAndArgs...) || !isList(t, listB, msgAndArgs...) {
 		return false
 	}
@@ -1158,8 +1154,11 @@ func ElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interface
 	return Fail(t, formatListDiff(listA, listB, extraA, extraB), msgAndArgs...)
 }
 
-// isList checks that the provided value is array or slice.
+// isList checks that the provided value is nil, an array, or a slice.
 func isList(t TestingT, list interface{}, msgAndArgs ...interface{}) (ok bool) {
+	if list == nil {
+		return true
+	}
 	kind := reflect.TypeOf(list).Kind()
 	if kind != reflect.Array && kind != reflect.Slice {
 		return Fail(t, fmt.Sprintf("%q has an unsupported type %s, expecting array or slice", list, kind),
@@ -1175,8 +1174,13 @@ func diffLists(listA, listB interface{}) (extraA, extraB []interface{}) {
 	aValue := reflect.ValueOf(listA)
 	bValue := reflect.ValueOf(listB)
 
-	aLen := aValue.Len()
-	bLen := bValue.Len()
+	var aLen, bLen int
+	if aValue.IsValid() {
+		aLen = aValue.Len()
+	}
+	if bValue.IsValid() {
+		bLen = bValue.Len()
+	}
 
 	// Mark indexes in bValue that we already used
 	visited := make([]bool, bLen)
@@ -1242,10 +1246,6 @@ func NotElementsMatch(t TestingT, listA, listB interface{}, msgAndArgs ...interf
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if isEmpty(listA) && isEmpty(listB) {
-		return Fail(t, "listA and listB contain the same elements", msgAndArgs)
-	}
-
 	if !isList(t, listA, msgAndArgs...) {
 		return Fail(t, "listA is not a list type", msgAndArgs...)
 	}
