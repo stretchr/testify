@@ -343,14 +343,15 @@ func (a *Assertions) Eventually(condition func() bool, waitFor time.Duration, ti
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
-//	externalValue := false
+//	var externalValue int32
 //	go func() {
 //		time.Sleep(8*time.Second)
-//		externalValue = true
+//		atomic.StoreInt32(&externalValue, 1)
 //	}()
 //	a.EventuallyWithT(func(c *assert.CollectT) {
 //		// add assertions as needed; any assertion failure will fail the current tick
-//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//		isSet := atomic.LoadInt32(&externalValue) == 1
+//		assert.True(c, isSet, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "external state has not changed to 'true'; still false")
 func (a *Assertions) EventuallyWithT(condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
@@ -368,14 +369,15 @@ func (a *Assertions) EventuallyWithT(condition func(collect *assert.CollectT), w
 // If the condition is not met before waitFor, the collected errors of
 // the last tick are copied to t.
 //
-//	externalValue := false
+//	var externalValue int32
 //	go func() {
 //		time.Sleep(8*time.Second)
-//		externalValue = true
+//		atomic.StoreInt32(&externalValue, 1)
 //	}()
 //	a.EventuallyWithTf(func(c *assert.CollectT) {
 //		// add assertions as needed; any assertion failure will fail the current tick
-//		assert.True(c, externalValue, "expected 'externalValue' to be true")
+//		isSet := atomic.LoadInt32(&externalValue) == 1
+//		assert.True(c, isSet, "expected 'externalValue' to be true")
 //	}, 10*time.Second, 1*time.Second, "error message %s", "formatted")
 func (a *Assertions) EventuallyWithTf(condition func(collect *assert.CollectT), waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
 	if h, ok := a.t.(tHelper); ok {
