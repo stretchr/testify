@@ -16,7 +16,9 @@ func httpCode(handler http.HandlerFunc, method, url string, values url.Values) (
 	if err != nil {
 		return -1, err
 	}
-	req.URL.RawQuery = values.Encode()
+	if len(values) > 0 {
+		req.URL.RawQuery = values.Encode()
+	}
 	handler(w, req)
 	return w.Code, nil
 }
