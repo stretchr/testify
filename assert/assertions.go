@@ -1614,21 +1614,32 @@ func InEpsilonSlice(t TestingT, expected, actual interface{}, epsilon float64, m
 	}
 
 	expectedLen := expectedSlice.Len()
-	if !IsType(t, expected, actual) || !Len(t, actual, expectedLen) {
+	if !IsType(t, expected, actual, msgAndArgs...) || !Len(t, actual, expectedLen, msgAndArgs...) {
 		return false
 	}
 
 	for i := 0; i < expectedLen; i++ {
-		message := fmt.Sprintf("at index %d", i)
-		if len(msgAndArgs) > 0 {
-			message += ": " + messageFromMsgAndArgs(msgAndArgs...)
-		}
+		message := inEpsilonSliceMessage{index: i, msgAndArgs: msgAndArgs}
 		if !InEpsilon(t, expectedSlice.Index(i).Interface(), actualSlice.Index(i).Interface(), epsilon, message) {
 			return false
 		}
 	}
 
 	return true
+}
+
+// Format the index and caller context only when the element assertion fails.
+type inEpsilonSliceMessage struct {
+	index      int
+	msgAndArgs []interface{}
+}
+
+func (m inEpsilonSliceMessage) String() string {
+	message := fmt.Sprintf("at index %d", m.index)
+	if context := messageFromMsgAndArgs(m.msgAndArgs...); context != "" {
+		message += ": " + context
+	}
+	return message
 }
 
 /*
