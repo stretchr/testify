@@ -230,3 +230,42 @@ func TestHttpBodyWrappers(t *testing.T) {
 	assert.False(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "World"))
 	assert.True(mockAssert.HTTPBodyNotContains(httpHelloName, "GET", "/", url.Values{"name": []string{"World"}}, "world"))
 }
+
+func TestHTTPCodeQuery(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		name      string
+		target    string
+		values    url.Values
+		wantQuery string
+	}{
+		{"nil values", "/search?q=hello%20world&q=again", nil, "q=hello%20world&q=again"},
+		{"empty values", "/search?q=hello%20world#results", url.Values{}, "q=hello%20world"},
+		{"no query", "/search", nil, ""},
+		{"explicit values", "/search", url.Values{"q": {"hello world", "again"}}, "q=hello+world&q=again"},
+		{"explicit values replace query", "/search?q=old", url.Values{"q": {"new"}}, "q=new"},
+		{"explicit values clear query", "/search?q=old", url.Values{"q": nil}, ""},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			code, err := httpCode(func(w http.ResponseWriter, r *http.Request) {
+				Equal(t, tt.wantQuery, r.URL.RawQuery)
+				w.WriteHeader(http.StatusNoContent)
+			}, "GET", tt.target, tt.values)
+			NoError(t, err)
+			Equal(t, http.StatusNoContent, code)
+		})
+	}
+}
+
+func TestHTTPStatusCodePreservesQuery(t *testing.T) {
+	t.Parallel()
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("q") != "hello world" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+	True(t, HTTPStatusCode(t, handler, "GET", "/search?q=hello%20world", nil, http.StatusOK))
+}
