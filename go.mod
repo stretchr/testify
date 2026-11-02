@@ -6,5 +6,5 @@ go 1.17
 
 require (
 	github.com/stretchr/objx v0.5.3
-	go.yaml.in/yaml/v3 v3.0.5
+	go.yaml.in/yaml/v3 v3.0.6
 )
