@@ -312,10 +312,15 @@ func valueSortLess(a, b reflect.Value) bool {
 		for i := 0; i < l; i++ {
 			av := a.Index(i)
 			bv := b.Index(i)
-			if av.Interface() == bv.Interface() {
-				continue
+			// Avoid calling Interface() here: the array may have been
+			// obtained from an unexported struct field, in which case
+			// Interface() panics.
+			if valueSortLess(av, bv) {
+				return true
 			}
-			return valueSortLess(av, bv)
+			if valueSortLess(bv, av) {
+				return false
+			}
 		}
 	}
 	return a.String() < b.String()

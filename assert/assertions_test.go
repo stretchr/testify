@@ -2902,6 +2902,25 @@ func (d *diffTestingStruct) String() string {
 	return d.A
 }
 
+// Regression test for https://github.com/stretchr/testify/issues/1813
+func TestEqualUnexportedMapWithArrayKeys(t *testing.T) {
+	t.Parallel()
+
+	type withMap struct {
+		m map[[1]byte]*struct{}
+	}
+	a := withMap{m: map[[1]byte]*struct{}{{2}: nil, {1}: nil}}
+	b := withMap{}
+
+	mockT := new(captureTestingT)
+	if Equal(mockT, a, b) {
+		t.Fatal("Equal should fail")
+	}
+	if !strings.Contains(mockT.msg, "Diff:") {
+		t.Errorf("expected a diff in the failure message, got:\n%s", mockT.msg)
+	}
+}
+
 func TestDiff(t *testing.T) {
 	t.Parallel()
 

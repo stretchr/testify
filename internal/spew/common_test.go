@@ -228,6 +228,35 @@ func TestSortValues(t *testing.T) {
 	helpTestSortValues(tests, &cs, t)
 }
 
+// TestSortValuesUnexportedArrays ensures sorting array values obtained from
+// an unexported struct field does not panic and still sorts them by content.
+func TestSortValuesUnexportedArrays(t *testing.T) {
+	type wrapper struct {
+		m map[[2]byte]struct{}
+	}
+	w := wrapper{m: map[[2]byte]struct{}{
+		{2, 1}: {},
+		{1, 2}: {},
+		{1, 1}: {},
+		{3, 0}: {},
+	}}
+	keys := reflect.ValueOf(w).Field(0).MapKeys()
+	if keys[0].CanInterface() {
+		t.Fatal("expected map keys from an unexported field to be read-only")
+	}
+
+	cs := spew.ConfigState{DisableMethods: true, SpewKeys: false}
+	spew.SortValues(keys, &cs)
+
+	want := [][2]byte{{1, 1}, {1, 2}, {2, 1}, {3, 0}}
+	for i, k := range keys {
+		got := [2]byte{byte(k.Index(0).Uint()), byte(k.Index(1).Uint())}
+		if got != want[i] {
+			t.Errorf("SortValues #%d got: %v want: %v", i, got, want[i])
+		}
+	}
+}
+
 // TestSortValuesWithMethods ensures the sort functionality for relect.Value
 // based sorting works as intended when using string methods.
 func TestSortValuesWithMethods(t *testing.T) {
