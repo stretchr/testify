@@ -103,6 +103,8 @@ func (a *Assertions) ElementsMatchf(listA interface{}, listB interface{}, msg st
 //
 // Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
 //
+// Interface values are "empty" if the interface is nil or if the value it holds is "empty".
+//
 //	a.Empty(obj)
 //
 // [Zero values]: https://go.dev/ref/spec#The_zero_value
@@ -122,6 +124,8 @@ func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) {
 // Slices, maps and channels with zero length are "empty".
 //
 // Pointer values are "empty" if the pointer is nil or if the pointed value is "empty".
+//
+// Interface values are "empty" if the interface is nil or if the value it holds is "empty".
 //
 //	a.Emptyf(obj, "error message %s", "formatted")
 //
