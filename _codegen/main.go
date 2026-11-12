@@ -13,6 +13,7 @@ import (
 	"go/format"
 	"go/importer"
 	"go/parser"
+	"go/scanner"
 	"go/token"
 	"go/types"
 	"io"
@@ -290,14 +291,76 @@ func (f *testFunc) Comment() string {
 func (f *testFunc) CommentFormat() string {
 	search := f.DocInfo.Name
 	replace := fmt.Sprintf("%sf", f.DocInfo.Name)
-	comment := strings.ReplaceAll(f.Comment(), search, replace)
+	comment := strings.ReplaceAll(strings.TrimSpace(f.DocInfo.Doc), search, replace)
 
 	// NOTE: Some functions have msgAndArgs at the end. It needs to be omitted. (currently only EventuallyWithT)
 	// Change here if the original comment changed.
 	comment = strings.Replace(comment, `, "external state has not changed to 'true'; still false"`, "", 1)
 
-	exp := regexp.MustCompile(replace + `\((([^()]*|\([^()]*\))*)\)`)
-	return exp.ReplaceAllString(comment, replace+`($1, "error message %s", "formatted")`)
+	comment = formatExamples(comment, replace)
+	return "// " + strings.ReplaceAll(comment, "\n", "\n// ")
+}
+
+// formatExamples adds the format arguments to example calls. Scan the original
+// documentation before adding line-comment prefixes so multiline calls, nested
+// expressions, and parentheses inside literals or comments retain their meaning.
+func formatExamples(comment, name string) string {
+	var result strings.Builder
+	for {
+		index := strings.Index(comment, name+"(")
+		if index < 0 {
+			break
+		}
+		source := comment[index:]
+		file := token.NewFileSet().AddFile("", -1, len(source))
+		var lexer scanner.Scanner
+		lexer.Init(file, []byte(source), func(token.Position, string) {}, 0)
+		var calls []bool
+		var example strings.Builder
+		previousIdent := ""
+		previousToken := token.ILLEGAL
+		start, end := 0, 0
+		for end == 0 {
+			pos, tok, literal := lexer.Scan()
+			if tok == token.EOF {
+				break
+			}
+			switch tok {
+			case token.IDENT:
+				previousIdent = literal
+				previousToken = tok
+				continue
+			case token.LPAREN:
+				calls = append(calls, previousIdent == name)
+			case token.RPAREN:
+				last := len(calls) - 1
+				if calls[last] {
+					offset := file.Offset(pos)
+					example.WriteString(source[start:offset])
+					if previousToken != token.COMMA {
+						example.WriteString(", ")
+					}
+					example.WriteString(`"error message %s", "formatted"`)
+					start = offset
+				}
+				calls = calls[:last]
+				if len(calls) == 0 {
+					end = file.Offset(pos) + 1
+				}
+			}
+			previousIdent = ""
+			previousToken = tok
+		}
+		if end == 0 {
+			break // Leave an incomplete example untouched.
+		}
+		example.WriteString(source[start:end])
+		result.WriteString(comment[:index])
+		result.WriteString(example.String())
+		comment = source[end:]
+	}
+	result.WriteString(comment)
+	return result.String()
 }
 
 func (f *testFunc) CommentWithoutT(receiver string) string {
