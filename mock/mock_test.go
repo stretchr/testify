@@ -2550,3 +2550,12 @@ func TestIssue1227AssertExpectationsForObjectsWithMock(t *testing.T) {
 	AssertExpectationsForObjects(mockT, Mock{})
 	assert.Equal(t, 1, mockT.errorfCount)
 }
+
+func TestIssue1414CollectT_MockTestingT(t *testing.T) {
+	m := new(Mock)
+	m.On("Foo").Return()
+	go m.MethodCalled("Foo")
+	assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+		m.AssertExpectations(collect)
+	}, time.Second, time.Millisecond)
+}
