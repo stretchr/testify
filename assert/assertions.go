@@ -2045,10 +2045,16 @@ type CollectT struct {
 	// If it's non-nil but len(c.errors) == 0, this is also a failure
 	// obtained by direct c.FailNow() call.
 	errors []error
+	logs   []string
 }
 
 // Helper is like [testing.T.Helper] but does nothing.
 func (CollectT) Helper() {}
+
+// Logf collects the logs.
+func (c *CollectT) Logf(format string, args ...interface{}) {
+	c.logs = append(c.logs, fmt.Sprintf(format, args...))
+}
 
 // Errorf collects the error.
 func (c *CollectT) Errorf(format string, args ...interface{}) {
@@ -2081,6 +2087,10 @@ func (c *CollectT) failed() bool {
 	return c.errors != nil
 }
 
+type tLogf = interface {
+	Logf(format string, args ...interface{})
+}
+
 // EventuallyWithT asserts that given condition will be met in waitFor time,
 // periodically checking target function each tick. In contrast to Eventually,
 // it supplies a CollectT to the condition function, so that the condition
@@ -2105,6 +2115,8 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	}
 
 	var lastFinishedTickErrs []error
+	var lastFinishedTickLogs []string
+
 	ch := make(chan *CollectT, 1)
 
 	checkCond := func() {
@@ -2129,6 +2141,11 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 	for {
 		select {
 		case <-timer.C:
+			if l, ok := t.(tLogf); ok {
+				for _, log := range lastFinishedTickLogs {
+					l.Logf("%s", log)
+				}
+			}
 			for _, err := range lastFinishedTickErrs {
 				t.Errorf("%v", err)
 			}
@@ -2141,6 +2158,7 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 				return true
 			}
 			// Keep the errors from the last ended condition, so that they can be copied to t if timeout is reached.
+			lastFinishedTickLogs = collect.logs
 			lastFinishedTickErrs = collect.errors
 			tickC = ticker.C
 		}
