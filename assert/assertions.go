@@ -1323,11 +1323,22 @@ func PanicsWithValue(t TestingT, expected interface{}, f PanicTestFunc, msgAndAr
 	if !funcDidPanic {
 		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
-	if !ObjectsAreEqual(expected, panicValue) {
+	if !panicValuesEqual(expected, panicValue) {
 		return Fail(t, fmt.Sprintf("func %#v should panic with value:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, expected, panicValue, panickedStack), msgAndArgs...)
 	}
 
 	return true
+}
+
+// panicValuesEqual preserves Go equality for comparable values, including pointer
+// identity, and falls back to deep equality when the comparison would panic.
+func panicValuesEqual(expected, actual interface{}) (equal bool) {
+	defer func() {
+		if recover() != nil {
+			equal = ObjectsAreEqual(expected, actual)
+		}
+	}()
+	return expected == actual
 }
 
 // PanicsWithError asserts that the code inside the specified PanicTestFunc
