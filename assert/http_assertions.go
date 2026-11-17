@@ -112,16 +112,21 @@ func HTTPStatusCode(t TestingT, handler http.HandlerFunc, method, url string, va
 // HTTPBody is a helper that returns HTTP body of the response. It returns
 // empty string if building a new request fails.
 func HTTPBody(handler http.HandlerFunc, method, url string, values url.Values) string {
+	body, _ := httpBody(handler, method, url, values)
+	return body
+}
+
+func httpBody(handler http.HandlerFunc, method, url string, values url.Values) (string, error) {
 	w := httptest.NewRecorder()
 	if len(values) > 0 {
 		url += "?" + values.Encode()
 	}
 	req, err := http.NewRequest(method, url, http.NoBody)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	handler(w, req)
-	return w.Body.String()
+	return w.Body.String(), nil
 }
 
 // HTTPBodyContains asserts that a specified handler returns a
@@ -134,7 +139,10 @@ func HTTPBodyContains(t TestingT, handler http.HandlerFunc, method, url string, 
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	body := HTTPBody(handler, method, url, values)
+	body, err := httpBody(handler, method, url, values)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err), msgAndArgs...)
+	}
 
 	contains := strings.Contains(body, fmt.Sprint(str))
 	if !contains {
@@ -154,7 +162,10 @@ func HTTPBodyNotContains(t TestingT, handler http.HandlerFunc, method, url strin
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	body := HTTPBody(handler, method, url, values)
+	body, err := httpBody(handler, method, url, values)
+	if err != nil {
+		return Fail(t, fmt.Sprintf("Failed to build test request, got error: %s", err), msgAndArgs...)
+	}
 
 	contains := strings.Contains(body, fmt.Sprint(str))
 	if contains {
