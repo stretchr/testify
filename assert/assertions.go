@@ -1323,7 +1323,7 @@ func PanicsWithValue(t TestingT, expected interface{}, f PanicTestFunc, msgAndAr
 	if !funcDidPanic {
 		return Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
 	}
-	if panicValue != expected {
+	if !ObjectsAreEqual(expected, panicValue) {
 		return Fail(t, fmt.Sprintf("func %#v should panic with value:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, expected, panicValue, panickedStack), msgAndArgs...)
 	}
 
