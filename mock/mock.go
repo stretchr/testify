@@ -141,7 +141,9 @@ func (c *Call) Twice() *Call {
 }
 
 // Times indicates that the mock should only return the indicated number
-// of times.
+// of times. Calling Times(0) removes the call limit, as in the default
+// behavior, but the expectation must still be met at least once. To make an
+// expectation optional, use Maybe.
 //
 //	Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (c *Call) Times(i int) *Call {
