@@ -2442,6 +2442,51 @@ func TestInDeltaMapValues(t *testing.T) {
 	}
 }
 
+func TestInDeltaMapValues_ErrorIncludesKey(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		title      string
+		expected   interface{}
+		actual     interface{}
+		msgAndArgs []interface{}
+		wantSub    string
+	}{
+		{
+			title:    "string key",
+			expected: map[string]int{"a": 3, "b": 1},
+			actual:   map[string]int{"a": 4, "b": 1},
+			wantSub:  "Messages:   \tkey[a]\n",
+		},
+		{
+			title:    "int key",
+			expected: map[int]float64{1: 1.0, 2: 2.0},
+			actual:   map[int]float64{1: 1.0, 2: 5.0},
+			wantSub:  "Messages:   \tkey[2]\n",
+		},
+		{
+			title:      "single string message is not formatted",
+			expected:   map[string]float64{"x": 1.0},
+			actual:     map[string]float64{"x": math.NaN()},
+			msgAndArgs: []interface{}{"100%"},
+			wantSub:    "Messages:   \tkey[x]: 100%\n",
+		},
+		{
+			title:      "formatted message",
+			expected:   map[string]interface{}{"a": "not-a-number"},
+			actual:     map[string]interface{}{"a": "still-not"},
+			msgAndArgs: []interface{}{"case %d", 7},
+			wantSub:    "Messages:   \tkey[a]: case 7\n",
+		},
+	} {
+		t.Run(tc.title, func(t *testing.T) {
+			mockT := new(mockTestingT)
+			False(t, InDeltaMapValues(mockT, tc.expected, tc.actual, 0.1, tc.msgAndArgs...))
+			Contains(t, mockT.errorString(), tc.wantSub)
+		})
+	}
+}
+
 func TestInEpsilon(t *testing.T) {
 	t.Parallel()
 
