@@ -2971,10 +2971,9 @@ Diff:
 - (string) (len=4) "four": (int) 4,
 + (string) (len=4) "five": (int) 5,
   (string) (len=3) "one": (int) 1,
-- (string) (len=5) "three": (int) 3,
-- (string) (len=3) "two": (int) 2
 + (string) (len=5) "seven": (int) 7,
-+ (string) (len=5) "three": (int) 3
+  (string) (len=5) "three": (int) 3,
+- (string) (len=3) "two": (int) 2,
  }
 `
 

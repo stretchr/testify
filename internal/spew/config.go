@@ -98,6 +98,10 @@ type ConfigState struct {
 	// be spewed to strings and sorted by those strings.  This is only
 	// considered if SortKeys is true.
 	SpewKeys bool
+
+	// TrailingMapComma adds a comma after the last entry when dumping a map.
+	// This keeps unchanged entries identical when comparing two map dumps.
+	TrailingMapComma bool
 }
 
 // Config is the active configuration of the top-level functions.
