@@ -1955,8 +1955,10 @@ func diff(expected interface{}, actual interface{}) string {
 		e = spewConfigStringerEnabled.Sdump(expected)
 		a = spewConfigStringerEnabled.Sdump(actual)
 	default:
-		e = spewConfig.Sdump(expected)
-		a = spewConfig.Sdump(actual)
+		config := spewConfig
+		config.TrailingMapComma = true
+		e = config.Sdump(expected)
+		a = config.Sdump(actual)
 	}
 
 	diff, _ := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{

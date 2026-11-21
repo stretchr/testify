@@ -392,7 +392,7 @@ func (d *dumpState) dump(v reflect.Value) {
 				d.w.Write(colonSpaceBytes)
 				d.ignoreNextIndent = true
 				d.dump(d.unpackValue(v.MapIndex(key)))
-				if i < (numEntries - 1) {
+				if d.cs.TrailingMapComma || i < numEntries-1 {
 					d.w.Write(commaNewlineBytes)
 				} else {
 					d.w.Write(newlineBytes)
