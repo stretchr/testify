@@ -235,6 +235,11 @@ func (c *Call) Unset() *Call {
 	// in-place filter slice for calls to be removed - iterate from 0'th to last skipping unnecessary ones
 	var index int // write index
 	for _, call := range c.Parent.ExpectedCalls {
+		if call == c {
+			foundMatchingCall = true
+			// Remove from ExpectedCalls - just skip it
+			continue
+		}
 		if call.Method == c.Method {
 			_, diffCount := call.Arguments.Diff(c.Arguments)
 			if diffCount == 0 {
@@ -1031,16 +1036,36 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			switch expected := expected.(type) {
 			case anythingOfTypeArgument:
 				// type checking
-				if reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected) {
-					// not match
-					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
+				switch actual := actual.(type) {
+				case anythingOfTypeArgument:
+					if string(actual) != string(expected) {
+						differences++
+						output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, actual, actualFmt)
+					}
+				default:
+					if actual == nil || (reflect.TypeOf(actual).Name() != string(expected) && reflect.TypeOf(actual).String() != string(expected)) {
+						// not match
+						differences++
+						actualName := "nil"
+						if actual != nil {
+							actualName = reflect.TypeOf(actual).Name()
+						}
+						output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, actualName, actualFmt)
+					}
 				}
 			case *IsTypeArgument:
-				actualT := reflect.TypeOf(actual)
-				if actualT != expected.t {
-					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, safeTypeName(expected.t), safeTypeName(actualT), actualFmt)
+				switch actual := actual.(type) {
+				case *IsTypeArgument:
+					if actual.t != expected.t {
+						differences++
+						output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, safeTypeName(expected.t), safeTypeName(actual.t), actualFmt)
+					}
+				default:
+					actualT := reflect.TypeOf(actual)
+					if actualT != expected.t {
+						differences++
+						output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, safeTypeName(expected.t), safeTypeName(actualT), actualFmt)
+					}
 				}
 			case *FunctionalOptionsArgument:
 				var name string
