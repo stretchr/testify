@@ -712,6 +712,54 @@ func Test_Mock_UnsetByOnMethodSpecAmongOthers(t *testing.T) {
 	assert.Equal(t, expectedCalls, mockedService.ExpectedCalls)
 }
 
+func Test_Mock_Unset_WithAnythingOfType(t *testing.T) {
+	t.Parallel()
+
+	var mockedService = new(TestExampleImplementation)
+	call := mockedService.On("TheExampleMethod3", AnythingOfType("int"), AnythingOfType("int"), AnythingOfType("int")).Return(nil)
+
+	assert.NotPanics(t, func() {
+		call.Unset()
+	})
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+}
+
+func Test_Mock_Unset_WithIsType(t *testing.T) {
+	t.Parallel()
+
+	var mockedService = new(TestExampleImplementation)
+	call := mockedService.On("TheExampleMethod3", IsType(0), IsType(0), IsType(0)).Return(nil)
+
+	assert.NotPanics(t, func() {
+		call.Unset()
+	})
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+}
+
+func Test_Mock_Unset_WithMatchedBy(t *testing.T) {
+	t.Parallel()
+
+	var mockedService = new(TestExampleImplementation)
+	call := mockedService.On("TheExampleMethod3", MatchedBy(func(x int) bool { return true }), 0, 0).Return(nil)
+
+	assert.NotPanics(t, func() {
+		call.Unset()
+	})
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+}
+
+func Test_Mock_UnsetByOnMethodSpec_WithAnythingOfType(t *testing.T) {
+	t.Parallel()
+
+	var mockedService = new(TestExampleImplementation)
+	mockedService.On("TheExampleMethod3", AnythingOfType("int"), AnythingOfType("int"), AnythingOfType("int")).Return(nil)
+
+	assert.Equal(t, 1, len(mockedService.ExpectedCalls))
+	mockedService.On("TheExampleMethod3", AnythingOfType("int"), AnythingOfType("int"), AnythingOfType("int")).Return(nil).Unset()
+
+	assert.Equal(t, 0, len(mockedService.ExpectedCalls))
+}
+
 func Test_Mock_Unset_WithFuncPanics(t *testing.T) {
 	t.Parallel()
 
