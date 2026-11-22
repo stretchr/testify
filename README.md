@@ -300,6 +300,28 @@ func TestExampleTestSuite(t *testing.T) {
 
 ------
 
+Colorized diff output
+=====================
+
+By default, the diff printed when an assertion like `assert.Equal` fails is
+plain text. You can colorize it (expected in green, actual in red) by
+installing the provided decorator once, e.g. in `TestMain`:
+
+```go
+func TestMain(m *testing.M) {
+	assert.SetDiffDecorator(assert.NewColorDiffDecorator())
+	os.Exit(m.Run())
+}
+```
+
+`NewColorDiffDecorator` only enables colors when output goes to a terminal and
+the `NO_COLOR` environment variable is not set, so CI logs stay free of
+control characters (`FORCE_COLOR=1` forces colors on). Use
+`assert.SetDiffDecorator(nil)` to restore the default plain output, or supply
+your own `assert.DiffDecorator` implementation to customize the decoration.
+
+------
+
 Installation
 ============
 
