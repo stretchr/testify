@@ -1969,7 +1969,7 @@ func diff(expected interface{}, actual interface{}) string {
 		Context:  1,
 	})
 
-	return "\n\nDiff:\n" + diff
+	return "\n\nDiff:\n" + decorateDiff(diff)
 }
 
 func isFunction(arg interface{}) bool {
