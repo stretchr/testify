@@ -326,7 +326,10 @@ func (m *Mock) String() string {
 
 // TestData holds any data that might be useful for testing.  Testify ignores
 // this data completely allowing you to do whatever you like with it.
+// Access to the returned map must be synchronized by the caller.
 func (m *Mock) TestData() objx.Map {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	if m.testData == nil {
 		m.testData = make(objx.Map)
 	}
