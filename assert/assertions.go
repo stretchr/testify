@@ -1542,13 +1542,29 @@ func InDeltaMapValues(t TestingT, expected, actual interface{}, delta float64, m
 			ev.Interface(),
 			av.Interface(),
 			delta,
-			msgAndArgs...,
+			msgAndArgsWithKey(k, msgAndArgs)...,
 		) {
 			return false
 		}
 	}
 
 	return true
+}
+
+// msgAndArgsWithKey prepends "key[<key>]" to the user message in msgAndArgs.
+// Nothing is formatted here, so the message is only rendered on failure.
+func msgAndArgsWithKey(key interface{}, msgAndArgs []interface{}) []interface{} {
+	switch len(msgAndArgs) {
+	case 0:
+		return []interface{}{"key[%v]", key}
+	case 1:
+		return []interface{}{"key[%v]: %+v", key, msgAndArgs[0]}
+	}
+	format, ok := msgAndArgs[0].(string)
+	if !ok {
+		return msgAndArgs
+	}
+	return append([]interface{}{"key[%v]: " + format, key}, msgAndArgs[1:]...)
 }
 
 func calcRelativeError(expected, actual interface{}) (float64, error) {
