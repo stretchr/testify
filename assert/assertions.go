@@ -768,8 +768,8 @@ func isEmptyValue(objValue reflect.Value) bool {
 	// Note: array types are empty when they match their zero-initialized state.
 	case reflect.Chan, reflect.Map, reflect.Slice:
 		return objValue.Len() == 0
-	// non-nil pointers are empty if the value they point to is empty
-	case reflect.Ptr:
+	// non-nil pointers and interfaces are empty if the value they hold is empty
+	case reflect.Ptr, reflect.Interface:
 		return isEmptyValue(objValue.Elem())
 	}
 	return false
