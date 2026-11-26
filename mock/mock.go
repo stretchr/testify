@@ -851,7 +851,7 @@ type FunctionalOptionsArgument struct {
 func (f *FunctionalOptionsArgument) String() string {
 	var name string
 	if len(f.values) > 0 {
-		name = "[]" + reflect.TypeOf(f.values[0]).String()
+		name = "[]" + safeTypeString(reflect.TypeOf(f.values[0]))
 	}
 
 	return strings.Replace(fmt.Sprintf("%#v", f.values), "[]interface {}", name, 1)
@@ -1045,13 +1045,18 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			case *FunctionalOptionsArgument:
 				var name string
 				if len(expected.values) > 0 {
-					name = "[]" + reflect.TypeOf(expected.values[0]).String()
+					name = "[]" + safeTypeString(reflect.TypeOf(expected.values[0]))
 				}
 
 				const tName = "[]interface{}"
-				if name != reflect.TypeOf(actual).String() && len(expected.values) != 0 {
+				actualType := reflect.TypeOf(actual)
+				// A nil actual argument is never a match: it has no type
+				// to compare, and assertOpts below cannot inspect it
+				// (reflect.ValueOf(nil) has no Len). Report the
+				// difference instead of panicking on the nil type.
+				if actual == nil || (name != safeTypeString(actualType) && len(expected.values) != 0) {
 					differences++
-					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, reflect.TypeOf(actual).Name(), actualFmt)
+					output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, tName, safeTypeName(actualType), actualFmt)
 				} else {
 					if ef, af := assertOpts(expected.values, actual); ef == "" && af == "" {
 						// match
@@ -1176,6 +1181,16 @@ func safeTypeName(t reflect.Type) string {
 		return "<nil>"
 	}
 	return t.Name()
+}
+
+// safeTypeString returns the reflect.Type's string representation without
+// causing a panic. If the provided reflect.Type is nil, it returns the
+// placeholder string "<nil>"
+func safeTypeString(t reflect.Type) string {
+	if t == nil {
+		return "<nil>"
+	}
+	return t.String()
 }
 
 func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
@@ -1312,10 +1327,17 @@ func assertOpts(expected, actual interface{}) (expectedFmt, actualFmt string) {
 }
 
 func runtimeFunc(opt interface{}) *runtime.Func {
-	return runtime.FuncForPC(reflect.ValueOf(opt).Pointer())
+	v := reflect.ValueOf(opt)
+	if !v.IsValid() {
+		return nil
+	}
+	return runtime.FuncForPC(v.Pointer())
 }
 
 func funcName(f *runtime.Func) string {
+	if f == nil {
+		return "<nil>"
+	}
 	name := f.Name()
 	trimmed := strings.TrimSuffix(path.Base(name), path.Ext(name))
 	splitted := strings.Split(trimmed, ".")
@@ -1328,6 +1350,9 @@ func funcName(f *runtime.Func) string {
 }
 
 func isFuncSame(f1, f2 *runtime.Func) bool {
+	if f1 == nil || f2 == nil {
+		return f1 == f2
+	}
 	f1File, f1Loc := f1.FileLine(f1.Entry())
 	f2File, f2Loc := f2.FileLine(f2.Entry())
 
